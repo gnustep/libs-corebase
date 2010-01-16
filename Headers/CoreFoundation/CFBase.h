@@ -28,8 +28,6 @@
 #ifndef __COREFOUNDATION_CFBASE_H__
 #define __COREFOUNDATION_CFBASE_H__
 
-#include <Foundation/Foundation.h>
-
 #include <stdint.h>
 
 #include <GNUstepBase/GSVersionMacros.h>
@@ -84,7 +82,12 @@ typedef void* CFTypeRef;
 //
 typedef signed long CFIndex;
 typedef UInt32 CFOptionFlags;
-typedef NSRange CFRange;
+struct CFRange
+{
+  CFIndex location;
+  CFIndex length;
+};
+typedef struct CFRange CFRange;
 
 /* Returned by comparison functions */
 typedef CFIndex CFComparisonResult;
@@ -156,15 +159,22 @@ GS_EXPORT double kCFCoreFoundationVersionNumber;
 #define kCFCoreFoundationVersionNumber10_5_6  476.17
 
 /* Creates new range. */
-#define CFRangeMake(loc, len) NSMakeRange(loc, len)
+static inline CFRange
+CFRangeMake(CFIndex location, CFIndex length)
+{
+  CFRange range;
 
+  range.location = location;
+  range.length   = length;
+  return range;
+}
 
 
 //
 // CFString
 //
-typedef NSString * CFStringRef;
-typedef NSMutableString * CFMutableStringRef;
+typedef struct CFString * CFStringRef;
+typedef struct CFMutableString * CFMutableStringRef;
 
 //
 // CFAllocator
@@ -278,7 +288,7 @@ CFRetain (CFTypeRef cf);
 // CFNull
 //
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
-typedef NSNull *CFNullRef;
+typedef struct CFNull *CFNullRef;
 
 GS_EXPORT CFNullRef kCFNull;
 

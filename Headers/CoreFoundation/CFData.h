@@ -27,13 +27,10 @@
 #ifndef __COREFOUNDATION_CFDATA_H__
 #define __COREFOUNDATION_CFDATA_H__
 
-#include <Foundation/Foundation.h>
-
 #include <CoreFoundation/CFBase.h>
 
-typedef NSData * CFDataRef;
-typedef NSMutableData * CFMutableDataRef;
-
+typedef struct CFData *CFDataRef;
+typedef struct CFMutableData *CFMutableDataRef;
 
 
 //

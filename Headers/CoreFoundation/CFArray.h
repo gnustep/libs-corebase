@@ -28,12 +28,10 @@
 #ifndef __COREFOUNDATION_CFARRAY_H__
 #define __COREFOUNDATION_CFARRAY_H__
 
-#include <Foundation/Foundation.h>
-
 #include <CoreFoundation/CFBase.h>
 
-typedef NSArray *CFArrayRef;
-typedef NSMutableArray *CFMutableArrayRef;
+typedef struct CFArray *CFArrayRef;
+typedef struct CFMutableArray *CFMutableArrayRef;
 
 typedef void (*CFArrayApplierFunction) (const void *value, void *context);
 typedef CFStringRef (*CFArrayCopyDescriptionCallBack) (const void *value);

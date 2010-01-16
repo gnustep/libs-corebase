@@ -1,3 +1,14 @@
+2010-01-17 Fred Kiefer <fredkiefer@gmx.de>
+
+	* Headers/CoreFoundation/CFBase.h,
+	* Headers/CoreFoundation/CFArray.h,
+	* Headers/CoreFoundation/CFData.h: Don't include Foundation,h, use
+	abstract types instead.
+	* Source/CFArray.m,
+	* Source/CFData.m,
+	* Source/CFString.m: Adopt to this change by using plenty of type
+	casts. 
+
 2010-01-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFBase.m: Correctly reallocate memory.

@@ -24,9 +24,19 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <Foundation/Foundation.h>
+#import <Foundation/NSData.h>
 
 #include "CoreFoundation/CFData.h"
+
+/*
+typedef struct CFData {
+  @defs(NSData)
+} CFData;
+
+typedef struct CFMutableData {
+  @defs(NSMutableData)
+} CFMutableData;
+*/
 
 //
 // CFData
@@ -39,13 +49,13 @@ CFTypeID CFDataGetTypeID (void)
 CFDataRef CFDataCreate (CFAllocatorRef allocator, const UInt8 *bytes,
   CFIndex length)
 {
-  return [[NSData allocWithZone: allocator] initWithBytes: bytes
+  return (CFDataRef)[[NSData allocWithZone: allocator] initWithBytes: bytes
                                                    length: length];
 }
 
 CFDataRef CFDataCreateCopy (CFAllocatorRef allocator, CFDataRef theData)
 {
-  return [theData copyWithZone: allocator];
+  return (CFDataRef)[(NSData*)theData copyWithZone: allocator];
 }
 
 CFDataRef CFDataCreateWithBytesNoCopy (CFAllocatorRef allocator,
@@ -53,25 +63,26 @@ CFDataRef CFDataCreateWithBytesNoCopy (CFAllocatorRef allocator,
 {
   BOOL freeWhenDone = (bytesDeallocator == kCFAllocatorNull);
   
-  return [[NSData allocWithZone: allocator]
-    initWithBytesNoCopy: (const char *)bytes
-                 length: length
-           freeWhenDone: freeWhenDone];
+  return (CFDataRef)[[NSData allocWithZone: allocator]
+                      initWithBytesNoCopy: (void*)bytes
+                                   length: length
+                             freeWhenDone: freeWhenDone];
 }
 
 const UInt8 * CFDataGetBytePtr (CFDataRef theData)
 {
-  return [theData bytes];
+  return [(NSData*)theData bytes];
 }
 
 void CFDataGetBytes (CFDataRef theData, CFRange range, UInt8 *buffer)
 {
-  [theData getBytes: buffer range: range];
+  [(NSData*)theData getBytes: buffer 
+                       range: NSMakeRange(range.location, range.length)];
 }
 
 CFIndex CFDataGetLength (CFDataRef theData)
 {
-  return [theData length];
+  return [(NSData*)theData length];
 }
 
 
@@ -80,21 +91,23 @@ CFIndex CFDataGetLength (CFDataRef theData)
 // CFMutableData
 //
 void CFDataAppendBytes (CFMutableDataRef theData, const UInt8 *bytes,
-  CFIndex length)
+                        CFIndex length)
 {
-  [theData appendBytes: bytes length: length];
+  [(NSMutableData*)theData appendBytes: bytes length: length];
 }
 
 CFMutableDataRef CFDataCreateMutable (CFAllocatorRef allocator,
-  CFIndex capacity)
+                                      CFIndex capacity)
 {
-  return [[NSMutableData allocWithZone: allocator] initWithCapacity: capacity];
+  return (CFMutableDataRef)[[NSMutableData allocWithZone: allocator] 
+                             initWithCapacity: capacity];
 }
 
 CFMutableDataRef CFDataCreateMutableCopy (CFAllocatorRef allocator,
-  CFIndex capacity, CFDataRef theData)
+                                          CFIndex capacity, CFDataRef theData)
 {
-  return [[theData mutableCopyWithZone: allocator] setCapacity: capacity];
+  return (CFMutableDataRef)[[(NSMutableData*)theData mutableCopyWithZone: allocator] 
+                             setCapacity: capacity];
 }
 
 void CFDataDeleteBytes (CFMutableDataRef theData, CFRange range)
@@ -104,23 +117,23 @@ void CFDataDeleteBytes (CFMutableDataRef theData, CFRange range)
 
 UInt8 *CFDataGetMutableBytePtr (CFMutableDataRef theData)
 {
-  return (UInt8 *)[theData bytes];
+  return (UInt8 *)[(NSMutableData*)theData bytes];
 }
 
 void CFDataIncreaseLength (CFMutableDataRef theData, CFIndex extraLength)
 {
-  [theData increaseLengthBy: extraLength];
+  [(NSMutableData*)theData increaseLengthBy: extraLength];
 }
 
 void CFDataReplaceBytes (CFMutableDataRef theData, CFRange range,
   const UInt8 *newBytes, CFIndex newLength)
 {
-  [theData replaceBytesInRange: range
-                     withBytes: newBytes
-                        length: newLength];
+  [(NSMutableData*)theData replaceBytesInRange: NSMakeRange(range.location, range.length)
+                                     withBytes: newBytes
+                                        length: newLength];
 }
 
 void CFDataSetLength (CFMutableDataRef theData, CFIndex length)
 {
-  [theData setLength: length];
+  [(NSMutableData*)theData setLength: length];
 }

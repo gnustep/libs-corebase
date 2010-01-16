@@ -24,7 +24,7 @@
    Boston, MA 02110-1301, USA.
 */ 
 
-#include <Foundation/Foundation.h>
+#import <Foundation/NSString.h>
 
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFArray.h"
@@ -37,37 +37,37 @@
 #include <stdarg.h>
 
 const CFStringRef kCFStringTransformStripCombiningMarks =
-  @"kCFStringTransformStripCombiningMarks";
+  (CFStringRef)@"kCFStringTransformStripCombiningMarks";
 const CFStringRef kCFStringTransformToLatin =
-  @"kCFStringTransformToLatin";
+  (CFStringRef)@"kCFStringTransformToLatin";
 const CFStringRef kCFStringTransformFullwidthHalfwidth =
-  @"kCFStringTransformFullwidthHalfwidth";
+  (CFStringRef)@"kCFStringTransformFullwidthHalfwidth";
 const CFStringRef kCFStringTransformLatinKatakana =
-  @"kCFStringTransformLatinKatakana";
+  (CFStringRef)@"kCFStringTransformLatinKatakana";
 const CFStringRef kCFStringTransformLatinHiragana =
-  @"kCFStringTransformLatinHiragana";
+  (CFStringRef)@"kCFStringTransformLatinHiragana";
 const CFStringRef kCFStringTransformHiraganaKatakana  =
-  @"kCFStringTransformHiraganaKatakana";
+  (CFStringRef)@"kCFStringTransformHiraganaKatakana";
 const CFStringRef kCFStringTransformMandarinLatin =
-  @"kCFStringTransformMandarinLatin";
+  (CFStringRef)@"kCFStringTransformMandarinLatin";
 const CFStringRef kCFStringTransformLatinHangul =
-  @"kCFStringTransformLatinHangul";
+  (CFStringRef)@"kCFStringTransformLatinHangul";
 const CFStringRef kCFStringTransformLatinArabic =
-  @"kCFStringTransformLatinArabic";
+  (CFStringRef)@"kCFStringTransformLatinArabic";
 const CFStringRef kCFStringTransformLatinHebrew =
-  @"kCFStringTransformLatinHebrew";
+  (CFStringRef)@"kCFStringTransformLatinHebrew";
 const CFStringRef kCFStringTransformLatinThai =
-  @"kCFStringTransformLatinThai";
+  (CFStringRef)@"kCFStringTransformLatinThai";
 const CFStringRef kCFStringTransformLatinCyrillic =
-  @"kCFStringTransformLatinCyrillic";
+  (CFStringRef)@"kCFStringTransformLatinCyrillic";
 const CFStringRef kCFStringTransformLatinGreek =
-  @"kCFStringTransformLatinGreek";
+  (CFStringRef)@"kCFStringTransformLatinGreek";
 const CFStringRef kCFStringTransformToXMLHex =
-  @"kCFStringTransformToXMLHex";
+  (CFStringRef)@"kCFStringTransformToXMLHex";
 const CFStringRef kCFStringTransformToUnicodeName =
-  @"kCFStringTransformToUnicodeName";
+  (CFStringRef)@"kCFStringTransformToUnicodeName";
 const CFStringRef kCFStringTransformStripDiacritics =
-  @"kCFStringTransformStripDiacritics";
+  (CFStringRef)@"kCFStringTransformStripDiacritics";
 
 
 
@@ -84,21 +84,24 @@ CFComparisonResult CFStringCompare (CFStringRef theString1,
 }
 
 CFComparisonResult CFStringCompareWithOptions (CFStringRef theString1,
-  CFStringRef theString2, CFRange rangeToCompare,
-  CFStringCompareFlags compareOptions)
+                                               CFStringRef theString2, 
+                                               CFRange rangeToCompare,
+                                               CFStringCompareFlags compareOptions)
 {
-  return [theString1 compare: (NSString *)theString2
-                     options: compareOptions
-                       range: rangeToCompare];
+  return [(NSString*)theString1 compare: (NSString *)theString2
+                                options: compareOptions
+                                  range: NSMakeRange(rangeToCompare.location, rangeToCompare.length)];
 }
 
 CFComparisonResult CFStringCompareWithOptionsAndLocale (CFStringRef theString1,
-  CFStringRef theString2, CFRange rangeToCompare,
-  CFStringCompareFlags compareOptions, CFLocaleRef locale)
+                                                        CFStringRef theString2, 
+                                                        CFRange rangeToCompare,
+                                                        CFStringCompareFlags compareOptions, 
+                                                        CFLocaleRef locale)
 {
-  return [theString1 compare: theString2
+  return [(NSString*)theString1 compare: (NSString*)theString2
                      options: compareOptions
-                       range: rangeToCompare
+                       range: NSMakeRange(rangeToCompare.location, rangeToCompare.length)
                       locale: (NSDictionary *) locale]; // is this right?
 }
 
@@ -221,7 +224,7 @@ CFStringEncoding CFStringConvertWindowsCodepageToEncoding (UInt32 codepage)
 CFArrayRef CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
   CFStringRef theString, CFStringRef separatorString)
 {
-  return [theString componentsSeparatedByString: separatorString];
+  return (CFArrayRef)[(NSString*)theString componentsSeparatedByString: (NSString*)separatorString];
 }
 
 CFArrayRef CFStringCreateArrayWithFindResults (CFAllocatorRef alloc,
@@ -234,12 +237,12 @@ CFArrayRef CFStringCreateArrayWithFindResults (CFAllocatorRef alloc,
 CFStringRef CFStringCreateByCombiningStrings (CFAllocatorRef alloc,
   CFArrayRef theArray, CFStringRef separatorString)
 {
-  return [theArray componentsJoinedByString: separatorString];
+  return (CFStringRef)[(NSArray*)theArray componentsJoinedByString: (NSString*)separatorString];
 }
 
 CFStringRef CFStringCreateCopy (CFAllocatorRef alloc, CFStringRef theString)
 {
-  return [theString copy];
+  return (CFStringRef)[(NSString*)theString copy];
 }
 
 CFStringRef CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
@@ -251,15 +254,16 @@ CFStringRef CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
 CFStringRef CFStringCreateFromExternalRepresentation (CFAllocatorRef alloc,
   CFDataRef data, CFStringEncoding encoding)
 {
-  return [[NSString allocWithZone: alloc] initWithData: (NSData *)data
-    encoding: CFStringConvertEncodingToNSStringEncoding(encoding)];
+  return (CFStringRef)[[NSString allocWithZone: alloc] 
+                        initWithData: (NSData *)data
+                            encoding: CFStringConvertEncodingToNSStringEncoding(encoding)];
 }
 
 CFStringRef CFStringCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes,
   CFIndex numBytes, CFStringEncoding encoding, Boolean isExternalRepresentation)
 {
   return CFStringCreateWithBytesNoCopy (alloc, bytes, numBytes, encoding,
-    isExternalRepresentation, NULL);
+                                        isExternalRepresentation, NULL);
 }
 
 CFStringRef CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc,
@@ -268,8 +272,8 @@ CFStringRef CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc,
 {
   BOOL freeWhenDone = contentsDeallocator == kCFAllocatorNull ? NO : YES;
   
-  return [[NSString allocWithZone: alloc]
-    initWithBytesNoCopy: (const char *)bytes
+  return (CFStringRef)[[NSString allocWithZone: alloc]
+    initWithBytesNoCopy: (void*)bytes
     length: numBytes
     encoding: CFStringConvertEncodingToNSStringEncoding(encoding)
     freeWhenDone: freeWhenDone];
@@ -292,7 +296,7 @@ CFStringRef CFStringCreateWithCharactersNoCopy (CFAllocatorRef alloc,
 CFStringRef CFStringCreateWithCString (CFAllocatorRef alloc,
   const char *cStr, CFStringEncoding encoding)
 {
-  return [[NSString allocWithZone: alloc] initWithCString: cStr
+  return (CFStringRef)[[NSString allocWithZone: alloc] initWithCString: cStr
     encoding: CFStringConvertEncodingToNSStringEncoding(encoding)];
 }
 
@@ -302,10 +306,11 @@ CFStringRef CFStringCreateWithCStringNoCopy (CFAllocatorRef alloc,
 {
   BOOL freeWhenDone = contentsDeallocator == kCFAllocatorNull ? NO : YES;
   
-  return [[NSString allocWithZone: alloc] initWithBytesNoCopy: cStr
-    length: strlen(cStr)
-    encoding: CFStringConvertEncodingToNSStringEncoding(encoding)
-    freeWhenDone: freeWhenDone];
+  return (CFStringRef)[[NSString allocWithZone: alloc] 
+                        initWithBytesNoCopy: (void*)cStr
+                                     length: strlen(cStr)
+                                   encoding: CFStringConvertEncodingToNSStringEncoding(encoding)
+                               freeWhenDone: freeWhenDone];
 }
 
 CFStringRef CFStringCreateWithFileSystemRepresentation (CFAllocatorRef alloc,
@@ -332,9 +337,9 @@ CFStringRef CFStringCreateWithFormat (CFAllocatorRef alloc,
 CFStringRef CFStringCreateWithFormatAndArguments (CFAllocatorRef alloc,
   CFDictionaryRef formatOptions, CFStringRef format, va_list arguments)
 {
-  return [[NSString allocWithZone: alloc]
-    initWithFormat: format
-         arguments: arguments];
+  return (CFStringRef)[[NSString allocWithZone: alloc]
+                        initWithFormat: (NSString*)format
+                             arguments: arguments];
 }
 
 CFStringRef CFStringCreateWithPascalString ( CFAllocatorRef alloc,
@@ -355,7 +360,7 @@ CFStringRef CFStringCreateWithPascalStringNoCopy (CFAllocatorRef alloc,
 CFStringRef CFStringCreateWithSubstring (CFAllocatorRef alloc,
   CFStringRef str, CFRange range)
 {
-  return [str substringWithRange: range];
+  return (CFStringRef)[(NSString*)str substringWithRange: NSMakeRange(range.location, range.length)];
 }
 
 CFRange CFStringFind (CFStringRef theString, CFStringRef stringToFind,
@@ -376,14 +381,17 @@ Boolean CFStringFindCharacterFromSet (CFStringRef theString,
   CFCharacterSetRef theSet, CFRange rangeToSearch,
   CFStringCompareFlags searchOptions, CFRange *result)
 {
-  *result = (CFRange)[theString rangeOfCharacterFromSet: theSet
-                                                options: searchOptions
-                                                  range: rangeToSearch];
-  if (result->location == 0 && result->length == 0);
+  NSRange range = [(NSString*)theString 
+                      rangeOfCharacterFromSet: (NSCharacterSet*)theSet
+                      options: searchOptions
+                      range: NSMakeRange(rangeToSearch.location, rangeToSearch.length)];
+
+  if (range.location == 0 && range.length == 0)
     {
       return false;
     }
   
+  *result = CFRangeMake(range.location, range.length);
   return true;
 }
 
@@ -400,13 +408,16 @@ Boolean CFStringFindWithOptionsAndLocale (CFStringRef theString,
   CFStringCompareFlags searchOptions, CFLocaleRef locale, CFRange *result)
 {
   /* FIXME: correct method is not implemented in GNUstep. */
-  *result = (CFRange)[theString rangeOfString: stringToFind
+  NSRange range = [(NSString*)theString rangeOfString: (NSString*)stringToFind
                                       options: searchOptions
-                                        range: rangeToSearch];
-  if (result->location == 0 && result->length == 0)
+                                        range: NSMakeRange(rangeToSearch.location, rangeToSearch.length)];
+
+  if (range.location == 0 && range.length == 0)
     {
       return false;
     }
+
+  *result = CFRangeMake(range.location, range.length);
   return true;
 }
 
@@ -420,7 +431,7 @@ CFIndex CFStringGetBytes (CFStringRef theString, CFRange range,
 
 UniChar CFStringGetCharacterAtIndex (CFStringRef theString, CFIndex idx)
 {
-  return [theString characterAtIndex: idx];
+  return [(NSString*)theString characterAtIndex: idx];
 }
 
 UniChar CFStringGetCharacterFromInlineBuffer (CFStringInlineBuffer *buf,
@@ -432,22 +443,18 @@ UniChar CFStringGetCharacterFromInlineBuffer (CFStringInlineBuffer *buf,
 void CFStringGetCharacters (CFStringRef theString, CFRange range,
   UniChar *buffer)
 {
-  [theString getCharacters: buffer range: range];
+  [(NSString*)theString getCharacters: buffer range: NSMakeRange(range.location, range.length)];
 }
 
-const UniChar * CFStringGetCharactersPtr (CFStringRef theString)
+const UniChar *CFStringGetCharactersPtr (CFStringRef theString)
 {
-  UniChar *ret;
-  
-  [theString getCharacters: ret];
-  
-  return ret;
+  return (UniChar *)CFStringGetCStringPtr(theString, kCFStringEncodingUnicode);
 }
 
 Boolean CFStringGetCString (CFStringRef theString, char *buffer,
   CFIndex bufferSize, CFStringEncoding encoding)
 {
-  return [theString getCString: buffer
+  return [(NSString*)theString getCString: buffer
     maxLength: bufferSize
     encoding: CFStringConvertEncodingToNSStringEncoding(encoding)];
 }
@@ -455,18 +462,18 @@ Boolean CFStringGetCString (CFStringRef theString, char *buffer,
 const char * CFStringGetCStringPtr (CFStringRef theString,
   CFStringEncoding encoding)
 {
-  return [theString
+  return [(NSString*)theString
     cStringUsingEncoding: CFStringConvertEncodingToNSStringEncoding(encoding)];
 }
 
 double CFStringGetDoubleValue (CFStringRef str)
 {
-  return [str doubleValue];
+  return [(NSString*)str doubleValue];
 }
 
 CFStringEncoding CFStringGetFastestEncoding (CFStringRef theString)
 {
-  return [theString fastestEncoding];
+  return [(NSString*)theString fastestEncoding];
 }
 
 Boolean CFStringGetFileSystemRepresentation (CFStringRef string,
@@ -478,12 +485,12 @@ Boolean CFStringGetFileSystemRepresentation (CFStringRef string,
 
 SInt32 CFStringGetIntValue (CFStringRef str)
 {
-  return [str intValue];
+  return [(NSString*)str intValue];
 }
 
 CFIndex CFStringGetLength (CFStringRef theString)
 {
-  return [theString length];
+  return [(NSString*)theString length];
 }
 
 void CFStringGetLineBounds (CFStringRef theString, CFRange range,
@@ -504,7 +511,7 @@ CFIndex CFStringGetMaximumSizeForEncoding (CFIndex length,
 
 CFIndex CFStringGetMaximumSizeOfFileSystemRepresentation (CFStringRef string)
 {
-  return [string
+  return [(NSString*)string
     maximumLengthOfBytesUsingEncoding: [NSString defaultCStringEncoding]];
 }
 
@@ -517,17 +524,17 @@ CFStringEncoding CFStringGetMostCompatibleMacStringEncoding
 CFStringRef CFStringGetNameOfEncoding (CFStringEncoding encoding)
 {
   /* FIXME: GSPrivateEncodingName () would be nice here */
-  return [NSString localizedNameOfStringEncoding:
+  return (CFStringRef)[NSString localizedNameOfStringEncoding:
     CFStringConvertEncodingToNSStringEncoding(encoding)];
 }
 
 void CFStringGetParagraphBounds (CFStringRef string, CFRange range,
   CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex)
 {
-  [string getParagraphStart: (NSUInteger *)parBeginIndex
-                        end: (NSUInteger *)parEndIndex
-                contentsEnd: (NSUInteger *)contentsEndIndex
-                   forRange: range];
+  [(NSString*)string getParagraphStart: (NSUInteger *)parBeginIndex
+                                   end: (NSUInteger *)parEndIndex
+                           contentsEnd: (NSUInteger *)contentsEndIndex
+                              forRange: NSMakeRange(range.location, range.length)];
 }
 
 Boolean CFStringGetPascalString (CFStringRef theString,
@@ -545,18 +552,19 @@ ConstStringPtr CFStringGetPascalStringPtr (CFStringRef theString,
 CFRange CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef theString,
   CFIndex theIndex)
 {
-  return [theString rangeOfComposedCharacterSequenceAtIndex: theIndex];
+  NSRange range = [(NSString*)theString rangeOfComposedCharacterSequenceAtIndex: theIndex];
+
+  return CFRangeMake(range.location, range.length);
 }
 
 CFStringEncoding CFStringGetSmallestEncoding (CFStringRef theString)
 {
-  return [theString smallestEncoding];
+  return [(NSString*)theString smallestEncoding];
 }
 
 CFStringEncoding CFStringGetSystemEncoding (void)
 {
-  return CFStringConvertEncodingToNSStringEncoding
-    ([NSString defaultCStringEncoding]);
+  return CFStringConvertEncodingToNSStringEncoding([NSString defaultCStringEncoding]);
 }
 
 CFTypeID CFStringGetTypeID (void)
@@ -566,12 +574,12 @@ CFTypeID CFStringGetTypeID (void)
 
 Boolean CFStringHasPrefix (CFStringRef theString, CFStringRef prefix)
 {
-  return [theString hasPrefix: prefix];
+  return [(NSString*)theString hasPrefix: (NSString*)prefix];
 }
 
 Boolean CFStringHasSuffix (CFStringRef theString, CFStringRef suffix)
 {
-  return [theString hasSuffix: suffix];
+  return [(NSString*)theString hasSuffix: (NSString*)suffix];
 }
 
 void CFStringInitInlineBuffer (CFStringRef str, CFStringInlineBuffer *buf,
@@ -589,7 +597,7 @@ Boolean CFStringIsEncodingAvailable (CFStringEncoding encoding)
 //
 void CFStringAppend (CFMutableStringRef theString, CFStringRef appendedString)
 {
-  [theString appendString: appendedString];
+  [(NSMutableString*)theString appendString: (NSString*)appendedString];
 }
 
 void CFStringAppendCharacters (CFMutableStringRef theString,
@@ -630,13 +638,13 @@ void CFStringCapitalize (CFMutableStringRef theString, CFLocaleRef locale)
 CFMutableStringRef CFStringCreateMutable (CFAllocatorRef alloc,
   CFIndex maxLength)
 {
-  return [[NSMutableString allocWithZone: alloc] initWithCapacity: maxLength];
+  return (CFMutableStringRef)[[NSMutableString allocWithZone: alloc] initWithCapacity: maxLength];
 }
 
 CFMutableStringRef CFStringCreateMutableCopy (CFAllocatorRef alloc,
   CFIndex maxLength, CFStringRef theString)
 {
-  return [theString mutableCopyWithZone: alloc];
+  return (CFMutableStringRef)[(NSString*)theString mutableCopyWithZone: alloc];
 }
 
 CFMutableStringRef CFStringCreateMutableWithExternalCharactersNoCopy
@@ -646,7 +654,7 @@ CFMutableStringRef CFStringCreateMutableWithExternalCharactersNoCopy
   BOOL freeWhenDone =
     externalCharactersAllocator == kCFAllocatorNull ? NO : YES;
   
-  return [[NSMutableString allocWithZone: alloc]
+  return (CFMutableStringRef)[[NSMutableString allocWithZone: alloc]
     initWithCharactersNoCopy: chars
                       length: numChars
                 freeWhenDone: freeWhenDone];
@@ -654,17 +662,18 @@ CFMutableStringRef CFStringCreateMutableWithExternalCharactersNoCopy
 
 void CFStringDelete (CFMutableStringRef theString, CFRange range)
 {
-  [theString deleteCharactersInRange: range];
+  [(NSMutableString*)theString deleteCharactersInRange: NSMakeRange(range.location, range.length)];
 }
 
 CFIndex CFStringFindAndReplace (CFMutableStringRef theString,
   CFStringRef stringToFind, CFStringRef replacementString,
   CFRange rangeToSearch, CFOptionFlags compareOptions)
 {
-  return [theString replaceOccurrencesOfString: stringToFind
-                                    withString: replacementString
-                                       options: compareOptions
-                                         range: rangeToSearch];
+  return [(NSMutableString*)theString 
+             replaceOccurrencesOfString: (NSString*)stringToFind
+             withString: (NSString*)replacementString
+             options: compareOptions
+             range: NSMakeRange(rangeToSearch.location, rangeToSearch.length)];
 }
 
 void CFStringFold (CFMutableStringRef theString, CFOptionFlags theFlags,
@@ -675,7 +684,7 @@ void CFStringFold (CFMutableStringRef theString, CFOptionFlags theFlags,
 void CFStringInsert (CFMutableStringRef str, CFIndex idx,
   CFStringRef insertedStr)
 {
-  [str insertString: insertedStr atIndex: idx];
+  [(NSMutableString*)str insertString: (NSString*)insertedStr atIndex: idx];
 }
 
 void CFStringLowercase (CFMutableStringRef theString, CFLocaleRef locale)
@@ -695,7 +704,8 @@ void CFStringPad (CFMutableStringRef theString, CFStringRef padString,
 void CFStringReplace (CFMutableStringRef theString, CFRange range,
   CFStringRef replacement)
 {
-  [theString replaceCharactersInRange: range withString: replacement];
+  [(NSMutableString*)theString replaceCharactersInRange: NSMakeRange(range.location, range.length)
+                                             withString: (NSString*)replacement];
 }
 
 void CFStringSetExternalCharactersNoCopy (CFMutableStringRef theString,
