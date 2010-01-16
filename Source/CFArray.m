@@ -34,26 +34,34 @@
 void CFArrayApplyFunction (CFArrayRef theArray, CFRange range,
   CFArrayApplierFunction applier, void *context)
 {
+  CFIndex i;
+
+  for (i = range.location; i < range.location + range.length; i++)
+    {
+      applier(CFArrayGetValueAtIndex(theArray, i), context);
+    }
 }
 
 CFIndex CFArrayBSearchValues (CFArrayRef theArray, CFRange range,
   const void *value, CFComparatorFunction comparator, void *context)
 {
+  // FIXME
   return 0;
 }
 
 Boolean CFArrayContainsValue (CFArrayRef theArray, CFRange range,
   const void *value)
 {
-  return ([theArray indexOfObject: (id)value
-    inRange: range] != NSNotFound);
+  return (CFArrayGetFirstIndexOfValue(theArray, range, value) != -1);
 }
 
 CFArrayRef CFArrayCreate (CFAllocatorRef allocator, const void **values,
   CFIndex numValues, const CFArrayCallBacks *callBacks)
 {
-  return [[NSArray allocWithZone: allocator] initWithObjects: (id *)values
-                                                       count: numValues];
+  // FIXME
+  return (CFArrayRef)[[NSArray allocWithZone: allocator] 
+                       initWithObjects: (id *)values
+                                 count: numValues];
 }
 
 CFArrayRef CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef theArray)
@@ -69,17 +77,28 @@ CFIndex CFArrayGetCount (CFArrayRef theArray)
 CFIndex CFArrayGetCountOfValue (CFArrayRef theArray, CFRange range,
   const void *value)
 {
-  return [theArray indexOfObject: (id)value inRange: range];
+  CFIndex count = 0;
+  CFIndex i;
+
+  while (( i = CFArrayGetFirstIndexOfValue(theArray, range, value)) != -1)
+    {
+      count++;
+      range.length -= range.location - i - 1;
+      range.location = i + 1;
+    }
+  return count;
 }
 
 CFIndex CFArrayGetFirstIndexOfValue (CFArrayRef theArray, CFRange range,
   const void *value)
 {
+  return [theArray indexOfObject: (id)value inRange: range];
 }
 
 CFIndex CFArrayGetLastIndexOfValue (CFArrayRef theArray, CFRange range,
   const void *value)
 {
+  // FIXME
 }
 
 CFTypeID CFArrayGetTypeID (void)
@@ -89,7 +108,7 @@ CFTypeID CFArrayGetTypeID (void)
 
 const void * CFArrayGetValueAtIndex (CFArrayRef theArray, CFIndex idx)
 {
-  return [theArray objectAtIndex: idx];
+  return (void*)[theArray objectAtIndex: idx];
 }
 
 void CFArrayGetValues (CFArrayRef theArray, CFRange range, const void **values)
@@ -105,6 +124,9 @@ void CFArrayGetValues (CFArrayRef theArray, CFRange range, const void **values)
 void CFArrayAppendArray (CFMutableArrayRef theArray, CFArrayRef otherArray,
   CFRange otherRange)
 {
+  [theArray replaceObjectsInRange: NSMakeRange([theArray count], 0)
+             withObjectsFromArray: otherArray
+                            range: otherRange];
 }
 
 void CFArrayAppendValue (CFMutableArrayRef theArray, const void *value)
@@ -115,8 +137,9 @@ void CFArrayAppendValue (CFMutableArrayRef theArray, const void *value)
 CFMutableArrayRef CFArrayCreateMutable (CFAllocatorRef allocator,
   CFIndex capacity, const CFArrayCallBacks *callBacks)
 {
-  return [[NSMutableArray allocWithZone: allocator]
-    initWithCapacity: capacity];
+  // FIXME
+  return (CFMutableArrayRef)[[NSMutableArray allocWithZone: allocator]
+                              initWithCapacity: capacity];
 }
 
 CFMutableArrayRef CFArrayCreateMutableCopy (CFAllocatorRef allocator,
@@ -150,6 +173,7 @@ void CFArrayRemoveValueAtIndex (CFMutableArrayRef theArray, CFIndex idx)
 void CFArrayReplaceValues (CFMutableArrayRef theArray, CFRange range,
   const void **newValues, CFIndex newCount)
 {
+  // FIXME
 }
 
 void CFArraySetValueAtIndex (CFMutableArrayRef theArray, CFIndex idx,
@@ -161,5 +185,6 @@ void CFArraySetValueAtIndex (CFMutableArrayRef theArray, CFIndex idx,
 void CFArraySortValues (CFMutableArrayRef theArray, CFRange range,
   CFComparatorFunction comparator, void *context)
 {
-  [theArray sortUsingFunction: comparator context: context];
+  [theArray sortUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator
+                      context: context];
 }

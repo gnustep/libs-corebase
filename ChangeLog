@@ -1,0 +1,8 @@
+2010-01-16 Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/CFArray.m: Implement more of the functions and remove
+	compiler warnings.
+
+2010-01-16 Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Initial import of code by Stefan Bidigaray.
