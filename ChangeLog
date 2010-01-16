@@ -1,3 +1,7 @@
+2010-01-16 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFBase.m: Correctly reallocate memory.
+
 2010-01-16 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/CFArray.m: Implement more of the functions and remove

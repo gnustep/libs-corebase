@@ -92,7 +92,7 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
   newSize = size + sizeof(struct obj_layout);
   if (allocator == 0)
     {
-      allocator = NSDefaultMallocZone();
+      allocator = CFAllocatorGetDefault();
     }
   
   new = NSZoneMalloc(allocator, size);
@@ -100,7 +100,7 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
     {
       memset (new, 0, size);
       ((obj)new)->zone = allocator;
-      new = (id)&((obj)new)[1];
+      new = (void *)&((obj)new)[1];
     }
   
   return new;
@@ -111,7 +111,7 @@ void CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr)
 {
   if (ptr != NULL)
     {
-      obj	o = &((obj)ptr)[-1];
+      obj o = &((obj)ptr)[-1];
       NSZoneFree(allocator, o);
     }
   
@@ -128,13 +128,16 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
   void *new;
   CFIndex size;
   
-  if (ptr == NULL)
+  if (allocator == NULL)
     {
-      return NULL;
+      allocator = CFAllocatorGetDefault();
     }
   
   size = size + sizeof(struct obj_layout);
-  return NSZoneRealloc (allocator, ptr, size);
+  new = NSZoneRealloc (allocator, &((obj)ptr)[-1], size);
+  new = (void *)&((obj)new)[1];
+  
+  return new;
 }
 
 CFAllocatorRef CFAllocatorGetDefault(void)
