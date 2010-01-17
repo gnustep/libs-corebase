@@ -27,8 +27,8 @@
 #ifndef __COREFOUNDATION_CFCHARACTERSET_H__
 #define __COREFOUNDATION_CFCHARACTERSET_H__
 
-#include <Foundation/Foundation.h>
+#include <CoreFoundation/CFBase.h>
 
-typedef NSCharacterSet * CFCharacterSetRef;
+typedef struct CFCharacterSet *CFCharacterSetRef;
 
 #endif /* __COREFOUNDATION_CFCHARACTERSET_H__ */

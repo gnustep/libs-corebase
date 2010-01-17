@@ -41,12 +41,12 @@ void CFDictionaryApplyFunction (CFDictionaryRef theDict,
 
 Boolean CFDictionaryContainsKey (CFDictionaryRef theDict, const void *key)
 {
-  return ([theDict objectForKey: (id)key] != nil);
+  return ([(NSDictionary*)theDict objectForKey: (id)key] != nil);
 }
 
 Boolean CFDictionaryContainsValue (CFDictionaryRef theDict, const void *value)
 {
-  return ([theDict allKeysForObject: (id)value] != nil);
+  return ([(NSDictionary*)theDict allKeysForObject: (id)value] != nil);
 }
 
 CFDictionaryRef CFDictionaryCreate (CFAllocatorRef allocator,
@@ -55,7 +55,7 @@ CFDictionaryRef CFDictionaryCreate (CFAllocatorRef allocator,
   const CFDictionaryValueCallBacks *valueCallBacks)
 {
   /* FIXME: will this even work if keys and values aren't objects? */
-  return [[NSDictionary allocWithZone: allocator] initWithObjects: (id *)keys
+  return (CFDictionaryRef)[[NSDictionary allocWithZone: allocator] initWithObjects: (id *)keys
                                                           forKeys: (id *)values
                                                             count: numValues];
 }
@@ -63,17 +63,17 @@ CFDictionaryRef CFDictionaryCreate (CFAllocatorRef allocator,
 CFDictionaryRef CFDictionaryCreateCopy (CFAllocatorRef allocator,
   CFDictionaryRef theDict)
 {
-  return [theDict copyWithZone: allocator];
+  return (CFDictionaryRef)[(NSDictionary*)theDict copyWithZone: allocator];
 }
 
 CFIndex CFDictionaryGetCount (CFDictionaryRef theDict)
 {
-  return [theDict count];
+  return [(NSDictionary*)theDict count];
 }
 
 CFIndex CFDictionaryGetCountOfKey (CFDictionaryRef theDict, const void *key)
 {
-  return [[theDict allKeys] count];
+  return [[(NSDictionary*)theDict allKeys] count];
 }
 
 CFIndex CFDictionaryGetCountOfValue (CFDictionaryRef theDict, const void *value)
@@ -95,13 +95,13 @@ CFTypeID CFDictionaryGetTypeID (void)
 
 const void * CFDictionaryGetValue (CFDictionaryRef theDict, const void *key)
 {
-  return (void *)[theDict objectForKey: (id)key];
+  return (void *)[(NSDictionary*)theDict objectForKey: (id)key];
 }
 
 Boolean CFDictionaryGetValueIfPresent (CFDictionaryRef theDict,
   const void *key, const void **value)
 {
-  *value = [theDict objectForKey: (id)key];
+  *value = [(NSDictionary*)theDict objectForKey: (id)key];
   return ((id)*value != nil);
 }
 
@@ -113,7 +113,7 @@ Boolean CFDictionaryGetValueIfPresent (CFDictionaryRef theDict,
 void CFDictionaryAddValue (CFMutableDictionaryRef theDict, const void *key,
   const void *value)
 {
-  [theDict setObject: (id)value forKey: (id)key];
+  [(NSMutableDictionary*)theDict setObject: (id)value forKey: (id)key];
 }
 
 CFMutableDictionaryRef CFDictionaryCreateMutable (CFAllocatorRef allocator,
@@ -121,35 +121,35 @@ CFMutableDictionaryRef CFDictionaryCreateMutable (CFAllocatorRef allocator,
   const CFDictionaryKeyCallBacks *keyCallBacks,
   const CFDictionaryValueCallBacks *valueCallBacks)
 {
-  return [[NSMutableDictionary allocWithZone: allocator]
+  return (CFMutableDictionaryRef)[[NSMutableDictionary allocWithZone: allocator]
     initWithCapacity: capacity];
 }
 
 CFMutableDictionaryRef CFDictionaryCreateMutableCopy (CFAllocatorRef allocator,
   CFIndex capacity, CFDictionaryRef theDict)
 {
-  return [theDict mutableCopyWithZone: allocator];
+  return (CFMutableDictionaryRef)[(NSMutableDictionary*)theDict mutableCopyWithZone: allocator];
 }
 
 void CFDictionaryRemoveAllValues (CFMutableDictionaryRef theDict)
 {
-  [theDict removeObjectsForKeys: [theDict allKeys]];
+  [(NSMutableDictionary*)theDict removeObjectsForKeys: [(NSMutableDictionary*)theDict allKeys]];
 }
 
 void CFDictionaryRemoveValue (CFMutableDictionaryRef theDict, const void *key)
 {
-  [theDict removeObjectForKey: (id)key];
+  [(NSMutableDictionary*)theDict removeObjectForKey: (id)key];
 }
 
 void CFDictionaryReplaceValue (CFMutableDictionaryRef theDict,
   const void *key, const void *value)
 {
-  [theDict setObject: (id)value forKey: (id)key];
+  [(NSMutableDictionary*)theDict setObject: (id)value forKey: (id)key];
 }
 
 void CFDictionarySetValue (CFMutableDictionaryRef theDict, const void *key,
   const void *value)
 {
-  [theDict setObject: (id)value forKey: (id)key];
+  [(NSMutableDictionary*)theDict setObject: (id)value forKey: (id)key];
 }
 

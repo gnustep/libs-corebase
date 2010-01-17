@@ -27,10 +27,10 @@
 #ifndef __COREFOUNDATION_CFDICTIONARY_H__
 #define __COREFOUNDATION_CFDICTIONARY_H__
 
-#include <Foundation/Foundation.h>
+#include "CoreFoundation/CFBase.h"
 
-typedef NSDictionary * CFDictionaryRef;
-typedef NSMutableDictionary * CFMutableDictionaryRef;
+typedef struct CFDictionary * CFDictionaryRef;
+typedef struct CFMutableDictionary * CFMutableDictionaryRef;
 
 /* FIXME: callback are NOT supported */
 typedef void (*CFDictionaryApplierFunction) (const void *key,

@@ -24,6 +24,7 @@
    Boston, MA 02110-1301, USA.
 */ 
 
+#import <Foundation/NSArray.h>
 #import <Foundation/NSString.h>
 
 #include "CoreFoundation/CFBase.h"
