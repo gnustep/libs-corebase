@@ -13,9 +13,10 @@ libgnustep-corebase_OBJC_FILES = \
 
 ADDITIONAL_INCLUDE_DIRS = -I../Headers
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
-libgnustep-corebase_HEADER_INSTALL_DIR = /CoreFoundation
+libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
 
 libgnustep-corebase_HEADER_FILES = \
+  CoreFoundation.h \
   CFBase.h \
   CFArray.h \
   CFData.h \
