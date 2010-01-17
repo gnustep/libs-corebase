@@ -25,6 +25,8 @@
 */ 
 
 #include <Foundation/Foundation.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 #include "CoreFoundation/CFBase.h"
 
@@ -61,14 +63,117 @@ typedef	struct obj_layout *obj;
 
 
 
-/* FIXME */
+//
+// kCFAllocatorMalloc
+//
+static void * malloc_malloc (CFAllocatorRef alloc, size_t size)
+{
+  return malloc (size);
+}
+
+static void * malloc_realloc (CFAllocatorRef alloc, void *ptr, size_t size)
+{
+  return realloc (ptr, size);
+}
+
+static void malloc_free (CFAllocatorRef alloc, void *ptr)
+{
+  free (ptr);
+}
+
+static void malloc_recycle (CFAllocatorRef alloc)
+{
+  // Cannot recycle allocator/zone.
+}
+
+static BOOL malloc_check (CFAllocatorRef alloc)
+{
+  return NO;
+}
+
+static BOOL malloc_lookup (CFAllocatorRef alloc, void *ptr)
+{
+  return NO;
+}
+
+static struct NSZoneStats malloc_stats (NSZone *alloc)
+{
+  /* FIXME: I'm not sure how to implement this */
+  return (struct NSZoneStats){0, 0, 0, 0, 0};
+}
+
+static NSZone _kCFAllocatorMalloc =
+{
+  malloc_malloc,
+  malloc_realloc,
+  malloc_free,
+  malloc_recycle,
+  malloc_check,
+  malloc_lookup,
+  malloc_stats,
+  0,
+  @"kCFAllocatorMalloc",
+  NULL
+};
+
+//
+// kCFAllocatorNull
+//
+static void * null_malloc (CFAllocatorRef alloc, size_t size)
+{
+  return ;
+}
+
+static void * null_realloc (CFAllocatorRef alloc, void *ptr, size_t size)
+{
+  return NULL;
+}
+
+static void null_free (CFAllocatorRef alloc, void *ptr)
+{
+}
+
+static void null_recycle (CFAllocatorRef alloc)
+{
+}
+
+static BOOL null_check (CFAllocatorRef alloc)
+{
+  return NO;
+}
+
+static BOOL null_lookup (CFAllocatorRef alloc, void *ptr)
+{
+  return NO;
+}
+
+static struct NSZoneStats null_stats (NSZone *alloc)
+{
+  return (struct NSZoneStats){0, 0, 0, 0, 0};
+}
+
+static NSZone _kCFAllocatorNull =
+{
+  null_malloc,
+  null_realloc,
+  null_free,
+  null_recycle,
+  null_check,
+  null_lookup,
+  null_stats,
+  0,
+  @"kCFAllocatorNull",
+  NULL
+};
+
 const CFAllocatorRef kCFAllocatorDefault = NULL;
-//const CFAllocatorRef kCFAllocatorSystemDefault = &default_zone;
-//const CFAllocatorRef kCFAllocatorMalloc = &default_zone;
+/* FIXME
+const CFAllocatorRef kCFAllocatorSystemDefault = &default_zone; */
+const CFAllocatorRef kCFAllocatorMalloc = &_kCFAllocatorMalloc;
 #if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 const CFAllocatorRef kCFAllocatorMallocZone = &default_zone;
 #endif
-//const CFAllocatorRef kCFAllocatorNull = &__kCFAllocatorNull
+const CFAllocatorRef kCFAllocatorNull = &_kCFAllocatorNull;
 const CFAllocatorRef kCFAllocatorUseContext = (CFAllocatorRef)0x01;
 
 // this will hold the default zone if set with CFAllocatorSetDefault ()
@@ -217,9 +322,7 @@ CFTypeRef CFRetain (CFTypeRef cf)
 //
 // CFNull
 //
-Class NSNullClass;
-
-/* This class is equivalent to NSNull must only have 1 instance */
+/* FIXME: need to initialize this variable somewhere. */
 CFNullRef kCFNull;
 
 CFTypeID CFNullGetTypeID (void)
