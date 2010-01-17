@@ -46,8 +46,34 @@ void CFArrayApplyFunction (CFArrayRef theArray, CFRange range,
 CFIndex CFArrayBSearchValues (CFArrayRef theArray, CFRange range,
   const void *value, CFComparatorFunction comparator, void *context)
 {
-  // FIXME
-  return 0;
+  CFIndex min, max, mid;
+
+  min = range.location;
+  max = range.location + range.length - 1;
+
+  while (min <= max)
+    {
+      const void *midValue;
+      CFComparisonResult res;
+
+      mid = (min + max) / 2;
+      midValue = CFArrayGetValueAtIndex(theArray, mid);
+      res = comparator(midValue, value, context);
+      if (res == kCFCompareEqualTo)
+        {
+          max = mid - 1;
+          break;
+        }
+      if (res == kCFCompareGreaterThan)
+        {
+          max = mid - 1;
+        }
+      else
+        {
+          min = mid + 1;
+        }
+    }
+  return max + 1;
 }
 
 Boolean CFArrayContainsValue (CFArrayRef theArray, CFRange range,
@@ -178,13 +204,23 @@ void CFArrayRemoveValueAtIndex (CFMutableArrayRef theArray, CFIndex idx)
 void CFArrayReplaceValues (CFMutableArrayRef theArray, CFRange range,
                            const void **newValues, CFIndex newCount)
 {
-  // FIXME
+  CFIndex i;
+
+  for (i = 0; i < range.length; i++)
+    {
+      CFArrayRemoveValueAtIndex(theArray, range.location);
+    }
+
+  for (i = newCount - 1; i >= 0; i--)
+    {
+      CFArrayInsertValueAtIndex(theArray, range.location, newValues[i]);
+    }
 }
 
 void CFArraySetValueAtIndex (CFMutableArrayRef theArray, CFIndex idx,
                              const void *value)
 {
-  [(NSMutableArray*)theArray insertObject: (id)value atIndex: idx];
+  [(NSMutableArray*)theArray replaceObjectAtIndex: idx withObject: (id)value];
 }
 
 void CFArraySortValues (CFMutableArrayRef theArray, CFRange range,

@@ -243,10 +243,10 @@ CFStringRef CFStringCreateByCombiningStrings (CFAllocatorRef alloc,
 
 CFStringRef CFStringCreateCopy (CFAllocatorRef alloc, CFStringRef theString)
 {
-  return (CFStringRef)[(NSString*)theString copy];
+  return (CFStringRef)[(NSString*)theString copyWithZone: alloc];
 }
 
-CFStringRef CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
+CFDataRef CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
   CFStringRef theString, CFStringEncoding encoding, UInt8 lossByte)
 {
   return NULL;
@@ -438,7 +438,18 @@ UniChar CFStringGetCharacterAtIndex (CFStringRef theString, CFIndex idx)
 UniChar CFStringGetCharacterFromInlineBuffer (CFStringInlineBuffer *buf,
   CFIndex idx)
 {
-  return 0;
+  if ((buf->bufferedRangeStart < idx) || (buf->bufferedRangeEnd >= idx))
+    {
+      CFRange range;
+
+      range.location = buf->rangeToBuffer.location + idx;
+      range.length = MIN(64, buf->rangeToBuffer.length);
+      CFStringGetCharacters(buf->theString, range, buf->buffer);
+      buf->bufferedRangeStart = range.location - buf->rangeToBuffer.location;
+      buf->bufferedRangeEnd = range.location + range.length - buf->rangeToBuffer.location;
+    }
+
+  return buf->buffer[idx - buf->bufferedRangeStart];
 }
 
 void CFStringGetCharacters (CFStringRef theString, CFRange range,
@@ -586,6 +597,10 @@ Boolean CFStringHasSuffix (CFStringRef theString, CFStringRef suffix)
 void CFStringInitInlineBuffer (CFStringRef str, CFStringInlineBuffer *buf,
   CFRange range)
 {
+  buf->theString = str;
+  buf->rangeToBuffer = range;
+  buf->bufferedRangeStart = -1;
+  buf->bufferedRangeEnd = -1;
 }
 
 Boolean CFStringIsEncodingAvailable (CFStringEncoding encoding)

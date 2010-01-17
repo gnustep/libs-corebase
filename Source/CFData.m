@@ -28,16 +28,6 @@
 
 #include "CoreFoundation/CFData.h"
 
-/*
-typedef struct CFData {
-  @defs(NSData)
-} CFData;
-
-typedef struct CFMutableData {
-  @defs(NSMutableData)
-} CFMutableData;
-*/
-
 //
 // CFData
 //
@@ -50,7 +40,7 @@ CFDataRef CFDataCreate (CFAllocatorRef allocator, const UInt8 *bytes,
   CFIndex length)
 {
   return (CFDataRef)[[NSData allocWithZone: allocator] initWithBytes: bytes
-                                                   length: length];
+                                                              length: length];
 }
 
 CFDataRef CFDataCreateCopy (CFAllocatorRef allocator, CFDataRef theData)
@@ -112,7 +102,7 @@ CFMutableDataRef CFDataCreateMutableCopy (CFAllocatorRef allocator,
 
 void CFDataDeleteBytes (CFMutableDataRef theData, CFRange range)
 {
-  /* FIXME: is there a single NSMutableData method to use? */
+  CFDataReplaceBytes(theData, range, NULL, 0);
 }
 
 UInt8 *CFDataGetMutableBytePtr (CFMutableDataRef theData)

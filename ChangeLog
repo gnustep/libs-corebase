@@ -1,5 +1,14 @@
 2010-01-17 Fred Kiefer <fredkiefer@gmx.de>
 
+	* Headers/CoreFoundation/CFString.h: Correct return type of
+	CFStringCreateExternalRepresentation.
+	* Source/CFArray.m,
+	* Source/CFDictionary.m,
+	* Source/CFString.m,
+	* Source/CFData.m: Implement soem missing or incorrect functions.
+
+2010-01-17 Fred Kiefer <fredkiefer@gmx.de>
+
 	* Headers/CoreFoundation/CFDictionary.h,
 	* Headers/CoreFoundation/CFCharacterSet.h: Remove remaining
 	includes of Foundation.h.

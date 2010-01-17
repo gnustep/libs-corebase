@@ -24,7 +24,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <Foundation/NSDictionary.h>
+#import <Foundation/NSArray.h>
+#import <Foundation/NSDictionary.h>
 
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFDictionary.h"
@@ -37,6 +38,7 @@
 void CFDictionaryApplyFunction (CFDictionaryRef theDict,
   CFDictionaryApplierFunction applier, void *context)
 {
+  // FIXME
 }
 
 Boolean CFDictionaryContainsKey (CFDictionaryRef theDict, const void *key)
@@ -73,19 +75,35 @@ CFIndex CFDictionaryGetCount (CFDictionaryRef theDict)
 
 CFIndex CFDictionaryGetCountOfKey (CFDictionaryRef theDict, const void *key)
 {
-  return [[(NSDictionary*)theDict allKeys] count];
+  if (CFDictionaryGetValueIfPresent (theDict, key, NULL))
+    return 1;
+  else
+    return 0;
 }
 
 CFIndex CFDictionaryGetCountOfValue (CFDictionaryRef theDict, const void *value)
 {
-  /* FIXME */
-  return 0;
+  return [[(NSDictionary*)theDict allKeysForObject: (id)value] count];
 }
 
 void CFDictionaryGetKeysAndValues (CFDictionaryRef theDict, const void **keys,
   const void **values)
 {
-  /* FIXME */
+  if (keys != NULL)
+    {
+      NSArray *allKeys;
+
+      allKeys = [(NSDictionary*)theDict allKeys];
+      [allKeys getObjects: (id*)keys];
+    }
+
+  if (values != NULL)
+    {
+      NSArray *allValues;
+
+      allValues = [(NSDictionary*)theDict allValues];
+      [allValues getObjects: (id*)values];
+    }
 }
 
 CFTypeID CFDictionaryGetTypeID (void)
@@ -101,8 +119,12 @@ const void * CFDictionaryGetValue (CFDictionaryRef theDict, const void *key)
 Boolean CFDictionaryGetValueIfPresent (CFDictionaryRef theDict,
   const void *key, const void **value)
 {
-  *value = [(NSDictionary*)theDict objectForKey: (id)key];
-  return ((id)*value != nil);
+  // FIXME
+  void *val = [(NSDictionary*)theDict objectForKey: (id)key];
+
+  if (value != NULL)
+    *value = val;
+  return (val != nil);
 }
 
 
@@ -113,7 +135,8 @@ Boolean CFDictionaryGetValueIfPresent (CFDictionaryRef theDict,
 void CFDictionaryAddValue (CFMutableDictionaryRef theDict, const void *key,
   const void *value)
 {
-  [(NSMutableDictionary*)theDict setObject: (id)value forKey: (id)key];
+  if (!CFDictionaryGetValueIfPresent((CFDictionaryRef)theDict, key, NULL))
+    CFDictionarySetValue(theDict, key, value);
 }
 
 CFMutableDictionaryRef CFDictionaryCreateMutable (CFAllocatorRef allocator,
@@ -121,6 +144,7 @@ CFMutableDictionaryRef CFDictionaryCreateMutable (CFAllocatorRef allocator,
   const CFDictionaryKeyCallBacks *keyCallBacks,
   const CFDictionaryValueCallBacks *valueCallBacks)
 {
+  // FIXME
   return (CFMutableDictionaryRef)[[NSMutableDictionary allocWithZone: allocator]
     initWithCapacity: capacity];
 }
@@ -128,12 +152,13 @@ CFMutableDictionaryRef CFDictionaryCreateMutable (CFAllocatorRef allocator,
 CFMutableDictionaryRef CFDictionaryCreateMutableCopy (CFAllocatorRef allocator,
   CFIndex capacity, CFDictionaryRef theDict)
 {
+  // FIXME
   return (CFMutableDictionaryRef)[(NSMutableDictionary*)theDict mutableCopyWithZone: allocator];
 }
 
 void CFDictionaryRemoveAllValues (CFMutableDictionaryRef theDict)
 {
-  [(NSMutableDictionary*)theDict removeObjectsForKeys: [(NSMutableDictionary*)theDict allKeys]];
+  [(NSMutableDictionary*)theDict removeAllObjects];
 }
 
 void CFDictionaryRemoveValue (CFMutableDictionaryRef theDict, const void *key)
@@ -144,7 +169,8 @@ void CFDictionaryRemoveValue (CFMutableDictionaryRef theDict, const void *key)
 void CFDictionaryReplaceValue (CFMutableDictionaryRef theDict,
   const void *key, const void *value)
 {
-  [(NSMutableDictionary*)theDict setObject: (id)value forKey: (id)key];
+  if (CFDictionaryGetValueIfPresent((CFDictionaryRef)theDict, key, NULL))
+    CFDictionarySetValue(theDict, key, value);
 }
 
 void CFDictionarySetValue (CFMutableDictionaryRef theDict, const void *key,
@@ -152,4 +178,3 @@ void CFDictionarySetValue (CFMutableDictionaryRef theDict, const void *key,
 {
   [(NSMutableDictionary*)theDict setObject: (id)value forKey: (id)key];
 }
-

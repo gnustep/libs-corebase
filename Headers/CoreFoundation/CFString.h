@@ -222,7 +222,7 @@ CFStringHasSuffix (CFStringRef theString, CFStringRef suffix);
 //
 // Accessing Characters
 //
-CFStringRef
+CFDataRef
 CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
   CFStringRef theString, CFStringEncoding encoding, UInt8 lossByte);
 
