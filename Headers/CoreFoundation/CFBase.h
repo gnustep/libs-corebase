@@ -108,7 +108,7 @@ enum
 typedef CFComparisonResult (*CFComparatorFunction)(const void *val1, const void *val2, void *context);
 
 /* CoreFoundation version numbers */
-GS_EXPORT double kCFCoreFoundationVersionNumber;
+double kCFCoreFoundationVersionNumber;
 #define kCFCoreFoundationVersionNumber10_0    196.40
 #define kCFCoreFoundationVersionNumber10_0_3  196.50
 #define kCFCoreFoundationVersionNumber10_1    226.00
@@ -207,14 +207,14 @@ struct _CFAllocatorContext
   CFAllocatorPreferredSizeCallBack   preferredSize;
 };
 
-GS_EXPORT const CFAllocatorRef kCFAllocatorDefault;
-GS_EXPORT const CFAllocatorRef kCFAllocatorSystemDefault;
-GS_EXPORT const CFAllocatorRef kCFAllocatorMalloc;
+const CFAllocatorRef kCFAllocatorDefault;
+const CFAllocatorRef kCFAllocatorSystemDefault;
+const CFAllocatorRef kCFAllocatorMalloc;
 #if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 const CFAllocatorRef kCFAllocatorMallocZone
 #endif
-GS_EXPORT const CFAllocatorRef kCFAllocatorNull;
-GS_EXPORT const CFAllocatorRef kCFAllocatorUseContext;
+const CFAllocatorRef kCFAllocatorNull;
+const CFAllocatorRef kCFAllocatorUseContext;
 
 CFAllocatorRef
 CFAllocatorCreate (CFAllocatorRef allocator, CFAllocatorContext *context);
@@ -250,36 +250,36 @@ CFAllocatorGetTypeID (void);
 //
 /* These function will be implemented in CFRuntime.c since they 
    require runtime support. */
-GS_EXPORT CFStringRef
+CFStringRef
 CFCopyDescription (CFTypeRef cf);
 
-GS_EXPORT CFStringRef
+CFStringRef
 CFCopyTypeIDDescription (CFTypeID typeID);
 
-GS_EXPORT Boolean
+Boolean
 CFEqual (CFTypeRef cf1, CFTypeRef cf2);
 
-GS_EXPORT CFAllocatorRef
+CFAllocatorRef
 CFGetAllocator (CFTypeRef cf);
 
-GS_EXPORT CFIndex
+CFIndex
 CFGetRetainCount (CFTypeRef cf);
 
-GS_EXPORT CFTypeID
+CFTypeID
 CFGetTypeID (CFTypeRef cf);
 
-GS_EXPORT CFHashCode
+CFHashCode
 CFHash (CFTypeRef cf);
 
 #if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-GS_EXPORT CFTypeRef
+CFTypeRef
 CFMakeCollectable (CFTypeRef cf);
 #endif
 
-GS_EXPORT void
+void
 CFRelease (CFTypeRef cf);
 
-GS_EXPORT CFTypeRef
+CFTypeRef
 CFRetain (CFTypeRef cf);
 
 
@@ -290,9 +290,9 @@ CFRetain (CFTypeRef cf);
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 typedef struct CFNull *CFNullRef;
 
-GS_EXPORT CFNullRef kCFNull;
+CFNullRef kCFNull;
 
-GS_EXPORT CFTypeID
+CFTypeID
 CFNullGetTypeID (void);
 #endif
 

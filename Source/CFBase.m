@@ -279,8 +279,10 @@ CFStringRef CFCopyTypeIDDescription (CFTypeID typeID)
   return (CFStringRef)[(Class)typeID description];
 }
 
-GS_EXPORT Boolean
-CFEqual (CFTypeRef cf1, CFTypeRef cf2);
+Boolean CFEqual (CFTypeRef cf1, CFTypeRef cf2)
+{
+  return [(id)cf1 isEqual: (id)cf2];
+}
 
 CFAllocatorRef CFGetAllocator (CFTypeRef cf)
 {
