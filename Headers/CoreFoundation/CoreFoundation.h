@@ -27,11 +27,12 @@
 #ifndef __COREFOUNDATION_COREFOUNDATION_H__
 #define __COREFOUNDATION_COREFOUNDATION_H__
 
-#include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFCharacterSet.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStringEncodingExt.h>
 

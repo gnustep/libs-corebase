@@ -1,3 +1,11 @@
+2010-01-19 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFString.h: Include stdarg.h.
+	* Headers/CoreFoundation/CoreFoundation.h:
+	* Headers/CoreFoundation/CFError.h:
+	* Source/CFError.m:
+	* Source/GNUmakefile: Added CFError.
+
 2010-01-17 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Headers/CoreFoundation/CFString.h: Correct return type of

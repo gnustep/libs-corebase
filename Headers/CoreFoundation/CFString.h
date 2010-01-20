@@ -32,6 +32,8 @@
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
 
+#include <stdarg.h>
+
 //
 // Data Types
 //
