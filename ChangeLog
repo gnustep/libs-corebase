@@ -1,5 +1,10 @@
 2010-01-19 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFBase.m:
+	* Source/CFError.m: Correct missing CFRetain in copied objects.
+
+2010-01-19 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CFString.h: Include stdarg.h.
 	* Headers/CoreFoundation/CoreFoundation.h:
 	* Headers/CoreFoundation/CFError.h:

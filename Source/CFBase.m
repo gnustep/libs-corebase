@@ -271,7 +271,7 @@ CFTypeID CFAllocatorGetTypeID(void)
 //
 CFStringRef CFCopyDescription (CFTypeRef cf)
 {
-  return (CFStringRef)[(id)cf description];
+  return (CFStringRef)CFRetain([(id)cf description]);
 }
 
 CFStringRef CFCopyTypeIDDescription (CFTypeID typeID)
