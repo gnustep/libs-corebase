@@ -1,3 +1,29 @@
+/* CFError.h
+   
+   Copyright (C) 2010 Free Software Foundation, Inc.
+   
+   Written by: Stefan Bidigaray
+   Date: January, 2010
+   
+   This file is part of GNUstep CoreBase Library.
+   
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; see the file COPYING.LIB.
+   If not, see <http://www.gnu.org/licenses/> or write to the 
+   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+   Boston, MA 02110-1301, USA.
+*/
+
 #ifndef __COREFOUNDATION_CFERROR_H__
 #define __COREFOUNDATION_CFERROR_H__
 
@@ -6,7 +32,7 @@
 #include <GNUstepBase/GSVersionMacros.h>
 
 // CFError implementation didn't show up until OS X 10.5
-#if OS_API_VERSION(GS_API_MACOSX_10_5, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 
 typedef struct __CFError * CFErrorRef;
 
@@ -62,6 +88,6 @@ CFErrorCopyRecoverySuggestion (CFErrorRef err);
 CFTypeID
 CFErrorGetTypeID (void);
 
-#endif
+#endif /* MAC_OS_X_VERSION_10_5 */
 
 #endif /* __COREFOUNDATION_CFERROR_H__ */
