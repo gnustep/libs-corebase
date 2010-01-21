@@ -10,7 +10,8 @@ libgnustep-corebase_OBJC_FILES = \
   CFData.m \
   CFDictionary.m \
   CFError.m \
-  CFString.m
+  CFString.m \
+  CFURL.m
 
 ADDITIONAL_INCLUDE_DIRS = -I../Headers
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
@@ -25,7 +26,8 @@ libgnustep-corebase_HEADER_FILES = \
   CFDictionary.h \
   CFError.h \
   CFString.h \
-  CFStringEncodingExt.h
+  CFStringEncodingExt.h \
+  CFURL.h
 
 libgnustep-corebase_NEEDS_GUI = NO
 
