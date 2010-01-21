@@ -1,3 +1,8 @@
+2010-01-21 Eric Wasylishen <ewasylishen@gmail.com>
+
+	* Source/CFURL.m:
+	* Headers/CoreFoundation/CFURL.h: Start implementing CFURL
+
 2010-01-19 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFBase.m:
