@@ -30,6 +30,8 @@
 
 #include "CoreFoundation/CFBase.h"
 
+const double kCFCoreFoundationVersionNumber = 550.13;
+
 //
 // CFAllocator
 //

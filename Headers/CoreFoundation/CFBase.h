@@ -108,7 +108,7 @@ enum
 typedef CFComparisonResult (*CFComparatorFunction)(const void *val1, const void *val2, void *context);
 
 /* CoreFoundation version numbers */
-double kCFCoreFoundationVersionNumber;
+const double kCFCoreFoundationVersionNumber;
 #define kCFCoreFoundationVersionNumber10_0    196.40
 #define kCFCoreFoundationVersionNumber10_0_3  196.50
 #define kCFCoreFoundationVersionNumber10_1    226.00
