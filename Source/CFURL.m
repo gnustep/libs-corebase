@@ -31,19 +31,23 @@
 //
 // CFURL
 //
-CFTypeID CFURLGetTypeID (void)
+CFTypeID
+CFURLGetTypeID (void)
 {
   return (CFTypeID)[NSURL class];
 }
 
-CFStringRef CFURLCopyFileSystemPath (CFURLRef aURL, CFURLPathStyle style)
+CFStringRef
+CFURLCopyFileSystemPath (CFURLRef aURL, CFURLPathStyle style)
 {
   // FIXME: Handle the style parameter
   return (CFStringRef)[(NSURL*)aURL path];
 }
 
-CFURLRef CFURLCreateWithFileSystemPath (CFAllocatorRef allocator,
- CFStringRef fileSystemPath, CFURLPathStyle style, Boolean isDirectory)
+CFURLRef
+CFURLCreateWithFileSystemPath (CFAllocatorRef allocator,
+                               CFStringRef fileSystemPath,
+                               CFURLPathStyle style, Boolean isDirectory)
 {
   // FIXME: Handle the style parameter
   // FIXME: Should call initFileURLWithPath:isDirectory:
@@ -51,8 +55,9 @@ CFURLRef CFURLCreateWithFileSystemPath (CFAllocatorRef allocator,
     (NSString*)fileSystemPath];
 }
 
-CFURLRef CFURLCreateWithString (CFAllocatorRef allocator, CFStringRef string,
-  CFURLRef baseURL)
+CFURLRef
+CFURLCreateWithString (CFAllocatorRef allocator, CFStringRef string,
+                       CFURLRef baseURL)
 {
   return (CFURLRef)[[NSURL allocWithZone: allocator]
     initWithString: (NSString*)string

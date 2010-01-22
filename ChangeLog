@@ -1,5 +1,15 @@
 2010-01-22 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFBase.m:
+	* Source/CFArray.m:
+	* Source/CFData.m:
+	* Source/CFDate.m:
+	* Source/CFError.m:
+	* Source/CFString.m:
+	* Source/CFURL.m: Adopt to GNU coding standards.
+
+2010-01-22 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/GNUmakefile:
 	* Source/CFDate.m:
 	* Headers/CoreFoundation/CFDate.h: Initial CFDate implementation

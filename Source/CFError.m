@@ -51,28 +51,33 @@ const CFStringRef kCFErrorUnderlyingErrorKey =
 
 
 
-CFStringRef CFErrorCopyDescription (CFErrorRef err)
+CFStringRef
+CFErrorCopyDescription (CFErrorRef err)
 {
   return CFRetain([(NSError *)err localizedDescription]);
 }
 
-CFStringRef CFErrorCopyFailureReason (CFErrorRef err)
+CFStringRef
+CFErrorCopyFailureReason (CFErrorRef err)
 {
   return CFRetain([(NSError *)err localizedFailureReason]);
 }
 
-CFStringRef CFErrorCopyRecoverySuggestion (CFErrorRef err)
+CFStringRef
+CFErrorCopyRecoverySuggestion (CFErrorRef err)
 {
   return CFRetain([(NSError *)err localizedRecoverySuggestion]);
 }
 
-CFDictionaryRef CFErrorCopyUserInfo (CFErrorRef err)
+CFDictionaryRef
+CFErrorCopyUserInfo (CFErrorRef err)
 {
   return CFRetain([(NSError *)err userInfo]);
 }
 
-CFErrorRef CFErrorCreate (CFAllocatorRef allocator, CFStringRef domain,
-  CFIndex code, CFDictionaryRef userInfo)
+CFErrorRef
+CFErrorCreate (CFAllocatorRef allocator, CFStringRef domain,
+               CFIndex code, CFDictionaryRef userInfo)
 {
   return (CFErrorRef)[[NSError allocWithZone: (NSZone *)allocator]
                        initWithDomain: (NSString *)domain
@@ -80,9 +85,12 @@ CFErrorRef CFErrorCreate (CFAllocatorRef allocator, CFStringRef domain,
                              userInfo: (NSDictionary *)userInfo];
 }
 
-CFErrorRef CFErrorCreateWithUserInfoKeysAndValues (CFAllocatorRef allocator,
-  CFStringRef domain, CFIndex code, const void *const *userInfoKeys,
-  const void *const *userInfoValues, CFIndex numUserInfoValues)
+CFErrorRef
+CFErrorCreateWithUserInfoKeysAndValues (CFAllocatorRef allocator,
+                                        CFStringRef domain, CFIndex code,
+                                        const void *const *userInfoKeys,
+                                        const void *const *userInfoValues,
+                                        CFIndex numUserInfoValues)
 {
   CFDictionaryRef userInfo = CFDictionaryCreate (allocator, 
     (const void **)userInfoKeys, (const void **)userInfoValues, 
@@ -93,17 +101,20 @@ CFErrorRef CFErrorCreateWithUserInfoKeysAndValues (CFAllocatorRef allocator,
   return ret;
 }
 
-CFIndex CFErrorGetCode (CFErrorRef err)
+CFIndex
+CFErrorGetCode (CFErrorRef err)
 {
   return [(NSError *)err code];
 }
 
-CFStringRef CFErrorGetDomain (CFErrorRef err)
+CFStringRef
+CFErrorGetDomain (CFErrorRef err)
 {
   return (CFStringRef)[(NSError *)err domain];
 }
 
-CFTypeID CFErrorGetTypeID (void)
+CFTypeID
+CFErrorGetTypeID (void)
 {
   return (CFTypeID)[NSError class];
 }

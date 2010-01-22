@@ -185,13 +185,15 @@ CFAllocatorRef __kCFAllocatorDefault = NULL;
 
 /* FIXME: The next few functions were adapted from what's in NSObject.m.  It
    would really help if parts of those functions were made public. */
-CFAllocatorRef CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorContext *context)
+CFAllocatorRef
+CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorContext *context)
 {
   /* FIXME: Creating Allocators in CF is completely different from ObjC */
   return NULL;
 }
 
-void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
+void *
+CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
 {
   void *new;
   int  newSize;
@@ -214,7 +216,8 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
 
 }
 
-void CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr)
+void
+CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr)
 {
   if (ptr != NULL)
     {
@@ -225,12 +228,14 @@ void CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr)
   return;
 }
 
-CFIndex CFAllocatorGetPreferredSizeForSize(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
+CFIndex
+CFAllocatorGetPreferredSizeForSize(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
 {
   return 0;  /* FIXME */
 }
 
-void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize, CFOptionFlags hint)
+void *
+CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize, CFOptionFlags hint)
 {
   void *new;
   CFIndex size;
@@ -247,21 +252,25 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
   return new;
 }
 
-CFAllocatorRef CFAllocatorGetDefault(void)
+CFAllocatorRef
+CFAllocatorGetDefault(void)
 {
   return NSDefaultMallocZone();
 }
 
-void CFAllocatorSetDefault(CFAllocatorRef allocator)
+void
+CFAllocatorSetDefault(CFAllocatorRef allocator)
 {
 }
 
-void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context)
+void
+CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context)
 {
   context = NULL;
 }
 
-CFTypeID CFAllocatorGetTypeID(void)
+CFTypeID
+CFAllocatorGetTypeID(void)
 {
   return 0;
 }
@@ -271,52 +280,62 @@ CFTypeID CFAllocatorGetTypeID(void)
 //
 // CFType Functions
 //
-CFStringRef CFCopyDescription (CFTypeRef cf)
+CFStringRef
+CFCopyDescription (CFTypeRef cf)
 {
   return (CFStringRef)CFRetain([(id)cf description]);
 }
 
-CFStringRef CFCopyTypeIDDescription (CFTypeID typeID)
+CFStringRef
+CFCopyTypeIDDescription (CFTypeID typeID)
 {
   return (CFStringRef)[(Class)typeID description];
 }
 
-Boolean CFEqual (CFTypeRef cf1, CFTypeRef cf2)
+Boolean
+CFEqual (CFTypeRef cf1, CFTypeRef cf2)
 {
   return [(id)cf1 isEqual: (id)cf2];
 }
 
-CFAllocatorRef CFGetAllocator (CFTypeRef cf)
+CFAllocatorRef
+CFGetAllocator (CFTypeRef cf)
 {
   return (CFAllocatorRef)[(id)cf zone];
 }
 
-CFIndex CFGetRetainCount (CFTypeRef cf)
+CFIndex
+CFGetRetainCount (CFTypeRef cf)
 {
   return [(id)cf retainCount];
 }
 
-CFTypeID CFGetTypeID (CFTypeRef cf)
+CFTypeID
+CFGetTypeID (CFTypeRef cf)
 {
   return (CFTypeID)[(id)cf class];
 }
 
-CFHashCode CFHash (CFTypeRef cf)
+CFHashCode
+CFHash (CFTypeRef cf)
 {
   return [(id)cf hash];
 }
 
-CFTypeRef CFMakeCollectable (CFTypeRef cf)
+CFTypeRef
+CFMakeCollectable (CFTypeRef cf)
 {
   return NULL;
 }
 
-void CFRelease (CFTypeRef cf)
+void
+CFRelease (CFTypeRef cf)
 {
   RELEASE((id)cf);
 }
 
-CFTypeRef CFRetain (CFTypeRef cf)
+CFTypeRef
+CFRetain (CFTypeRef cf)
 {
   return (CFTypeRef)RETAIN((id)cf);
 }
@@ -329,7 +348,8 @@ CFTypeRef CFRetain (CFTypeRef cf)
 /* FIXME: need to initialize this variable somewhere. */
 CFNullRef kCFNull;
 
-CFTypeID CFNullGetTypeID (void)
+CFTypeID
+CFNullGetTypeID (void)
 {
   return (CFTypeID)[NSNull class];
 }

@@ -32,8 +32,9 @@
 //
 // CFArray
 //
-void CFArrayApplyFunction (CFArrayRef theArray, CFRange range,
-  CFArrayApplierFunction applier, void *context)
+void
+CFArrayApplyFunction (CFArrayRef theArray, CFRange range,
+                      CFArrayApplierFunction applier, void *context)
 {
   CFIndex i;
 
@@ -43,8 +44,9 @@ void CFArrayApplyFunction (CFArrayRef theArray, CFRange range,
     }
 }
 
-CFIndex CFArrayBSearchValues (CFArrayRef theArray, CFRange range,
-  const void *value, CFComparatorFunction comparator, void *context)
+CFIndex
+CFArrayBSearchValues (CFArrayRef theArray, CFRange range, const void *value,
+                      CFComparatorFunction comparator, void *context)
 {
   CFIndex min, max, mid;
 
@@ -76,14 +78,15 @@ CFIndex CFArrayBSearchValues (CFArrayRef theArray, CFRange range,
   return max + 1;
 }
 
-Boolean CFArrayContainsValue (CFArrayRef theArray, CFRange range,
-  const void *value)
+Boolean
+CFArrayContainsValue (CFArrayRef theArray, CFRange range, const void *value)
 {
   return (CFArrayGetFirstIndexOfValue(theArray, range, value) != -1);
 }
 
-CFArrayRef CFArrayCreate (CFAllocatorRef allocator, const void **values,
-  CFIndex numValues, const CFArrayCallBacks *callBacks)
+CFArrayRef
+CFArrayCreate (CFAllocatorRef allocator, const void **values,
+               CFIndex numValues, const CFArrayCallBacks *callBacks)
 {
   // FIXME
   return (CFArrayRef)[[NSArray allocWithZone: allocator] 
@@ -91,18 +94,20 @@ CFArrayRef CFArrayCreate (CFAllocatorRef allocator, const void **values,
                                  count: numValues];
 }
 
-CFArrayRef CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef theArray)
+CFArrayRef
+CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef theArray)
 {
   return (CFArrayRef)[(NSArray*)theArray copyWithZone: allocator];
 }
 
-CFIndex CFArrayGetCount (CFArrayRef theArray)
+CFIndex
+CFArrayGetCount (CFArrayRef theArray)
 {
   return [(NSArray*)theArray count];
 }
 
-CFIndex CFArrayGetCountOfValue (CFArrayRef theArray, CFRange range,
-  const void *value)
+CFIndex
+CFArrayGetCountOfValue (CFArrayRef theArray, CFRange range, const void *value)
 {
   CFIndex count = 0;
   CFIndex i;
@@ -116,30 +121,35 @@ CFIndex CFArrayGetCountOfValue (CFArrayRef theArray, CFRange range,
   return count;
 }
 
-CFIndex CFArrayGetFirstIndexOfValue (CFArrayRef theArray, CFRange range,
-  const void *value)
+CFIndex
+CFArrayGetFirstIndexOfValue (CFArrayRef theArray, CFRange range,
+                             const void *value)
 {
   return [(NSArray*)theArray indexOfObject: (id)value 
                                    inRange: NSMakeRange(range.location, range.length)];
 }
 
-CFIndex CFArrayGetLastIndexOfValue (CFArrayRef theArray, CFRange range,
-  const void *value)
+CFIndex
+CFArrayGetLastIndexOfValue (CFArrayRef theArray, CFRange range,
+                            const void *value)
 {
   // FIXME
 }
 
-CFTypeID CFArrayGetTypeID (void)
+CFTypeID
+CFArrayGetTypeID (void)
 {
   return (CFTypeID)[NSArray class];
 }
 
-const void * CFArrayGetValueAtIndex (CFArrayRef theArray, CFIndex idx)
+const void *
+CFArrayGetValueAtIndex (CFArrayRef theArray, CFIndex idx)
 {
   return (void*)[(NSArray*)theArray objectAtIndex: idx];
 }
 
-void CFArrayGetValues (CFArrayRef theArray, CFRange range, const void **values)
+void
+CFArrayGetValues (CFArrayRef theArray, CFRange range, const void **values)
 {
   [(NSArray*)theArray getObjects: (id *)values 
                            range: NSMakeRange(range.location, range.length)];
@@ -150,8 +160,9 @@ void CFArrayGetValues (CFArrayRef theArray, CFRange range, const void **values)
 //
 // CFMutableArray
 //
-void CFArrayAppendArray (CFMutableArrayRef theArray, CFArrayRef otherArray,
-                         CFRange otherRange)
+void
+CFArrayAppendArray (CFMutableArrayRef theArray, CFArrayRef otherArray,
+                    CFRange otherRange)
 {
   [(NSMutableArray*)theArray replaceObjectsInRange: 
                       NSMakeRange([(NSMutableArray*)theArray count], 0)
@@ -159,50 +170,58 @@ void CFArrayAppendArray (CFMutableArrayRef theArray, CFArrayRef otherArray,
                                              range: NSMakeRange(otherRange.location, otherRange.length)];
 }
 
-void CFArrayAppendValue (CFMutableArrayRef theArray, const void *value)
+void
+CFArrayAppendValue (CFMutableArrayRef theArray, const void *value)
 {
   [(NSMutableArray*)theArray addObject: (id)value];
 }
 
-CFMutableArrayRef CFArrayCreateMutable (CFAllocatorRef allocator,
-                                        CFIndex capacity, const CFArrayCallBacks *callBacks)
+CFMutableArrayRef
+CFArrayCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
+                      const CFArrayCallBacks *callBacks)
 {
   // FIXME
   return (CFMutableArrayRef)[[NSMutableArray allocWithZone: allocator]
                               initWithCapacity: capacity];
 }
 
-CFMutableArrayRef CFArrayCreateMutableCopy (CFAllocatorRef allocator,
-                                            CFIndex capacity, CFArrayRef theArray)
+CFMutableArrayRef
+CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
+                          CFArrayRef theArray)
 {
   return (CFMutableArrayRef)[(NSArray*)theArray mutableCopyWithZone: allocator];
 }
 
-void CFArrayExchangeValuesAtIndices (CFMutableArrayRef theArray,
-                                     CFIndex idx1, CFIndex idx2)
+void
+CFArrayExchangeValuesAtIndices (CFMutableArrayRef theArray, CFIndex idx1,
+                                CFIndex idx2)
 {
   [(NSMutableArray*)theArray exchangeObjectAtIndex: idx1 
                                  withObjectAtIndex: idx2];
 }
 
-void CFArrayInsertValueAtIndex (CFMutableArrayRef theArray,
-                                CFIndex idx, const void *value)
+void
+CFArrayInsertValueAtIndex (CFMutableArrayRef theArray, CFIndex idx,
+                           const void *value)
 {
   [(NSMutableArray*)theArray insertObject: (id)value atIndex: idx];
 }
 
-void CFArrayRemoveAllValues (CFMutableArrayRef theArray)
+void
+CFArrayRemoveAllValues (CFMutableArrayRef theArray)
 {
   [(NSMutableArray*)theArray removeAllObjects];
 }
 
-void CFArrayRemoveValueAtIndex (CFMutableArrayRef theArray, CFIndex idx)
+void
+CFArrayRemoveValueAtIndex (CFMutableArrayRef theArray, CFIndex idx)
 {
   [(NSMutableArray*)theArray removeObjectAtIndex: idx];
 }
 
-void CFArrayReplaceValues (CFMutableArrayRef theArray, CFRange range,
-                           const void **newValues, CFIndex newCount)
+void
+CFArrayReplaceValues (CFMutableArrayRef theArray, CFRange range,
+                      const void **newValues, CFIndex newCount)
 {
   CFIndex i;
 
@@ -217,14 +236,16 @@ void CFArrayReplaceValues (CFMutableArrayRef theArray, CFRange range,
     }
 }
 
-void CFArraySetValueAtIndex (CFMutableArrayRef theArray, CFIndex idx,
-                             const void *value)
+void
+CFArraySetValueAtIndex (CFMutableArrayRef theArray, CFIndex idx,
+                        const void *value)
 {
   [(NSMutableArray*)theArray replaceObjectAtIndex: idx withObject: (id)value];
 }
 
-void CFArraySortValues (CFMutableArrayRef theArray, CFRange range,
-                        CFComparatorFunction comparator, void *context)
+void
+CFArraySortValues (CFMutableArrayRef theArray, CFRange range,
+                   CFComparatorFunction comparator, void *context)
 {
   [(NSMutableArray*)theArray 
       sortUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator
