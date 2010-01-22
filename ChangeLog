@@ -1,3 +1,10 @@
+2010-01-22 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GNUmakefile:
+	* Source/CFDate.m:
+	* Headers/CoreFoundation/CFDate.h: Initial CFDate implementation
+	* Headers/CoreFoundation/CoreFoundation.h: Added CFDate.h and CFURL.h
+
 2010-01-21 Eric Wasylishen <ewasylishen@gmail.com>
 
 	* Source/CFURL.m:

@@ -31,9 +31,11 @@
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFCharacterSet.h>
 #include <CoreFoundation/CFData.h>
+#include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFDictionary.h>
 #include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStringEncodingExt.h>
+#include <CoreFoundation/CFURL.h>
 
 #endif /* __COREFOUNDATION_COREFOUNDATION_H__ */

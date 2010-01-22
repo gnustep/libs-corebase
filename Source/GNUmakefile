@@ -8,6 +8,7 @@ libgnustep-corebase_OBJC_FILES = \
   CFBase.m \
   CFArray.m \
   CFData.m \
+  CFDate.m \
   CFDictionary.m \
   CFError.m \
   CFString.m \
@@ -23,6 +24,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFArray.h \
   CFCharacterSet.h \
   CFData.h \
+  CFDate.m \
   CFDictionary.h \
   CFError.h \
   CFString.h \
