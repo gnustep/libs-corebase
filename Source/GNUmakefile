@@ -24,7 +24,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFArray.h \
   CFCharacterSet.h \
   CFData.h \
-  CFDate.m \
+  CFDate.h \
   CFDictionary.h \
   CFError.h \
   CFString.h \
