@@ -121,6 +121,7 @@ CFStringRef __CFStringMakeConstantString(const char *str)
 #	endif
 #endif
 
+#if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 typedef enum _CFStringNormalizationForm CFStringNormalizationForm;
 enum _CFStringNormalizationForm
 {
@@ -129,7 +130,9 @@ enum _CFStringNormalizationForm
   kCFStringNormalizationFormC = 2,
   kCFStringNormalizationFormKC = 3
 };
+#endif
 
+#if GS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 const CFStringRef kCFStringTransformStripCombiningMarks;
 const CFStringRef kCFStringTransformToLatin;
 const CFStringRef kCFStringTransformFullwidthHalfwidth;
@@ -145,7 +148,10 @@ const CFStringRef kCFStringTransformLatinCyrillic;
 const CFStringRef kCFStringTransformLatinGreek;
 const CFStringRef kCFStringTransformToXMLHex;
 const CFStringRef kCFStringTransformToUnicodeName;
+#endif
+#if GS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 const CFStringRef kCFStringTransformStripDiacritics;
+#endif
 
 //
 // Creating a CFString
@@ -362,7 +368,7 @@ CFStringGetTypeID (void);
 //
 // New Functions
 //
-#if 0 //OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 Boolean
 CFStringFindCharacterFromSet (CFStringRef theString, CFCharacterSetRef theSet,
   CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result);
@@ -441,24 +447,11 @@ CFStringCreateMutableWithExternalCharactersNoCopy (CFAllocatorRef alloc,
 void
 CFStringDelete (CFMutableStringRef theString, CFRange range);
 
-CFIndex
-CFStringFindAndReplace (CFMutableStringRef theString,
-  CFStringRef stringToFind, CFStringRef replacementString,
-  CFRange rangeToSearch, CFOptionFlags compareOptions);
-
-void
-CFStringFold (CFMutableStringRef theString, CFOptionFlags theFlags,
-  CFLocaleRef theLocale);
-
 void
 CFStringInsert (CFMutableStringRef str, CFIndex idx, CFStringRef insertedStr);
 
 void
 CFStringLowercase (CFMutableStringRef theString, CFLocaleRef locale);
-
-//void
-//CFStringNormalize (CFMutableStringRef theString,
-//  CFStringNormalizationForm theForm);
 
 void
 CFStringPad (CFMutableStringRef theString, CFStringRef padString,
@@ -472,10 +465,6 @@ void
 CFStringSetExternalCharactersNoCopy (CFMutableStringRef theString,
   UniChar *chars, CFIndex length, CFIndex capacity);
 
-Boolean
-CFStringTransform (CFMutableStringRef string, CFRange *range,
-  CFStringRef transform, Boolean reverse);
-
 void
 CFStringTrim (CFMutableStringRef theString, CFStringRef trimString);
 
@@ -484,5 +473,28 @@ CFStringTrimWhitespace (CFMutableStringRef theString);
 
 void
 CFStringUppercase (CFMutableStringRef theString, CFLocaleRef locale);
+
+#if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+CFIndex
+CFStringFindAndReplace (CFMutableStringRef theString,
+  CFStringRef stringToFind, CFStringRef replacementString,
+  CFRange rangeToSearch, CFOptionFlags compareOptions);
+
+void
+CFStringNormalize (CFMutableStringRef theString,
+  CFStringNormalizationForm theForm);
+#endif
+
+#if GS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+Boolean
+CFStringTransform (CFMutableStringRef string, CFRange *range,
+  CFStringRef transform, Boolean reverse);
+#endif
+
+#if GS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+void
+CFStringFold (CFMutableStringRef theString, CFOptionFlags theFlags,
+  CFLocaleRef theLocale);
+#endif
 
 #endif /* __COREFOUNDATION_CFSTRING_H__ */
