@@ -97,7 +97,7 @@ enum CFStringBuiltInEncodings
 
 #ifdef __OBJC__
 // If we're in Objective-C mode, just make this an ObjC string.
-#define CFSTR(x) (@ x)
+#define CFSTR(x) ((CFStringRef)(@ x))
 #else
 	// If this compiler doesn't have __has_builtin(), it probably doesn't have
 	// any useful builtins  either
@@ -107,14 +107,15 @@ enum CFStringBuiltInEncodings
 	// If we have a builtin function for constructing Objective-C strings,
 	// let's use that.
 #	if __has_builtin(__builtin___NSStringMakeConstantString)
-#		define CFSTR(x) __builtin___NSStringMakeConstantString("" x "")
+#		define CFSTR(x) \
+			((CFStringRef)__builtin___NSStringMakeConstantString("" x ""))
 #	else
 	// If nothing else works, fall back to the really slow path.  The 'pure'
 	// attribute tells the compiler that this function will always return the
 	// same result with the same input.  If it has any skill, then constant
 	// propagation passes will magically make sure that this function is called
 	// as few times as possible.
-const CFStringRef __CFStringMakeConstantString(const char *str) 
+CFStringRef __CFStringMakeConstantString(const char *str) 
 	__attribute__ ((pure));
 #	define CFSTR(x) __CFStringMakeConstantString("" x "")
 #	endif
