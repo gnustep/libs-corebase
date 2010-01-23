@@ -1,4 +1,9 @@
-2010-01-22 Stefan Bidigaray <stefanbidi@gmail.com>
+2010-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFStream.h:
+	* Source/CFStream.m: Added CFStream implementation.
+
+2010-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CFString.h: Add availability macros.
 

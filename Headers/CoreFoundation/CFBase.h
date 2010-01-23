@@ -32,8 +32,10 @@
 
 #include <GNUstepBase/GSVersionMacros.h>
 
-/* FIXME: NSLocale is not available */
+// FIXME: NSLocale is not available
 typedef void * CFLocaleRef;
+// FIXME: Define CFRunLoopRef here for now...
+typedef struct CFRunLoop *CFRunLoopRef;
 
 //
 // CoreFoundation types

@@ -11,6 +11,7 @@ libgnustep-corebase_OBJC_FILES = \
   CFDate.m \
   CFDictionary.m \
   CFError.m \
+  CFStream.m \
   CFString.m \
   CFURL.m
 
@@ -27,6 +28,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFDate.h \
   CFDictionary.h \
   CFError.h \
+  CFStream.h \
   CFString.h \
   CFStringEncodingExt.h \
   CFURL.h
