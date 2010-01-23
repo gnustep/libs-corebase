@@ -95,6 +95,17 @@ enum CFStringBuiltInEncodings
 # define kCFStringEncodingInvalidId (0xffffffffU)
 #endif
 
+#ifdef __OBJC__
+#define CFSTR(x) (@ x)
+#else
+#	ifndef __has_builtin
+#	define __has_builtin(x) 0
+#	endif
+#	if __has_builtin(__builtin___NSStringMakeConstantString)
+#		define CFSTR(x) __builtin___NSStringMakeConstantString(x)
+	#endif
+#endif
+
 typedef enum _CFStringNormalizationForm CFStringNormalizationForm;
 enum _CFStringNormalizationForm
 {
