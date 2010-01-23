@@ -25,6 +25,7 @@
 */ 
 
 #import <Foundation/NSArray.h>
+#import <Foundation/NSSet.h>
 #import <Foundation/NSString.h>
 
 #include "CoreFoundation/CFBase.h"
@@ -36,6 +37,7 @@
 #include "CoreFoundation/CFStringEncodingExt.h"
 
 #include <stdarg.h>
+#include <pthread.h>
 
 const CFStringRef kCFStringTransformStripCombiningMarks =
   (CFStringRef)@"kCFStringTransformStripCombiningMarks";
@@ -852,4 +854,43 @@ void
 CFStringUppercase (CFMutableStringRef theString, CFLocaleRef locale)
 {
   // FIXME
+}
+
+static pthread_mutex_t static_strings_lock = PTHREAD_MUTEX_INITIALIZER;
+static NSMutableSet *static_strings;
+/**
+ * Hack to allocated CFStrings uniquely without compiler support.
+ */
+CFStringRef __CFStringMakeConstantString(const char *str)
+{
+	NSString *new = [[NSString alloc] initWithUTF8String: str];
+	NSString *old = [static_strings member: new];
+	// Return the existing string pointer if we have one.
+	if (nil != old)
+	{
+		[new release];
+		return (CFStringRef)old;
+	}
+	pthread_mutex_lock(&static_strings_lock);
+	if (nil == static_strings)
+	{
+		static_strings = [NSMutableSet new];
+	}
+	// Check again in case another thread added this string to the table while
+	// we were waiting on the mutex.
+	old = [static_strings member: new];
+	if (nil == old)
+	{
+		// Note: In theory, for proper retain count tracking, we should release
+		// new here.  We're not going to, because it is expected to persist for
+		// the lifetime of the program
+		[static_strings addObject: new];
+		old = new;
+	}
+	else
+	{
+		[new release];
+	}
+	pthread_mutex_unlock(&static_strings_lock);
+	return (CFStringRef)old;
 }
