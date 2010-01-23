@@ -171,6 +171,10 @@ CFRangeMake(CFIndex location, CFIndex length)
   return range;
 }
 
+//
+// CFPropertyList
+//
+typedef struct CFPropertyList *CFPropertyListRef;
 
 //
 // CFString

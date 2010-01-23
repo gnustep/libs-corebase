@@ -1,6 +1,15 @@
 2010-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CoreFoundation.h:
+	* Headers/CoreFoundation/CFBase.h
+	* Headers/CoreFoundation/CFPropertyList.h:
+	* Source/GNUmakefile:
+	* Source/CFPropertyList.m: Added rudimentary CFPropertyList
+	implementaion
+
+2010-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CoreFoundation.h:
 	* Headers/CoreFoundation/CFStream.h:
 	* Source/GNUmakefile:
 	* Source/CFStream.m: Added CFStream implementation.
