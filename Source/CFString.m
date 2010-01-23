@@ -40,37 +40,37 @@
 #include <pthread.h>
 
 const CFStringRef kCFStringTransformStripCombiningMarks =
-  (CFStringRef)@"kCFStringTransformStripCombiningMarks";
+  CFSTR("kCFStringTransformStripCombiningMarks");
 const CFStringRef kCFStringTransformToLatin =
-  (CFStringRef)@"kCFStringTransformToLatin";
+  CFSTR("kCFStringTransformToLatin");
 const CFStringRef kCFStringTransformFullwidthHalfwidth =
-  (CFStringRef)@"kCFStringTransformFullwidthHalfwidth";
+  CFSTR("kCFStringTransformFullwidthHalfwidth");
 const CFStringRef kCFStringTransformLatinKatakana =
-  (CFStringRef)@"kCFStringTransformLatinKatakana";
+  CFSTR("kCFStringTransformLatinKatakana");
 const CFStringRef kCFStringTransformLatinHiragana =
-  (CFStringRef)@"kCFStringTransformLatinHiragana";
+  CFSTR("kCFStringTransformLatinHiragana");
 const CFStringRef kCFStringTransformHiraganaKatakana  =
-  (CFStringRef)@"kCFStringTransformHiraganaKatakana";
+  CFSTR("kCFStringTransformHiraganaKatakana");
 const CFStringRef kCFStringTransformMandarinLatin =
-  (CFStringRef)@"kCFStringTransformMandarinLatin";
+  CFSTR("kCFStringTransformMandarinLatin");
 const CFStringRef kCFStringTransformLatinHangul =
-  (CFStringRef)@"kCFStringTransformLatinHangul";
+  CFSTR("kCFStringTransformLatinHangul");
 const CFStringRef kCFStringTransformLatinArabic =
-  (CFStringRef)@"kCFStringTransformLatinArabic";
+  CFSTR("kCFStringTransformLatinArabic");
 const CFStringRef kCFStringTransformLatinHebrew =
-  (CFStringRef)@"kCFStringTransformLatinHebrew";
+  CFSTR("kCFStringTransformLatinHebrew");
 const CFStringRef kCFStringTransformLatinThai =
-  (CFStringRef)@"kCFStringTransformLatinThai";
+  CFSTR("kCFStringTransformLatinThai");
 const CFStringRef kCFStringTransformLatinCyrillic =
-  (CFStringRef)@"kCFStringTransformLatinCyrillic";
+  CFSTR("kCFStringTransformLatinCyrillic");
 const CFStringRef kCFStringTransformLatinGreek =
-  (CFStringRef)@"kCFStringTransformLatinGreek";
+  CFSTR("kCFStringTransformLatinGreek");
 const CFStringRef kCFStringTransformToXMLHex =
-  (CFStringRef)@"kCFStringTransformToXMLHex";
+  CFSTR("kCFStringTransformToXMLHex");
 const CFStringRef kCFStringTransformToUnicodeName =
-  (CFStringRef)@"kCFStringTransformToUnicodeName";
+  CFSTR("kCFStringTransformToUnicodeName");
 const CFStringRef kCFStringTransformStripDiacritics =
-  (CFStringRef)@"kCFStringTransformStripDiacritics";
+  CFSTR("kCFStringTransformStripDiacritics");
 
 
 

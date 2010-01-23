@@ -1,5 +1,12 @@
 2010-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CFString.h: Moved CFSTR definition from here...
+	* Headers/CoreFoundation/CFBase.h: To here.
+	* Source/CFError.m:
+	* Source/CFString.m: Use CFSTR() instead of @"".
+
+2010-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CoreFoundation.h:
 	* Headers/CoreFoundation/CFBase.h
 	* Headers/CoreFoundation/CFPropertyList.h:
