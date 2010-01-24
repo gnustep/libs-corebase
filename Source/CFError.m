@@ -28,6 +28,7 @@
 #import <Foundation/NSError.h>
 
 #include "CoreFoundation/CFError.h"
+#include "CoreFoundation/CFString.h"
 
 const CFStringRef kCFErrorDomainPOSIX = 
   CFSTR("NSPOSIXErrorDomain");

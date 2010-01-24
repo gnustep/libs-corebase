@@ -1,5 +1,12 @@
 2010-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CFString.h:
+	* Headers/CoreFoundation/CFBase.h: Revert previous change, the correct
+	place for CFSTR is in CFString.h.
+	* Source/CFError.m: Include CFString.h.
+
+2010-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CFString.h: Moved CFSTR definition from here...
 	* Headers/CoreFoundation/CFBase.h: To here.
 	* Source/CFError.m:
