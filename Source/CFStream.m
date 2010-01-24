@@ -79,7 +79,7 @@ _CFStreamOpen (CFTypeRef stream)
 }
 
 void
-_CFStreamScheduleWithRunLoop (CFTypeRef stream, CFRunLoopRef runLoop,
+_CFStreamScheduleInRunLoop (CFTypeRef stream, CFRunLoopRef runLoop,
                               CFStringRef runLoopMode)
 {
   [(NSStream *)stream scheduleInRunLoop: (NSRunLoop *)runLoop
@@ -87,7 +87,7 @@ _CFStreamScheduleWithRunLoop (CFTypeRef stream, CFRunLoopRef runLoop,
 }
 
 void
-_CFStreamUncheduleWithRunLoop (CFTypeRef stream, CFRunLoopRef runLoop,
+_CFStreamUnscheduleFromRunLoop (CFTypeRef stream, CFRunLoopRef runLoop,
                                CFStringRef runLoopMode)
 {
   [(NSStream *)stream removeFromRunLoop: (NSRunLoop *)runLoop
@@ -212,7 +212,7 @@ CFWriteStreamScheduleWithRunLoop (CFWriteStreamRef stream,
                                   CFRunLoopRef runLoop,
                                   CFStringRef runLoopMode)
 {
-  _CFStreamScheduleWithRunLoop (stream, runLoop, runLoopMode);
+  _CFStreamScheduleInRunLoop (stream, runLoop, runLoopMode);
 }
 
 Boolean
@@ -329,7 +329,7 @@ void
 CFReadStreamScheduleWithRunLoop (CFReadStreamRef stream, CFRunLoopRef runLoop,
                                  CFStringRef runLoopMode)
 {
-  _CFStreamSscheduleFromRunLoop (stream, runLoop, runLoopMode);
+  _CFStreamScheduleInRunLoop (stream, runLoop, runLoopMode);
 }
 
 Boolean

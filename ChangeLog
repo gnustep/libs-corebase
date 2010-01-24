@@ -1,4 +1,8 @@
-2010-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
+2010-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStream.m: Fixed typo.
+
+2010-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CFString.h:
 	* Headers/CoreFoundation/CFBase.h: Revert previous change, the correct
