@@ -1,5 +1,12 @@
 2010-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CoreFoundation.h:
+	* Headers/CoreFoundation/CFNumber.h:
+	* Source/GNUmakefile:
+	* Source/CFNumber.m: Added initial CFNumber implementation.
+
+2010-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CFArray.h:
 	* Headers/CoreFoundation/CFDictionary.h: Made immutable and mutable
 	versions of these class be the same structure.

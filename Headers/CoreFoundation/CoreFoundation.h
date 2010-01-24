@@ -34,6 +34,7 @@
 #include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFDictionary.h>
 #include <CoreFoundation/CFError.h>
+#include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFStream.h>
 #include <CoreFoundation/CFString.h>

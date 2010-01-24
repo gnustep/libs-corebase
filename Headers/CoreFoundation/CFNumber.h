@@ -1,0 +1,100 @@
+/* CFNumber.h
+   
+   Copyright (C) 2010 Free Software Foundation, Inc.
+   
+   Written by: Stefan Bidigaray
+   Date: January, 2010
+   
+   This file is part of GNUstep CoreBase Library.
+   
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; see the file COPYING.LIB.
+   If not, see <http://www.gnu.org/licenses/> or write to the 
+   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+   Boston, MA 02110-1301, USA.
+*/
+
+#include <CoreFoundation/CFBase.h>
+
+#ifndef __COREFOUNDATION_CFNUMBER_H__
+#define __COREFOUNDATION_CFNUMBER_H__
+
+typedef struct CFNumber *CFNumberRef;
+
+const CFNumberRef kCFNumberNaN;
+const CFNumberRef kCFNumberNegativeInfinity;
+const CFNumberRef kCFNumberPositiveInfinity;
+
+typedef enum CFNumberType CFNumberType;
+enum CFNumberType
+{
+  kCFNumberSInt8Type = 1,
+  kCFNumberSInt16Type = 2,
+  kCFNumberSInt32Type = 3,
+  kCFNumberSInt64Type = 4,
+  kCFNumberFloat32Type = 5,
+  kCFNumberFloat64Type = 6,
+  kCFNumberCharType = 7,
+  kCFNumberShortType = 8,
+  kCFNumberIntType = 9,
+  kCFNumberLongType = 10,
+  kCFNumberLongLongType = 11,
+  kCFNumberFloatType = 12,
+  kCFNumberDoubleType = 13,
+  kCFNumberCFIndexType = 14,
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+  kCFNumberNSIntegerType = 15,
+  kCFNumberCGFloatType = 16,
+  kCFNumberMaxType = 16
+#else
+  kCFNumberMaxType = 14
+#endif
+};
+
+
+
+//
+// Creating a Number
+//
+CFNumberRef
+CFNumberCreate (CFAllocatorRef allocator, CFNumberType theType,
+  const void *valuePtr);
+
+//
+// Getting Information About Numbers
+//
+CFIndex
+CFNumberGetByteSize (CFNumberRef number);
+
+CFNumberType
+CFNumberGetType (CFNumberRef number);
+
+Boolean
+CFNumberGetValue (CFNumberRef number, CFNumberType theType, void *valuePtr);
+
+Boolean
+CFNumberIsFloatType (CFNumberRef number);
+
+//
+// Comparing Numbers
+//
+CFComparisonResult
+CFNumberCompare (CFNumberRef number, CFNumberRef otherNumber, void *context);
+
+//
+// Getting the CFNumber Type ID
+//
+CFTypeID
+CFNumberGetTypeID (void);
+
+#endif /* __COREFOUNDATION_CFNUMBER_H__ */
