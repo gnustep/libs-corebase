@@ -1,5 +1,11 @@
 2010-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CFArray.h:
+	* Headers/CoreFoundation/CFDictionary.h: Made immutable and mutable
+	versions of these class be the same structure.
+
+2010-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFStream.m: Fixed typo.
 
 2010-01-24 Stefan Bidigaray <stefanbidi@gmail.com>

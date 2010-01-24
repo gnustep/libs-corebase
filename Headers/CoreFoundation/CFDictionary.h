@@ -30,7 +30,7 @@
 #include "CoreFoundation/CFBase.h"
 
 typedef struct CFDictionary * CFDictionaryRef;
-typedef struct CFMutableDictionary * CFMutableDictionaryRef;
+typedef struct CFDictionary * CFMutableDictionaryRef;
 
 /* FIXME: callback are NOT supported */
 typedef void (*CFDictionaryApplierFunction) (const void *key,

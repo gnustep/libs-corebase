@@ -31,7 +31,7 @@
 #include <CoreFoundation/CFBase.h>
 
 typedef struct CFArray *CFArrayRef;
-typedef struct CFMutableArray *CFMutableArrayRef;
+typedef struct CFArray *CFMutableArrayRef;
 
 typedef void (*CFArrayApplierFunction) (const void *value, void *context);
 typedef CFStringRef (*CFArrayCopyDescriptionCallBack) (const void *value);
