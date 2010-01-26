@@ -35,7 +35,24 @@ CFPropertyListCreateData (CFAllocatorRef allocator,
                           CFPropertyListFormat format, CFOptionFlags options,
                           CFErrorRef *error)
 {
+  NSString *errorString = NULL;
+  CFDataRef data;
+
   // FIXME
+  data = (CFDataRef)CFRetain([NSPropertyListSerialization
+                               dataFromPropertyList: (id)propertyList
+                                             format: format
+                                   errorDescription: &errorString]);
+
+  if (errorString != NULL)
+    {
+      if (error != NULL)
+        {
+          // FIXME
+        }
+      RELEASE(errorString);
+    }
+  return data;
 }
 
 CFPropertyListRef
@@ -55,7 +72,6 @@ CFPropertyListCreateFromStream (CFAllocatorRef allocator,
                                 CFPropertyListFormat *format,
                                 CFStringRef *errorString)
 {
-/* FIXME
   CFErrorRef err = NULL;
   
   CFPropertyListRef ret =
@@ -71,7 +87,6 @@ CFPropertyListCreateFromStream (CFAllocatorRef allocator,
     }
   
   return ret;
-*/
 }
 
 CFPropertyListRef
@@ -79,28 +94,22 @@ CFPropertyListCreateFromXMLData (CFAllocatorRef allocator, CFDataRef xmlData,
                                  CFOptionFlags mutabilityOption,
                                  CFStringRef *errorString)
 {
-  return (CFPropertyListRef)CFRetain([NSPropertyListSerialization
-                              propertyListFromData: (NSData *)xmlData
-                              mutabilityOption: mutabilityOption
-                              format: NULL
-                              errorDescription: (NSString **)errorString]);
-/* FIXME
   CFErrorRef err = NULL;
   
-  CFPropertyListRef ret =
-    CFPropertyListCreateWithData (allocator, xmlData, mutabilityOption,
-      NULL, &err);
+  CFPropertyListRef ret = CFPropertyListCreateWithData(allocator, xmlData, 
+                                                       mutabilityOption,
+                                                       NULL, 
+                                                       &err);
   if (err != NULL)
     {
       if (errorString != NULL)
         {
           *errorString = CFErrorCopyDescription (err);
         }
-      CFRelease (err);
+      CFRelease(err);
     }
   
   return ret;
-*/
 }
 
 CFPropertyListRef
@@ -109,7 +118,25 @@ CFPropertyListCreateWithData (CFAllocatorRef allocator, CFDataRef data,
                               CFPropertyListFormat *format,
                               CFErrorRef *error)
 {
+  NSString *errorString = NULL;
+  CFPropertyListRef propertyList;
+
   // FIXME: GNUstep does not have the necessary method to implement this.
+  propertyList = (CFPropertyListRef)CFRetain([NSPropertyListSerialization
+                                               propertyListFromData: (NSData *)data
+                                                   mutabilityOption: options
+                                                             format: format
+                                                   errorDescription: &errorString]);
+
+  if (errorString != NULL)
+    {
+      if (error != NULL)
+        {
+          // FIXME
+        }
+      RELEASE(errorString);
+    }
+  return propertyList;
 }
 
 CFPropertyListRef
@@ -119,21 +146,24 @@ CFPropertyListCreateWithStream (CFAllocatorRef allocator,
                                 CFPropertyListFormat *format,
                                 CFErrorRef *error)
 {
-  // FIXME: See above.
+  const UInt8 *buffer = CFAllocatorAllocate(NULL, streamLength, 0);
+  CFDataRef data;
+  CFPropertyListRef ret;
+
+  CFReadStreamRead(stream, buffer, bufferLength);
+  data = CFDataCreateWithBytesNoCopy(NULL, buffer, streamLength, NULL);
+  ret = CFPropertyListCreateWithData(NULL, data, options, format, error);
+  CFRelease(data);
+
+  return ret;
 }
 
 CFDataRef
 CFPropertyListCreateXMLData (CFAllocatorRef allocator,
                              CFPropertyListRef propertyList)
 {
-  return (CFDataRef)[NSPropertyListSerialization
-                      dataFromPropertyList: (id)propertyList
-                                    format: kCFPropertyListXMLFormat_v1_0
-                          errorDescription: NULL];
-/* FIXME
-  return CFPropertyListCreateData (allocator, propertyList, 
-    kCFPropertyListXMLFormat_v1_0, 0, NULL)
-*/
+  return CFPropertyListCreateData(allocator, propertyList, 
+                                  kCFPropertyListXMLFormat_v1_0, 0, NULL);
 }
 
 Boolean
@@ -148,7 +178,15 @@ CFPropertyListWrite (CFPropertyListRef propertyList, CFWriteStreamRef stream,
                      CFPropertyListFormat format, CFOptionFlags options,
                      CFErrorRef *error)
 {
-  // FIXME: See above
+  CFDataRef data = CFPropertyListCreateData(NULL, propertyList, format, 
+                                            options, error);
+  const UInt8 *buffer = CFDataGetBytePtr(data);
+  CFIndex bufferLength = CFDataGetLength(data);
+  CFIndex ret = CFWriteStreamWrite(stream, buffer, bufferLength);
+
+  CFRelease(data);
+  
+  return ret;
 }
 
 CFIndex
@@ -157,10 +195,9 @@ CFPropertyListWriteToStream (CFPropertyListRef propertyList,
                              CFPropertyListFormat format,
                              CFStringRef *errorString)
 {
-/* FIXME
   CFErrorRef err = NULL;
   
-  CFPropertyListRef ret =
+  CFIndex ret =
     CFPropertyListWrite (propertyList, stream, format, 0, &err);
   if (err != NULL)
     {
@@ -172,5 +209,4 @@ CFPropertyListWriteToStream (CFPropertyListRef propertyList,
     }
   
   return ret;
-*/
 }
