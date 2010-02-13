@@ -150,7 +150,7 @@ CFPropertyListCreateWithStream (CFAllocatorRef allocator,
   CFDataRef data;
   CFPropertyListRef ret;
 
-  CFReadStreamRead(stream, buffer, bufferLength);
+  CFReadStreamRead(stream, buffer, streamLength);
   data = CFDataCreateWithBytesNoCopy(NULL, buffer, streamLength, NULL);
   ret = CFPropertyListCreateWithData(NULL, data, options, format, error);
   CFRelease(data);
