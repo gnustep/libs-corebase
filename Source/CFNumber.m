@@ -114,26 +114,29 @@ CFIndex CFNumberGetByteSize (CFNumberRef number)
 
 CFNumberType CFNumberGetType (CFNumberRef number)
 {
-  GSNumberInfo *info = GSNumberInfoFromObject((NSNumber *)number);
-  
   // FIXME: is this everything?
-  switch (info->typeLevel)
+  switch ([(NSNumber*)number objCType][0])
     {
-      case 1:
+      case 'c':
+      case 'C':
         return kCFNumberCharType;
-      case 3:
+      case 's':
+      case 'S':
         return kCFNumberShortType;
-      case 5:
+      case 'i':
+      case 'I':
         return kCFNumberIntType;
-      case 7:
+      case 'l':
+      case 'L':
         return kCFNumberLongType;
-      case 9:
+      case 'q':
+      case 'Q':
         return kCFNumberLongLongType;
-      case 11:
+      case 'f':
         return kCFNumberFloatType;
-      case 12:
+      case 'd':
         return kCFNumberDoubleType;
-      defualt:
+      default:
         return 0;
     }
 }
