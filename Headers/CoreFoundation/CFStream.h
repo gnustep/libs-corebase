@@ -49,7 +49,6 @@ const CFStringRef kCFStreamPropertyAppendToFile;
 const CFStringRef kCFStreamPropertyFileCurrentOffset;
 #endif
 
-typedef struct CFStreamClientContext CFStreamClientContext;
 struct CFStreamClientContext
 {
   CFIndex version;
@@ -58,8 +57,8 @@ struct CFStreamClientContext
   CFAllocatorReleaseCallBack release;
   CFAllocatorCopyDescriptionCallBack copyDescription;
 };
+typedef struct CFStreamClientContext CFStreamClientContext;
 
-typedef enum _CFStreamStatus CFStreamStatus;
 enum _CFStreamStatus
 {
   kCFStreamStatusNotOpen = 0,
@@ -71,24 +70,25 @@ enum _CFStreamStatus
   kCFStreamStatusClosed,
   kCFStreamStatusError
 };
+typedef enum _CFStreamStatus CFStreamStatus;
 
 // Deprecated
-typedef enum _CFStreamErrorDomain CFStreamErrorDomain;
 enum _CFStreamErrorDomain
 {
   kCFStreamErrorDomainCustom = -1,
   kCFStreamErrorDomainPOSIX = 1,
   kCFStreamErrorDomainMacOSStatus
 };
+typedef enum _CFStreamErrorDomain CFStreamErrorDomain;
 
-typedef struct _CFStreamError CFStreamError;
+
 struct _CFStreamError
 {
   CFStreamErrorDomain domain;
   SInt32 error;
 };
+typedef struct _CFStreamError CFStreamError;
 
-typedef enum _CFStreamEventType CFStreamEventType;
 enum _CFStreamEventType
 {
   kCFStreamEventNone = 0,
@@ -98,6 +98,7 @@ enum _CFStreamEventType
   kCFStreamEventErrorOccurred = 8,
   kCFStreamEventEndEncountered = 16
 };
+typedef enum _CFStreamEventType CFStreamEventType;
 
 typedef void (*CFWriteStreamClientCallBack) (CFWriteStreamRef stream,
   CFStreamEventType eventType, void *clientCallBackInfo);
