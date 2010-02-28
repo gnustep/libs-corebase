@@ -110,7 +110,7 @@ enum
 typedef CFComparisonResult (*CFComparatorFunction)(const void *val1, const void *val2, void *context);
 
 /* CoreFoundation version numbers */
-const double kCFCoreFoundationVersionNumber;
+extern const double kCFCoreFoundationVersionNumber; 
 #define kCFCoreFoundationVersionNumber10_0    196.40
 #define kCFCoreFoundationVersionNumber10_0_3  196.50
 #define kCFCoreFoundationVersionNumber10_1    226.00
@@ -199,9 +199,6 @@ typedef void        (*CFAllocatorReleaseCallBack)(const void *info);
 
 typedef CFStringRef	(*CFAllocatorCopyDescriptionCallBack)(const void *info);
 
-
-
-typedef struct _CFAllocatorContext CFAllocatorContext;
 struct _CFAllocatorContext
 {
   CFIndex version;
@@ -214,15 +211,16 @@ struct _CFAllocatorContext
   CFAllocatorDeallocateCallBack	     deallocate;
   CFAllocatorPreferredSizeCallBack   preferredSize;
 };
+typedef struct _CFAllocatorContext CFAllocatorContext;
 
-const CFAllocatorRef kCFAllocatorDefault;
-const CFAllocatorRef kCFAllocatorSystemDefault;
-const CFAllocatorRef kCFAllocatorMalloc;
+extern const CFAllocatorRef kCFAllocatorDefault;
+extern const CFAllocatorRef kCFAllocatorSystemDefault;
+extern const CFAllocatorRef kCFAllocatorMalloc;
 #if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-const CFAllocatorRef kCFAllocatorMallocZone
+extern const CFAllocatorRef kCFAllocatorMallocZone;
 #endif
-const CFAllocatorRef kCFAllocatorNull;
-const CFAllocatorRef kCFAllocatorUseContext;
+extern const CFAllocatorRef kCFAllocatorNull;
+extern const CFAllocatorRef kCFAllocatorUseContext;
 
 CFAllocatorRef
 CFAllocatorCreate (CFAllocatorRef allocator, CFAllocatorContext *context);

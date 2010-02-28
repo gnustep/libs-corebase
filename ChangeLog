@@ -1,3 +1,7 @@
+2010-02-28 08:43-EST Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/CoreFoundation/CFBase.h: Declare externs where appropriate.
+
 2010-02-12 19:35-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/CFPropertyList.m: Use stream length instead of bufferLength.
