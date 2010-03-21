@@ -1,3 +1,15 @@
+2010-03-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFBase.m: Cleaned up CFAllocator and removed things 
+	that should not have been there in the first place.
+	* Source/CFString.m:
+	* Source/CFDate.m:
+	* Source/CFArray.m:
+	* Source/CFPropertyList.m:
+	* Source/CFString.m:
+	* Source/CFNumber.m: Cleaned up
+	* Headers/CoreFoundation/CFBase.h: Added and fixed defines and types.
+
 2010-02-28 08:43-EST Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/CoreFoundation/CFBase.h: Declare externs where appropriate.

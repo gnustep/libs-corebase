@@ -153,9 +153,9 @@ Boolean CFNumberGetValue (CFNumberRef number, CFNumberType theType,
   if (CFNumberGetType(number) == theType)
     {
       [(NSNumber *)number getValue: valuePtr];
-      return true;
+      return TRUE;
     }
-  return false;
+  return FALSE;
 }
 
 Boolean CFNumberIsFloatType (CFNumberRef number)
@@ -167,7 +167,7 @@ Boolean CFNumberIsFloatType (CFNumberRef number)
       || strcmp (@encode(double), type) == 0
       || strcmp (@encode(Float32), type) == 0
       || strcmp (@encode(Float64), type) == 0)
-    return true;
+    return TRUE;
   
-  return false;
+  return FALSE;
 }

@@ -309,7 +309,7 @@ CFStringCreateWithCharacters (CFAllocatorRef alloc, const UniChar *chars,
                               CFIndex numChars)
 {
   return CFStringCreateWithBytes (alloc, (const UInt8 *)chars,
-    numChars * sizeof(UniChar), kCFStringEncodingUnicode, false);
+    numChars * sizeof(UniChar), kCFStringEncodingUnicode, FALSE);
 }
 
 CFStringRef
@@ -317,8 +317,8 @@ CFStringCreateWithCharactersNoCopy (CFAllocatorRef alloc,
                                     const UniChar *chars, CFIndex numChars,
                                     CFAllocatorRef contentsDeallocator)
 {
-  return CFStringCreateWithBytesNoCopy (alloc, (const char *)chars, numChars *
-    sizeof(UniChar), CFStringGetSystemEncoding(), false, contentsDeallocator);
+  return CFStringCreateWithBytesNoCopy (alloc, (const UInt8 *)chars, numChars *
+    sizeof(UniChar), CFStringGetSystemEncoding(), FALSE, contentsDeallocator);
 }
 
 CFStringRef
@@ -409,7 +409,7 @@ CFStringFind (CFStringRef theString, CFStringRef stringToFind,
   CFRange ret;
   
   if (CFStringFindWithOptions (theString, stringToFind,
-    (CFRange){0, CFStringGetLength(theString)}, compareOptions, &ret) == false)
+    (CFRange){0, CFStringGetLength(theString)}, compareOptions, &ret) == FALSE)
     {
       ret = CFRangeMake (0, 0);
     }
@@ -430,11 +430,11 @@ CFStringFindCharacterFromSet (CFStringRef theString,
 
   if (range.location == 0 && range.length == 0)
     {
-      return false;
+      return FALSE;
     }
   
   *result = CFRangeMake(range.location, range.length);
-  return true;
+  return TRUE;
 }
 
 Boolean
@@ -460,11 +460,11 @@ CFStringFindWithOptionsAndLocale (CFStringRef theString,
 
   if (range.location == 0 && range.length == 0)
     {
-      return false;
+      return FALSE;
     }
 
   *result = CFRangeMake(range.location, range.length);
-  return true;
+  return TRUE;
 }
 
 CFIndex
@@ -616,7 +616,7 @@ Boolean
 CFStringGetPascalString (CFStringRef theString, StringPtr buffer,
                          CFIndex bufferSize, CFStringEncoding encoding)
 {
-  return false;
+  return FALSE;
 }
 
 ConstStringPtr
@@ -677,7 +677,7 @@ CFStringInitInlineBuffer (CFStringRef str, CFStringInlineBuffer *buf,
 Boolean
 CFStringIsEncodingAvailable (CFStringEncoding encoding)
 {
-  return false;
+  return FALSE;
 }
 
 //
@@ -836,6 +836,7 @@ CFStringTransform (CFMutableStringRef string, CFRange *range,
                    CFStringRef transform, Boolean reverse)
 {
   // FIXME
+  return FALSE;
 }
 
 void

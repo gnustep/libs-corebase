@@ -40,7 +40,6 @@ typedef struct CFRunLoop *CFRunLoopRef;
 //
 // CoreFoundation types
 //
-/* These defines are in Apple's CFBase.h */
 typedef uint8_t  Boolean;
 typedef uint8_t  UInt8;
 typedef int8_t   SInt8;
@@ -62,14 +61,35 @@ typedef const Str255*    ConstStr255Param;
 typedef SInt16           OSErr;
 typedef SInt16           RegionCode;
 typedef SInt16           LangCode;
+typedef SInt16           ScriptCode;
+typedef UInt32           FourCharCode;
+typedef FourCharCode     OSType;
+typedef UInt8            Byte;
+typedef SInt8            SignedByte;
+
+typedef UInt32 UTF32Char;
+typedef UInt16 UTF16Char;
+typedef UInt8  UTF8Char;
 
 
 
-#ifndef true
-# define true	1
+#ifndef CF_EXPORT_C_BEGIN
+# if defined(__cplusplus)
+#  define CF_EXPORT_C_BEGIN extern "C" {
+#  define CF_EXPORT_C_END }
+# else
+#  define CF_EXPORT_C_BEGIN
+#  define CF_EXPORT_C_END
+# endif
 #endif
-#ifndef false
-# define false	0
+
+#define CF_EXPORT GS_EXPORT
+
+#ifndef TRUE
+# define TRUE  1
+#endif
+#ifndef FALSE
+# define FALSE 0
 #endif
 
 //
@@ -82,8 +102,9 @@ typedef void* CFTypeRef;
 //
 // Base Utilities
 //
+typedef unsigned long CFOptionFlags;
 typedef signed long CFIndex;
-typedef UInt32 CFOptionFlags;
+
 struct CFRange
 {
   CFIndex location;
@@ -110,7 +131,7 @@ enum
 typedef CFComparisonResult (*CFComparatorFunction)(const void *val1, const void *val2, void *context);
 
 /* CoreFoundation version numbers */
-extern const double kCFCoreFoundationVersionNumber; 
+CF_EXPORT const double kCFCoreFoundationVersionNumber; 
 #define kCFCoreFoundationVersionNumber10_0    196.40
 #define kCFCoreFoundationVersionNumber10_0_3  196.50
 #define kCFCoreFoundationVersionNumber10_1    226.00
@@ -213,14 +234,14 @@ struct _CFAllocatorContext
 };
 typedef struct _CFAllocatorContext CFAllocatorContext;
 
-extern const CFAllocatorRef kCFAllocatorDefault;
-extern const CFAllocatorRef kCFAllocatorSystemDefault;
-extern const CFAllocatorRef kCFAllocatorMalloc;
+CF_EXPORT const CFAllocatorRef kCFAllocatorDefault;
+CF_EXPORT const CFAllocatorRef kCFAllocatorSystemDefault;
+CF_EXPORT const CFAllocatorRef kCFAllocatorMalloc;
 #if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-extern const CFAllocatorRef kCFAllocatorMallocZone;
+CF_EXPORT const CFAllocatorRef kCFAllocatorMallocZone;
 #endif
-extern const CFAllocatorRef kCFAllocatorNull;
-extern const CFAllocatorRef kCFAllocatorUseContext;
+CF_EXPORT const CFAllocatorRef kCFAllocatorNull;
+CF_EXPORT const CFAllocatorRef kCFAllocatorUseContext;
 
 CFAllocatorRef
 CFAllocatorCreate (CFAllocatorRef allocator, CFAllocatorContext *context);

@@ -24,46 +24,15 @@
    Boston, MA 02110-1301, USA.
 */ 
 
-#include <Foundation/Foundation.h>
 #include <stddef.h>
 #include <stdlib.h>
+#import <Foundation/NSObject.h>
+#import <Foundation/NSString.h>
+#import <Foundation/NSNull.h>
 
 #include "CoreFoundation/CFBase.h"
 
 const double kCFCoreFoundationVersionNumber = 550.13;
-
-//
-// CFAllocator
-//
-/* FIXME: taken from NSObject.m verbatum for compatibility */
-#ifdef ALIGN
-#undef ALIGN
-#endif
-#define	ALIGN __alignof__(double)
-
-/*
- *	Define a structure to hold information that is held locally
- *	(before the start) in each object.
- */
-typedef struct obj_layout_unpadded {
-    NSUInteger	retained;
-    NSZone	*zone;
-} unp;
-#define	UNP sizeof(unp)
-
-/*
- *	Now do the REAL version - using the other version to determine
- *	what padding (if any) is required to get the alignment of the
- *	structure correct.
- */
-struct obj_layout {
-    NSUInteger	retained;
-    NSZone	*zone;
-    char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
-};
-typedef	struct obj_layout *obj;
-
-
 
 //
 // kCFAllocatorMalloc
@@ -123,7 +92,7 @@ static NSZone _kCFAllocatorMalloc =
 //
 static void * null_malloc (CFAllocatorRef alloc, size_t size)
 {
-  return ;
+  return NULL;
 }
 
 static void * null_realloc (CFAllocatorRef alloc, void *ptr, size_t size)
@@ -183,8 +152,6 @@ CFAllocatorRef __kCFAllocatorDefault = NULL;
 
 
 
-/* FIXME: The next few functions were adapted from what's in NSObject.m.  It
-   would really help if parts of those functions were made public. */
 CFAllocatorRef
 CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorContext *context)
 {
@@ -195,61 +162,31 @@ CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorContext *context)
 void *
 CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
 {
-  void *new;
-  int  newSize;
-  
-  newSize = size + sizeof(struct obj_layout);
-  if (allocator == 0)
-    {
-      allocator = CFAllocatorGetDefault();
-    }
-  
-  new = NSZoneMalloc(allocator, size);
-  if (new != NULL)
-    {
-      memset (new, 0, size);
-      ((obj)new)->zone = allocator;
-      new = (void *)&((obj)new)[1];
-    }
-  
-  return new;
-
+  /* A similar check is done in NSZoneMalloc() but our default allocator
+   * may be set to something other than what is returned by
+   * NSDefaultMallocZone(), even though we still don't have that ability.
+   */
+  if (NULL == allocator)
+    allocator = CFAllocatorGetDefault ();
+  return NSZoneMalloc(allocator, size);
 }
 
 void
 CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr)
 {
-  if (ptr != NULL)
-    {
-      obj o = &((obj)ptr)[-1];
-      NSZoneFree(allocator, o);
-    }
-  
-  return;
+  NSZoneFree(allocator, ptr);
 }
 
 CFIndex
 CFAllocatorGetPreferredSizeForSize(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
 {
-  return 0;  /* FIXME */
+  return 0;  // FIXME
 }
 
 void *
 CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize, CFOptionFlags hint)
 {
-  void *new;
-  CFIndex size;
-  
-  if (allocator == NULL)
-    {
-      allocator = CFAllocatorGetDefault();
-    }
-  
-  size = size + sizeof(struct obj_layout);
-  new = NSZoneRealloc (allocator, &((obj)ptr)[-1], size);
-  new = (void *)&((obj)new)[1];
-  
-  return new;
+  return NSZoneRealloc (allocator, ptr, newsize);
 }
 
 CFAllocatorRef
@@ -261,6 +198,7 @@ CFAllocatorGetDefault(void)
 void
 CFAllocatorSetDefault(CFAllocatorRef allocator)
 {
+  // FIXME
 }
 
 void
@@ -272,6 +210,7 @@ CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context)
 CFTypeID
 CFAllocatorGetTypeID(void)
 {
+  // FIXME
   return 0;
 }
 

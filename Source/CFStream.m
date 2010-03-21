@@ -72,10 +72,8 @@ _CFStreamGetStatus (CFTypeRef stream)
 Boolean
 _CFStreamOpen (CFTypeRef stream)
 {
-  Boolean ret;
-  
   [(NSStream *)stream open];
-  return (_CFStreamGetStatus (stream) == kCFStreamStatusOpen ? true : false);
+  return (_CFStreamGetStatus (stream) == kCFStreamStatusOpen ? TRUE : FALSE);
 }
 
 void
@@ -163,6 +161,7 @@ CFWriteStreamCreateWithAllocatedBuffers (CFAllocatorRef alloc,
                                          CFAllocatorRef bufferAllocator)
 {
   // FIXME: ???
+  return NULL;
 }
 
 CFWriteStreamRef
@@ -204,7 +203,7 @@ CFWriteStreamGetTypeID (void)
 Boolean
 CFWriteStreamOpen (CFWriteStreamRef stream)
 {
-  _CFStreamOpen (stream);
+  return _CFStreamOpen (stream);
 }
 
 void
@@ -221,7 +220,7 @@ CFWriteStreamSetClient (CFWriteStreamRef stream, CFOptionFlags streamEvents,
                         CFStreamClientContext *clientContext)
 {
   // FIXME
-  return false;
+  return FALSE;
 }
 
 Boolean
@@ -272,6 +271,7 @@ CFReadStreamCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
                                    CFIndex length, CFAllocatorRef bytesDeallocator)
 {
   // FIXME
+  return NULL;
 }
 
 CFReadStreamRef
@@ -286,6 +286,7 @@ CFReadStreamGetBuffer (CFReadStreamRef stream, CFIndex maxBytesToRead,
                        CFIndex *numBytesRead)
 {
   // FIXME: docs are  bit confusing
+  return NULL;
 }
 
 CFStreamError
@@ -338,7 +339,7 @@ CFReadStreamSetClient (CFReadStreamRef stream, CFOptionFlags streamEvents,
                        CFStreamClientContext *clientContext)
 {
   // FIXME
-  return false;
+  return FALSE;
 }
 
 Boolean

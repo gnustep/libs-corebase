@@ -61,6 +61,7 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef allocator,
                               CFOptionFlags mutabilityOption)
 {
   // FIXME
+  return NULL;
 }
 
 // Function is marked as obsolete as of 10.6
@@ -150,7 +151,7 @@ CFPropertyListCreateWithStream (CFAllocatorRef allocator,
   CFDataRef data;
   CFPropertyListRef ret;
 
-  CFReadStreamRead(stream, buffer, streamLength);
+  CFReadStreamRead(stream, (UInt8 *)buffer, streamLength);
   data = CFDataCreateWithBytesNoCopy(NULL, buffer, streamLength, NULL);
   ret = CFPropertyListCreateWithData(NULL, data, options, format, error);
   CFRelease(data);

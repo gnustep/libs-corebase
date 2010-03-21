@@ -41,6 +41,7 @@ CFAbsoluteTimeAddGregorianUnits (CFAbsoluteTime at, CFTimeZoneRef tz,
   CFGregorianUnits units)
 {
   // FIXME
+  return 0.0;
 }
 
 CFAbsoluteTime
@@ -53,12 +54,14 @@ SInt32
 CFAbsoluteTimeGetDayOfWeek (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
   // FIXME
+  return 0;
 }
 
 SInt32
 CFAbsoluteTimeGetDayOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
   // FIXME
+  return 0;
 }
 
 CFGregorianUnits
@@ -66,38 +69,42 @@ CFAbsoluteTimeGetDifferenceAsGregorianUnits (CFAbsoluteTime at1,
   CFAbsoluteTime at2, CFTimeZoneRef tz, CFOptionFlags unitFlags)
 {
   // FIXME
+  return (CFGregorianUnits){0, 0, 0, 0, 0, 0.0};
 }
 
 CFGregorianDate
 CFAbsoluteTimeGetGregorianDate (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
   // FIXME
+  return (CFGregorianDate){0, 0, 0, 0, 0, 0.0};
 }
 
 SInt32
 CFAbsoluteTimeGetWeekOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
   // FIXME
+  return 0;
 }
 
 CFAbsoluteTime
 CFGregorianDateGetAbsoluteTime (CFGregorianDate gdate, CFTimeZoneRef tz)
 {
-  // FIXME  
+  // FIXME
+  return 0.0;
 }
 
 Boolean
 CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags)
 {
   /* unitFlags is unused, must be ignored */
-  Boolean isValid = false;
+  Boolean isValid = FALSE;
   
   if (unitFlags | kCFGregorianUnitsYears)
-    isValid = true; // FIXME: What's the test here?
+    isValid = TRUE; // FIXME: What's the test here?
   if (unitFlags | kCFGregorianUnitsMonths)
     isValid = ((gdate.month >= 1) && (gdate.month <= 12));
   if (unitFlags | kCFGregorianUnitsDays)
-    isValid = true; // FIXME
+    isValid = TRUE; // FIXME
   if (unitFlags | kCFGregorianUnitsHours)
     isValid = ((gdate.hour >= 0) && (gdate.hour < 24));
     // FIXME: I'm assuming this would be in 24 hour time (24 == 0 in this case)

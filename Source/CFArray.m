@@ -134,6 +134,7 @@ CFArrayGetLastIndexOfValue (CFArrayRef theArray, CFRange range,
                             const void *value)
 {
   // FIXME
+  return 0;
 }
 
 CFTypeID
