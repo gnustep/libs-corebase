@@ -536,7 +536,7 @@ CFStringGetDoubleValue (CFStringRef str)
 CFStringEncoding
 CFStringGetFastestEncoding (CFStringRef theString)
 {
-  return [(NSString*)theString fastestEncoding];
+  return CFStringConvertNSStringEncodingToEncoding([(NSString*)theString fastestEncoding]);
 }
 
 Boolean
@@ -637,7 +637,7 @@ CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef theString,
 CFStringEncoding
 CFStringGetSmallestEncoding (CFStringRef theString)
 {
-  return [(NSString*)theString smallestEncoding];
+  return CFStringConvertNSStringEncodoingToEncoding([(NSString*)theString smallestEncoding]);
 }
 
 CFStringEncoding
