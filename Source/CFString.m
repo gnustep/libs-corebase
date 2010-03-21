@@ -643,7 +643,7 @@ CFStringGetSmallestEncoding (CFStringRef theString)
 CFStringEncoding
 CFStringGetSystemEncoding (void)
 {
-  return CFStringConvertEncodingToNSStringEncoding([NSString defaultCStringEncoding]);
+  return CFStringConvertNSStringEncodingToEncoding([NSString defaultCStringEncoding]);
 }
 
 CFTypeID

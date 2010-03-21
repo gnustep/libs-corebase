@@ -13,6 +13,7 @@ libgnustep-corebase_OBJC_FILES = \
   CFError.m \
   CFNumber.m \
   CFPropertyList.m \
+  CFRuntime.m \
   CFStream.m \
   CFString.m \
   CFURL.m
@@ -32,6 +33,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFError.h \
   CFNumber.h \
   CFPropertyList.h \
+  CFRuntime.h \
   CFStream.h \
   CFString.h \
   CFStringEncodingExt.h \

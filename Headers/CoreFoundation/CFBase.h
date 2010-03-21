@@ -277,36 +277,36 @@ CFAllocatorGetTypeID (void);
 //
 /* These function will be implemented in CFRuntime.c since they 
    require runtime support. */
-CFStringRef
+CF_EXPORT CFStringRef
 CFCopyDescription (CFTypeRef cf);
 
-CFStringRef
+CF_EXPORT CFStringRef
 CFCopyTypeIDDescription (CFTypeID typeID);
 
-Boolean
+CF_EXPORT Boolean
 CFEqual (CFTypeRef cf1, CFTypeRef cf2);
 
-CFAllocatorRef
+CF_EXPORT CFAllocatorRef
 CFGetAllocator (CFTypeRef cf);
 
-CFIndex
+CF_EXPORT CFIndex
 CFGetRetainCount (CFTypeRef cf);
 
-CFTypeID
+CF_EXPORT CFTypeID
 CFGetTypeID (CFTypeRef cf);
 
-CFHashCode
+CF_EXPORT CFHashCode
 CFHash (CFTypeRef cf);
 
 #if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-CFTypeRef
+CF_EXPORT CFTypeRef
 CFMakeCollectable (CFTypeRef cf);
 #endif
 
-void
+CF_EXPORT void
 CFRelease (CFTypeRef cf);
 
-CFTypeRef
+CF_EXPORT CFTypeRef
 CFRetain (CFTypeRef cf);
 
 

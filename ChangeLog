@@ -1,5 +1,15 @@
 2010-03-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/GNUmakefile:
+	* Source/CFRuntime:
+	* Headers/CoreFoundation/CFRuntime.h: Added CFRuntime implementation.
+	* Source/CFBase.m:
+	* Headers/CoreFoundation/CFBase.h: Moved CFType function to 
+	Source/CFRuntime.m.
+	* Source/CFString.m: Fixed encoding conversion.
+
+2010-03-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFBase.m: Cleaned up CFAllocator and removed things 
 	that should not have been there in the first place.
 	* Source/CFString.m:
