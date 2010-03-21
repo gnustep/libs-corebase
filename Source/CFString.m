@@ -637,7 +637,7 @@ CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef theString,
 CFStringEncoding
 CFStringGetSmallestEncoding (CFStringRef theString)
 {
-  return CFStringConvertNSStringEncodoingToEncoding([(NSString*)theString smallestEncoding]);
+  return CFStringConvertNSStringEncodingToEncoding([(NSString*)theString smallestEncoding]);
 }
 
 CFStringEncoding
