@@ -1,3 +1,9 @@
+2010-03-22 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m: Fixed output of -description.
+	* Source/CFString.m:
+	* Headers/CoreFoundation/CFString.h: Added CFShow().
+
 2010-03-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GNUmakefile:

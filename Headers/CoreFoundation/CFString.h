@@ -361,6 +361,9 @@ CFStringGetIntValue (CFStringRef str);
 // Getting String Properties
 //
 void
+CFShow (CFTypeRef obj);
+
+void
 CFShowStr (CFStringRef str);
 
 CFTypeID

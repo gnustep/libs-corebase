@@ -299,9 +299,9 @@ static void __CFInitialize (void)
 - (NSString *) description
 {
   CFRuntimeClass *cfclass = __CFRuntimeClassTable[([self _cfTypeID])];
-  if (NULL != cfclass->copyDebugDesc)
+  if (NULL != cfclass->copyFormattingDesc)
     {
-      return (NSString *)cfclass->copyDebugDesc((CFTypeRef)self);
+      return (NSString *)cfclass->copyFormattingDesc((CFTypeRef)self);
     }
   else
     {
