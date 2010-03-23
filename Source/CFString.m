@@ -77,7 +77,7 @@ const CFStringRef kCFStringTransformStripDiacritics =
 void
 CFShow (CFTypeRef obj)
 {
-  CFStringRef str = CFCopyDescrption (obj);
+  CFStringRef str = CFCopyDescription (obj);
   // FIXME: not sure NSLog is the right choice.
   NSLog (@"%@", str);
   CFRelease (str);

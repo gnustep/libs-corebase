@@ -1,3 +1,29 @@
+/* CFRuntime.m
+   
+   Copyright (C) 2010 Free Software Foundation, Inc.
+   
+   Written by: Stefan Bidigaray
+   Date: January, 2010
+   
+   This file is part of CoreBase.
+   
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; see the file COPYING.LIB.
+   If not, see <http://www.gnu.org/licenses/> or write to the 
+   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+   Boston, MA 02110-1301, USA.
+*/
+
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSZone.h>
@@ -35,6 +61,8 @@ typedef	struct obj_layout *obj;
 {
   CFTypeID _typeid;
 }
+
+- (CFTypeID) _cfTypeID;
 @end
 
 
@@ -48,17 +76,25 @@ static UInt32 __CFRuntimeClassTableSize = 0;
 
 
 
-// This function is declared in CFInternal.h, but since corebase
-// doesn't have this file, it'll be done in here.
+// These functions are declared in CFInternal.h, but since corebase
+// doesn't have this file, they'll be done in here.
 static inline void *__CFISAForTypeID (CFTypeID typeID)
 {
-  if (typeID > __CFRuntimeClassTableSize)
+  if (typeID >= __CFRuntimeClassTableSize)
     {
       // Assume typeID is actually the address to a ObjC class.
       return (void *)typeID;
     }
   return (void *)__CFRuntimeObjCClassTable[typeID];
 }
+
+static inline Boolean CF_IS_OBJC (CFTypeID typeID, const void *obj)
+{
+  return (typeID >= __CFRuntimeClassTableSize)
+    || (((CFRuntimeBase *)obj)->_isa != __CFISAForTypeID (typeID));
+}
+
+#define IS_OBJC(cf) CF_IS_OBJC(CFGetTypeID(cf), cf)
 
 // CFNotATypeClass declaration for index 0 of the class table.
 static CFRuntimeClass CFNotATypeClass = 
@@ -180,23 +216,45 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
 CFStringRef
 CFCopyDescription (CFTypeRef cf)
 {
-  return (CFStringRef)CFRetain([(id)cf description]);
+  if (NULL == cf && NULL == __CFRuntimeClassTable[CFGetTypeID(cf)])
+    return NULL;
+
+  if (IS_OBJC(cf))
+    {
+      return (CFStringRef)CFRetain([(id)cf description]);
+    }
+  else
+    {
+      CFRuntimeClass *cfclass = __CFRuntimeClassTable[CFGetTypeID(cf)];
+      if (NULL != cfclass->copyFormattingDesc)
+	{
+	  return cfclass->copyFormattingDesc(cf, NULL);
+	}
+      else
+	{
+	  CFStringCreateWithFormat (NULL, NULL, CFSTR("<%s: %p"),
+	    cfclass->className, cf);
+	}
+    }
+  return NULL;
 }
 
 CFStringRef
 CFCopyTypeIDDescription (CFTypeID typeID)
 {
   // FIXME: is this the right way?
-  if (typeID < __CFRuntimeClassTableSize && __CFRuntimeClassTable[typeID])
+  if (NULL == __CFRuntimeClassTable[typeID])
+    return NULL;
+
+  if (typeID >= __CFRuntimeClassTableSize)
+    {
+      return (CFStringRef)CFRetain([(Class)typeID description]);
+    }
+  else
     {
       CFRuntimeClass *cfclass = __CFRuntimeClassTable[typeID];
       return CFStringCreateWithCStringNoCopy (NULL, cfclass->className,
 	       CFStringGetSystemEncoding(), kCFAllocatorNull);
-    }
-  else
-    {
-      Class cls = (Class)__CFISAForTypeID (typeID);
-      return (CFStringRef)[cls description];
     }
 }
 
@@ -221,7 +279,7 @@ CFGetRetainCount (CFTypeRef cf)
 CFTypeID
 CFGetTypeID (CFTypeRef cf)
 {
-  return (CFTypeID)[(id)cf class];
+  return [(id)cf _cfTypeID];
 }
 
 CFHashCode
@@ -295,22 +353,6 @@ static void __CFInitialize (void)
   
   [super dealloc];
 }
-
-- (NSString *) description
-{
-  CFRuntimeClass *cfclass = __CFRuntimeClassTable[([self _cfTypeID])];
-  if (NULL != cfclass->copyFormattingDesc)
-    {
-      return (NSString *)cfclass->copyFormattingDesc((CFTypeRef)self);
-    }
-  else
-    {
-      NSString *ret = [NSString stringWithFormat: @"<%s: %p>",
-                        cfclass->className, self];
-      return ret;
-    }
-}
-
 - (BOOL) isEqual: (id) anObject
 {
   CFRuntimeClass *cfclass = __CFRuntimeClassTable[([self _cfTypeID])];

@@ -1,3 +1,10 @@
+2010-03-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m: Correct output of CFCopyDescription(), 
+	fixed CFCopyTypeIDDescription() and added copyright notice.
+	* Headers/CoreFoundation/CFRuntime.h: Added copyright notice.
+	* Source/CFString.m: Fixed typo.
+
 2010-03-22 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m: Fixed output of -description.
