@@ -171,3 +171,15 @@ Boolean CFNumberIsFloatType (CFNumberRef number)
   
   return FALSE;
 }
+
+@interface NSNumber (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID;
+@end
+
+@implementation NSNumber (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID
+{
+  return CFNumberGetTypeID();
+}
+@end
+

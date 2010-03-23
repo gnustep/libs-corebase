@@ -1,3 +1,14 @@
+2010-03-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStream.m:
+	* Source/CFArray.m:
+	* Source/CFURL.m:
+	* Source/CFDictionary.m:
+	* Source/CFString.m:
+	* Source/CFNumber.m:
+	* Source/CFData.m:
+	* Source/CFError.m: Added -_cfTypeID to bridged ObjC classes.
+
 2010-03-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m: Correct output of CFCopyDescription(), 

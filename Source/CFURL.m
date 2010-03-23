@@ -64,3 +64,14 @@ CFURLCreateWithString (CFAllocatorRef allocator, CFStringRef string,
      relativeToURL: (NSURL*)baseURL];
 }
 
+@interface NSURL (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID;
+@end
+
+@implementation NSURL (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID
+{
+  return CFURLGetTypeID();
+}
+@end
+

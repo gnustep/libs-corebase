@@ -119,3 +119,16 @@ CFErrorGetTypeID (void)
 {
   return (CFTypeID)[NSError class];
 }
+
+
+
+@interface NSError (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID;
+@end
+
+@implementation NSError (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID
+{
+  return CFErrorGetTypeID();
+}
+@end

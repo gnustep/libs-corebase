@@ -904,3 +904,27 @@ CFStringRef __CFStringMakeConstantString(const char *str)
 	pthread_mutex_unlock(&static_strings_lock);
 	return (CFStringRef)old;
 }
+
+
+
+@interface NSString (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID;
+@end
+
+@interface NSMutableString (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID;
+@end
+
+@implementation NSString (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID
+{
+  return CFStringGetTypeID();
+}
+@end
+
+@implementation NSMutableString (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID
+{
+  return CFStringGetTypeID();
+}
+@end
