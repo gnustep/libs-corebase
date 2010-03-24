@@ -1,4 +1,9 @@
-2010-03-24 Stefan Bidigaray <stefanbidi@gmail.com>
+2010-03-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFBase.h:
+	* Source/CFString.m: Fixed a few bugs and implemented CFShowStr().
+
+2010-03-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFStream.m:
 	* Source/CFArray.m:

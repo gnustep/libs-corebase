@@ -37,6 +37,7 @@
 #include "CoreFoundation/CFStringEncodingExt.h"
 
 #include <stdarg.h>
+#include <stdio.h>
 #include <pthread.h>
 
 const CFStringRef kCFStringTransformStripCombiningMarks =
@@ -74,19 +75,47 @@ const CFStringRef kCFStringTransformStripDiacritics =
 
 
 
+// This struct is the same as a NSMutableString.
+struct __CFString
+{
+  void *_isa;
+  union
+    {
+      UniChar *u;
+      unsigned char *c;
+    } _contents;
+  unsigned int _count;
+  struct
+    {
+      unsigned int wide:   1;
+      unsigned int owned:  1;
+      unsigned int unused: 2;
+      unsigned int hash:   28;
+    } _flags;
+  unsigned int _capacity;
+  NSZone *_zone;
+};
+
 void
 CFShow (CFTypeRef obj)
 {
   CFStringRef str = CFCopyDescription (obj);
   // FIXME: not sure NSLog is the right choice.
   NSLog (@"%@", str);
-  CFRelease (str);
+  CFRelease ((CFTypeRef)str);
 }
 
 void
 CFShowStr (CFStringRef str)
 {
-  /* FIXME: unimplemented */
+  fprintf (stdout, "Length %d\n", str->_count);
+  fprintf (stdout, "IsEightBit %d\n", (str->_flags.wide ? 1 : 0));
+  fprintf (stdout, "HasLengthByte %d\n", 0); // Will never have this.
+  fprintf (stdout, "HasNullByte %d\n", 1); // Will always be NULL terminated.
+  fprintf (stdout, "InlineContents %d\n", str->_flags.owned); // FIXME: ???
+  fprintf (stdout, "Allocator %p\n", CFGetAllocator((CFTypeRef)str)); // FIXME: needs to be a name.
+  fprintf (stdout, "Mutable %d\n", 0); // FIXME: ???
+  fprintf (stdout, "Contents %p\n", str->_contents.c); // Really doesn't matter
 }
 
 CFComparisonResult
@@ -294,8 +323,10 @@ CFStringCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes,
                          CFIndex numBytes, CFStringEncoding encoding,
                          Boolean isExternalRepresentation)
 {
-  return CFStringCreateWithBytesNoCopy (alloc, bytes, numBytes, encoding,
-                                        isExternalRepresentation, NULL);
+  return (CFStringRef)[[NSString allocWithZone: alloc]
+    initWithBytes: (void*)bytes
+    length: numBytes
+    encoding: CFStringConvertEncodingToNSStringEncoding(encoding)];
 }
 
 CFStringRef
@@ -327,7 +358,7 @@ CFStringCreateWithCharactersNoCopy (CFAllocatorRef alloc,
                                     CFAllocatorRef contentsDeallocator)
 {
   return CFStringCreateWithBytesNoCopy (alloc, (const UInt8 *)chars, numChars *
-    sizeof(UniChar), CFStringGetSystemEncoding(), FALSE, contentsDeallocator);
+    sizeof(UniChar), kCFStringEncodingUnicode, FALSE, contentsDeallocator);
 }
 
 CFStringRef

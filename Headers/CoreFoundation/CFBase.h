@@ -200,8 +200,8 @@ typedef struct CFPropertyList *CFPropertyListRef;
 //
 // CFString
 //
-typedef struct CFString * CFStringRef;
-typedef struct CFMutableString * CFMutableStringRef;
+typedef const struct __CFString * CFStringRef;
+typedef struct __CFString * CFMutableStringRef;
 
 
 
