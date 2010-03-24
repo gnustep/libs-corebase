@@ -1,5 +1,10 @@
 2010-03-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFString.m: Fixed typo in CFShowStr() and return for 
+	CFStringGet*Ptr().
+
+2010-03-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CFBase.h:
 	* Source/CFString.m: Fixed a few bugs and implemented CFShowStr().
 

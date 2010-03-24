@@ -109,7 +109,7 @@ void
 CFShowStr (CFStringRef str)
 {
   fprintf (stdout, "Length %d\n", str->_count);
-  fprintf (stdout, "IsEightBit %d\n", (str->_flags.wide ? 1 : 0));
+  fprintf (stdout, "IsEightBit %d\n", (str->_flags.wide ? 0 : 1));
   fprintf (stdout, "HasLengthByte %d\n", 0); // Will never have this.
   fprintf (stdout, "HasNullByte %d\n", 1); // Will always be NULL terminated.
   fprintf (stdout, "InlineContents %d\n", str->_flags.owned); // FIXME: ???
@@ -548,7 +548,9 @@ CFStringGetCharacters (CFStringRef theString, CFRange range, UniChar *buffer)
 const UniChar *
 CFStringGetCharactersPtr (CFStringRef theString)
 {
-  return (UniChar *)CFStringGetCStringPtr(theString, kCFStringEncodingUnicode);
+  if (theString->_flags.wide == 1)
+    return (const UniChar *)theString->_contents.u;
+  return NULL;
 }
 
 Boolean
@@ -563,8 +565,11 @@ CFStringGetCString (CFStringRef theString, char *buffer, CFIndex bufferSize,
 const char *
 CFStringGetCStringPtr (CFStringRef theString, CFStringEncoding encoding)
 {
-  return [(NSString*)theString
-    cStringUsingEncoding: CFStringConvertEncodingToNSStringEncoding(encoding)];
+  if (encoding != CFStringGetSystemEncoding())
+    return NULL;
+  if (theString->_flags.wide == 0)
+    return (const char *)theString->_contents.c;
+  return NULL;
 }
 
 double
