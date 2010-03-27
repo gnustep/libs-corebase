@@ -63,7 +63,10 @@ typedef SInt16           RegionCode;
 typedef SInt16           LangCode;
 typedef SInt16           ScriptCode;
 typedef UInt32           FourCharCode;
+#ifndef OSTYPE_DECLARED
 typedef FourCharCode     OSType;
+#define OSTYPE_DECLARED
+#endif
 typedef UInt8            Byte;
 typedef SInt8            SignedByte;
 
