@@ -29,6 +29,7 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFArray.h>
+#include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFCharacterSet.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDate.h>

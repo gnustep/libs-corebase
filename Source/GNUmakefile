@@ -7,6 +7,7 @@ LIBRARY_NAME = libgnustep-corebase
 libgnustep-corebase_OBJC_FILES = \
   CFBase.m \
   CFArray.m \
+  CFByteOrder.m \
   CFData.m \
   CFDate.m \
   CFDictionary.m \
@@ -26,6 +27,7 @@ libgnustep-corebase_HEADER_FILES = \
   CoreFoundation.h \
   CFBase.h \
   CFArray.h \
+  CFByteOrder.h \
   CFCharacterSet.h \
   CFData.h \
   CFDate.h \
