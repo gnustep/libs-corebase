@@ -273,7 +273,7 @@ CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
                                         CFStringRef theString,
                                         CFStringRef separatorString)
 {
-  return (CFArrayRef)[(NSString*)theString componentsSeparatedByString: (NSString*)separatorString];
+  return (CFArrayRef)CFRetain([(NSString*)theString componentsSeparatedByString: (NSString*)separatorString]);
 }
 
 CFArrayRef
@@ -290,7 +290,7 @@ CFStringRef
 CFStringCreateByCombiningStrings (CFAllocatorRef alloc, CFArrayRef theArray,
                                   CFStringRef separatorString)
 {
-  return (CFStringRef)[(NSArray*)theArray componentsJoinedByString: (NSString*)separatorString];
+  return (CFStringRef)CFRetain([(NSArray*)theArray componentsJoinedByString: (NSString*)separatorString]);
 }
 
 CFStringRef
@@ -439,7 +439,7 @@ CFStringRef
 CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
                              CFRange range)
 {
-  return (CFStringRef)[(NSString*)str substringWithRange: NSMakeRange(range.location, range.length)];
+  return (CFStringRef)CFRetain([(NSString*)str substringWithRange: NSMakeRange(range.location, range.length)]);
 }
 
 CFRange
