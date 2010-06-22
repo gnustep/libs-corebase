@@ -1,3 +1,8 @@
+2010-06-22 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m: Use NSAllocateObject() instead of 
+	  duplicating code in this function.
+
 2010-03-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFString.m: Fixed typo in CFShowStr() and return for 

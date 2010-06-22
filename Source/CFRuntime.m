@@ -30,29 +30,6 @@
 
 #include "CoreFoundation/CFRuntime.h"
 
-// Taken from NSObject.m for compatibility with ObjC objects.
-#define	ALIGN __alignof__(double)
-/*
- *	Define a structure to hold information that is held locally
- *	(before the start) in each object.
- */
-typedef struct obj_layout_unpadded {
-    NSUInteger	retained;
-    NSZone	*zone;
-} unp;
-#define	UNP sizeof(unp)
-/*
- *	Now do the REAL version - using the other version to determine
- *	what padding (if any) is required to get the alignment of the
- *	structure correct.
- */
-struct obj_layout {
-    NSUInteger	retained;
-    NSZone	*zone;
-    char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
-};
-typedef	struct obj_layout *obj;
-
 
 
 /* This is NSCFType, the ObjC class that all non-bridged CF types belong to.
@@ -73,6 +50,8 @@ static CFRuntimeClass **__CFRuntimeClassTable = NULL;
 static Class *__CFRuntimeObjCClassTable = NULL;
 static UInt32 __CFRuntimeClassTableCount = 0;
 static UInt32 __CFRuntimeClassTableSize = 0;
+
+static Class NSCFTypeClass = Nil;
 
 
 
@@ -124,7 +103,7 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
     }
   
   __CFRuntimeClassTable[__CFRuntimeClassTableCount] = (CFRuntimeClass *)cls;
-  __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = [NSCFType class];
+  __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   ret = __CFRuntimeClassTableCount++;
   return ret;
 }
@@ -148,7 +127,6 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
                           CFIndex extraBytes, unsigned char *category)
 { // category is not used and should be NULL.
   CFRuntimeClass *cls;
-  CFIndex size;
   CFRuntimeBase *new;
   
   // Return NULL if typeID is unknown.
@@ -160,19 +138,7 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
   if (NULL == allocator)
     allocator = CFAllocatorGetDefault ();
   
-  // extraBytes is the number of bytes needed in addition to CFRuntimeClass.
-  size = sizeof(CFRuntimeClass) + extraBytes + sizeof(struct obj_layout);
-  new = (CFTypeRef) CFAllocatorAllocate (allocator, size, 0);
-  if (new == NULL)
-    {
-      // return NULL if allocator returns NULL.
-      return NULL;
-    }
-  
-  // this function does NOT init anything but CFRuntimeBase.
-  ((obj)new)->zone = allocator;
-  new = (CFRuntimeBase *)&((obj)new)[1];
-  new->_isa = __CFISAForTypeID (typeID);
+  new = (CFRuntimeBase *)NSAllocateObject (NSCFTypeClass, extraBytes, allocator);
   new->_typeid = typeID;
   if (NULL != cls->init)
     {
@@ -227,14 +193,14 @@ CFCopyDescription (CFTypeRef cf)
     {
       CFRuntimeClass *cfclass = __CFRuntimeClassTable[CFGetTypeID(cf)];
       if (NULL != cfclass->copyFormattingDesc)
-	{
-	  return cfclass->copyFormattingDesc(cf, NULL);
-	}
+        {
+          return cfclass->copyFormattingDesc(cf, NULL);
+        }
       else
-	{
-	  CFStringCreateWithFormat (NULL, NULL, CFSTR("<%s: %p"),
-	    cfclass->className, cf);
-	}
+        {
+          CFStringCreateWithFormat (NULL, NULL, CFSTR("<%s: %p"),
+            cfclass->className, cf);
+        }
     }
   return NULL;
 }
@@ -318,6 +284,8 @@ static void __CFInitialize (void)
                       	        sizeof(Class));
 
   _CFRuntimeRegisterClass (&CFNotATypeClass);
+  
+  NSCFTypeClass = [NSCFType class];
 }
 
 
