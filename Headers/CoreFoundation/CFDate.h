@@ -29,8 +29,15 @@
 #ifndef __COREFOUNDATION_CFDATE_H__
 #define __COREFOUNDATION_CFDATE_H__
 
+#ifdef __OBJC__
+@class NSDate;
+@class NSTimeZone;
+typedef NSDate* CFDateRef;
+typedef NSTimeZone* CFTimeZoneRef;
+#else
 typedef struct CFDate *CFDateRef;
 typedef struct CFTimeZone *CFTimeZoneRef;
+#endif
 
 typedef double CFTimeInterval;
 typedef CFTimeInterval CFAbsoluteTime;
