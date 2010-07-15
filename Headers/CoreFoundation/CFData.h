@@ -29,8 +29,15 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#ifdef __OBJC__
+@class NSData;
+@class NSMutableData;
+typedef NSData* CFDataRef;
+typedef NSMutableData* CFMutableDataRef;
+#else
 typedef struct CFData *CFDataRef;
 typedef struct CFMutableData *CFMutableDataRef;
+#endif
 
 
 //

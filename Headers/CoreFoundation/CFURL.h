@@ -29,7 +29,12 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#ifdef __OBJC__
+@class NSURL;
+typedef NSURL *CFURLRef;
+#else
 typedef struct CFURL *CFURLRef;
+#endif
 
 //
 // Constants

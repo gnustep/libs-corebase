@@ -74,10 +74,9 @@ const CFStringRef kCFStringTransformStripDiacritics =
   CFSTR("kCFStringTransformStripDiacritics");
 
 
-
-// This struct is the same as a NSMutableString.
-struct __CFString
+@interface GSMutableString
 {
+  @public
   void *_isa;
   union
     {
@@ -94,7 +93,8 @@ struct __CFString
     } _flags;
   unsigned int _capacity;
   NSZone *_zone;
-};
+}
+@end
 
 void
 CFShow (CFTypeRef obj)
@@ -106,8 +106,11 @@ CFShow (CFTypeRef obj)
 }
 
 void
-CFShowStr (CFStringRef str)
+CFShowStr (CFStringRef s)
 {
+  // FIXME: We shouldn't be relying on the internal layout at all here, because
+  // it will break with other NSString subclasses.
+  GSMutableString *str = (GSMutableString*)s;
   fprintf (stdout, "Length %d\n", str->_count);
   fprintf (stdout, "IsEightBit %d\n", (str->_flags.wide ? 0 : 1));
   fprintf (stdout, "HasLengthByte %d\n", 0); // Will never have this.
@@ -548,8 +551,8 @@ CFStringGetCharacters (CFStringRef theString, CFRange range, UniChar *buffer)
 const UniChar *
 CFStringGetCharactersPtr (CFStringRef theString)
 {
-  if (theString->_flags.wide == 1)
-    return (const UniChar *)theString->_contents.u;
+  if (((GSMutableString*)theString)->_flags.wide == 1)
+    return (const UniChar *)((GSMutableString*)theString)->_contents.u;
   return NULL;
 }
 
@@ -567,8 +570,8 @@ CFStringGetCStringPtr (CFStringRef theString, CFStringEncoding encoding)
 {
   if (encoding != CFStringGetSystemEncoding())
     return NULL;
-  if (theString->_flags.wide == 0)
-    return (const char *)theString->_contents.c;
+  if (((GSMutableString*)theString)->_flags.wide == 0)
+    return (const char *)((GSMutableString*)theString)->_contents.c;
   return NULL;
 }
 

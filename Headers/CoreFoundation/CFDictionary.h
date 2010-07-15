@@ -29,8 +29,15 @@
 
 #include "CoreFoundation/CFBase.h"
 
+#ifdef __OBJC__
+@class NSDictionary;
+@class NSMutableDictionary;
+typedef NSDictionary* CFDictionaryRef;
+typedef NSMutableDictionary* CFMutableDictionaryRef;
+#else
 typedef struct CFDictionary * CFDictionaryRef;
 typedef struct CFDictionary * CFMutableDictionaryRef;
+#endif
 
 /* FIXME: callback are NOT supported */
 typedef void (*CFDictionaryApplierFunction) (const void *key,

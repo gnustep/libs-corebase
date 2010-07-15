@@ -30,8 +30,15 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#ifdef __OBJC__
+@class NSArray;
+@class NSMutableArray;
+typedef NSArray* CFArrayRef;
+typedef NSMutableArray* CFMutableArrayRef;
+#else
 typedef struct CFArray *CFArrayRef;
 typedef struct CFArray *CFMutableArrayRef;
+#endif
 
 typedef void (*CFArrayApplierFunction) (const void *value, void *context);
 typedef CFStringRef (*CFArrayCopyDescriptionCallBack) (const void *value);
