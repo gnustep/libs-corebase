@@ -38,7 +38,7 @@ CFPropertyListCreateData (CFAllocatorRef allocator,
   NSString *errorString = NULL;
   CFDataRef data;
 
-  // FIXME
+  // FIXME: GNUstep currently does not have the necessary method to implement this.
   data = (CFDataRef)CFRetain([NSPropertyListSerialization
                                dataFromPropertyList: (id)propertyList
                                              format: format
@@ -60,8 +60,29 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef allocator,
                               CFPropertyListRef propertyList,
                               CFOptionFlags mutabilityOption)
 {
-  // FIXME
-  return NULL;
+  CFErrorRef error;
+  CFDataRef data;
+  CFPropertyListRef propList;
+
+  data = CFPropertyListCreateData(allocator, propertyList,
+                                  kCFPropertyListXMLFormat_v1_0, 0,
+                                  &error);
+  if (error != NULL)
+    {
+      CFRelease(error);
+      return NULL;
+    }
+
+  propList = CFPropertyListCreateWithData(allocator, data,
+                                          mutabilityOption, 
+                                          NULL, &error);
+  if (error != NULL)
+    {
+      CFRelease(error);
+    }
+  CFRelease(data);
+
+  return propList;
 }
 
 // Function is marked as obsolete as of 10.6
@@ -122,11 +143,11 @@ CFPropertyListCreateWithData (CFAllocatorRef allocator, CFDataRef data,
   NSString *errorString = NULL;
   CFPropertyListRef propertyList;
 
-  // FIXME: GNUstep does not have the necessary method to implement this.
+  // FIXME: GNUstep currently does not have the necessary method to implement this.
   propertyList = (CFPropertyListRef)CFRetain([NSPropertyListSerialization
                                                propertyListFromData: (NSData *)data
                                                    mutabilityOption: options
-                                                             format: format
+                                                             format: (NSPropertyListFormat*)format
                                                    errorDescription: &errorString]);
 
   if (errorString != NULL)
