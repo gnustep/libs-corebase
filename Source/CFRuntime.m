@@ -69,7 +69,7 @@ static inline void *__CFISAForTypeID (CFTypeID typeID)
 
 static inline Boolean CF_IS_OBJC (CFTypeID typeID, const void *obj)
 {
-  return (typeID >= __CFRuntimeClassTableSize)
+  return (obj != NULL && typeID >= __CFRuntimeClassTableSize)
     || (((CFRuntimeBase *)obj)->_isa != __CFISAForTypeID (typeID));
 }
 
@@ -182,8 +182,14 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
 CFStringRef
 CFCopyDescription (CFTypeRef cf)
 {
-  if (NULL == cf && NULL == __CFRuntimeClassTable[CFGetTypeID(cf)])
+  CFTypeID typeID;
+  if (NULL == cf)
     return NULL;
+  
+  typeID = CFGetTypeID(cf);
+  if (typeID < __CFRuntimeClassTableSize)
+    if (NULL == __CFRuntimeClassTable[typeID])
+      return NULL;
 
   if (IS_OBJC(cf))
     {
@@ -274,6 +280,8 @@ CFRetain (CFTypeRef cf)
 
 
 
+extern void CFLocaleInitialize (void);
+
 static void __CFInitialize (void)
 {
   // Initialize CFRuntimeClassTable
@@ -284,6 +292,7 @@ static void __CFInitialize (void)
                       	        sizeof(Class));
 
   _CFRuntimeRegisterClass (&CFNotATypeClass);
+  CFLocaleInitialize ();
   
   NSCFTypeClass = [NSCFType class];
 }

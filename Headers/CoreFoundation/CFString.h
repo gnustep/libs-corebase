@@ -32,6 +32,7 @@
 #include <CoreFoundation/CFCharacterSet.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFLocale.h>
 
 #include <stdarg.h>
 

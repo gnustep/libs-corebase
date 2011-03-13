@@ -1,3 +1,15 @@
+2011-03-13 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* GNUmakefile:
+	* Headers/CoreFoundation/CFLocale.h:
+	* Source/CFLocale.c: New, mostly unimplemented CFLocale type.
+	* Source/CFRuntime.m: Fixed a problem in CFCopyDescription where it
+	tried to look up a typeID > __CFRuntimeClassTableSize.
+	* Source/CFBase.m: Define kCFAllocatorSystemDefault = kCFAllocatorDefault.
+	* Source/CFString.h:
+	* Source/CFBase.h: Changes due to introduction of CFLocale.h.  Also
+	fixed wrong definition of CF_EXTERN_C_{BEGIN,END}.
+
 2010-09-18 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/CFPropertyList.m (CFPropertyListCreateDeepCopy):

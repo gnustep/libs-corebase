@@ -138,8 +138,8 @@ static NSZone _kCFAllocatorNull =
 };
 
 const CFAllocatorRef kCFAllocatorDefault = NULL;
-/* FIXME
-const CFAllocatorRef kCFAllocatorSystemDefault = &default_zone; */
+// FIXME: Default and SystemDefault are probably not the same.
+const CFAllocatorRef kCFAllocatorSystemDefault = NULL;
 const CFAllocatorRef kCFAllocatorMalloc = &_kCFAllocatorMalloc;
 #if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 const CFAllocatorRef kCFAllocatorMallocZone = &default_zone;

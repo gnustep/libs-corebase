@@ -32,8 +32,6 @@
 
 #include <GNUstepBase/GSVersionMacros.h>
 
-// FIXME: NSLocale is not available
-typedef void * CFLocaleRef;
 // FIXME: Define CFRunLoopRef here for now...
 typedef struct CFRunLoop *CFRunLoopRef;
 
@@ -76,13 +74,13 @@ typedef UInt8  UTF8Char;
 
 
 
-#ifndef CF_EXPORT_C_BEGIN
+#ifndef CF_EXTERN_C_BEGIN
 # if defined(__cplusplus)
-#  define CF_EXPORT_C_BEGIN extern "C" {
-#  define CF_EXPORT_C_END }
+#  define CF_EXTERN_C_BEGIN extern "C" {
+#  define CF_EXTERN_C_END }
 # else
-#  define CF_EXPORT_C_BEGIN
-#  define CF_EXPORT_C_END
+#  define CF_EXTERN_C_BEGIN
+#  define CF_EXTERN_C_END
 # endif
 #endif
 

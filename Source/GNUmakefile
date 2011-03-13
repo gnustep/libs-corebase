@@ -19,6 +19,9 @@ libgnustep-corebase_OBJC_FILES = \
   CFString.m \
   CFURL.m
 
+libgnustep-corebase_C_FILES = \
+  CFLocale.c
+
 ADDITIONAL_INCLUDE_DIRS = -I../Headers
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
 libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
@@ -33,6 +36,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFDate.h \
   CFDictionary.h \
   CFError.h \
+  CFLocale.h \
   CFNumber.h \
   CFPropertyList.h \
   CFRuntime.h \
