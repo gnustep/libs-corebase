@@ -1,26 +1,10 @@
 #define BUFFER_SIZE 1024
-Boolean testPassed = false;
 
-#define PASS(expression, message) do \
-  { \
-  if (expression) \
-    { \
-      fprintf (stderr, "Passed test:    "); \
-      testPassed = true; \
-    } \
-  else \
-    { \
-      fprintf (stderr, "Failed test:    "); \
-      testPassed = false; \
-    } \
-  fprintf (stderr, "%s:%d ... %s", __FILE__, __LINE__, message); \
-  fprintf (stderr, "\n"); \
-  } while (0)
 
-#define PASS_EQ(expression, expect, message) do \
+#define PASS_CFEQ(expression, expect, message) \
   { \
-    PASS(CFEqual((CFTypeRef)expression, (CFTypeRef)expect), message); \
-    if (testPassed == false) \
+    PASS(CFEqual((CFTypeRef)expression, (CFTypeRef)expect) ? YES : NO, message)\
+    if (NO == testPassed) \
       { \
         CFStringRef str1; \
         CFStringRef str2; \
@@ -38,12 +22,12 @@ Boolean testPassed = false;
           expected, \
           expr); \
       } \
-  } while(0)
+  }
 
-#define PASS_NEQ(expression, expect, message) do \
+#define PASS_CFNEQ(expression, expect, message) \
   { \
-    PASS(!CFEqual((CFTypeRef)expression, (CFTypeRef)expect), message); \
-    if (testPassed == false) \
+    PASS(CFEqual((CFTypeRef)expression, (CFTypeRef)expect) ? NO : YES, message)\
+    if (NO == testPassed) \
       { \
         CFStringRef str1; \
         CFStringRef str2; \
@@ -61,4 +45,4 @@ Boolean testPassed = false;
           expected, \
           expr); \
       } \
-  } while(0)
+  }

@@ -1,3 +1,13 @@
+2011-03-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tests/GNUmakefile.super:
+	* Tests/CFLocale/create.m:
+	* Tests/CFTesting.h:
+	Minor changes to use testsuite from gnustep-make ...
+	Rename .c file to .m
+	Rename Testing.h to avoid conflict with testsuite header.
+	Add makefile fragment to link corebase
+
 2011-03-13 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* GNUmakefile:
@@ -5,7 +15,8 @@
 	* Source/CFLocale.c: New, mostly unimplemented CFLocale type.
 	* Source/CFRuntime.m: Fixed a problem in CFCopyDescription where it
 	tried to look up a typeID > __CFRuntimeClassTableSize.
-	* Source/CFBase.m: Define kCFAllocatorSystemDefault = kCFAllocatorDefault.
+	* Source/CFBase.m: Define kCFAllocatorSystemDefault
+	= kCFAllocatorDefault.
 	* Source/CFString.h:
 	* Source/CFBase.h: Changes due to introduction of CFLocale.h.  Also
 	fixed wrong definition of CF_EXTERN_C_{BEGIN,END}.
