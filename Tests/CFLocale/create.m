@@ -9,7 +9,6 @@ int main (void)
 {
   CFLocaleRef locale;
   CFLocaleRef locale2;
-  CFStringRef str;
   
   locale = CFLocaleCopyCurrent ();
   PASS_CFNEQ(locale, NULL, "CFLocaleCopyCurrent() returns a value")

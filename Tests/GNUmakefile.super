@@ -1,7 +1,4 @@
 
-PROJECT:=$(GSTESTDIR)
-
+# Link tests with corebase library
 ADDITIONAL_OBJC_LIBS += -lgnustep-corebase
-ADDITIONAL_INCLUDE_DIRS += -I$(PROJECT)/../Headers
-ADDITIONAL_LIB_DIRS += -L$(PROJECT)/../Source/$(GNUSTEP_OBJ_DIR)
 
