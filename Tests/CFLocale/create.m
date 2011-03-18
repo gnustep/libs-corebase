@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFLocale.h"
 #include "Testing.h"

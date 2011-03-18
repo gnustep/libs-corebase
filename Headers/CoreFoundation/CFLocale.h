@@ -78,6 +78,13 @@ const CFStringRef kCFLocaleCalendar;
 const CFStringRef kCFLocaleCollationIdentifier;
 const CFStringRef kCFLocaleUsesMetricSystem;
 #endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+const CFStringRef kCFLocaleCollatorIdentifier;
+const CFStringRef kCFLocaleQuotationBeginDelimiterKey;
+const CFStringRef kCFLocaleQuotationEndDelimiterKey;
+const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey;
+const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey;
+#endif
 /** @} */
 
 /** @defgroup CalendarIdentifiers CFCalendar identifiers
@@ -128,7 +135,7 @@ CFLocaleGetSystem (void);
 //
 /** @return 
  */
- #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CFArrayRef
 CFLocaleCopyAvailableLocaleIdentifiers (void);
 #endif

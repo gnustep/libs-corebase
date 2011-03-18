@@ -1,3 +1,11 @@
+2011-03-18 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFLocale.h: Added some CFLocale keys.
+	* Source/CFLocale.c: Added implementation for a few more functions
+	and fixed a few possible threading issues.
+	* Source/GNUmakefile:
+	* Source/Identifiers.m: New file to define ObjC constant string.
+
 2011-03-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tests/GNUmakefile.super:

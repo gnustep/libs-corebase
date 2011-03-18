@@ -17,7 +17,8 @@ libgnustep-corebase_OBJC_FILES = \
   CFRuntime.m \
   CFStream.m \
   CFString.m \
-  CFURL.m
+  CFURL.m \
+  Identifiers.m
 
 libgnustep-corebase_C_FILES = \
   CFLocale.c

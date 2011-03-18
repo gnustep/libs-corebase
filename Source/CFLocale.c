@@ -49,6 +49,9 @@ static pthread_spinlock_t _kCFLocaleLock;
 static CFTypeID _kCFLocaleTypeID;
 static CFLocaleRef _kCFLocaleCurrent = NULL;
 static CFLocaleRef _kCFLocaleSystem = NULL;
+static CFArrayRef _kCFLocaleAvailableLocaleIdentifiers = NULL;
+static CFArrayRef _kCFLocaleISOCountryCodes = NULL;
+static CFArrayRef _kCFLocaleISOLanguageCodes = NULL;
 
 static const CFRuntimeClass CFLocaleClass =
 {
@@ -67,6 +70,24 @@ void CFLocaleInitialize (void)
 {
   pthread_spin_init (&_kCFLocaleLock, PTHREAD_PROCESS_SHARED);
   _kCFLocaleTypeID = _CFRuntimeRegisterClass(&CFLocaleClass);
+}
+
+static CFLocaleLanguageDirection
+ICUToCFLocaleOrientation (ULayoutType layout)
+{
+  switch (layout)
+    {
+      case ULOC_LAYOUT_LTR:
+        return kCFLocaleLanguageDirectionLeftToRight;
+      case ULOC_LAYOUT_RTL:
+        return kCFLocaleLanguageDirectionRightToLeft;
+      case ULOC_LAYOUT_TTB:
+        return kCFLocaleLanguageDirectionTopToBottom;
+      case ULOC_LAYOUT_BTT:
+        return kCFLocaleLanguageDirectionBottomToTop;
+      default:
+        return kCFLocaleLanguageDirectionUnknown;
+    }
 }
 
 
@@ -137,6 +158,13 @@ CFLocaleGetSystem (void)
   result = CFLocaleCreate (kCFAllocatorSystemDefault, CFSTR(""));
   
   pthread_spin_lock (&_kCFLocaleLock);
+  // Double check system locale wasn't already set.
+  if (_kCFLocaleSystem)
+    {
+      result = (CFLocaleRef)CFRetain ((CFTypeRef)_kCFLocaleSystem);
+      pthread_spin_unlock (&_kCFLocaleLock);
+      return result;
+    }
   _kCFLocaleSystem = (CFLocaleRef)CFRetain ((CFTypeRef)result);
   pthread_spin_unlock (&_kCFLocaleLock);
   return result;
@@ -148,10 +176,14 @@ CFLocaleCopyAvailableLocaleIdentifiers (void)
   int32_t count;
   int32_t idx;
   CFMutableArrayRef mArray;
-  static CFArrayRef result = NULL;
   
-  if (result)
-    return (CFArrayRef)CFRetain (result);
+  pthread_spin_lock (&_kCFLocaleLock);
+  if (_kCFLocaleAvailableLocaleIdentifiers)
+    {
+      pthread_spin_unlock (&_kCFLocaleLock);
+      return (CFArrayRef)CFRetain (_kCFLocaleAvailableLocaleIdentifiers);
+    }
+  pthread_spin_unlock (&_kCFLocaleLock);
   
   count = uloc_countAvailable ();
   mArray = CFArrayCreateMutable (kCFAllocatorSystemDefault,
@@ -162,15 +194,25 @@ CFLocaleCopyAvailableLocaleIdentifiers (void)
     {
       const char *str = uloc_getAvailable (idx);
       CFStringRef cfStr = CFStringCreateWithCString (kCFAllocatorSystemDefault,
-        str, kCFStringEncodingASCII);
+        str, CFStringGetSystemEncoding());
       CFArrayAppendValue (mArray, cfStr);
       CFRelease ((CFTypeRef)cfStr);
       ++idx;
     }
   
-  result = CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
+  pthread_spin_lock (&_kCFLocaleLock);
+  // Double check
+  if (_kCFLocaleAvailableLocaleIdentifiers)
+    {
+      pthread_spin_unlock (&_kCFLocaleLock);
+      CFRelease (mArray);
+      return (CFArrayRef)CFRetain (_kCFLocaleAvailableLocaleIdentifiers);
+    }
+  _kCFLocaleAvailableLocaleIdentifiers =
+    CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
+  pthread_spin_unlock (&_kCFLocaleLock);
   CFRelease (mArray);
-  return result;
+  return (CFArrayRef)CFRetain (_kCFLocaleAvailableLocaleIdentifiers);
 }
 
 CFArrayRef
@@ -179,10 +221,14 @@ CFLocaleCopyISOCountryCodes (void)
   const char *const *cCodes;
   CFMutableArrayRef mArray;
   int idx;
-  static CFArrayRef result = NULL;
   
-  if (result)
-    return (CFArrayRef)CFRetain (result);
+  pthread_spin_lock (&_kCFLocaleLock);
+  if (_kCFLocaleISOCountryCodes)
+    {
+      pthread_spin_unlock (&_kCFLocaleLock);
+      return (CFArrayRef)CFRetain (_kCFLocaleISOCountryCodes);
+    }
+  pthread_spin_unlock (&_kCFLocaleLock);
   
   cCodes = uloc_getISOCountries ();
   mArray = CFArrayCreateMutable (kCFAllocatorSystemDefault,
@@ -191,14 +237,26 @@ CFLocaleCopyISOCountryCodes (void)
   for (idx = 0 ; cCodes[idx] ; ++idx)
     {
       CFStringRef cfStr = CFStringCreateWithCString (kCFAllocatorSystemDefault,
-        cCodes[idx], kCFStringEncodingASCII);
+        cCodes[idx], CFStringGetSystemEncoding());
       CFArrayAppendValue (mArray, cfStr);
       CFRelease ((CFTypeRef)cfStr);
     }
   
-  result = CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
+  pthread_spin_lock (&_kCFLocaleLock);
+  // Double check that value hasn't been set
+  if (_kCFLocaleISOCountryCodes)
+    {
+      pthread_spin_unlock (&_kCFLocaleLock);
+      CFRelease (mArray);
+      return (CFArrayRef)CFRetain (_kCFLocaleISOCountryCodes);
+    }
+  _kCFLocaleISOCountryCodes =
+    CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
+  pthread_spin_unlock (&_kCFLocaleLock);
+  
   CFRelease (mArray);
-  return result;
+  
+  return (CFArrayRef)CFRetain (_kCFLocaleISOCountryCodes);
 }
 
 CFArrayRef
@@ -207,26 +265,41 @@ CFLocaleCopyISOLanguageCodes (void)
   const char *const *cCodes;
   CFMutableArrayRef mArray;
   int idx;
-  static CFArrayRef result = NULL;
   
-  if (result)
-    return (CFArrayRef)CFRetain (result);
+  pthread_spin_lock (&_kCFLocaleLock);
+  if (_kCFLocaleISOLanguageCodes)
+    {
+      pthread_spin_unlock (&_kCFLocaleLock);
+      return (CFArrayRef)CFRetain (_kCFLocaleISOLanguageCodes);
+    }
+  pthread_spin_unlock (&_kCFLocaleLock);
   
   cCodes = uloc_getISOLanguages ();
   mArray = CFArrayCreateMutable (kCFAllocatorSystemDefault,
     0,
     &kCFTypeArrayCallBacks);
-  for (idx = 0 ; cCodes[idx] ; ++idx)
+  for (idx = 0 ; cCodes[idx] != NULL ; ++idx)
     {
       CFStringRef cfStr = CFStringCreateWithCString (kCFAllocatorSystemDefault,
-        cCodes[idx], kCFStringEncodingASCII);
+        cCodes[idx], CFStringGetSystemEncoding());
       CFArrayAppendValue (mArray, cfStr);
       CFRelease ((CFTypeRef)cfStr);
     }
   
-  result = CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
+  pthread_spin_lock (&_kCFLocaleLock);
+  // Double check that value hasn't been set
+  if (_kCFLocaleISOLanguageCodes)
+    {
+      pthread_spin_unlock (&_kCFLocaleLock);
+      return (CFArrayRef)CFRetain (_kCFLocaleISOLanguageCodes);
+    }
+  _kCFLocaleISOLanguageCodes =
+    CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
+  pthread_spin_unlock (&_kCFLocaleLock);
+  
   CFRelease (mArray);
-  return result;
+  
+  return (CFArrayRef)CFRetain (_kCFLocaleISOLanguageCodes);
 }
 
 CFArrayRef
@@ -243,11 +316,11 @@ CFLocaleCopyDisplayNameForPropertyValue (CFLocaleRef displayLocale,
                                          CFStringRef key,
                                          CFStringRef value)
 {
-/*  char kw[ULOC_KEYWORDS_CAPACITY];
+/* FIXME  char kw[ULOC_KEYWORDS_CAPACITY];
   UniChar buffer[BUFFER_SIZE];
   UErrorCode err = U_ZERO_ERROR;
   
-  if (CFStringGetCString (key, buffer, BUFFER_SIZE-1, kCFStringEncodingASCII)
+  if (CFStringGetCString (key, buffer, BUFFER_SIZE-1, CFStringGetSystemEncoding())
       && CFStringGetCString ()
   
   length = uloc_getDisplayKeywordValue (cLocale, kw, dLocale, buffer,
@@ -265,6 +338,7 @@ CFTypeRef
 CFLocaleGetValue (CFLocaleRef locale,
                   CFStringRef key)
 {
+// FIXME: this is terribly broken
   CFTypeRef result;
   int32_t length;
   char cLocale[ULOC_FULLNAME_CAPACITY];
@@ -282,7 +356,7 @@ CFLocaleGetValue (CFLocaleRef locale,
   if (U_FAILURE(err) && err != U_BUFFER_OVERFLOW_ERROR)
     return NULL;
   
-  result =
+  result = (CFTypeRef)
     CFStringCreateWithCString (NULL, buffer, CFStringGetSystemEncoding());
   
   return result;
@@ -301,14 +375,13 @@ CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
   CFStringRef result;
   char cLocale[ULOC_FULLNAME_CAPACITY];
   char buffer[BUFFER_SIZE];
-  int32_t length;
   UErrorCode err = U_ZERO_ERROR;
   
   if (!CFStringGetCString(localeIdent, cLocale, ULOC_FULLNAME_CAPACITY,
          CFStringGetSystemEncoding()))
     return NULL;
   
-  length = uloc_canonicalize (cLocale, buffer, BUFFER_SIZE-1, &err);
+  uloc_canonicalize (cLocale, buffer, BUFFER_SIZE-1, &err);
   if (U_FAILURE(err) && err != U_BUFFER_OVERFLOW_ERROR)
     return NULL;
   
@@ -338,20 +411,64 @@ CFLocaleGetTypeID (void)
 
 CFStringRef
 CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode (CFAllocatorRef allocator,
-                                                     uint32_t lcid);
+                                                     uint32_t lcid)
+{
+  CFStringRef result = NULL;
+  char buffer[BUFFER_SIZE];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  uloc_getLocaleForLCID (lcid, buffer, BUFFER_SIZE-1, &err);
+  if (U_FAILURE(err) && err != U_BUFFER_OVERFLOW_ERROR)
+    return NULL;
+  
+  result =
+    CFStringCreateWithCString (allocator, buffer, CFStringGetSystemEncoding());
+  
+  return result;
+}
 
 CFLocaleLanguageDirection
-CFLocaleGetLanguageCharacterDirection (CFStringRef isoLangCode);
+CFLocaleGetLanguageCharacterDirection (CFStringRef isoLangCode)
+{
+  char buffer[BUFFER_SIZE];
+  ULayoutType result;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (!CFStringGetCString (isoLangCode, buffer, BUFFER_SIZE - 1,
+      CFStringGetSystemEncoding()))
+    return kCFLocaleLanguageDirectionUnknown;
+  
+  result = uloc_getCharacterOrientation (buffer, &err);
+  if (U_FAILURE(err))
+    return kCFLocaleLanguageDirectionUnknown;
+  
+  return ICUToCFLocaleOrientation (result);
+}
 
 CFLocaleLanguageDirection
-CFLocaleGetLanguageLineDirection (CFStringRef isoLangCode);
+CFLocaleGetLanguageLineDirection (CFStringRef isoLangCode)
+{
+  char buffer[BUFFER_SIZE];
+  ULayoutType result;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (!CFStringGetCString (isoLangCode, buffer, BUFFER_SIZE - 1,
+      CFStringGetSystemEncoding()))
+    return kCFLocaleLanguageDirectionUnknown;
+  
+  result = uloc_getLineOrientation (buffer, &err);
+  if (U_FAILURE(err))
+    return kCFLocaleLanguageDirectionUnknown;
+  
+  return ICUToCFLocaleOrientation (result);
+}
 
 uint32_t
 CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier (CFStringRef localeIdent)
 {
   char buffer[BUFFER_SIZE];
   if (CFStringGetCString (localeIdent, buffer, BUFFER_SIZE - 1,
-      kCFStringEncodingASCII))
+      CFStringGetSystemEncoding()))
     return uloc_getLCID (buffer);
   return 0;
 }
