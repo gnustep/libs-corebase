@@ -139,7 +139,6 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
     allocator = CFAllocatorGetDefault ();
   
   new = (CFRuntimeBase *)NSAllocateObject (NSCFTypeClass, extraBytes, allocator);
-  new->_typeid = typeID;
   if (NULL != cls->init)
     {
       // Init instance...
@@ -283,6 +282,7 @@ CFRetain (CFTypeRef cf)
 
 
 extern void CFLocaleInitialize (void);
+extern void CFNullInitialize (void);
 
 static void __CFInitialize (void)
 {
@@ -294,6 +294,7 @@ static void __CFInitialize (void)
                       	        sizeof(Class));
 
   _CFRuntimeRegisterClass (&CFNotATypeClass);
+  CFNullInitialize ();
   CFLocaleInitialize ();
   
   NSCFTypeClass = [NSCFType class];

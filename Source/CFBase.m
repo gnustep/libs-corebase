@@ -31,6 +31,7 @@
 #import <Foundation/NSNull.h>
 
 #include "CoreFoundation/CFBase.h"
+#include "CoreFoundation/CFRuntime.h"
 
 const double kCFCoreFoundationVersionNumber = 550.13;
 
@@ -219,11 +220,41 @@ CFAllocatorGetTypeID(void)
 //
 // CFNull
 //
-/* FIXME: need to initialize this variable somewhere. */
-CFNullRef kCFNull;
+static CFTypeID _kCFNullTypeID;
+
+static const CFRuntimeClass CFNullClass =
+{
+  0,
+  "CFNUll",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+struct __CFNull
+{
+  CFRuntimeBase _parent;
+};
+
+static struct __CFNull _kCFNull =
+{
+  INIT_CFRUNTIME_BASE()
+};
+
+CFNullRef kCFNull = &_kCFNull;
+
+void CFNullInitialize (void)
+{
+  _kCFNullTypeID = _CFRuntimeRegisterClass (&CFNullClass);
+  ((CFRuntimeBase*)kCFNull)->_isa = [NSNull class];
+}
 
 CFTypeID
 CFNullGetTypeID (void)
 {
-  return (CFTypeID)[NSNull class];
+  return _kCFNullTypeID;
 }

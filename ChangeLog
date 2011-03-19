@@ -1,5 +1,12 @@
 2011-03-19 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFRuntime.m: Initializae CFNull.
+	* Source/CFBase.m: Create a CFNull class and initialize kCFNull.
+	* Headers/CoreFoundation/CFRuntime.h: Add INIT_CFRUNTIME_BASE() macro.
+	* Headers/CoreFoundation/CFBase.h: Minor fixed to CFNull.
+
+2011-03-19 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFRuntime.m: Add check for NULL in CFEqual.
 	* Source/CFLocale.c: Added a bit of code to CFLocaleGetValue().
 	* Source/Identifiers.m: Added definition for calendar identifiers.

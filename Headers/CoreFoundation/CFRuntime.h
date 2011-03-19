@@ -77,8 +77,9 @@ typedef struct __CFRuntimeBase CFRuntimeBase;
 struct __CFRuntimeBase
 {
   void *_isa;
-  CFTypeID _typeid;
 };
+
+#define INIT_CFRUNTIME_BASE(...) {0}
 
 CFTypeRef
 _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,

@@ -323,9 +323,9 @@ CFRetain (CFTypeRef cf);
 // CFNull
 //
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
-typedef struct CFNull *CFNullRef;
+typedef struct __CFNull *CFNullRef;
 
-CFNullRef kCFNull;
+CF_EXPORT CFNullRef kCFNull;
 
 CFTypeID
 CFNullGetTypeID (void);
