@@ -40,3 +40,15 @@ const NSString *kCFLocaleAlternateQuotationBeginDelimiterKey =
   @"kCFLocaleAlternateQuotationBeginDelimiterKey";
 const NSString *kCFLocaleAlternateQuotationEndDelimiterKey =
   @"kCFLocaleAlternateQuotationEndDelimiterKey";
+
+const NSString *kCFGregorianCalendar = @"gregorian";
+const NSString *kCFBuddhistCalendar = @"buddhist";
+const NSString *kCFChineseCalendar = @"chinese";
+const NSString *kCFHebrewCalendar = @"hebrew";
+const NSString *kCFIslamicCalendar = @"islamic";
+const NSString *kCFIslamicCivilCalendar = @"islamic-civil";
+const NSString *kCFJapaneseCalendar = @"japanese";
+const NSString *kCFRepublicOfChinaCalendar = @"roc";
+const NSString *kCFPersianCalendar = @"persian";
+const NSString *kCFIndianCalendar = @"indian";
+const NSString *kCFISO8601Calendar = @"";

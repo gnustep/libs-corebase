@@ -40,6 +40,7 @@ struct __CFLocale
   CFRuntimeBase          _parent;
   CFStringRef            _identifier;
   CFMutableDictionaryRef _components;
+  pthread_spinlock_t     _lock;
 };
 
 /* Use a spin lock because it's faster than a mutex.  Just make sure to not
@@ -131,6 +132,7 @@ CFLocaleCreate (CFAllocatorRef allocator,
     0,
     &kCFTypeDictionaryKeyCallBacks,
     &kCFTypeDictionaryValueCallBacks);
+  pthread_spin_init (&(new->_lock), PTHREAD_PROCESS_SHARED);
   
   return new;
 }
@@ -340,24 +342,139 @@ CFLocaleGetValue (CFLocaleRef locale,
 {
 // FIXME: this is terribly broken
   CFTypeRef result;
-  int32_t length;
   char cLocale[ULOC_FULLNAME_CAPACITY];
-  char kw[ULOC_KEYWORDS_CAPACITY];
   char buffer[BUFFER_SIZE];
+  int32_t length = 0;
   UErrorCode err = U_ZERO_ERROR;
   
+  // Don't waste any time.
+  if (locale == NULL || key == NULL)
+    return NULL;
+  if (key == kCFLocaleIdentifier)
+    return (CFTypeRef)locale->_identifier;
+  
+  pthread_spin_lock (&(((struct __CFLocale*)locale)->_lock));
+  if (CFDictionaryGetValueIfPresent(locale->_components, key,
+      (const void **)&result))
+    {
+      pthread_spin_unlock (&(((struct __CFLocale*)locale)->_lock));
+      return result;
+    }
+  pthread_spin_unlock (&(((struct __CFLocale*)locale)->_lock));
+  
   if (!CFStringGetCString (locale->_identifier, cLocale,
-         ULOC_FULLNAME_CAPACITY-1, CFStringGetSystemEncoding())
-      && !CFStringGetCString (key, kw, ULOC_KEYWORDS_CAPACITY-1,
-            CFStringGetSystemEncoding()))
+      ULOC_FULLNAME_CAPACITY-1, CFStringGetSystemEncoding()))
     return NULL;
   
-  length = uloc_getKeywordValue (cLocale, kw, buffer, BUFFER_SIZE-1, &err);
-  if (U_FAILURE(err) && err != U_BUFFER_OVERFLOW_ERROR)
+  if (key == kCFLocaleMeasurementSystem
+      || key == kCFLocaleUsesMetricSystem)
+    {
+      UMeasurementSystem ums= ulocdata_getMeasurementSystem (cLocale, &err);
+      if (key == kCFLocaleMeasurementSystem)
+        {
+          if (ums == UMS_SI)
+            result = (CFTypeRef)CFSTR("Metric");
+          else
+            result = (CFTypeRef)CFSTR("U.S.");
+        }
+      else
+        {
+          // FIXME: requires CFBoolean
+          return NULL;
+        }
+    }
+  else if (key == kCFLocaleDecimalSeparator)
+    {
+      // FIXME: CFNumberFormatter
+      return NULL;
+    }
+  else if (key == kCFLocaleGroupingSeparator)
+    {
+      // FIXME: CFNumberFormatter
+      return NULL;
+    }
+  else if (key == kCFLocaleCurrencySymbol)
+    {
+      // FIXME: CFNumberFormatter
+      return NULL;
+    }
+  else if (key == kCFLocaleCurrencyCode)
+    {
+      // FIXME: CFNumberFormatter
+      length =
+        uloc_getKeywordValue (cLocale, "currency", buffer, BUFFER_SIZE-1, &err);
+      return NULL;
+    }
+  else if (key == kCFLocaleLanguageCode)
+    {
+      length = uloc_getLanguage (cLocale, buffer, BUFFER_SIZE-1, &err);
+    }
+  else if (key == kCFLocaleCountryCode)
+    {
+      length = uloc_getCountry (cLocale, buffer, BUFFER_SIZE-1, &err);
+    }
+  else if (key == kCFLocaleScriptCode)
+    {
+      length = uloc_getScript (cLocale, buffer, BUFFER_SIZE-1, &err);
+    }
+  else if (key == kCFLocaleVariantCode)
+    {
+      length = uloc_getVariant (cLocale, buffer, BUFFER_SIZE-1, &err);
+    }
+  else if (key == kCFLocaleExemplarCharacterSet)
+    {
+      return NULL;
+    }
+  else if (key == kCFLocaleCalendarIdentifier)
+    {
+      length =
+        uloc_getKeywordValue (cLocale, "calendar", buffer, BUFFER_SIZE-1, &err);
+      if (strncmp(buffer, "gregorian", sizeof("gregorian")-1))
+        result = kCFGregorianCalendar;
+    }
+  else if (key == kCFLocaleCalendar)
+    {
+      return NULL;
+    }
+  else if (key == kCFLocaleCollationIdentifier)
+    {
+      length =
+        uloc_getKeywordValue (cLocale, "collation", buffer, BUFFER_SIZE-1, &err);
+    }
+  else if (key == kCFLocaleCollatorIdentifier)
+    {
+      return NULL;
+    }
+  else if (key == kCFLocaleQuotationBeginDelimiterKey)
+    {
+      return NULL;
+    }
+  else if (key == kCFLocaleQuotationEndDelimiterKey)
+    {
+      return NULL;
+    }
+  else if (key == kCFLocaleAlternateQuotationBeginDelimiterKey)
+    {
+      return NULL;
+    }
+  else if (key == kCFLocaleAlternateQuotationEndDelimiterKey)
+    {
+      return NULL;
+    }
+  else
+    {
+      return NULL;
+    }
+  
+  if (U_FAILURE(err) || length == 0)
     return NULL;
   
   result = (CFTypeRef)
     CFStringCreateWithCString (NULL, buffer, CFStringGetSystemEncoding());
+  
+  pthread_spin_lock (&(((struct __CFLocale*)locale)->_lock));
+  CFDictionaryAddValue (locale->_components, key, result);
+  pthread_spin_unlock (&(((struct __CFLocale*)locale)->_lock));
   
   return result;
 }

@@ -1,3 +1,11 @@
+2011-03-19 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m: Add check for NULL in CFEqual.
+	* Source/CFLocale.c: Added a bit of code to CFLocaleGetValue().
+	* Source/Identifiers.m: Added definition for calendar identifiers.
+	* Tests/CFLocale/general.m: New tests.
+	* Tests/CFTesting.h: Initialize char array.
+
 2011-03-18 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CFLocale.h: Added some CFLocale keys.

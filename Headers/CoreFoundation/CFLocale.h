@@ -60,30 +60,30 @@ enum
 /** @defgroup LocaleKeys Locale property keys used to get corresponding values.
  *  @{
  */
-const CFStringRef kCFLocaleMeasurementSystem;
-const CFStringRef kCFLocaleDecimalSeparator;
-const CFStringRef kCFLocaleGroupingSeparator;
-const CFStringRef kCFLocaleCurrencySymbol;
-const CFStringRef kCFLocaleCurrencyCode;
+CF_EXPORT const CFStringRef kCFLocaleMeasurementSystem; // CFString
+const CFStringRef kCFLocaleDecimalSeparator; // CFString
+const CFStringRef kCFLocaleGroupingSeparator; // CFString
+const CFStringRef kCFLocaleCurrencySymbol; // CFString
+const CFStringRef kCFLocaleCurrencyCode; // CFString
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-const CFStringRef kCFLocaleIdentifier;
-const CFStringRef kCFLocaleLanguageCode;
-const CFStringRef kCFLocaleCountryCode;
-const CFStringRef kCFLocaleScriptCode;
-const CFStringRef kCFLocaleVariantCode;
-const CFStringRef kCFLocaleExemplarCharacterSet;
-const CFStringRef kCFLocaleCalendarIdentifier;
-const CFStringRef kCFLocaleCalendar;
-const CFStringRef kCFLocaleCollationIdentifier;
-const CFStringRef kCFLocaleUsesMetricSystem;
+const CFStringRef kCFLocaleIdentifier; // CFString
+const CFStringRef kCFLocaleLanguageCode; // CFString
+const CFStringRef kCFLocaleCountryCode; // CFString
+const CFStringRef kCFLocaleScriptCode; // CFString
+const CFStringRef kCFLocaleVariantCode; // CFString
+const CFStringRef kCFLocaleExemplarCharacterSet; // CFCharacterSet
+const CFStringRef kCFLocaleCalendarIdentifier; // CFString
+const CFStringRef kCFLocaleCalendar; // CFCalendar
+const CFStringRef kCFLocaleCollationIdentifier; // CFString
+const CFStringRef kCFLocaleUsesMetricSystem; // CFBoolean
 #endif
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-const CFStringRef kCFLocaleCollatorIdentifier;
-const CFStringRef kCFLocaleQuotationBeginDelimiterKey;
-const CFStringRef kCFLocaleQuotationEndDelimiterKey;
-const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey;
-const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey;
+const CFStringRef kCFLocaleCollatorIdentifier; // CFString
+const CFStringRef kCFLocaleQuotationBeginDelimiterKey; // CFString
+const CFStringRef kCFLocaleQuotationEndDelimiterKey; // CFString
+const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey; // CFString
+const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey; //CFString
 #endif
 /** @} */
 

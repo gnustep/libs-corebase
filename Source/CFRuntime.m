@@ -233,6 +233,8 @@ CFCopyTypeIDDescription (CFTypeID typeID)
 Boolean
 CFEqual (CFTypeRef cf1, CFTypeRef cf2)
 {
+  if (cf1 == cf2)
+    return true;
   return [(id)cf1 isEqual: (id)cf2];
 }
 
