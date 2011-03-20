@@ -1,4 +1,4 @@
-#define BUFFER_SIZE 1024
+#define CFTEST_BUFFER_SIZE 1024
 
 
 #define PASS_CFEQ(expression, expect, message) \
@@ -8,13 +8,13 @@
       { \
         CFStringRef str1; \
         CFStringRef str2; \
-        char expected[BUFFER_SIZE] = {0}; \
-        char expr[BUFFER_SIZE] = {0}; \
+        char expected[CFTEST_BUFFER_SIZE] = {0}; \
+        char expr[CFTEST_BUFFER_SIZE] = {0}; \
         str1 = CFCopyDescription((CFTypeRef)(expect)); \
         str2 = CFCopyDescription((CFTypeRef)(expression)); \
-        CFStringGetCString (str1, expected, BUFFER_SIZE-1, \
+        CFStringGetCString (str1, expected, CFTEST_BUFFER_SIZE-1, \
           CFStringGetSystemEncoding()); \
-        CFStringGetCString (str2, expr, BUFFER_SIZE-1, \
+        CFStringGetCString (str2, expr, CFTEST_BUFFER_SIZE-1, \
           CFStringGetSystemEncoding()); \
         CFRelease ((CFTypeRef)str1); \
         CFRelease ((CFTypeRef)str2); \
@@ -31,17 +31,17 @@
       { \
         CFStringRef str1; \
         CFStringRef str2; \
-        char expected[BUFFER_SIZE]; \
-        char expr[BUFFER_SIZE]; \
+        char expected[CFTEST_BUFFER_SIZE]; \
+        char expr[CFTEST_BUFFER_SIZE]; \
         str1 = CFCopyDescription((CFTypeRef)expect); \
         str2 = CFCopyDescription((CFTypeRef)expression); \
-        CFStringGetCString (str1, expected, BUFFER_SIZE-1, \
+        CFStringGetCString (str1, expected, CFTEST_BUFFER_SIZE-1, \
           CFStringGetSystemEncoding()); \
-        CFStringGetCString (str2, expr, BUFFER_SIZE-1, \
+        CFStringGetCString (str2, expr, CFTEST_BUFFER_SIZE-1, \
           CFStringGetSystemEncoding()); \
         CFRelease ((CFTypeRef)str1); \
         CFRelease ((CFTypeRef)str2); \
-        fprintf (stderr, "Expected %s, but got %s\n", \
+        fprintf (stderr, "Did not expect %s, got %s\n", \
           expected, \
           expr); \
       } \

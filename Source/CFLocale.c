@@ -25,6 +25,8 @@
 */
 
 #include "CoreFoundation/CFLocale.h"
+
+#include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
 
@@ -353,6 +355,7 @@ CFLocaleGetValue (CFLocaleRef locale,
   if (key == kCFLocaleIdentifier)
     return (CFTypeRef)locale->_identifier;
   
+  // Make sure we haven't been through this already.
   pthread_spin_lock (&(((struct __CFLocale*)locale)->_lock));
   if (CFDictionaryGetValueIfPresent(locale->_components, key,
       (const void **)&result))
@@ -363,7 +366,7 @@ CFLocaleGetValue (CFLocaleRef locale,
   pthread_spin_unlock (&(((struct __CFLocale*)locale)->_lock));
   
   if (!CFStringGetCString (locale->_identifier, cLocale,
-      ULOC_FULLNAME_CAPACITY-1, CFStringGetSystemEncoding()))
+      ULOC_FULLNAME_CAPACITY, CFStringGetSystemEncoding()))
     return NULL;
   
   if (key == kCFLocaleMeasurementSystem
@@ -373,7 +376,7 @@ CFLocaleGetValue (CFLocaleRef locale,
       if (key == kCFLocaleMeasurementSystem)
         {
           if (ums == UMS_SI)
-            result = (CFTypeRef)CFSTR("Metric");
+            return (CFTypeRef)CFSTR("Metric");
           else
             result = (CFTypeRef)CFSTR("U.S.");
         }
@@ -402,75 +405,82 @@ CFLocaleGetValue (CFLocaleRef locale,
     {
       // FIXME: CFNumberFormatter
       length =
-        uloc_getKeywordValue (cLocale, "currency", buffer, BUFFER_SIZE-1, &err);
-      return NULL;
+        uloc_getKeywordValue (cLocale, "currency", buffer, BUFFER_SIZE, &err);
     }
   else if (key == kCFLocaleLanguageCode)
     {
-      length = uloc_getLanguage (cLocale, buffer, BUFFER_SIZE-1, &err);
+      length = uloc_getLanguage (cLocale, buffer, BUFFER_SIZE, &err);
     }
   else if (key == kCFLocaleCountryCode)
     {
-      length = uloc_getCountry (cLocale, buffer, BUFFER_SIZE-1, &err);
+      length = uloc_getCountry (cLocale, buffer, BUFFER_SIZE, &err);
     }
   else if (key == kCFLocaleScriptCode)
     {
-      length = uloc_getScript (cLocale, buffer, BUFFER_SIZE-1, &err);
+      length = uloc_getScript (cLocale, buffer, BUFFER_SIZE, &err);
     }
   else if (key == kCFLocaleVariantCode)
     {
-      length = uloc_getVariant (cLocale, buffer, BUFFER_SIZE-1, &err);
+      length = uloc_getVariant (cLocale, buffer, BUFFER_SIZE, &err);
     }
   else if (key == kCFLocaleExemplarCharacterSet)
     {
-      return NULL;
+      return kCFNull;
     }
   else if (key == kCFLocaleCalendarIdentifier)
     {
       length =
-        uloc_getKeywordValue (cLocale, "calendar", buffer, BUFFER_SIZE-1, &err);
+        uloc_getKeywordValue (cLocale, "calendar", buffer, BUFFER_SIZE, &err);
       if (strncmp(buffer, "gregorian", sizeof("gregorian")-1))
-        result = kCFGregorianCalendar;
+        result = (CFTypeRef)kCFGregorianCalendar;
     }
   else if (key == kCFLocaleCalendar)
     {
-      return NULL;
+      return kCFNull;
     }
   else if (key == kCFLocaleCollationIdentifier)
     {
       length =
-        uloc_getKeywordValue (cLocale, "collation", buffer, BUFFER_SIZE-1, &err);
+        uloc_getKeywordValue (cLocale, "collation", buffer, BUFFER_SIZE, &err);
     }
   else if (key == kCFLocaleCollatorIdentifier)
     {
-      return NULL;
+      return kCFNull;
     }
   else if (key == kCFLocaleQuotationBeginDelimiterKey)
     {
-      return NULL;
+      UniChar ubuffer[BUFFER_SIZE];
+      ULocaleData *uld = ulocdata_open (cLocale, &err);
+      length = ulocdata_getDelimiter (uld, ULOCDATA_QUOTATION_START,
+        ubuffer, BUFFER_SIZE, &err);
+      
     }
   else if (key == kCFLocaleQuotationEndDelimiterKey)
     {
-      return NULL;
+      return kCFNull;
     }
   else if (key == kCFLocaleAlternateQuotationBeginDelimiterKey)
     {
-      return NULL;
+      return kCFNull;
     }
   else if (key == kCFLocaleAlternateQuotationEndDelimiterKey)
     {
-      return NULL;
+      return kCFNull;
     }
   else
     {
-      return NULL;
+      return kCFNull;
     }
   
   if (U_FAILURE(err) || length == 0)
-    return NULL;
-  
-  result = (CFTypeRef)
-    CFStringCreateWithCString (NULL, buffer, CFStringGetSystemEncoding());
+    result = kCFNull;
+  else
+    {
+      result = (CFTypeRef)
+        CFStringCreateWithCString (NULL, buffer, CFStringGetSystemEncoding());
+      if (result == NULL)
+        result = kCFNull;
+    }
   
   pthread_spin_lock (&(((struct __CFLocale*)locale)->_lock));
   CFDictionaryAddValue (locale->_components, key, result);
@@ -491,15 +501,15 @@ CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
 {
   CFStringRef result;
   char cLocale[ULOC_FULLNAME_CAPACITY];
-  char buffer[BUFFER_SIZE];
+  char buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode err = U_ZERO_ERROR;
   
   if (!CFStringGetCString(localeIdent, cLocale, ULOC_FULLNAME_CAPACITY,
          CFStringGetSystemEncoding()))
     return NULL;
   
-  uloc_canonicalize (cLocale, buffer, BUFFER_SIZE-1, &err);
-  if (U_FAILURE(err) && err != U_BUFFER_OVERFLOW_ERROR)
+  uloc_canonicalize (cLocale, buffer, ULOC_FULLNAME_CAPACITY, &err);
+  if (U_FAILURE(err))
     return NULL;
   
   result =
@@ -510,15 +520,44 @@ CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
 
 CFStringRef
 CFLocaleCreateCanonicalLanguageIdentifierFromString (CFAllocatorRef allocator,
-                                                     CFStringRef localeIdent);
+                                                     CFStringRef localeIdent)
+{
+  CFStringRef result;
+  char cLocale[ULOC_FULLNAME_CAPACITY];
+  char canonical[ULOC_FULLNAME_CAPACITY];
+  char lang[ULOC_LANG_CAPACITY];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (!CFStringGetCString(localeIdent, cLocale, ULOC_FULLNAME_CAPACITY,
+         CFStringGetSystemEncoding()))
+    return NULL;
+  
+  uloc_canonicalize (cLocale, canonical, BUFFER_SIZE, &err);
+  uloc_getLanguage (canonical, lang, ULOC_LANG_CAPACITY, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  
+  result =
+    CFStringCreateWithCString (allocator, lang, CFStringGetSystemEncoding());
+  
+  return result;
+}
 
 CFDictionaryRef
 CFLocaleCreateComponentsFromLocaleIdentifier (CFAllocatorRef allocator,
-                                              CFStringRef localeIdent);
+                                              CFStringRef localeIdent)
+{
+  // FIXME
+  return NULL;
+}
 
 CFStringRef
 CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
-                                              CFDictionaryRef dictionary);
+                                              CFDictionaryRef dictionary)
+{
+  // FIXME
+  return NULL;
+}
 
 CFTypeID
 CFLocaleGetTypeID (void)

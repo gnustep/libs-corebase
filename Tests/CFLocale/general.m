@@ -29,15 +29,16 @@ int main (void)
   obj = CFLocaleGetValue (locale, kCFLocaleCountryCode);
   PASS_CFEQ(obj, CFSTR("BR"), "Country code is 'BR'");
   obj = CFLocaleGetValue (locale, kCFLocaleScriptCode);
-  PASS_CFEQ(obj, NULL, "No script code for locale");
+  PASS_CFEQ(obj, kCFNull, "No script code for locale");
   obj = CFLocaleGetValue (locale, kCFLocaleVariantCode);
-  PASS_CFEQ(obj, NULL, "No variant code for locale");
+  PASS_CFEQ(obj, kCFNull, "No variant code for locale");
   obj = CFLocaleGetValue (locale, kCFLocaleExemplarCharacterSet);
-  PASS_CFNEQ(obj, NULL, "There is a character set");
+  // There isn't a good way to test this so I'm just testing it isn't NULL.
+  PASS_CFNEQ(obj, kCFNull, "There is a character set");
   obj = CFLocaleGetValue (locale, kCFLocaleCalendarIdentifier);
   PASS_CFEQ(obj, CFSTR("gregorian"), "Calendar is 'gregorian'");
   obj = CFLocaleGetValue (locale, kCFLocaleCalendar);
-  PASS_CFEQ(obj, NULL, "Returns valid CFCalendar"); // FIXME: required CFCalendar
+  PASS_CFNEQ(obj, kCFNull, "Returns valid CFCalendar"); // FIXME: required CFCalendar
   obj = CFLocaleGetValue (locale, kCFLocaleCollationIdentifier);
   PASS_CFEQ(obj, CFSTR("traditional"), "Collation identifier is 'traditional'");
   obj = CFLocaleGetValue (locale, kCFLocaleUsesMetricSystem);

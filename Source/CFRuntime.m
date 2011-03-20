@@ -36,7 +36,6 @@
  */
 @interface NSCFType : NSObject
 {
-  CFTypeID _typeid;
 }
 
 - (CFTypeID) _cfTypeID;
@@ -203,7 +202,7 @@ CFCopyDescription (CFTypeRef cf)
         }
       else
         {
-          CFStringCreateWithFormat (NULL, NULL, CFSTR("<%s: %p"),
+          CFStringCreateWithFormat (NULL, NULL, CFSTR("<%s: %p>"),
             cfclass->className, cf);
         }
     }
@@ -214,15 +213,14 @@ CFStringRef
 CFCopyTypeIDDescription (CFTypeID typeID)
 {
   // FIXME: is this the right way?
-  if (NULL == __CFRuntimeClassTable[typeID])
-    return NULL;
-
   if (typeID >= __CFRuntimeClassTableSize)
     {
       return (CFStringRef)CFRetain([(Class)typeID description]);
     }
   else
     {
+      if (NULL == __CFRuntimeClassTable[typeID])
+        return NULL;
       CFRuntimeClass *cfclass = __CFRuntimeClassTable[typeID];
       return CFStringCreateWithCStringNoCopy (NULL, cfclass->className,
 	       CFStringGetSystemEncoding(), kCFAllocatorNull);
@@ -348,7 +346,10 @@ static void __CFInitialize (void)
      See: http://www.cocoadev.com/index.pl?HowToCreateTollFreeBridgedClass for
      more info.
   */
-  return (CFTypeID)_typeid;
+//  return (CFTypeID)_typeid;
+  // FIXME: This ivar no longer exists... I'm still wondering what to do here,
+  // it might make a come back in a few days.
+  return 0;
 }
 
 @end

@@ -1,3 +1,11 @@
+2011-03-20 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m: Minor changes to make CF types more ObjC friendly.
+	* Source/CFLocale.c: (CFLocaleCreateCanonicalLanguageIdentifierFromString)
+	Added.
+	(CFLocaleGetValue) Added more code.
+	* Tests/CFTesting.h: Fixed output of PASS_CFNEQ.
+
 2011-03-19 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m: Initializae CFNull.
