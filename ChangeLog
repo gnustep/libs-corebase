@@ -1,5 +1,14 @@
 2011-03-22 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFRuntime.m:
+	* Source/NSCFType.m: Make NSCFType class call CF functions instead
+	of the other way around.
+	* Tests/CFTesting.h: Include Testing.h here and make PASS_CF{,N}EQ
+	inline functions.
+	* Tests/CFRuntime/runtime.m: Added a couple of tests.
+
+2011-03-22 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFRuntime.m: Moved NSCFType definition...
 	* Source/NSCFType.m: ...To here.
 	* Source/NSCFType.h: NSCFType interface.

@@ -4,6 +4,8 @@
 
 #import <Foundation/NSString.h>
 
+#include "../CFTesting.h"
+
 typedef const struct __GSPoint * GSPointRef;
 
 extern GSPointRef kGSPointOrigin;
@@ -89,7 +91,7 @@ static CFRuntimeClass _kGSPointClass =
   GSPointCopyDebugDesc
 };
 
-const struct __GSPoint _kGSPointOrigin =
+struct __GSPoint _kGSPointOrigin =
 {
   INIT_CFRUNTIME_BASE(),
   0, // X
@@ -102,6 +104,7 @@ void
 GSPointInitialize (void)
 {
   _kGSPointTypeID = _CFRuntimeRegisterClass(&_kGSPointClass);
+  _CFRuntimeInitStaticInstance ((void *)kGSPointOrigin, _kGSPointTypeID);
 }
 
 CFTypeID
@@ -115,9 +118,9 @@ GSPointCreate (CFAllocatorRef allocator, CFIndex x, CFIndex y)
 {
   struct __GSPoint *new;
   new = (struct __GSPoint*)_CFRuntimeCreateInstance(allocator,
-               _kGSPointTypeID,
-               sizeof(struct __GSPoint) - sizeof(CFRuntimeBase),
-               NULL);
+          _kGSPointTypeID,
+          sizeof(struct __GSPoint) - sizeof(CFRuntimeBase),
+          NULL);
   if (NULL == new)
     return NULL;
   
@@ -140,7 +143,16 @@ CFIndex GSPointGetY (GSPointRef o)
 
 int main (void)
 {
+  GSPointRef pt;
+  
   GSPointInitialize ();
+  
+  pt = GSPointCreate (NULL, 0, 0);
+  PASS_CFEQ((CFTypeRef)pt, (CFTypeRef)kGSPointOrigin, "Points are equal");
+  PASS(CFHash((CFTypeRef)pt) == CFHash((CFTypeRef)kGSPointOrigin),
+       "Points have same hash code.");
+  
+  CFRelease((CFTypeRef)pt);
   
   return 0;
 }

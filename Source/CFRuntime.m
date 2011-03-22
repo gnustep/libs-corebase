@@ -26,7 +26,6 @@
 
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
-#import <Foundation/NSZone.h>
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
@@ -36,19 +35,51 @@
 
 
 // CFRuntimeClass Table
-#define CF_RUNTIME_CLASS_TABLE_DEFAULT_SIZE 1024
 CFRuntimeClass **__CFRuntimeClassTable = NULL;
 Class *__CFRuntimeObjCClassTable = NULL;
 static UInt32 __CFRuntimeClassTableCount = 0;
-static UInt32 __CFRuntimeClassTableSize = 0;
+static UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
 
 static Class NSCFTypeClass = Nil;
 
 
 
+/******************************/
+/* Object header... lifted from base's NSObject.m */
+#ifdef ALIGN
+#undef ALIGN
+#endif
+#define	ALIGN __alignof__(double)
+
+/*
+ *	Define a structure to hold information that is held locally
+ *	(before the start) in each object.
+ */
+struct obj_layout_unpadded {
+  CFIndex        retained;
+  CFAllocatorRef zone;
+};
+#define	UNP sizeof(struct obj_layout_unpadded)
+
+/*
+ *	Now do the REAL version - using the other version to determine
+ *	what padding (if any) is required to get the alignment of the
+ *	structure correct.
+ */
+struct obj_layout {
+  CFIndex        retained;
+  CFAllocatorRef zone;
+  char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
+};
+typedef	struct obj_layout *obj;
+/******************************/
+
+
+
 // These functions are declared in CFInternal.h, but since corebase
 // doesn't have this file, they'll be done in here.
-static inline void *__CFISAForTypeID (CFTypeID typeID)
+static inline void *
+__CFISAForTypeID (CFTypeID typeID)
 {
   if (typeID >= __CFRuntimeClassTableSize)
     {
@@ -58,10 +89,12 @@ static inline void *__CFISAForTypeID (CFTypeID typeID)
   return (void *)__CFRuntimeObjCClassTable[typeID];
 }
 
-static inline Boolean CF_IS_OBJC (CFTypeID typeID, const void *obj)
+static inline Boolean
+CF_IS_OBJC (CFTypeID typeID, const void *obj)
 {
-  return (obj != NULL && typeID >= __CFRuntimeClassTableSize)
-    || (((CFRuntimeBase *)obj)->_isa != __CFISAForTypeID (typeID));
+  return (typeID >= __CFRuntimeClassTableSize
+          || (obj != NULL
+              && (((CFRuntimeBase*)obj)->_isa != __CFISAForTypeID (typeID))));
 }
 
 #define IS_OBJC(cf) CF_IS_OBJC(CFGetTypeID(cf), cf)
@@ -86,7 +119,7 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
   // FIXME: This is absolutely NOT thread safe.
   CFTypeID ret;
   
-  if(__CFRuntimeClassTableCount >= CF_RUNTIME_CLASS_TABLE_DEFAULT_SIZE)
+  if(__CFRuntimeClassTableCount >= __CFRuntimeClassTableSize)
     {
       NSLog (@"CoreBase class table is full, cannot register class %s",
         cls->className);
@@ -130,10 +163,14 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
     allocator = CFAllocatorGetDefault ();
   
   new = (CFRuntimeBase *)NSAllocateObject (NSCFTypeClass, extraBytes, allocator);
-  if (NULL != cls->init)
+  if (new)
     {
-      // Init instance...
-      cls->init(new);
+      new->_typeID = typeID;
+      if (NULL != cls->init)
+        {
+          // Init instance...
+          cls->init(new);
+        }
     }
   
   return new;
@@ -149,6 +186,8 @@ void
 _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
 {
   CFRuntimeClass *cls;
+  CFRuntimeBase  *obj = (CFRuntimeBase *)memory;
+  
   if (_kCFRuntimeNotATypeID == typeID
       || NULL == (cls = __CFRuntimeClassTable[typeID])
       || NULL == memory)
@@ -156,11 +195,15 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
       return;
     }
   
-  ((CFRuntimeBase *)memory)->_isa = __CFISAForTypeID (typeID);
-  if (cls->init != NULL)
+  obj->_isa = __CFISAForTypeID (typeID);
+  if (obj)
     {
-      // Init instance...
-      cls->init(memory);
+      obj->_typeID = typeID;
+      if (cls->init != NULL)
+        {
+          // Init instance...
+          cls->init(memory);
+        }
     }
 }
 
@@ -204,7 +247,6 @@ CFCopyDescription (CFTypeRef cf)
 CFStringRef
 CFCopyTypeIDDescription (CFTypeID typeID)
 {
-  // FIXME: is this the right way?
   if (typeID >= __CFRuntimeClassTableSize)
     {
       return (CFStringRef)CFRetain([(Class)typeID description]);
@@ -222,52 +264,82 @@ CFCopyTypeIDDescription (CFTypeID typeID)
 Boolean
 CFEqual (CFTypeRef cf1, CFTypeRef cf2)
 {
-  // FIXME: this will endup in an infinite look if called on a NSCFType
+  CFRuntimeClass *cls;
+  
   if (cf1 == cf2)
     return true;
-  return [(id)cf1 isEqual: (id)cf2];
+  
+  cls = __CFRuntimeClassTable[CFGetTypeID(cf1)];
+  if (NULL != cls->equal)
+    return cls->equal(cf1, cf2);
+  
+  return false;
 }
 
 CFAllocatorRef
 CFGetAllocator (CFTypeRef cf)
 {
-  return (CFAllocatorRef)[(id)cf zone];
+  if (!((CFRuntimeBase*)cf)->_flags.ro)
+    return (CFAllocatorRef)(((obj)cf)[-1]).zone;
+  
+  return kCFAllocatorSystemDefault;
 }
 
 CFIndex
 CFGetRetainCount (CFTypeRef cf)
 {
-  return [(id)cf retainCount];
+  if (!((CFRuntimeBase*)cf)->_flags.ro)
+    return (CFIndex)NSExtraRefCount (cf) + 1;
+  
+  return 1;
 }
 
 CFTypeID
 CFGetTypeID (CFTypeRef cf)
 {
-  return [(id)cf _cfTypeID];
+  return (CFTypeID)((CFRuntimeBase*)cf)->_typeID;
 }
 
 CFHashCode
 CFHash (CFTypeRef cf)
 {
-  return [(id)cf hash];
+  CFRuntimeClass *cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
+  if (cls->hash)
+    return cls->hash (cf);
+  
+  return (CFHashCode)((uintptr_t)cf >> 3);
 }
 
 CFTypeRef
 CFMakeCollectable (CFTypeRef cf)
 {
+// FIXME
   return NULL;
 }
 
 void
 CFRelease (CFTypeRef cf)
 {
-  RELEASE((id)cf);
+  if (!((CFRuntimeBase*)cf)->_flags.ro)
+    {
+      CFIndex refCount = NSDecrementExtraRefCountWasZero(cf);
+      if (refCount == 0)
+        {
+          CFRuntimeClass *cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
+          
+          if (cls->finalize)
+            cls->finalize (cf);
+          NSDeallocateObject (cf);
+        }
+    }
 }
 
 CFTypeRef
 CFRetain (CFTypeRef cf)
 {
-  return (CFTypeRef)RETAIN((id)cf);
+  if (!((CFRuntimeBase*)cf)->_flags.ro)
+    NSIncrementExtraRefCount (cf);
+  return cf;
 }
 
 
@@ -278,7 +350,6 @@ extern void CFNullInitialize (void);
 void CFInitialize (void)
 {
   // Initialize CFRuntimeClassTable
-  __CFRuntimeClassTableSize = CF_RUNTIME_CLASS_TABLE_DEFAULT_SIZE;
   __CFRuntimeClassTable = (CFRuntimeClass **) calloc (__CFRuntimeClassTableSize,
                             sizeof(CFRuntimeClass *));
   __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,

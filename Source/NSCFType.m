@@ -37,41 +37,24 @@ extern CFRuntimeClass **__CFRuntimeClassTable;
   CFInitialize();
 }
 
-- (void) dealloc
-{
-  if (_flags.ro)
-    return;
-  
-  CFRuntimeClass *cfclass = __CFRuntimeClassTable[([self _cfTypeID])];
-  if (NULL != cfclass->finalize)
-    return cfclass->finalize((CFTypeRef)self);
-  
-  [super dealloc];
-}
-
 - (id) retain
 {
-  if (_flags.ro)
-    return self;
-  
-  return [super retain];
+  return (id)CFRetain(self);
 }
 
 - (void) release
 {
-  if (_flags.ro)
-    return;
-  
-  return [super release];
+  CFRelease(self);
+}
+
+- (NSUInteger) hash
+{
+  return (NSUInteger)CFHash (self);
 }
 
 - (BOOL) isEqual: (id) anObject
 {
-  CFRuntimeClass *cfclass = __CFRuntimeClassTable[([self _cfTypeID])];
-  if (NULL != cfclass->equal)
-    return cfclass->equal((CFTypeRef)self, (CFTypeRef)anObject);
-  else
-    return [super isEqual: anObject];
+  return (BOOL)CFEqual (self, (CFTypeRef)anObject);
 }
 
 - (CFTypeID) _cfTypeID
