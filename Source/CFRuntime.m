@@ -29,24 +29,16 @@
 #import <Foundation/NSZone.h>
 
 #include "CoreFoundation/CFRuntime.h"
+#include "CoreFoundation/CFString.h"
 
-
-
-/* This is NSCFType, the ObjC class that all non-bridged CF types belong to.
- */
-@interface NSCFType : NSObject
-{
-}
-
-- (CFTypeID) _cfTypeID;
-@end
+#import "NSCFType.h"
 
 
 
 // CFRuntimeClass Table
 #define CF_RUNTIME_CLASS_TABLE_DEFAULT_SIZE 1024
-static CFRuntimeClass **__CFRuntimeClassTable = NULL;
-static Class *__CFRuntimeObjCClassTable = NULL;
+CFRuntimeClass **__CFRuntimeClassTable = NULL;
+Class *__CFRuntimeObjCClassTable = NULL;
 static UInt32 __CFRuntimeClassTableCount = 0;
 static UInt32 __CFRuntimeClassTableSize = 0;
 
@@ -230,6 +222,7 @@ CFCopyTypeIDDescription (CFTypeID typeID)
 Boolean
 CFEqual (CFTypeRef cf1, CFTypeRef cf2)
 {
+  // FIXME: this will endup in an infinite look if called on a NSCFType
   if (cf1 == cf2)
     return true;
   return [(id)cf1 isEqual: (id)cf2];
@@ -282,7 +275,7 @@ CFRetain (CFTypeRef cf)
 extern void CFLocaleInitialize (void);
 extern void CFNullInitialize (void);
 
-static void __CFInitialize (void)
+void CFInitialize (void)
 {
   // Initialize CFRuntimeClassTable
   __CFRuntimeClassTableSize = CF_RUNTIME_CLASS_TABLE_DEFAULT_SIZE;
@@ -298,58 +291,3 @@ static void __CFInitialize (void)
   NSCFTypeClass = [NSCFType class];
 }
 
-
-
-@interface NSObject (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@implementation NSObject (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return _kCFRuntimeNotATypeID;
-}
-@end
-
-@implementation NSCFType
-
-+ (void) load
-{
-  __CFInitialize ();
-}
-
-- (void) dealloc
-{
-  CFRuntimeClass *cfclass = __CFRuntimeClassTable[([self _cfTypeID])];
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
-  if (NULL != cfclass->finalize)
-    return cfclass->finalize((CFTypeRef)self);
-#else
-  if (NULL != cfclass->dealloc)
-    return cfclass->dealloc((CFTypeRef)self);
-#endif
-  
-  [super dealloc];
-}
-- (BOOL) isEqual: (id) anObject
-{
-  CFRuntimeClass *cfclass = __CFRuntimeClassTable[([self _cfTypeID])];
-  if (NULL != cfclass->equal)
-    return cfclass->equal((CFTypeRef)self, (CFTypeRef)anObject);
-  else
-    return [super isEqual: anObject];
-}
-
-- (CFTypeID) _cfTypeID
-{
-  /* This is an undocumented method.
-     See: http://www.cocoadev.com/index.pl?HowToCreateTollFreeBridgedClass for
-     more info.
-  */
-//  return (CFTypeID)_typeid;
-  // FIXME: This ivar no longer exists... I'm still wondering what to do here,
-  // it might make a come back in a few days.
-  return 0;
-}
-
-@end

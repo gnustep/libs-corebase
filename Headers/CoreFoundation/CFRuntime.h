@@ -29,7 +29,8 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
-#include <CoreFoundation/CFString.h>
+
+CF_EXTERN_C_BEGIN
 
 enum
 {
@@ -77,9 +78,16 @@ typedef struct __CFRuntimeBase CFRuntimeBase;
 struct __CFRuntimeBase
 {
   void *_isa;
+  int16_t _typeID;
+  struct
+    {
+      int16_t ro:       1; // 0 = read-only object
+      int16_t unused:   7;
+      int16_t reserved: 8;
+    } _flags;
 };
 
-#define INIT_CFRUNTIME_BASE(...) {0}
+#define INIT_CFRUNTIME_BASE(...) { 0, 0, { 1, 0, 0 } }
 
 CFTypeRef
 _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
@@ -90,6 +98,8 @@ _CFRuntimeSetInstanceTypeID (CFTypeRef cf, CFTypeID typeID);
 
 void
 _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID);
-#define CF_HAS_INIT_STATIC_INSTANCE 0 // FIXME
+#define CF_HAS_INIT_STATIC_INSTANCE 0
+
+CF_EXTERN_C_END
 
 #endif /* __CFRuntime_h_GNUSTEP_COREBASE_INCLUDE */

@@ -18,6 +18,7 @@ libgnustep-corebase_OBJC_FILES = \
   CFStream.m \
   CFString.m \
   CFURL.m \
+  NSCFType.m \
   Identifiers.m
 
 libgnustep-corebase_C_FILES = \
