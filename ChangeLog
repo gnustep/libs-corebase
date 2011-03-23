@@ -1,3 +1,8 @@
+2011-03-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m: (CFEqual) Check that type IDs are equal.
+	* Tests/CFRuntime/runtime.m: Added description output tests.
+
 2011-03-22 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m:

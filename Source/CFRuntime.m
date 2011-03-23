@@ -265,9 +265,15 @@ Boolean
 CFEqual (CFTypeRef cf1, CFTypeRef cf2)
 {
   CFRuntimeClass *cls;
+  CFTypeID tID1, tID2;
   
   if (cf1 == cf2)
     return true;
+  
+  tID1 = CFGetTypeID(cf1);
+  tID2 = CFGetTypeID(cf2);
+  if (tID1 != tID2)
+    return false;
   
   cls = __CFRuntimeClassTable[CFGetTypeID(cf1)];
   if (NULL != cls->equal)

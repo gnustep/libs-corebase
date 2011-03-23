@@ -58,7 +58,7 @@ GSPointCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOpts)
   GSPointRef o = (GSPointRef)cf;
   return CFStringCreateWithFormat (CFGetAllocator(cf),
            formatOpts,
-           CFSTR("[%u, %u)"),
+           CFSTR("(%u, %u)"),
            o->x,
            o->x + o->y);
 }
@@ -151,6 +151,12 @@ int main (void)
   PASS_CFEQ((CFTypeRef)pt, (CFTypeRef)kGSPointOrigin, "Points are equal");
   PASS(CFHash((CFTypeRef)pt) == CFHash((CFTypeRef)kGSPointOrigin),
        "Points have same hash code.");
+  /* FIXME: use PASS_EQUAL because CFEqual doesn't currently work with
+     ObjC objects. */
+  PASS_EQUAL(CFCopyDescription((CFTypeRef)pt), CFSTR("(0, 0)"),
+            "Description is correct.");
+  PASS_EQUAL(CFCopyTypeIDDescription(GSPointGetTypeID()), CFSTR("GSPoint"),
+             "Type ID description is correct.");
   
   CFRelease((CFTypeRef)pt);
   
