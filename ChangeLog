@@ -1,3 +1,9 @@
+2011-03-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m: Improve interaction with ObjC objects.
+	* Tests/CFTesting.h: Output in the same format as macros in Testing.h.
+	* Tests/CFRuntime/runtime.m: Added toll-free bridge tests.
+
 2011-03-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m: (CFEqual) Check that type IDs are equal.

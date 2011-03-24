@@ -1,6 +1,6 @@
 /* CFLocale.c
    
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2011 Free Software Foundation, Inc.
    
    Written by: Stefan Bidigaray
    Date: March, 2011

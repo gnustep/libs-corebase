@@ -141,9 +141,47 @@ CFIndex GSPointGetY (GSPointRef o)
   return o->y;
 }
 
+@interface GSPoint : NSObject
+{
+  // Need to include the NSCFType ivars
+  int16_t _typeID;
+  int16_t _flags;
+  CFIndex _x;
+  CFIndex _y;
+}
+- (id) initWithX: (CFIndex)x Y: (CFIndex)y;
+- (CFIndex) x;
+- (CFIndex) y;
+@end
+
+@implementation GSPoint
+- (id) initWithX: (CFIndex)x Y: (CFIndex)y
+{
+  GSPoint *new;
+  
+  new = GSPointCreate([self zone], x, y);
+  
+  RELEASE(self);
+  
+  self = new;
+  return self;
+}
+
+- (CFIndex) x
+{
+  return _x;
+}
+
+- (CFIndex) y
+{
+  return _y;
+}
+@end
+
 int main (void)
 {
   GSPointRef pt;
+  GSPoint *bpt;
   
   GSPointInitialize ();
   
@@ -151,13 +189,26 @@ int main (void)
   PASS_CFEQ((CFTypeRef)pt, (CFTypeRef)kGSPointOrigin, "Points are equal");
   PASS(CFHash((CFTypeRef)pt) == CFHash((CFTypeRef)kGSPointOrigin),
        "Points have same hash code.");
-  /* FIXME: use PASS_EQUAL because CFEqual doesn't currently work with
-     ObjC objects. */
-  PASS_EQUAL(CFCopyDescription((CFTypeRef)pt), CFSTR("(0, 0)"),
+  PASS_CFEQ(CFCopyDescription((CFTypeRef)pt), CFSTR("(0, 0)"),
             "Description is correct.");
-  PASS_EQUAL(CFCopyTypeIDDescription(GSPointGetTypeID()), CFSTR("GSPoint"),
+  PASS_CFEQ(CFCopyTypeIDDescription(GSPointGetTypeID()), CFSTR("GSPoint"),
              "Type ID description is correct.");
   
+  // Test the toll-free bridge mechanism
+  bpt = [[GSPoint alloc] initWithX: 0 Y: 0];
+  PASS(bpt != nil, "-initWithX:Y: returns non-nil");
+  PASS_EQUAL(pt, bpt, "CF object and ObjC object are the same");
+  PASS_CFEQ(CFCopyDescription((CFTypeRef)bpt), CFSTR("(0, 0)"),
+            "ObjC returns same description as CF object");
+  
+  START_SET("Retain/Release Tests")
+    RETAIN(pt);
+    CFRetain(bpt);
+    CFRelease(pt);
+    RELEASE(bpt);
+  END_SET("Retain/Release Tests")
+  
+  RELEASE(bpt);
   CFRelease((CFTypeRef)pt);
   
   return 0;

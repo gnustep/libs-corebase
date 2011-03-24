@@ -1,11 +1,11 @@
 /* CFRuntime.m
    
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010-2011 Free Software Foundation, Inc.
    
    Written by: Stefan Bidigaray
    Date: January, 2010
    
-   This file is part of CoreBase.
+   This file is part of GNUstep CoreBase Library.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,8 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
 
+#include <pthread.h>
+
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
 
@@ -39,6 +41,8 @@ CFRuntimeClass **__CFRuntimeClassTable = NULL;
 Class *__CFRuntimeObjCClassTable = NULL;
 static UInt32 __CFRuntimeClassTableCount = 0;
 static UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
+
+static pthread_spinlock_t _kCFRuntimeTableLock;
 
 static Class NSCFTypeClass = Nil;
 
@@ -116,9 +120,9 @@ static CFRuntimeClass CFNotATypeClass =
 CFTypeID
 _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
 {
-  // FIXME: This is absolutely NOT thread safe.
   CFTypeID ret;
   
+  pthread_spin_lock (&_kCFRuntimeTableLock);
   if(__CFRuntimeClassTableCount >= __CFRuntimeClassTableSize)
     {
       NSLog (@"CoreBase class table is full, cannot register class %s",
@@ -129,6 +133,8 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
   __CFRuntimeClassTable[__CFRuntimeClassTableCount] = (CFRuntimeClass *)cls;
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   ret = __CFRuntimeClassTableCount++;
+  pthread_spin_unlock (&_kCFRuntimeTableLock);
+  
   return ret;
 }
 
@@ -219,6 +225,9 @@ CFCopyDescription (CFTypeRef cf)
   if (NULL == cf)
     return NULL;
   
+  if (IS_OBJC(cf))
+    return [(id)cf description];
+  
   typeID = CFGetTypeID(cf);
   if (typeID < __CFRuntimeClassTableSize)
     if (NULL == __CFRuntimeClassTable[typeID])
@@ -270,6 +279,12 @@ CFEqual (CFTypeRef cf1, CFTypeRef cf2)
   if (cf1 == cf2)
     return true;
   
+  // Can't compare here if either objects are ObjC objects.
+  if (IS_OBJC(cf1))
+    return [(id)cf1 isEqual: cf2];
+  if (IS_OBJC(cf2))
+    return [(id)cf2 isEqual: cf1];
+  
   tID1 = CFGetTypeID(cf1);
   tID2 = CFGetTypeID(cf2);
   if (tID1 != tID2)
@@ -285,6 +300,9 @@ CFEqual (CFTypeRef cf1, CFTypeRef cf2)
 CFAllocatorRef
 CFGetAllocator (CFTypeRef cf)
 {
+  if (IS_OBJC(cf))
+    return [(id)cf zone];
+  
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     return (CFAllocatorRef)(((obj)cf)[-1]).zone;
   
@@ -294,6 +312,9 @@ CFGetAllocator (CFTypeRef cf)
 CFIndex
 CFGetRetainCount (CFTypeRef cf)
 {
+  if (IS_OBJC(cf))
+    return [(id)cf retainCount];
+  
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     return (CFIndex)NSExtraRefCount (cf) + 1;
   
@@ -303,13 +324,18 @@ CFGetRetainCount (CFTypeRef cf)
 CFTypeID
 CFGetTypeID (CFTypeRef cf)
 {
-  return (CFTypeID)((CFRuntimeBase*)cf)->_typeID;
+  return [(id)cf _cfTypeID];
 }
 
 CFHashCode
 CFHash (CFTypeRef cf)
 {
-  CFRuntimeClass *cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
+  CFRuntimeClass *cls;
+  
+  if (IS_OBJC(cf))
+    return [(id)cf hash];
+  
+  cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
   if (cls->hash)
     return cls->hash (cf);
   
@@ -326,10 +352,12 @@ CFMakeCollectable (CFTypeRef cf)
 void
 CFRelease (CFTypeRef cf)
 {
+  if (IS_OBJC(cf))
+    return RELEASE((id)cf);
+  
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
-      CFIndex refCount = NSDecrementExtraRefCountWasZero(cf);
-      if (refCount == 0)
+      if (NSDecrementExtraRefCountWasZero(cf))
         {
           CFRuntimeClass *cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
           
@@ -343,6 +371,9 @@ CFRelease (CFTypeRef cf)
 CFTypeRef
 CFRetain (CFTypeRef cf)
 {
+  if (IS_OBJC(cf))
+    return RETAIN((id)cf);
+  
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     NSIncrementExtraRefCount (cf);
   return cf;
@@ -360,7 +391,9 @@ void CFInitialize (void)
                             sizeof(CFRuntimeClass *));
   __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
                       	        sizeof(Class));
-
+  
+  pthread_spin_init (&_kCFRuntimeTableLock, PTHREAD_PROCESS_SHARED);
+  
   _CFRuntimeRegisterClass (&CFNotATypeClass);
   CFNullInitialize ();
   CFLocaleInitialize ();
