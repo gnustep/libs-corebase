@@ -1,5 +1,9 @@
 2011-03-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFNumberFormatter.c: (CFNumberFormatterSetFormat) Implemented.
+
+2011-03-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/GNUmakefile:
 	* Source/CFRuntime.m:
 	* Source/CFNumberFormatter.c:

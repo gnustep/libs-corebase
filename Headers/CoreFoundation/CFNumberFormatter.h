@@ -183,8 +183,7 @@ CFNumberFormatterSetFormat (CFNumberFormatterRef formatter,
 
 void
 CFNumberFormatterSetProperty (CFNumberFormatterRef formatter,
-  CFStringRef
-key, CFTypeRef value);
+  CFStringRef key, CFTypeRef value);
 
 //
 // Formatting Values
@@ -216,8 +215,7 @@ CFNumberFormatterGetValueFromString (CFNumberFormatterRef formatter,
 //
 CFTypeRef
 CFNumberFormatterCopyProperty (CFNumberFormatterRef formatter,
-  CFStringRef
-key);
+  CFStringRef key);
 
 CFStringRef
 CFNumberFormatterGetFormat (CFNumberFormatterRef formatter);

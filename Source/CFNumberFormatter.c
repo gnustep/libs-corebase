@@ -24,11 +24,11 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include "CoreFoundation/CFNumberFormatter.h"
-
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
+
+#include "CoreFoundation/CFNumberFormatter.h"
 
 #include <pthread.h>
 #include <unicode/uloc.h> // for ULOC_FULLNAME_CAPACITY
@@ -42,6 +42,9 @@ struct __CFNumberFormatter
 {
   CFRuntimeBase  _parent;
   UNumberFormat *_fmt;
+  CFLocaleRef    _locale;
+  CFNumberFormatterStyle _style;
+  CFStringRef    _format;
 };
 
 static CFTypeID _kCFNumberFormatterTypeID;
@@ -96,18 +99,39 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
       CFRelease ((CFTypeRef)new);
       return NULL;
     }
+  new->_locale = CFRetain((CFTypeRef)locale);
+  new->_style = style;
   
   return new;
 }
 
 void
 CFNumberFormatterSetFormat (CFNumberFormatterRef formatter,
-  CFStringRef formatString);
+  CFStringRef formatString)
+{
+  UniChar buffer[BUFFER_SIZE];
+  CFIndex len;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  len = CFStringGetLength (formatString);
+  if (len > BUFFER_SIZE)
+    len = BUFFER_SIZE;
+  /* Apple recommends using an in-line buffer if there are a lot of
+     characters.  I'll assume this won't be a problem here. */
+  CFStringGetCharacters (formatString, CFRangeMake(0, len), buffer);
+  
+  unum_applyPattern (formatter->_fmt, false, buffer, len, NULL, &err);
+  if (U_FAILURE(err))
+    return;
+  
+  if (formatter->_format)
+    CFRelease ((CFTypeRef)formatter->_format);
+  formatter->_format = CFRetain ((CFTypeRef)formatString);
+}
 
 void
 CFNumberFormatterSetProperty (CFNumberFormatterRef formatter,
-  CFStringRef
-key, CFTypeRef value);
+  CFStringRef key, CFTypeRef value);
 
 CFNumberRef
 CFNumberFormatterCreateNumberFromString (CFAllocatorRef allocator,
@@ -133,17 +157,22 @@ CFNumberFormatterGetValueFromString (CFNumberFormatterRef formatter,
 
 CFTypeRef
 CFNumberFormatterCopyProperty (CFNumberFormatterRef formatter,
-  CFStringRef
-key);
+  CFStringRef key);
 
 CFStringRef
 CFNumberFormatterGetFormat (CFNumberFormatterRef formatter);
 
 CFLocaleRef
-CFNumberFormatterGetLocale (CFNumberFormatterRef formatter);
+CFNumberFormatterGetLocale (CFNumberFormatterRef formatter)
+{
+  return formatter->_locale;
+}
 
 CFNumberFormatterStyle
-CFNumberFormatterGetStyle (CFNumberFormatterRef formatter);
+CFNumberFormatterGetStyle (CFNumberFormatterRef formatter)
+{
+  return formatter->_style;
+}
 
 CFTypeID
 CFNumberFormatterGetTypeID (void)
