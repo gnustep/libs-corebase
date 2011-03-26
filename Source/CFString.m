@@ -957,13 +957,13 @@ CFStringRef __CFStringMakeConstantString(const char *str)
 @implementation NSString (CoreBaseAdditions)
 - (CFTypeID) _cfTypeID
 {
-  return CFStringGetTypeID();
+  return (CFTypeID)[self class];
 }
 @end
 
 @implementation NSMutableString (CoreBaseAdditions)
 - (CFTypeID) _cfTypeID
 {
-  return CFStringGetTypeID();
+  return (CFTypeID)[self class];
 }
 @end

@@ -1,3 +1,13 @@
+2011-03-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFLocale.c: (CFLocaleCreateComponentsFromLocaleIdentifier)
+	(CFLocaleCreateLocaleIdentifierFromComponents) Implemented.
+	* Source/CFString.m: ([NSString-_cfTypeID]) Return the class.
+	* Tests/CFTesting.h: Make arguments more unique.
+	* Tests/CFLocale/general.m:
+	* Tests/CFLocale/value.m: Renamed.
+	* Tests/CFLocale/identifier.m: New set of tests.
+
 2011-03-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m: Improve interaction with ObjC objects.

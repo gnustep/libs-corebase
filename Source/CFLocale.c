@@ -543,20 +543,165 @@ CFLocaleCreateCanonicalLanguageIdentifierFromString (CFAllocatorRef allocator,
   return result;
 }
 
+#define ADD_KEY_VALUE_TO_DICTIONARY(dictionary, key, value, length, error) do \
+{ \
+  if (U_SUCCESS(error) && length > 0) \
+    { \
+      CFStringRef value__ = CFStringCreateWithCString (NULL, value, \
+        CFStringGetSystemEncoding()); \
+      CFDictionaryAddValue (dictionary, key, value__); \
+      CFRelease ((CFTypeRef)value__); \
+    } \
+  error = U_ZERO_ERROR; \
+} while (0)
+
 CFDictionaryRef
 CFLocaleCreateComponentsFromLocaleIdentifier (CFAllocatorRef allocator,
                                               CFStringRef localeIdent)
 {
-  // FIXME
-  return NULL;
+  char locale[ULOC_FULLNAME_CAPACITY];
+  char buffer[ULOC_KEYWORDS_CAPACITY];
+  CFDictionaryRef result;
+  CFMutableDictionaryRef dict;
+  int32_t len;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (!CFStringGetCString (localeIdent, locale, ULOC_FULLNAME_CAPACITY,
+      CFStringGetSystemEncoding()))
+    return NULL;
+  
+  /* Using capacity = 7 because that's the most amount of keys we'll have:
+      language_script_country_variant@calendar;collation;currency.
+  */
+  dict = CFDictionaryCreateMutable (NULL, 7,
+    &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+  
+  len = uloc_getLanguage (locale, buffer, ULOC_KEYWORDS_CAPACITY, &err);
+  ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleLanguageCode, buffer, len, err);
+
+  len = uloc_getCountry (locale, buffer, ULOC_KEYWORDS_CAPACITY, &err);
+  ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleCountryCode, buffer, len, err);
+
+  len = uloc_getScript (locale, buffer, ULOC_KEYWORDS_CAPACITY, &err);
+  ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleScriptCode, buffer, len, err);
+
+  len = uloc_getVariant (locale, buffer, ULOC_KEYWORDS_CAPACITY, &err);
+  ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleVariantCode, buffer, len, err);
+  
+  len = uloc_getKeywordValue (locale, "calendar", buffer,
+    ULOC_KEYWORDS_CAPACITY, &err);
+  ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleCalendarIdentifier, buffer, len,
+    err);
+  
+  len = uloc_getKeywordValue (locale, "collation", buffer,
+    ULOC_KEYWORDS_CAPACITY, &err);
+  ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleCollationIdentifier, buffer, len,
+    err);
+  
+  len = uloc_getKeywordValue (locale, "currency", buffer,
+    ULOC_KEYWORDS_CAPACITY, &err);
+  ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleCurrencyCode, buffer, len, err);
+  
+  result = CFDictionaryCreateCopy (allocator, (CFDictionaryRef)dict);
+  CFRelease(dict);
+  return result;
 }
 
 CFStringRef
 CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
                                               CFDictionaryRef dictionary)
 {
-  // FIXME
-  return NULL;
+  /* A locale identifier only includes a few of the keys provided
+     by CFLocale.  According to UTS #35 (http://unicode.org/reports/tr35/tr35-6.html)
+     locales have the following format:
+        locale_id      := base_locale_id options?
+        base_locale_id := extended_RFC3066bis_identifiers
+        options        := "@" key "=" type ("," key "=" type )*
+    Keep in mind, however, that ICU's key separator is ";".  This shouldn't
+    be a problem as long as we use ULOC_KEYWORD_ITEM_SEPARATOR (and friends).
+  */
+  char locale[ULOC_FULLNAME_CAPACITY];
+  char lang[ULOC_LANG_CAPACITY];
+  char country[ULOC_COUNTRY_CAPACITY];
+  char script[ULOC_SCRIPT_CAPACITY];
+  char variant[ULOC_KEYWORDS_CAPACITY]; // use this for lack of a better one
+  char keyword[ULOC_KEYWORD_AND_VALUES_CAPACITY];
+  Boolean hasCountry;
+  Boolean hasScript;
+  Boolean hasVariant;
+  UErrorCode err = U_ZERO_ERROR;
+  CFStringRef value;
+  
+  if (dictionary == NULL)
+    return NULL;
+  
+  /* We'll return NULL if kCFLocaleLanguageCode doesn't exist.  This is the
+     only key that is absolutely necessary.
+  */
+  if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleLanguageCode,
+      (const void **)&value))
+    CFStringGetCString (value, lang, ULOC_LANG_CAPACITY, CFStringGetSystemEncoding());
+  else
+    return NULL;
+  
+  hasCountry =
+    CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCountryCode,
+    (const void **)&value);
+  if (hasCountry)
+    {
+      CFStringGetCString (value, country, ULOC_COUNTRY_CAPACITY,
+        CFStringGetSystemEncoding());
+    }
+  hasScript =
+    CFDictionaryGetValueIfPresent(dictionary, kCFLocaleScriptCode,
+    (const void **)&value);
+  if (hasScript)
+    {
+      CFStringGetCString (value, script, ULOC_SCRIPT_CAPACITY,
+        CFStringGetSystemEncoding());
+    }
+  hasVariant =
+    CFDictionaryGetValueIfPresent(dictionary, kCFLocaleVariantCode,
+    (const void **)&value);
+  if (hasVariant)
+    {
+      CFStringGetCString (value, variant, ULOC_KEYWORDS_CAPACITY,
+        CFStringGetSystemEncoding());
+    }
+  
+#define TEST_CODE(x, y) (x ? "_" : ""), (x ? y : "")
+  snprintf (locale, ULOC_FULLNAME_CAPACITY, "%s%s%s%s%s%s%s",
+    lang, TEST_CODE(hasScript, script), TEST_CODE(hasCountry, country),
+    TEST_CODE(hasVariant, variant));
+#undef TEST_CODE
+  // Use uloc_setKeywordValue() here since libicu is a required library.
+  if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCalendarIdentifier,
+      (const void **)&value))
+    {
+      CFStringGetCString (value, keyword, ULOC_KEYWORDS_CAPACITY,
+        CFStringGetSystemEncoding());
+      uloc_setKeywordValue ("calendar", keyword, locale,
+        ULOC_FULLNAME_CAPACITY, &err);
+    }
+  if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCollationIdentifier,
+      (const void **)&value))
+    {
+      CFStringGetCString (value, keyword, ULOC_KEYWORDS_CAPACITY,
+        CFStringGetSystemEncoding());
+      uloc_setKeywordValue ("collation", keyword, locale,
+        ULOC_FULLNAME_CAPACITY, &err);
+    }
+  if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCurrencyCode,
+      (const void **)&value))
+    {
+      CFStringGetCString (value, keyword, ULOC_KEYWORDS_CAPACITY,
+        CFStringGetSystemEncoding());
+      uloc_setKeywordValue ("currency", keyword, locale,
+        ULOC_FULLNAME_CAPACITY, &err);
+    }
+  
+  return
+    CFStringCreateWithCString (allocator, locale, CFStringGetSystemEncoding());
 }
 
 CFTypeID
