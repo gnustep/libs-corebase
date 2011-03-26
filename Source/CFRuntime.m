@@ -401,6 +401,7 @@ CFRetain (CFTypeRef cf)
 
 extern void CFLocaleInitialize (void);
 extern void CFNullInitialize (void);
+extern void CFNumberFormatterInitialize (void);
 
 void CFInitialize (void)
 {
@@ -414,11 +415,15 @@ void CFInitialize (void)
   
   NSCFTypeClass = [NSCFType class];
   
+  // CFNotATypeClass should be at index = 0
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   _CFRuntimeRegisterClass (&CFNotATypeClass);
+  
+  __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
+  CFLocaleInitialize ();
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   CFNullInitialize ();
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
-  CFLocaleInitialize ();
+  CFNumberFormatterInitialize ();
 }
 

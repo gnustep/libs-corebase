@@ -22,7 +22,8 @@ libgnustep-corebase_OBJC_FILES = \
 
 libgnustep-corebase_C_FILES = \
   CFByteOrder.c \
-  CFLocale.c
+  CFLocale.c \
+  CFNumberFormatter.c
 
 ADDITIONAL_INCLUDE_DIRS = -I../Headers
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
@@ -40,6 +41,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFError.h \
   CFLocale.h \
   CFNumber.h \
+  CFNumberFormatter.h \
   CFPropertyList.h \
   CFRuntime.h \
   CFStream.h \
