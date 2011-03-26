@@ -342,7 +342,7 @@ CFHash (CFTypeRef cf)
   CFRuntimeClass *cls;
   
   if (cf == NULL)
-    return;
+    return 0;
   
   if (IS_OBJC(cf))
     return [(id)cf hash];

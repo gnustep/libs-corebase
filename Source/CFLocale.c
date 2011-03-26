@@ -36,6 +36,10 @@
 
 #define BUFFER_SIZE 1024
 
+#define ICU_CALENDAR_KEY "calendar"
+#define ICU_COLLATION_KEY "collation"
+#define ICU_CURRENCY_KEY "currency"
+
 struct __CFLocale
 {
   /* The ivar order is important... must be exactly like NSLocale's. */
@@ -320,21 +324,47 @@ CFLocaleCopyDisplayNameForPropertyValue (CFLocaleRef displayLocale,
                                          CFStringRef key,
                                          CFStringRef value)
 {
-/* FIXME  char kw[ULOC_KEYWORDS_CAPACITY];
-  UniChar buffer[BUFFER_SIZE];
+  char locale[ULOC_FULLNAME_CAPACITY];
+  char valueBuffer[BUFFER_SIZE];
+  UChar result[BUFFER_SIZE];
+  int32_t len;
   UErrorCode err = U_ZERO_ERROR;
   
-  if (CFStringGetCString (key, buffer, BUFFER_SIZE-1, CFStringGetSystemEncoding())
-      && CFStringGetCString ()
-  
-  length = uloc_getDisplayKeywordValue (cLocale, kw, dLocale, buffer,
-    BUFFER_SIZE, &err);
-  if (U_FAILURE(err) && err != U_BUFFER_OVERFLOW_ERROR)
+  if (!CFStringGetCString (displayLocale->_identifier, locale,
+      ULOC_FULLNAME_CAPACITY, CFStringGetSystemEncoding()))
     return NULL;
-  if (length > BUFFER_SIZE)
-    length = BUFFER_SIZE;
   
-  return CFStringCreateWithCharacters (NULL, buffer, length);*/
+  if (!CFStringGetCString (value, valueBuffer, BUFFER_SIZE,
+      CFStringGetSystemEncoding()))
+    return NULL;
+  
+#define GET_DISPLAY_VALUE(value, func) \
+  len = func (value, locale, result, BUFFER_SIZE, &err)
+  if (key == kCFLocaleIdentifier)
+    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayName);
+  else if (key == kCFLocaleLanguageCode)
+    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayLanguage);
+  else if (key == kCFLocaleCountryCode)
+    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayCountry);
+  else if (key == kCFLocaleScriptCode)
+    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayScript);
+  else if (key == kCFLocaleVariantCode)
+    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayVariant);
+  else if (key == kCFLocaleCalendarIdentifier)
+    len = uloc_getDisplayKeywordValue (valueBuffer, ICU_CALENDAR_KEY, locale,
+      result, BUFFER_SIZE, &err);
+  else if (key == kCFLocaleCollationIdentifier)
+    len = uloc_getDisplayKeywordValue (valueBuffer, ICU_COLLATION_KEY, locale,
+      result, BUFFER_SIZE, &err);
+  else if (key == kCFLocaleCurrencyCode)
+    len = uloc_getDisplayKeywordValue (valueBuffer, ICU_CURRENCY_KEY, locale,
+      result, BUFFER_SIZE, &err);
+  else
+    len = 0;
+  
+  if (U_SUCCESS(err) && len > 0)
+    return CFStringCreateWithCharacters (NULL, result, len);
+  
   return NULL;
 }
 
@@ -405,7 +435,7 @@ CFLocaleGetValue (CFLocaleRef locale,
     {
       // FIXME: CFNumberFormatter
       length =
-        uloc_getKeywordValue (cLocale, "currency", buffer, BUFFER_SIZE, &err);
+        uloc_getKeywordValue (cLocale, ICU_CURRENCY_KEY, buffer, BUFFER_SIZE, &err);
     }
   else if (key == kCFLocaleLanguageCode)
     {
@@ -430,7 +460,7 @@ CFLocaleGetValue (CFLocaleRef locale,
   else if (key == kCFLocaleCalendarIdentifier)
     {
       length =
-        uloc_getKeywordValue (cLocale, "calendar", buffer, BUFFER_SIZE, &err);
+        uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, buffer, BUFFER_SIZE, &err);
       if (strncmp(buffer, "gregorian", sizeof("gregorian")-1))
         result = (CFTypeRef)kCFGregorianCalendar;
     }
@@ -441,7 +471,7 @@ CFLocaleGetValue (CFLocaleRef locale,
   else if (key == kCFLocaleCollationIdentifier)
     {
       length =
-        uloc_getKeywordValue (cLocale, "collation", buffer, BUFFER_SIZE, &err);
+        uloc_getKeywordValue (cLocale, ICU_COLLATION_KEY, buffer, BUFFER_SIZE, &err);
     }
   else if (key == kCFLocaleCollatorIdentifier)
     {
@@ -499,7 +529,6 @@ CFStringRef
 CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
                                                    CFStringRef localeIdent)
 {
-  CFStringRef result;
   char cLocale[ULOC_FULLNAME_CAPACITY];
   char buffer[ULOC_FULLNAME_CAPACITY];
   UErrorCode err = U_ZERO_ERROR;
@@ -512,10 +541,8 @@ CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
   if (U_FAILURE(err))
     return NULL;
   
-  result =
+  return
     CFStringCreateWithCString (allocator, buffer, CFStringGetSystemEncoding());
-  
-  return result;
 }
 
 CFStringRef
@@ -588,17 +615,17 @@ CFLocaleCreateComponentsFromLocaleIdentifier (CFAllocatorRef allocator,
   len = uloc_getVariant (locale, buffer, ULOC_KEYWORDS_CAPACITY, &err);
   ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleVariantCode, buffer, len, err);
   
-  len = uloc_getKeywordValue (locale, "calendar", buffer,
+  len = uloc_getKeywordValue (locale, ICU_CALENDAR_KEY, buffer,
     ULOC_KEYWORDS_CAPACITY, &err);
   ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleCalendarIdentifier, buffer, len,
     err);
   
-  len = uloc_getKeywordValue (locale, "collation", buffer,
+  len = uloc_getKeywordValue (locale, ICU_COLLATION_KEY, buffer,
     ULOC_KEYWORDS_CAPACITY, &err);
   ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleCollationIdentifier, buffer, len,
     err);
   
-  len = uloc_getKeywordValue (locale, "currency", buffer,
+  len = uloc_getKeywordValue (locale, ICU_CURRENCY_KEY, buffer,
     ULOC_KEYWORDS_CAPACITY, &err);
   ADD_KEY_VALUE_TO_DICTIONARY(dict, kCFLocaleCurrencyCode, buffer, len, err);
   
@@ -680,7 +707,7 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
     {
       CFStringGetCString (value, keyword, ULOC_KEYWORDS_CAPACITY,
         CFStringGetSystemEncoding());
-      uloc_setKeywordValue ("calendar", keyword, locale,
+      uloc_setKeywordValue (ICU_CALENDAR_KEY, keyword, locale,
         ULOC_FULLNAME_CAPACITY, &err);
     }
   if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCollationIdentifier,
@@ -688,7 +715,7 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
     {
       CFStringGetCString (value, keyword, ULOC_KEYWORDS_CAPACITY,
         CFStringGetSystemEncoding());
-      uloc_setKeywordValue ("collation", keyword, locale,
+      uloc_setKeywordValue (ICU_COLLATION_KEY, keyword, locale,
         ULOC_FULLNAME_CAPACITY, &err);
     }
   if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCurrencyCode,
@@ -696,7 +723,7 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
     {
       CFStringGetCString (value, keyword, ULOC_KEYWORDS_CAPACITY,
         CFStringGetSystemEncoding());
-      uloc_setKeywordValue ("currency", keyword, locale,
+      uloc_setKeywordValue (ICU_CURRENCY_KEY, keyword, locale,
         ULOC_FULLNAME_CAPACITY, &err);
     }
   

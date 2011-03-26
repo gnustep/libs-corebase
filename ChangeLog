@@ -1,5 +1,9 @@
 2011-03-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFLocale.c: (CFLocaleCopyDisplayNameForPropertyValue) Implemented.
+
+2011-03-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFArray.m:
 	* Source/NSCFType.m:
 	* Source/CFNumber.m:
