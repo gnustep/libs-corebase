@@ -11,7 +11,8 @@
 	* Source/CFData.m: All NS objects should return _kCFRuntimeNotATypeID,
 	except for NSCFType.
 	* Source/CFRuntime.m: Check for NULL before trying to do anything.
-
+	* Tests/CFLocale/create.m: Compile again.
+	* Tests/CFTesting.h: Fixed mistake when PASS_CFNEQ was made into macro.
 
 2011-03-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
