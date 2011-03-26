@@ -279,6 +279,9 @@ CFEqual (CFTypeRef cf1, CFTypeRef cf2)
   if (cf1 == cf2)
     return true;
   
+  if (cf1 == NULL || cf2 == NULL)
+    return false;
+  
   // Can't compare here if either objects are ObjC objects.
   if (IS_OBJC(cf1))
     return [(id)cf1 isEqual: cf2];
@@ -300,6 +303,9 @@ CFEqual (CFTypeRef cf1, CFTypeRef cf2)
 CFAllocatorRef
 CFGetAllocator (CFTypeRef cf)
 {
+  if (cf == NULL)
+    return NULL;
+  
   if (IS_OBJC(cf))
     return [(id)cf zone];
   
@@ -312,6 +318,9 @@ CFGetAllocator (CFTypeRef cf)
 CFIndex
 CFGetRetainCount (CFTypeRef cf)
 {
+  if (cf == NULL)
+    return 0;
+  
   if (IS_OBJC(cf))
     return [(id)cf retainCount];
   
@@ -331,6 +340,9 @@ CFHashCode
 CFHash (CFTypeRef cf)
 {
   CFRuntimeClass *cls;
+  
+  if (cf == NULL)
+    return;
   
   if (IS_OBJC(cf))
     return [(id)cf hash];
@@ -352,6 +364,9 @@ CFMakeCollectable (CFTypeRef cf)
 void
 CFRelease (CFTypeRef cf)
 {
+  if (cf == NULL)
+    return;
+  
   if (IS_OBJC(cf))
     return RELEASE((id)cf);
   
@@ -371,6 +386,9 @@ CFRelease (CFTypeRef cf)
 CFTypeRef
 CFRetain (CFTypeRef cf)
 {
+  if (cf == NULL)
+    return NULL;
+  
   if (IS_OBJC(cf))
     return RETAIN((id)cf);
   
@@ -394,10 +412,13 @@ void CFInitialize (void)
   
   pthread_spin_init (&_kCFRuntimeTableLock, PTHREAD_PROCESS_SHARED);
   
-  _CFRuntimeRegisterClass (&CFNotATypeClass);
-  CFNullInitialize ();
-  CFLocaleInitialize ();
-  
   NSCFTypeClass = [NSCFType class];
+  
+  __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
+  _CFRuntimeRegisterClass (&CFNotATypeClass);
+  __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
+  CFNullInitialize ();
+  __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
+  CFLocaleInitialize ();
 }
 

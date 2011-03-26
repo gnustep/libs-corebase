@@ -139,28 +139,3 @@ CFDataSetLength (CFMutableDataRef theData, CFIndex length)
 {
   [(NSMutableData*)theData setLength: length];
 }
-
-
-
-@interface NSData (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@interface NSMutableData (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@implementation NSData (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return CFDataGetTypeID();
-}
-@end
-
-@implementation NSMutableData (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return CFDataGetTypeID();
-}
-@end
-

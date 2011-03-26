@@ -30,6 +30,17 @@
 extern void CFInitialize (void);
 extern CFRuntimeClass **__CFRuntimeClassTable;
 
+@interface NSObject (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID;
+@end
+
+@implementation NSObject (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID
+{
+  return _kCFRuntimeNotATypeID;
+}
+@end
+
 @implementation NSCFType
 
 + (void) load
@@ -67,17 +78,3 @@ extern CFRuntimeClass **__CFRuntimeClassTable;
 }
 
 @end
-
-
-
-@interface NSObject (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@implementation NSObject (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return _kCFRuntimeNotATypeID;
-}
-@end
-

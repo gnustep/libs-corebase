@@ -195,27 +195,3 @@ CFDictionarySetValue (CFMutableDictionaryRef theDict, const void *key,
 {
   [(NSMutableDictionary*)theDict setObject: (id)value forKey: (id)key];
 }
-
-
-
-@interface NSDictionary (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@interface NSMutableDictionary (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@implementation NSDictionary (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return CFDictionaryGetTypeID();
-}
-@end
-
-@implementation NSMutableDictionary (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return CFDictionaryGetTypeID();
-}
-@end

@@ -355,28 +355,3 @@ CFReadStreamUnscheduleFromRunLoop (CFReadStreamRef stream, CFRunLoopRef runLoop,
 {
   _CFStreamUnscheduleFromRunLoop (stream, runLoop, runLoopMode);
 }
-
-
-
-@interface NSOutputStream (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@interface NSInputStream (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@implementation NSOutputStream (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return CFWriteStreamGetTypeID();
-}
-@end
-
-@implementation NSInputStream (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return CFReadStreamGetTypeID();
-}
-@end
-

@@ -252,27 +252,3 @@ CFArraySortValues (CFMutableArrayRef theArray, CFRange range,
       sortUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator
       context: context];
 }
-
-
-
-@interface NSArray (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@interface NSMutableArray (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID;
-@end
-
-@implementation NSArray (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return CFArrayGetTypeID();
-}
-@end
-
-@implementation NSMutableArray (CoreBaseAdditions)
-- (CFTypeID) _cfTypeID
-{
-  return CFArrayGetTypeID();
-}
-@end
