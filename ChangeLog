@@ -1,5 +1,11 @@
 2011-03-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/GNUmakefile:
+	* Source/CFByteOrder.m:
+	* Source/CFByteOrder.c: Rename.
+
+2011-03-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFLocale.c: (CFLocaleCreateComponentsFromLocaleIdentifier)
 	(CFLocaleCreateLocaleIdentifierFromComponents) Implemented.
 	* Source/CFString.m: ([NSString-_cfTypeID]) Return the class.

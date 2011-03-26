@@ -25,7 +25,7 @@
 */ 
 
 #include "CoreFoundation/CFByteOrder.h"
-#import <Foundation/NSByteOrder.h>
+#include <Foundation/NSByteOrder.h>
 
 CFByteOrder
 CFByteOrderGetCurrent()
