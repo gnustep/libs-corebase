@@ -25,6 +25,7 @@
 */
 
 #include "CoreFoundation/CFBase.h"
+#include "CoreFoundation/CFNumber.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
 
@@ -32,6 +33,7 @@
 
 #include <pthread.h>
 #include <unicode/uloc.h> // for ULOC_FULLNAME_CAPACITY
+#include <unicode/ucurr.h>
 #include <unicode/unum.h>
 
 #define BUFFER_SIZE 1024
@@ -131,36 +133,302 @@ CFNumberFormatterSetFormat (CFNumberFormatterRef formatter,
 
 void
 CFNumberFormatterSetProperty (CFNumberFormatterRef formatter,
-  CFStringRef key, CFTypeRef value);
+  CFStringRef key, CFTypeRef value)
+{
+  if (key == kCFNumberFormatterCurrencyCode) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterDecimalSeparator) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterCurrencyDecimalSeparator) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterAlwaysShowDecimalSeparator) // CFBoolean
+    {
+    }
+  else if (key == kCFNumberFormatterGroupingSeparator) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterUseGroupingSeparator) // CFBoolean
+    {
+    }
+  else if (key == kCFNumberFormatterPercentSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterZeroSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterNaNSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterInfinitySymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterMinusSign) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterPlusSign) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterCurrencySymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterExponentSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterMinIntegerDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterMaxIntegerDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterMinFractionDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterMaxFractionDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterGroupingSize) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterSecondaryGroupingSize) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterRoundingMode) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterRoundingIncrement) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterFormatWidth) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterPaddingPosition) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterPaddingCharacter) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterDefaultFormat) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterMultiplier) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterPositivePrefix) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterPositiveSuffix) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterNegativePrefix) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterNegativeSuffix) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterPerMillSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterInternationalCurrencySymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterCurrencyGroupingSeparator) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterIsLenient) // CFBoolean
+    {
+    }
+  else if (key == kCFNumberFormatterUseSignificantDigits) // CFBoolean
+    {
+    }
+  else if (key == kCFNumberFormatterMinSignificantDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterMaxSignificantDigits) // CFNumber
+    {
+    }
+}
 
 CFNumberRef
 CFNumberFormatterCreateNumberFromString (CFAllocatorRef allocator,
   CFNumberFormatterRef formatter, CFStringRef string, CFRange *rangep,
-  CFOptionFlags options);
+  CFOptionFlags options)
+{
+  return NULL;
+}
 
 CFStringRef
 CFNumberFormatterCreateStringWithNumber (CFAllocatorRef allocator,
-  CFNumberFormatterRef formatter, CFNumberRef number);
+  CFNumberFormatterRef formatter, CFNumberRef number)
+{
+  return NULL;
+}
 
 CFStringRef
 CFNumberFormatterCreateStringWithValue (CFAllocatorRef allocator,
   CFNumberFormatterRef formatter, CFNumberType numberType,
-  const void *valuePtr);
+  const void *valuePtr)
+{
+  return NULL;
+}
 
 Boolean
 CFNumberFormatterGetDecimalInfoForCurrencyCode (CFStringRef currencyCode,
-  int32_t *defaultFractionDigits, double *roundingIncrement);
+  int32_t *defaultFractionDigits, double *roundingIncrement)
+{
+  CFIndex len;
+  UChar buffer[BUFFER_SIZE];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  len = CFStringGetLength (currencyCode);
+  if (len > BUFFER_SIZE)
+    len = BUFFER_SIZE;
+  CFStringGetCharacters (currencyCode, CFRangeMake(0, len), buffer);
+  
+  *defaultFractionDigits = ucurr_getDefaultFractionDigits (buffer, &err);
+  *roundingIncrement = ucurr_getRoundingIncrement (buffer, &err);
+  if (U_SUCCESS(err))
+    return true;
+  
+  return false;
+}
 
 Boolean
 CFNumberFormatterGetValueFromString (CFNumberFormatterRef formatter,
-  CFStringRef string, CFRange *rangep, CFNumberType numberType, void *valuePtr);
+  CFStringRef string, CFRange *rangep, CFNumberType numberType, void *valuePtr)
+{
+  return false;
+}
 
 CFTypeRef
 CFNumberFormatterCopyProperty (CFNumberFormatterRef formatter,
-  CFStringRef key);
+  CFStringRef key)
+{
+  if (key == kCFNumberFormatterCurrencyCode) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterDecimalSeparator) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterCurrencyDecimalSeparator) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterAlwaysShowDecimalSeparator) // CFBoolean
+    {
+    }
+  else if (key == kCFNumberFormatterGroupingSeparator) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterUseGroupingSeparator) // CFBoolean
+    {
+    }
+  else if (key == kCFNumberFormatterPercentSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterZeroSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterNaNSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterInfinitySymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterMinusSign) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterPlusSign) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterCurrencySymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterExponentSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterMinIntegerDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterMaxIntegerDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterMinFractionDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterMaxFractionDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterGroupingSize) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterSecondaryGroupingSize) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterRoundingMode) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterRoundingIncrement) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterFormatWidth) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterPaddingPosition) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterPaddingCharacter) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterDefaultFormat) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterMultiplier) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterPositivePrefix) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterPositiveSuffix) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterNegativePrefix) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterNegativeSuffix) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterPerMillSymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterInternationalCurrencySymbol) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterCurrencyGroupingSeparator) // CFString
+    {
+    }
+  else if (key == kCFNumberFormatterIsLenient) // CFBoolean
+    {
+    }
+  else if (key == kCFNumberFormatterUseSignificantDigits) // CFBoolean
+    {
+    }
+  else if (key == kCFNumberFormatterMinSignificantDigits) // CFNumber
+    {
+    }
+  else if (key == kCFNumberFormatterMaxSignificantDigits) // CFNumber
+    {
+    }
+  
+  return NULL;
+}
 
 CFStringRef
-CFNumberFormatterGetFormat (CFNumberFormatterRef formatter);
+CFNumberFormatterGetFormat (CFNumberFormatterRef formatter)
+{
+  return NULL;
+}
 
 CFLocaleRef
 CFNumberFormatterGetLocale (CFNumberFormatterRef formatter)

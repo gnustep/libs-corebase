@@ -24,15 +24,17 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include "CoreFoundation/CFLocale.h"
-
 #include "CoreFoundation/CFBase.h"
+#include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
+
+#include "CoreFoundation/CFLocale.h"
 
 #include <pthread.h>
 #include <unicode/uloc.h>
 #include <unicode/ulocdata.h>
+#include <unicode/ucurr.h>
 
 #define BUFFER_SIZE 1024
 
@@ -95,6 +97,65 @@ ICUToCFLocaleOrientation (ULayoutType layout)
       default:
         return kCFLocaleLanguageDirectionUnknown;
     }
+}
+
+static CFTypeRef
+CFLocaleCopyNumberFormatterDecimalProperty (CFLocaleRef loc, CFStringRef key)
+{
+  CFTypeRef result;
+  CFNumberFormatterRef fmt;
+  
+  fmt = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterDecimalStyle); 
+  result = CFNumberFormatterCopyProperty (fmt, key);
+  
+  CFRelease (fmt);
+  return result;
+}
+
+static CFTypeRef
+CFLocaleCopyNumberFormatterCurrencyProperty (CFLocaleRef loc, CFStringRef key)
+{
+  CFTypeRef result;
+  CFNumberFormatterRef fmt;
+  
+  fmt = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterCurrencyStyle); 
+  result = CFNumberFormatterCopyProperty (fmt, key);
+  
+  CFRelease (fmt);
+  return result;
+}
+
+
+
+static CFArrayRef
+_createArrayWithUEnumeration (CFAllocatorRef allocator, UEnumeration *en)
+{
+  CFArrayRef mArray;
+  CFArrayRef result;
+  int32_t count;
+  int32_t len;
+  const UChar *current;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  count = uenum_count (en, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  mArray = CFArrayCreateMutable (NULL, (CFIndex)count, &kCFTypeArrayCallBacks);
+  while ((current = uenum_unext(en, &len, &err)))
+    {
+      if (U_FAILURE(err))
+        continue;
+      CFStringRef string =
+        CFStringCreateWithCharacters (allocator, current, (CFIndex)len);
+      CFArrayAppendValue (mArray, string);
+    }
+  
+  // Close it UEnumeration here so it doesn't get leaked.
+  uenum_close (en);
+  
+  result = CFArrayCreateCopy (allocator, mArray);
+  CFRelease (mArray);
+  return result;
 }
 
 
@@ -311,10 +372,28 @@ CFLocaleCopyISOLanguageCodes (void)
 }
 
 CFArrayRef
-CFLocaleCopyISOCurrencyCodes (void);
+CFLocaleCopyISOCurrencyCodes (void)
+{
+  UEnumeration *en;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  en = ucurr_openISOCurrencies (UCURR_ALL, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  return _createArrayWithUEnumeration (NULL, en);
+}
 
 CFArrayRef
-CFLocaleCopyCommonISOCurrencyCodes (void);
+CFLocaleCopyCommonISOCurrencyCodes (void)
+{
+  UEnumeration *en;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  en = ucurr_openISOCurrencies (UCURR_COMMON, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  return _createArrayWithUEnumeration (NULL, en);
+}
 
 CFArrayRef
 CFLocaleCopyPreferredLanguages (void);
@@ -326,7 +405,7 @@ CFLocaleCopyDisplayNameForPropertyValue (CFLocaleRef displayLocale,
 {
   char locale[ULOC_FULLNAME_CAPACITY];
   char valueBuffer[BUFFER_SIZE];
-  UChar result[BUFFER_SIZE];
+  UChar buffer[BUFFER_SIZE];
   int32_t len;
   UErrorCode err = U_ZERO_ERROR;
   
@@ -339,7 +418,7 @@ CFLocaleCopyDisplayNameForPropertyValue (CFLocaleRef displayLocale,
     return NULL;
   
 #define GET_DISPLAY_VALUE(value, func) \
-  len = func (value, locale, result, BUFFER_SIZE, &err)
+  len = func (value, locale, buffer, BUFFER_SIZE, &err)
   if (key == kCFLocaleIdentifier)
     GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayName);
   else if (key == kCFLocaleLanguageCode)
@@ -352,18 +431,18 @@ CFLocaleCopyDisplayNameForPropertyValue (CFLocaleRef displayLocale,
     GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayVariant);
   else if (key == kCFLocaleCalendarIdentifier)
     len = uloc_getDisplayKeywordValue (valueBuffer, ICU_CALENDAR_KEY, locale,
-      result, BUFFER_SIZE, &err);
+      buffer, BUFFER_SIZE, &err);
   else if (key == kCFLocaleCollationIdentifier)
     len = uloc_getDisplayKeywordValue (valueBuffer, ICU_COLLATION_KEY, locale,
-      result, BUFFER_SIZE, &err);
+      buffer, BUFFER_SIZE, &err);
   else if (key == kCFLocaleCurrencyCode)
     len = uloc_getDisplayKeywordValue (valueBuffer, ICU_CURRENCY_KEY, locale,
-      result, BUFFER_SIZE, &err);
+      buffer, BUFFER_SIZE, &err);
   else
     len = 0;
   
   if (U_SUCCESS(err) && len > 0)
-    return CFStringCreateWithCharacters (NULL, result, len);
+    return CFStringCreateWithCharacters (NULL, buffer, len);
   
   return NULL;
 }
@@ -372,10 +451,10 @@ CFTypeRef
 CFLocaleGetValue (CFLocaleRef locale,
                   CFStringRef key)
 {
-// FIXME: this is terribly broken
-  CFTypeRef result;
+  CFTypeRef result = NULL;
   char cLocale[ULOC_FULLNAME_CAPACITY];
   char buffer[BUFFER_SIZE];
+  UniChar ubuffer[BUFFER_SIZE];
   int32_t length = 0;
   UErrorCode err = U_ZERO_ERROR;
   
@@ -408,7 +487,7 @@ CFLocaleGetValue (CFLocaleRef locale,
           if (ums == UMS_SI)
             return (CFTypeRef)CFSTR("Metric");
           else
-            result = (CFTypeRef)CFSTR("U.S.");
+            return (CFTypeRef)CFSTR("U.S.");
         }
       else
         {
@@ -417,42 +496,34 @@ CFLocaleGetValue (CFLocaleRef locale,
         }
     }
   else if (key == kCFLocaleDecimalSeparator)
-    {
-      // FIXME: CFNumberFormatter
-      return NULL;
-    }
+    result = CFLocaleCopyNumberFormatterDecimalProperty (locale,
+      kCFNumberFormatterDecimalSeparator);
   else if (key == kCFLocaleGroupingSeparator)
-    {
-      // FIXME: CFNumberFormatter
-      return NULL;
-    }
+    result = CFLocaleCopyNumberFormatterDecimalProperty (locale,
+      kCFNumberFormatterGroupingSeparator);
   else if (key == kCFLocaleCurrencySymbol)
-    {
-      // FIXME: CFNumberFormatter
-      return NULL;
-    }
+    result = CFLocaleCopyNumberFormatterCurrencyProperty (locale,
+      kCFNumberFormatterCurrencyCode);
   else if (key == kCFLocaleCurrencyCode)
-    {
-      // FIXME: CFNumberFormatter
-      length =
-        uloc_getKeywordValue (cLocale, ICU_CURRENCY_KEY, buffer, BUFFER_SIZE, &err);
-    }
+    result = CFLocaleCopyNumberFormatterCurrencyProperty (locale,
+      kCFNumberFormatterCurrencySymbol);
+#define GET_VALUE(func) do \
+{ \
+  length = func (cLocale, buffer, BUFFER_SIZE, &err); \
+  if (U_FAILURE(err) || length <= 0) \
+    result = kCFNull; \
+  else \
+    result = (CFTypeRef) \
+      CFStringCreateWithCString (NULL, buffer, CFStringGetSystemEncoding()); \
+} while (0)
   else if (key == kCFLocaleLanguageCode)
-    {
-      length = uloc_getLanguage (cLocale, buffer, BUFFER_SIZE, &err);
-    }
+    GET_VALUE(uloc_getLanguage);
   else if (key == kCFLocaleCountryCode)
-    {
-      length = uloc_getCountry (cLocale, buffer, BUFFER_SIZE, &err);
-    }
+    GET_VALUE(uloc_getCountry);
   else if (key == kCFLocaleScriptCode)
-    {
-      length = uloc_getScript (cLocale, buffer, BUFFER_SIZE, &err);
-    }
+    GET_VALUE(uloc_getScript);
   else if (key == kCFLocaleVariantCode)
-    {
-      length = uloc_getVariant (cLocale, buffer, BUFFER_SIZE, &err);
-    }
+    GET_VALUE(uloc_getVariant);
   else if (key == kCFLocaleExemplarCharacterSet)
     {
       return kCFNull;
@@ -477,44 +548,32 @@ CFLocaleGetValue (CFLocaleRef locale,
     {
       return kCFNull;
     }
+#define GET_DELIMITER(type) do \
+{ \
+  ULocaleData *uld = ulocdata_open (cLocale, &err); \
+  length = ulocdata_getDelimiter (uld, type, ubuffer, BUFFER_SIZE, &err); \
+  if (U_FAILURE(err)) \
+    return kCFNull; \
+  result = (CFTypeRef)CFStringCreateWithCharacters (NULL, ubuffer, length); \
+} while (0)
   else if (key == kCFLocaleQuotationBeginDelimiterKey)
-    {
-      UniChar ubuffer[BUFFER_SIZE];
-      ULocaleData *uld = ulocdata_open (cLocale, &err);
-      length = ulocdata_getDelimiter (uld, ULOCDATA_QUOTATION_START,
-        ubuffer, BUFFER_SIZE, &err);
-      
-    }
+    GET_DELIMITER(ULOCDATA_QUOTATION_START);
   else if (key == kCFLocaleQuotationEndDelimiterKey)
-    {
-      return kCFNull;
-    }
+    GET_DELIMITER(ULOCDATA_QUOTATION_END);
   else if (key == kCFLocaleAlternateQuotationBeginDelimiterKey)
-    {
-      return kCFNull;
-    }
+    GET_DELIMITER(ULOCDATA_ALT_QUOTATION_START);
   else if (key == kCFLocaleAlternateQuotationEndDelimiterKey)
-    {
-      return kCFNull;
-    }
+    GET_DELIMITER(ULOCDATA_ALT_QUOTATION_END);
   else
-    {
-      return kCFNull;
-    }
+    return kCFNull;
   
-  if (U_FAILURE(err) || length == 0)
+  if (result == NULL)
     result = kCFNull;
-  else
-    {
-      result = (CFTypeRef)
-        CFStringCreateWithCString (NULL, buffer, CFStringGetSystemEncoding());
-      if (result == NULL)
-        result = kCFNull;
-    }
   
   pthread_spin_lock (&(((struct __CFLocale*)locale)->_lock));
   CFDictionaryAddValue (locale->_components, key, result);
   pthread_spin_unlock (&(((struct __CFLocale*)locale)->_lock));
+  CFRelease (result);
   
   return result;
 }

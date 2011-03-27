@@ -1,3 +1,12 @@
+2011-03-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFLocale.c: (CFLocaleGetValue) Some more code.
+	(CFLocaleCopyISOCurrencyCodes)
+	(CFLocaleCopyCommonISOCurrencyCodes) Implemented.
+	* Source/Identifiers.m: Added CFNumberFormatter identifiers.
+	* Source/CFNumberFormatter.c: Return NULL from all function for now.
+	* Tests/CFLocale/values.m: Worked on test a little more.
+
 2011-03-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFNumberFormatter.c: (CFNumberFormatterSetFormat) Implemented.

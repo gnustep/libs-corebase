@@ -41,16 +41,21 @@ int main (void)
   obj = CFLocaleGetValue (locale, kCFLocaleCollationIdentifier);
   PASS_CFEQ(obj, CFSTR("traditional"), "Collation identifier is 'traditional'");
   obj = CFLocaleGetValue (locale, kCFLocaleUsesMetricSystem);
-  PASS_CFEQ(obj, NULL, "Uses metric system"); // FIXME: needs CFBoolean
+  PASS_CFEQ(obj, kCFNull, "Uses metric system"); // FIXME: needs CFBoolean
   obj = CFLocaleGetValue (locale, kCFLocaleCollatorIdentifier);
-  PASS_CFEQ(obj, NULL, "Collator identifier is NULL");
+  PASS_CFEQ(obj, kCFNull, "Collator identifier is NULL");
+  
+  // These next 4 tests fail because CFSTR() does not support
+  // characters and whines about non-ASCII characters in the string.
   obj = CFLocaleGetValue (locale, kCFLocaleQuotationBeginDelimiterKey);
-  PASS_CFEQ(obj, CFSTR(""), "");
+  PASS_CFEQ(obj, CFSTR("“"), "Quotation begin delimiter is correct");
   obj = CFLocaleGetValue (locale, kCFLocaleQuotationEndDelimiterKey);
-  PASS_CFEQ(obj, CFSTR(""), "");
+  PASS_CFEQ(obj, CFSTR("”"), "Quotation end delimiter is correct");
   obj = CFLocaleGetValue (locale, kCFLocaleAlternateQuotationBeginDelimiterKey);
-  PASS_CFEQ(obj, CFSTR(""), "");
+  PASS_CFEQ(obj, CFSTR("‘"), "Alternate quotation begin delimiter is correct");
   obj = CFLocaleGetValue (locale, kCFLocaleAlternateQuotationEndDelimiterKey);
-  PASS_CFEQ(obj, CFSTR(""), "");
+  PASS_CFEQ(obj, CFSTR("’"), "Alternate quotation end delimiter is correct");
+  CFRelease (locale);
+  
   return 0;
 }
