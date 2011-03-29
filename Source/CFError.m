@@ -55,25 +55,25 @@ const CFStringRef kCFErrorUnderlyingErrorKey =
 CFStringRef
 CFErrorCopyDescription (CFErrorRef err)
 {
-  return CFRetain([(NSError *)err localizedDescription]);
+  return (CFStringRef)CFRetain([(NSError *)err localizedDescription]);
 }
 
 CFStringRef
 CFErrorCopyFailureReason (CFErrorRef err)
 {
-  return CFRetain([(NSError *)err localizedFailureReason]);
+  return (CFStringRef)CFRetain([(NSError *)err localizedFailureReason]);
 }
 
 CFStringRef
 CFErrorCopyRecoverySuggestion (CFErrorRef err)
 {
-  return CFRetain([(NSError *)err localizedRecoverySuggestion]);
+  return (CFStringRef)CFRetain([(NSError *)err localizedRecoverySuggestion]);
 }
 
 CFDictionaryRef
 CFErrorCopyUserInfo (CFErrorRef err)
 {
-  return CFRetain([(NSError *)err userInfo]);
+  return (CFDictionaryRef)CFRetain([(NSError *)err userInfo]);
 }
 
 CFErrorRef

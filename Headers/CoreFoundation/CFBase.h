@@ -98,7 +98,7 @@ typedef UInt8  UTF8Char;
 //
 typedef unsigned long CFHashCode;
 typedef unsigned long CFTypeID;
-typedef void* CFTypeRef;
+typedef const void *CFTypeRef;
 
 //
 // Base Utilities

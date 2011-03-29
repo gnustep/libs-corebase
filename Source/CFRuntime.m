@@ -284,9 +284,9 @@ CFEqual (CFTypeRef cf1, CFTypeRef cf2)
   
   // Can't compare here if either objects are ObjC objects.
   if (IS_OBJC(cf1))
-    return [(id)cf1 isEqual: cf2];
+    return [(id)cf1 isEqual: (id)cf2];
   if (IS_OBJC(cf2))
-    return [(id)cf2 isEqual: cf1];
+    return [(id)cf2 isEqual: (id)cf1];
   
   tID1 = CFGetTypeID(cf1);
   tID2 = CFGetTypeID(cf2);
@@ -325,7 +325,7 @@ CFGetRetainCount (CFTypeRef cf)
     return [(id)cf retainCount];
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
-    return (CFIndex)NSExtraRefCount (cf) + 1;
+    return (CFIndex)NSExtraRefCount ((id)cf) + 1;
   
   return 1;
 }
@@ -372,13 +372,13 @@ CFRelease (CFTypeRef cf)
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
-      if (NSDecrementExtraRefCountWasZero(cf))
+      if (NSDecrementExtraRefCountWasZero((id)cf))
         {
           CFRuntimeClass *cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
           
           if (cls->finalize)
             cls->finalize (cf);
-          NSDeallocateObject (cf);
+          NSDeallocateObject ((id)cf);
         }
     }
 }
@@ -393,7 +393,7 @@ CFRetain (CFTypeRef cf)
     return RETAIN((id)cf);
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
-    NSIncrementExtraRefCount (cf);
+    NSIncrementExtraRefCount ((id)cf);
   return cf;
 }
 

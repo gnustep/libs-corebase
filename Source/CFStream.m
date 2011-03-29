@@ -39,7 +39,7 @@ _CFStreamClose (CFTypeRef stream)
 CFErrorRef
 _CFStreamCopyError (CFTypeRef stream)
 {
-  return CFRetain([(NSStream *)stream streamError]);
+  return (CFErrorRef)CFRetain([(NSStream *)stream streamError]);
 }
 
 CFTypeRef

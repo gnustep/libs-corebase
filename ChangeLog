@@ -1,5 +1,11 @@
 2011-03-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFLocale.c:
+	* Source/CFNumberFormatter.c: Add class functions.
+	* Headers/CoreFoundation/CFBase.h: Define CFTypeRef as const.
+
+2011-03-29 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFLocale.c: Minor fixes.
 	* Source/CFNumberFormatter.c: Set default format.
 	* Tests/CFNumberFormatter/create.m:
