@@ -1,3 +1,4 @@
+#include "CoreFoundation/CFNumber.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFLocale.h"
 #include "../CFTesting.h"
@@ -6,6 +7,7 @@ int main (void)
 {
   CFLocaleRef locale;
   CFTypeRef obj;
+  CFTypeRef exp;
   
   locale = CFLocaleCreate (NULL,
     CFSTR("pt_BR@calendar=gregorian;collation=traditional;currency=BRL"));
@@ -41,21 +43,34 @@ int main (void)
   obj = CFLocaleGetValue (locale, kCFLocaleCollationIdentifier);
   PASS_CFEQ(obj, CFSTR("traditional"), "Collation identifier is 'traditional'");
   obj = CFLocaleGetValue (locale, kCFLocaleUsesMetricSystem);
-  PASS_CFEQ(obj, kCFNull, "Uses metric system"); // FIXME: needs CFBoolean
+  PASS_CFEQ(obj, kCFBooleanTrue, "Uses metric system"); // FIXME: needs CFBoolean
   obj = CFLocaleGetValue (locale, kCFLocaleCollatorIdentifier);
   PASS_CFEQ(obj, kCFNull, "Collator identifier is NULL");
   
-  // These next 4 tests fail because CFSTR() does not support
-  // characters and whines about non-ASCII characters in the string.
+  exp = CFStringCreateWithCString (NULL, "“",
+    kCFStringEncodingUTF8);
   obj = CFLocaleGetValue (locale, kCFLocaleQuotationBeginDelimiterKey);
-  PASS_CFEQ(obj, CFSTR("“"), "Quotation begin delimiter is correct");
+  PASS_CFEQ(obj, exp, "Quotation begin delimiter is correct");
+  CFRelease (exp);
+  exp = CFStringCreateWithCString (NULL, "”",
+    kCFStringEncodingUTF8);
   obj = CFLocaleGetValue (locale, kCFLocaleQuotationEndDelimiterKey);
-  PASS_CFEQ(obj, CFSTR("”"), "Quotation end delimiter is correct");
-  obj = CFLocaleGetValue (locale, kCFLocaleAlternateQuotationBeginDelimiterKey);
-  PASS_CFEQ(obj, CFSTR("‘"), "Alternate quotation begin delimiter is correct");
-  obj = CFLocaleGetValue (locale, kCFLocaleAlternateQuotationEndDelimiterKey);
-  PASS_CFEQ(obj, CFSTR("’"), "Alternate quotation end delimiter is correct");
-  CFRelease (locale);
+  PASS_CFEQ(obj, exp, "Quotation end delimiter is correct");
+  CFRelease (exp);
+  exp = CFStringCreateWithCString (NULL, "‘",
+    kCFStringEncodingUTF8);
+  obj = CFLocaleGetValue (locale,
+    kCFLocaleAlternateQuotationBeginDelimiterKey);
+  PASS_CFEQ(obj, exp, "Alternate quotation begin delimiter is correct");
+  obj = CFLocaleGetValue (locale,
+    kCFLocaleAlternateQuotationEndDelimiterKey);
+  CFRelease (exp);
+  exp = CFStringCreateWithCString (NULL, "’",
+    kCFStringEncodingUTF8);
+  PASS_CFEQ(obj, exp, "Alternate quotation end delimiter is correct");
+  CFRelease (exp);
+  
+  CFRelease ((CFTypeRef)locale);
   
   return 0;
 }

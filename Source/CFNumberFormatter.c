@@ -164,10 +164,22 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
   new->_locale = CFRetain((CFTypeRef)locale);
   new->_style = style;
   
-  len = unum_toPattern (new->_fmt, false, ubuffer, BUFFER_SIZE, &err);
-  if (len > BUFFER_SIZE)
-    len = BUFFER_SIZE;
-  new->_defaultFormat = CFStringCreateWithCharacters (allocator, ubuffer, len);
+  if (style == kCFNumberFormatterNoStyle)
+    {
+      ubuffer[0] = '#';
+      
+      new->_defaultFormat =
+        CFStringCreateWithCharacters (allocator, ubuffer, 1);
+      unum_applyPattern (new->_fmt, false, ubuffer, 1, NULL, &err);
+    }
+  else
+    {
+      len = unum_toPattern (new->_fmt, false, ubuffer, BUFFER_SIZE, &err);
+      if (len > BUFFER_SIZE)
+        len = BUFFER_SIZE;
+      new->_defaultFormat = CFStringCreateWithCharacters (allocator,
+        ubuffer, len);
+    }
   
   return new;
 }

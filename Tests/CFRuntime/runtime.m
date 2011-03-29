@@ -159,7 +159,7 @@ CFIndex GSPointGetY (GSPointRef o)
 {
   GSPoint *new;
   
-  new = GSPointCreate([self zone], x, y);
+  new = (GSPointRef)GSPointCreate([self zone], x, y);
   
   RELEASE(self);
   
@@ -202,9 +202,9 @@ int main (void)
             "ObjC returns same description as CF object");
   
   START_SET("Retain/Release Tests")
-    RETAIN(pt);
+    RETAIN((id)pt);
     CFRetain(bpt);
-    CFRelease(pt);
+    CFRelease((CFTypeRef)pt);
     RELEASE(bpt);
   END_SET("Retain/Release Tests")
   

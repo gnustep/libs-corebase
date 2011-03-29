@@ -485,14 +485,16 @@ CFLocaleGetValue (CFLocaleRef locale,
       if (key == kCFLocaleMeasurementSystem)
         {
           if (ums == UMS_SI)
-            return (CFTypeRef)CFSTR("Metric");
+            result = (CFTypeRef)CFSTR("Metric");
           else
-            return (CFTypeRef)CFSTR("U.S.");
+            result = (CFTypeRef)CFSTR("U.S.");
         }
       else
         {
-          // FIXME: requires CFBoolean
-          return NULL;
+          if (ums == UMS_SI)
+            result = (CFTypeRef)kCFBooleanTrue;
+          else
+            result = (CFTypeRef)kCFBooleanFalse;
         }
     }
   else if (key == kCFLocaleDecimalSeparator)
@@ -503,15 +505,15 @@ CFLocaleGetValue (CFLocaleRef locale,
       kCFNumberFormatterGroupingSeparator);
   else if (key == kCFLocaleCurrencySymbol)
     result = CFLocaleCopyNumberFormatterCurrencyProperty (locale,
-      kCFNumberFormatterCurrencyCode);
+      kCFNumberFormatterCurrencySymbol);
   else if (key == kCFLocaleCurrencyCode)
     result = CFLocaleCopyNumberFormatterCurrencyProperty (locale,
-      kCFNumberFormatterCurrencySymbol);
+      kCFNumberFormatterCurrencyCode);
 #define GET_VALUE(func) do \
 { \
   length = func (cLocale, buffer, BUFFER_SIZE, &err); \
   if (U_FAILURE(err) || length <= 0) \
-    result = kCFNull; \
+    return kCFNull; \
   else \
     result = (CFTypeRef) \
       CFStringCreateWithCString (NULL, buffer, CFStringGetSystemEncoding()); \
@@ -532,7 +534,7 @@ CFLocaleGetValue (CFLocaleRef locale,
     {
       length =
         uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, buffer, BUFFER_SIZE, &err);
-      if (strncmp(buffer, "gregorian", sizeof("gregorian")-1))
+      if (strncmp(buffer, "gregorian", sizeof("gregorian")-1) == 0)
         result = (CFTypeRef)kCFGregorianCalendar;
     }
   else if (key == kCFLocaleCalendar)
@@ -541,8 +543,12 @@ CFLocaleGetValue (CFLocaleRef locale,
     }
   else if (key == kCFLocaleCollationIdentifier)
     {
-      length =
-        uloc_getKeywordValue (cLocale, ICU_COLLATION_KEY, buffer, BUFFER_SIZE, &err);
+      length = uloc_getKeywordValue (cLocale, ICU_COLLATION_KEY,
+        buffer, BUFFER_SIZE, &err);
+      if (U_FAILURE(err) || length <= 0)
+        return kCFNull;
+      result = (CFTypeRef) CFStringCreateWithCString (NULL, buffer,
+        CFStringGetSystemEncoding());
     }
   else if (key == kCFLocaleCollatorIdentifier)
     {

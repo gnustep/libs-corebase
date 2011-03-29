@@ -1,5 +1,14 @@
 2011-03-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFLocale.c: Minor fixes.
+	* Source/CFNumberFormatter.c: Set default format.
+	* Tests/CFNumberFormatter/create.m:
+	* Tests/CFLocale/values.m:
+	* Tests/CFLocale/identifier.m:
+	* Tests/CFRuntime/runtime.m: Minor fixes.
+
+2011-03-29 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFNumberFormatter.c: (CFNumberFormatterCopyProperty) Implemented.
 
 2011-03-29 Stefan Bidigaray <stefanbidi@gmail.com>

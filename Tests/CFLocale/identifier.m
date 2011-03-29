@@ -16,12 +16,12 @@ int main (void)
   str2 = CFLocaleCreateLocaleIdentifierFromComponents (NULL, dict);
   PASS_CFEQ(str, str2, "Locale identifiers are the same");
   CFRelease (str);
-//  CFRelease (str2); FIXME: this doesn't work because of autorelease.
+  CFRelease (str2);
   
   str2 = CFLocaleCreateLocaleIdentifierFromComponents (NULL, dict);
   dict2 = CFLocaleCreateComponentsFromLocaleIdentifier (NULL, str2);
   PASS_CFEQ(dict, dict2, "Locale components are the same");
-//  CFRelease (str2); FIXME: see above
+  CFRelease (str2);
   CFRelease (dict);
   CFRelease (dict2);
   
