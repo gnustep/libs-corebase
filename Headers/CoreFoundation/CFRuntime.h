@@ -82,8 +82,8 @@ struct __CFRuntimeBase
   struct
     {
       int16_t ro:       1; // 0 = read-only object
-      int16_t unused:   7;
-      int16_t reserved: 8;
+      int16_t reserved: 7; // For internal CFRuntime use
+      int16_t unused:   8; // Can be used by CF type
     } _flags;
 };
 

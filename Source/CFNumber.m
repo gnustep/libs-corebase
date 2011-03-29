@@ -26,14 +26,68 @@
 
 #import <Foundation/NSValue.h>
 
+#include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFNumber.h"
+
+struct __CFBoolean
+{
+  CFRuntimeBase  _parent;
+};
+
+static struct __CFBoolean _kCFBooleanTrue =
+{
+  INIT_CFRUNTIME_BASE()
+};
+
+static struct __CFBoolean _kCFBooleanFalse =
+{
+  INIT_CFRUNTIME_BASE()
+};
+
+const CFBooleanRef kCFBooleanTrue = &_kCFBooleanTrue;
+const CFBooleanRef kCFBooleanFalse = &_kCFBooleanFalse;
+
+static CFTypeID _kCFBooleanTypeID;
+
+static const CFRuntimeClass CFBooleanClass =
+{
+  0,
+  "CFBoolean",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+void CFBooleanInitialize (void)
+{
+  _kCFBooleanTypeID = _CFRuntimeRegisterClass(&CFBooleanClass);
+  _CFRuntimeInitStaticInstance (&_kCFBooleanTrue, _kCFBooleanTypeID);
+  _CFRuntimeInitStaticInstance (&_kCFBooleanFalse, _kCFBooleanTypeID);
+  
+}
+
+CFTypeID
+CFBooleanGetTypeID (void)
+{
+  return _kCFBooleanTypeID;
+}
+
+Boolean
+CFBooleanGetValue (CFBooleanRef boolean)
+{
+  return (boolean == kCFBooleanTrue) ? true : false;
+}
+
+
 
 // FIXME:
 const CFNumberRef kCFNumberNaN = (CFNumberRef)nil;
 const CFNumberRef kCFNumberNegativeInfinity = (CFNumberRef)nil;
 const CFNumberRef kCFNumberPositiveInfinity = (CFNumberRef)nil;
-
-
 
 CFComparisonResult CFNumberCompare (CFNumberRef number,
   CFNumberRef otherNumber, void *context)

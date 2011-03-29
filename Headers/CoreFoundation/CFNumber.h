@@ -29,7 +29,22 @@
 #ifndef __COREFOUNDATION_CFNUMBER_H__
 #define __COREFOUNDATION_CFNUMBER_H__
 
-typedef struct CFNumber *CFNumberRef;
+CF_EXTERN_C_BEGIN
+
+typedef const struct __CFBoolean * CFBooleanRef;
+
+const CFBooleanRef kCFBooleanTrue;
+const CFBooleanRef kCFBooleanFalse;
+
+CFTypeID
+CFBooleanGetTypeID (void);
+
+Boolean
+CFBooleanGetValue (CFBooleanRef boolean);
+
+
+
+typedef const struct CFNumber *CFNumberRef;
 
 const CFNumberRef kCFNumberNaN;
 const CFNumberRef kCFNumberNegativeInfinity;
@@ -96,5 +111,7 @@ CFNumberCompare (CFNumberRef number, CFNumberRef otherNumber, void *context);
 //
 CFTypeID
 CFNumberGetTypeID (void);
+
+CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFNUMBER_H__ */

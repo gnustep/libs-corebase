@@ -399,6 +399,7 @@ CFRetain (CFTypeRef cf)
 
 
 
+extern void CFBooleanInitialize (void);
 extern void CFLocaleInitialize (void);
 extern void CFNullInitialize (void);
 extern void CFNumberFormatterInitialize (void);
@@ -419,6 +420,8 @@ void CFInitialize (void)
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   _CFRuntimeRegisterClass (&CFNotATypeClass);
   
+  __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
+  CFBooleanInitialize ();
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   CFLocaleInitialize ();
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
