@@ -1,5 +1,11 @@
 2011-03-30 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFNumberFormatter.c: (CFNumberFormatterCreateStringWithValue)
+	Implemented.
+	* Tests/CFNumberFormatter/format.m: Added tests.
+
+2011-03-30 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFNumberFormatter.c: (CFNumberFormatterGetValueFromString)
 	Fixed copy-and-paste mistake.
 	* Tests/CFNumberFormatter/parse.m: Added tests.

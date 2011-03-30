@@ -419,7 +419,91 @@ CFNumberFormatterCreateStringWithValue (CFAllocatorRef allocator,
   CFNumberFormatterRef fmt, CFNumberType numberType,
   const void *valuePtr)
 {
-  return NULL;
+  UChar ubuffer[BUFFER_SIZE];
+  int32_t len;
+  int64_t inum = 0;
+  double  dnum = 0.0;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  switch (numberType)
+    {
+      case kCFNumberSInt8Type:
+        inum = (int64_t)*(SInt8*)valuePtr;
+        break;
+      case kCFNumberSInt16Type:
+        inum = (int64_t)*(SInt16*)valuePtr;
+        break;
+      case kCFNumberSInt32Type:
+        inum = (int64_t)*(SInt32*)valuePtr;
+        break;
+      case kCFNumberSInt64Type:
+        inum = (int64_t)*(SInt64*)valuePtr;
+        break;
+      case kCFNumberCharType:
+        inum = (int64_t)*(char*)valuePtr;
+        break;
+      case kCFNumberShortType:
+        inum = (int64_t)*(short*)valuePtr;
+        break;
+      case kCFNumberIntType:
+        inum = (int64_t)*(int*)valuePtr;
+        break;
+      case kCFNumberLongType:
+        inum = (int64_t)*(long*)valuePtr;
+        break;
+      case kCFNumberLongLongType:
+        inum = (int64_t)*(long long*)valuePtr;
+        break;
+      case kCFNumberCFIndexType:
+        inum = (int64_t)*(CFIndex*)valuePtr;
+        break;
+      case kCFNumberNSIntegerType: // FIXME: This isn't defined in CF, so guess
+        inum = (int64_t)*(CFIndex*)valuePtr;
+        break;
+      case kCFNumberFloat32Type:
+        dnum = (double)*(Float32*)valuePtr;
+        break;
+      case kCFNumberFloat64Type:
+        dnum = (double)*(Float64*)valuePtr;
+        break;
+      case kCFNumberFloatType:
+        dnum = (double)*(float*)valuePtr;
+        break;
+      case kCFNumberDoubleType:
+        dnum = *(double*)valuePtr;
+        break;
+      case kCFNumberCGFloatType: // FIXME: Guess here, too
+        dnum = *(double*)valuePtr;
+        break;
+    }
+  
+    switch (numberType)
+    {
+      case kCFNumberSInt8Type:
+      case kCFNumberSInt16Type:
+      case kCFNumberSInt32Type:
+      case kCFNumberSInt64Type:
+      case kCFNumberCharType:
+      case kCFNumberShortType:
+      case kCFNumberIntType:
+      case kCFNumberLongType:
+      case kCFNumberLongLongType:
+      case kCFNumberCFIndexType:
+      case kCFNumberNSIntegerType:
+        len = unum_formatInt64 (fmt->_fmt, inum, ubuffer, BUFFER_SIZE,
+          NULL, &err);
+        break;
+      default: // must be a float type
+        len = unum_formatDouble (fmt->_fmt, dnum, ubuffer, BUFFER_SIZE,
+          NULL, &err);
+    }
+  
+  if (U_FAILURE(err))
+    return NULL;
+  
+  if (len > BUFFER_SIZE)
+    len = BUFFER_SIZE;
+  return CFStringCreateWithCharacters (allocator, ubuffer, len);
 }
 
 Boolean
@@ -543,8 +627,11 @@ CFNumberFormatterGetValueFromString (CFNumberFormatterRef fmt,
         break;
     }
   
-  if (rangep)
-    rangep->length = parsePos;
+  if (rangep && parseRange.length != parsePos)
+    {
+      rangep->length = parsePos;
+      return false;
+    }
   
   return true;
 }
