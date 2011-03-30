@@ -104,6 +104,64 @@ void CFNumberFormatterInitialize (void)
 
 
 
+static inline void
+CFNumberFormatterSetAttribute (CFNumberFormatterRef fmt,
+  UNumberFormatAttribute attrib, CFTypeRef num)
+{
+  int32_t value;
+  double d;
+  switch (attrib)
+    {
+      case UNUM_GROUPING_USED:
+      case UNUM_DECIMAL_ALWAYS_SHOWN:
+      case UNUM_SIGNIFICANT_DIGITS_USED:
+      case UNUM_LENIENT_PARSE:
+        value = (num == kCFBooleanTrue) ? true : false;
+        unum_setAttribute (fmt->_fmt, attrib, value);
+        return;
+      case UNUM_ROUNDING_INCREMENT:
+        CFNumberGetValue (num, kCFNumberDoubleType, &d);
+        unum_setDoubleAttribute (fmt->_fmt, UNUM_ROUNDING_INCREMENT, d);
+        return;
+      default:
+        CFNumberGetValue (num, kCFNumberSInt32Type, &value);
+        unum_setAttribute (fmt->_fmt, attrib, value);
+        return;
+    }
+}
+
+static inline void
+CFNumberFormatterSetTextAttribute (CFNumberFormatterRef fmt,
+  UNumberFormatTextAttribute attrib, CFStringRef str)
+{
+  int32_t len;
+  UChar ubuffer[BUFFER_SIZE];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  len = CFStringGetLength (str);
+  if (len > BUFFER_SIZE)
+    len = BUFFER_SIZE;
+  CFStringGetCharacters (str, CFRangeMake(0, len), ubuffer);
+  
+  unum_setTextAttribute (fmt->_fmt, attrib, ubuffer, len, &err);
+}
+
+static inline void
+CFNumberFormatterSetSymbol (CFNumberFormatterRef fmt,
+  UNumberFormatSymbol symbol, CFStringRef str)
+{
+  int32_t len;
+  UChar ubuffer[BUFFER_SIZE];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  len = CFStringGetLength (str);
+  if (len > BUFFER_SIZE)
+    len = BUFFER_SIZE;
+  CFStringGetCharacters (str, CFRangeMake(0, len), ubuffer);
+  
+  unum_setSymbol (fmt->_fmt, symbol, ubuffer, len, &err);
+}
+
 static inline CFTypeRef
 CFNumberFormatterCopyAttribute (CFNumberFormatterRef fmt,
   UNumberFormatAttribute attrib)
@@ -217,7 +275,7 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
 }
 
 void
-CFNumberFormatterSetFormat (CFNumberFormatterRef formatter,
+CFNumberFormatterSetFormat (CFNumberFormatterRef fmt,
   CFStringRef formatString)
 {
   UniChar buffer[BUFFER_SIZE];
@@ -231,155 +289,134 @@ CFNumberFormatterSetFormat (CFNumberFormatterRef formatter,
      characters.  I'll assume this won't be a problem here. */
   CFStringGetCharacters (formatString, CFRangeMake(0, len), buffer);
   
-  unum_applyPattern (formatter->_fmt, false, buffer, len, NULL, &err);
+  unum_applyPattern (fmt->_fmt, false, buffer, len, NULL, &err);
   if (U_FAILURE(err))
     return;
   
-  if (formatter->_format)
-    CFRelease (formatter->_format);
-  formatter->_format = CFRetain (formatString);
+  if (fmt->_format)
+    CFRelease (fmt->_format);
+  fmt->_format = CFRetain (formatString);
 }
 
 void
-CFNumberFormatterSetProperty (CFNumberFormatterRef formatter,
+CFNumberFormatterSetProperty (CFNumberFormatterRef fmt,
   CFStringRef key, CFTypeRef value)
 {
   if (key == kCFNumberFormatterCurrencyCode) // CFString
-    {
-    }
+    CFNumberFormatterSetTextAttribute (fmt, UNUM_CURRENCY_CODE, value);
   else if (key == kCFNumberFormatterDecimalSeparator) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_DECIMAL_SEPARATOR_SYMBOL, value);
   else if (key == kCFNumberFormatterCurrencyDecimalSeparator) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt,
+      UNUM_MONETARY_GROUPING_SEPARATOR_SYMBOL, value);
   else if (key == kCFNumberFormatterAlwaysShowDecimalSeparator) // CFBoolean
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_DECIMAL_ALWAYS_SHOWN, value);
   else if (key == kCFNumberFormatterGroupingSeparator) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_GROUPING_SEPARATOR_SYMBOL, value);
   else if (key == kCFNumberFormatterUseGroupingSeparator) // CFBoolean
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_GROUPING_USED, value);
   else if (key == kCFNumberFormatterPercentSymbol) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_PERCENT_SYMBOL, value);
   else if (key == kCFNumberFormatterZeroSymbol) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_ZERO_DIGIT_SYMBOL, value);
   else if (key == kCFNumberFormatterNaNSymbol) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_NAN_SYMBOL, value);
   else if (key == kCFNumberFormatterInfinitySymbol) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_INFINITY_SYMBOL, value);
   else if (key == kCFNumberFormatterMinusSign) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_MINUS_SIGN_SYMBOL, value);
   else if (key == kCFNumberFormatterPlusSign) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_PLUS_SIGN_SYMBOL, value);
   else if (key == kCFNumberFormatterCurrencySymbol) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_CURRENCY_SYMBOL, value);
   else if (key == kCFNumberFormatterExponentSymbol) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_EXPONENTIAL_SYMBOL, value);
   else if (key == kCFNumberFormatterMinIntegerDigits) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_MAX_INTEGER_DIGITS, value);
   else if (key == kCFNumberFormatterMaxIntegerDigits) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_MAX_INTEGER_DIGITS, value);
   else if (key == kCFNumberFormatterMinFractionDigits) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_MIN_FRACTION_DIGITS, value);
   else if (key == kCFNumberFormatterMaxFractionDigits) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_MAX_FRACTION_DIGITS, value);
   else if (key == kCFNumberFormatterGroupingSize) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_GROUPING_SIZE, value);
   else if (key == kCFNumberFormatterSecondaryGroupingSize) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_SECONDARY_GROUPING_SIZE, value);
   else if (key == kCFNumberFormatterRoundingMode) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_ROUNDING_MODE, value);
   else if (key == kCFNumberFormatterRoundingIncrement) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_ROUNDING_INCREMENT, value);
   else if (key == kCFNumberFormatterFormatWidth) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_FORMAT_WIDTH, value);
   else if (key == kCFNumberFormatterPaddingPosition) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_PADDING_POSITION, value);
   else if (key == kCFNumberFormatterPaddingCharacter) // CFString
-    {
-    }
-  else if (key == kCFNumberFormatterDefaultFormat) // CFString
-    {
-      // Default format cannot be overridden.
-      return;
-    }
+    CFNumberFormatterSetTextAttribute (fmt, UNUM_PADDING_CHARACTER, value);
   else if (key == kCFNumberFormatterMultiplier) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_MULTIPLIER, value);
   else if (key == kCFNumberFormatterPositivePrefix) // CFString
-    {
-    }
+    CFNumberFormatterSetTextAttribute (fmt, UNUM_POSITIVE_PREFIX, value);
   else if (key == kCFNumberFormatterPositiveSuffix) // CFString
-    {
-    }
+    CFNumberFormatterSetTextAttribute (fmt, UNUM_POSITIVE_SUFFIX, value);
   else if (key == kCFNumberFormatterNegativePrefix) // CFString
-    {
-    }
+    CFNumberFormatterSetTextAttribute (fmt, UNUM_NEGATIVE_PREFIX, value);
   else if (key == kCFNumberFormatterNegativeSuffix) // CFString
-    {
-    }
+    CFNumberFormatterSetTextAttribute (fmt, UNUM_POSITIVE_SUFFIX, value);
   else if (key == kCFNumberFormatterPerMillSymbol) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_PERMILL_SYMBOL, value);
   else if (key == kCFNumberFormatterInternationalCurrencySymbol) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_INTL_CURRENCY_SYMBOL, value);
   else if (key == kCFNumberFormatterCurrencyGroupingSeparator) // CFString
-    {
-    }
+    CFNumberFormatterSetSymbol (fmt, UNUM_MONETARY_SEPARATOR_SYMBOL, value);
   else if (key == kCFNumberFormatterIsLenient) // CFBoolean
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_LENIENT_PARSE, value);
   else if (key == kCFNumberFormatterUseSignificantDigits) // CFBoolean
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_SIGNIFICANT_DIGITS_USED, value);
   else if (key == kCFNumberFormatterMinSignificantDigits) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_MIN_SIGNIFICANT_DIGITS, value);
   else if (key == kCFNumberFormatterMaxSignificantDigits) // CFNumber
-    {
-    }
+    CFNumberFormatterSetAttribute (fmt, UNUM_MAX_SIGNIFICANT_DIGITS, value);
+  
+  return;
 }
 
 CFNumberRef
 CFNumberFormatterCreateNumberFromString (CFAllocatorRef allocator,
-  CFNumberFormatterRef formatter, CFStringRef string, CFRange *rangep,
+  CFNumberFormatterRef fmt, CFStringRef str, CFRange *rangep,
   CFOptionFlags options)
 {
-  return NULL;
+  CFNumberRef result;
+  CFNumberType type;
+  UInt8 value[sizeof(double)]; // FIXME: what's the largest value we have?
+  
+  type = (options == kCFNumberFormatterParseIntegersOnly) ?
+    kCFNumberSInt64Type : kCFNumberFloat64Type;
+  if (CFNumberFormatterGetValueFromString (fmt, str, rangep, type, value))
+    result = CFNumberCreate (allocator, type, (const void *)value);
+  else
+    result = NULL;
+  
+  return result;
 }
 
 CFStringRef
 CFNumberFormatterCreateStringWithNumber (CFAllocatorRef allocator,
-  CFNumberFormatterRef formatter, CFNumberRef number)
+  CFNumberFormatterRef fmt, CFNumberRef number)
 {
+  UInt8 value[sizeof(double)]; // FIXME: ???
+  CFNumberType type = CFNumberGetType (number);
+  
+  if (CFNumberGetValue (number, type, value))
+    return CFNumberFormatterCreateStringWithValue (allocator, fmt, type,
+      (const void*)value);
+  
   return NULL;
 }
 
 CFStringRef
 CFNumberFormatterCreateStringWithValue (CFAllocatorRef allocator,
-  CFNumberFormatterRef formatter, CFNumberType numberType,
+  CFNumberFormatterRef fmt, CFNumberType numberType,
   const void *valuePtr)
 {
   return NULL;
@@ -407,138 +444,212 @@ CFNumberFormatterGetDecimalInfoForCurrencyCode (CFStringRef currencyCode,
 }
 
 Boolean
-CFNumberFormatterGetValueFromString (CFNumberFormatterRef formatter,
+CFNumberFormatterGetValueFromString (CFNumberFormatterRef fmt,
   CFStringRef string, CFRange *rangep, CFNumberType numberType, void *valuePtr)
 {
-  return false;
+  CFRange parseRange;
+  UniChar ubuffer[BUFFER_SIZE];
+  UErrorCode err = U_ZERO_ERROR;
+  int32_t parsePos;
+  double  dresult = 0.0;
+  int64_t iresult = 0; // Keep compiler happy
+  
+  if (rangep)
+    {
+      parseRange = *rangep;
+    }
+  else
+    {
+      parseRange.location = 0;
+      parseRange.length = CFStringGetLength (string);
+    }
+  if (parseRange.length > BUFFER_SIZE)
+    parseRange.length = BUFFER_SIZE;
+  CFStringGetCharacters (string, parseRange, ubuffer);
+  
+  parsePos = parseRange.location;
+  switch (numberType)
+    {
+      case kCFNumberSInt8Type:
+      case kCFNumberSInt16Type:
+      case kCFNumberSInt32Type:
+      case kCFNumberSInt64Type:
+      case kCFNumberCharType:
+      case kCFNumberShortType:
+      case kCFNumberIntType:
+      case kCFNumberLongType:
+      case kCFNumberLongLongType:
+      case kCFNumberCFIndexType:
+      case kCFNumberNSIntegerType:
+        iresult = unum_parseInt64 (fmt->_fmt, ubuffer, parseRange.length,
+          &parsePos, &err);
+        break;
+      default: // must be a float type
+        dresult = unum_parseDouble (fmt->_fmt, ubuffer, parseRange.length,
+          &parsePos, &err);
+    }
+  if (U_FAILURE(err))
+    return false;
+  
+  switch (numberType)
+    {
+      case kCFNumberSInt8Type:
+        *(SInt8*)valuePtr = (SInt8)iresult;
+        break;
+      case kCFNumberSInt16Type:
+        *(SInt16*)valuePtr = (SInt16)iresult;
+        break;
+      case kCFNumberSInt32Type:
+        *(SInt32*)valuePtr = (SInt32)iresult;
+        break;
+      case kCFNumberSInt64Type:
+        *(SInt64*)valuePtr = (SInt64)iresult;
+        break;
+      case kCFNumberCharType:
+        *(char*)valuePtr = (char)iresult;
+        break;
+      case kCFNumberShortType:
+        *(short*)valuePtr = (short)iresult;
+        break;
+      case kCFNumberIntType:
+        *(int*)valuePtr = (int)iresult;
+        break;
+      case kCFNumberLongType:
+        *(long*)valuePtr = (long)iresult;
+        break;
+      case kCFNumberLongLongType:
+        *(long long*)valuePtr = (long long)iresult;
+        break;
+      case kCFNumberCFIndexType:
+        *(CFIndex*)valuePtr = (CFIndex)iresult;
+        break;
+      case kCFNumberNSIntegerType: // FIXME: This isn't defined in CF, so guess
+        *(CFIndex*)valuePtr = (CFIndex)iresult;
+        break;
+      case kCFNumberFloat32Type:
+        *(Float32*)valuePtr = (Float32)iresult;
+        break;
+      case kCFNumberFloat64Type:
+        *(Float64*)valuePtr = (Float64)iresult;
+        break;
+      case kCFNumberFloatType:
+        *(float*)valuePtr = (float)iresult;
+        break;
+      case kCFNumberDoubleType:
+        *(double*)valuePtr = (double)iresult;
+        break;
+      case kCFNumberCGFloatType: // FIXME: Guess here, too
+        *(double*)valuePtr = (double)iresult;
+        break;
+    }
+  
+  if (rangep)
+    rangep->length = parsePos;
+  
+  return true;
 }
 
 CFTypeRef
-CFNumberFormatterCopyProperty (CFNumberFormatterRef formatter,
+CFNumberFormatterCopyProperty (CFNumberFormatterRef fmt,
   CFStringRef key)
 {
   if (key == kCFNumberFormatterCurrencyCode) // CFString
-    return CFNumberFormatterCopyTextAttribute (formatter,
-      UNUM_CURRENCY_CODE);
+    return CFNumberFormatterCopyTextAttribute (fmt, UNUM_CURRENCY_CODE);
   else if (key == kCFNumberFormatterDecimalSeparator) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_DECIMAL_SEPARATOR_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_DECIMAL_SEPARATOR_SYMBOL);
   else if (key == kCFNumberFormatterCurrencyDecimalSeparator) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
+    return CFNumberFormatterCopySymbol (fmt,
       UNUM_MONETARY_GROUPING_SEPARATOR_SYMBOL);
   else if (key == kCFNumberFormatterAlwaysShowDecimalSeparator) // CFBoolean
-    return CFNumberFormatterCopyAttribute (formatter,
-      UNUM_DECIMAL_ALWAYS_SHOWN);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_DECIMAL_ALWAYS_SHOWN);
   else if (key == kCFNumberFormatterGroupingSeparator) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_GROUPING_SEPARATOR_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_GROUPING_SEPARATOR_SYMBOL);
   else if (key == kCFNumberFormatterUseGroupingSeparator) // CFBoolean
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_GROUPING_USED);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_GROUPING_USED);
   else if (key == kCFNumberFormatterPercentSymbol) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_PERCENT_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_PERCENT_SYMBOL);
   else if (key == kCFNumberFormatterZeroSymbol) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_ZERO_DIGIT_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_ZERO_DIGIT_SYMBOL);
   else if (key == kCFNumberFormatterNaNSymbol) // CFString
-    return CFNumberFormatterCopySymbol (formatter, UNUM_NAN_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_NAN_SYMBOL);
   else if (key == kCFNumberFormatterInfinitySymbol) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_INFINITY_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_INFINITY_SYMBOL);
   else if (key == kCFNumberFormatterMinusSign) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_MINUS_SIGN_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_MINUS_SIGN_SYMBOL);
   else if (key == kCFNumberFormatterPlusSign) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_PLUS_SIGN_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_PLUS_SIGN_SYMBOL);
   else if (key == kCFNumberFormatterCurrencySymbol) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_CURRENCY_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_CURRENCY_SYMBOL);
   else if (key == kCFNumberFormatterExponentSymbol) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_EXPONENTIAL_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_EXPONENTIAL_SYMBOL);
   else if (key == kCFNumberFormatterMinIntegerDigits) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_MAX_INTEGER_DIGITS);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_MAX_INTEGER_DIGITS);
   else if (key == kCFNumberFormatterMaxIntegerDigits) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_MAX_INTEGER_DIGITS);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_MAX_INTEGER_DIGITS);
   else if (key == kCFNumberFormatterMinFractionDigits) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter,
-      UNUM_MIN_FRACTION_DIGITS);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_MIN_FRACTION_DIGITS);
   else if (key == kCFNumberFormatterMaxFractionDigits) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter,
-      UNUM_MAX_FRACTION_DIGITS);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_MAX_FRACTION_DIGITS);
   else if (key == kCFNumberFormatterGroupingSize) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_GROUPING_SIZE);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_GROUPING_SIZE);
   else if (key == kCFNumberFormatterSecondaryGroupingSize) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter,
-      UNUM_SECONDARY_GROUPING_SIZE);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_SECONDARY_GROUPING_SIZE);
   else if (key == kCFNumberFormatterRoundingMode) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_ROUNDING_MODE);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_ROUNDING_MODE);
   else if (key == kCFNumberFormatterRoundingIncrement) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_ROUNDING_INCREMENT);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_ROUNDING_INCREMENT);
   else if (key == kCFNumberFormatterFormatWidth) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_FORMAT_WIDTH);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_FORMAT_WIDTH);
   else if (key == kCFNumberFormatterPaddingPosition) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_PADDING_POSITION);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_PADDING_POSITION);
   else if (key == kCFNumberFormatterPaddingCharacter) // CFString
-    return CFNumberFormatterCopyTextAttribute (formatter,
-      UNUM_PADDING_CHARACTER);
+    return CFNumberFormatterCopyTextAttribute (fmt, UNUM_PADDING_CHARACTER);
   else if (key == kCFNumberFormatterDefaultFormat) // CFString
-    return CFRetain (formatter->_defaultFormat);
+    return CFRetain (fmt->_defaultFormat);
   else if (key == kCFNumberFormatterMultiplier) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_MULTIPLIER);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_MULTIPLIER);
   else if (key == kCFNumberFormatterPositivePrefix) // CFString
-    return CFNumberFormatterCopyTextAttribute (formatter,
-      UNUM_POSITIVE_PREFIX);
+    return CFNumberFormatterCopyTextAttribute (fmt, UNUM_POSITIVE_PREFIX);
   else if (key == kCFNumberFormatterPositiveSuffix) // CFString
-    return CFNumberFormatterCopyTextAttribute (formatter,
-      UNUM_POSITIVE_SUFFIX);
+    return CFNumberFormatterCopyTextAttribute (fmt, UNUM_POSITIVE_SUFFIX);
   else if (key == kCFNumberFormatterNegativePrefix) // CFString
-    return CFNumberFormatterCopyTextAttribute (formatter,
-      UNUM_NEGATIVE_PREFIX);
+    return CFNumberFormatterCopyTextAttribute (fmt, UNUM_NEGATIVE_PREFIX);
   else if (key == kCFNumberFormatterNegativeSuffix) // CFString
-    return CFNumberFormatterCopyTextAttribute (formatter,
-      UNUM_POSITIVE_SUFFIX);
+    return CFNumberFormatterCopyTextAttribute (fmt, UNUM_POSITIVE_SUFFIX);
   else if (key == kCFNumberFormatterPerMillSymbol) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_PERMILL_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_PERMILL_SYMBOL);
   else if (key == kCFNumberFormatterInternationalCurrencySymbol) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_INTL_CURRENCY_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_INTL_CURRENCY_SYMBOL);
   else if (key == kCFNumberFormatterCurrencyGroupingSeparator) // CFString
-    return CFNumberFormatterCopySymbol (formatter,
-      UNUM_MONETARY_SEPARATOR_SYMBOL);
+    return CFNumberFormatterCopySymbol (fmt, UNUM_MONETARY_SEPARATOR_SYMBOL);
   else if (key == kCFNumberFormatterIsLenient) // CFBoolean
-    return CFNumberFormatterCopyAttribute (formatter, UNUM_LENIENT_PARSE);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_LENIENT_PARSE);
   else if (key == kCFNumberFormatterUseSignificantDigits) // CFBoolean
-    return CFNumberFormatterCopyAttribute (formatter,
-      UNUM_SIGNIFICANT_DIGITS_USED);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_SIGNIFICANT_DIGITS_USED);
   else if (key == kCFNumberFormatterMinSignificantDigits) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter,
-      UNUM_MIN_SIGNIFICANT_DIGITS);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_MIN_SIGNIFICANT_DIGITS);
   else if (key == kCFNumberFormatterMaxSignificantDigits) // CFNumber
-    return CFNumberFormatterCopyAttribute (formatter,
-      UNUM_MAX_SIGNIFICANT_DIGITS);
+    return CFNumberFormatterCopyAttribute (fmt, UNUM_MAX_SIGNIFICANT_DIGITS);
   
   return NULL;
 }
 
 CFStringRef
-CFNumberFormatterGetFormat (CFNumberFormatterRef formatter)
+CFNumberFormatterGetFormat (CFNumberFormatterRef fmt)
 {
-  return (formatter->_format) ? formatter->_format : formatter->_defaultFormat;
+  return (fmt->_format) ? fmt->_format : fmt->_defaultFormat;
 }
 
 CFLocaleRef
-CFNumberFormatterGetLocale (CFNumberFormatterRef formatter)
+CFNumberFormatterGetLocale (CFNumberFormatterRef fmt)
 {
-  return formatter->_locale;
+  return fmt->_locale;
 }
 
 CFNumberFormatterStyle
-CFNumberFormatterGetStyle (CFNumberFormatterRef formatter)
+CFNumberFormatterGetStyle (CFNumberFormatterRef fmt)
 {
-  return formatter->_style;
+  return fmt->_style;
 }
 
 CFTypeID

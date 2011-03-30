@@ -1,3 +1,10 @@
+2011-03-30 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFNumberFormatter.c: (CFNumberFormatterSetProperty)
+	(CFNumberFormatterCreateNumberFromString)
+	(CFNumberFormatterCreateStringWithNumber)
+	(CFNumberFormatterGetValueFromString) Implemented.
+
 2011-03-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFLocale.c:
