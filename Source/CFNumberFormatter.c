@@ -467,7 +467,7 @@ CFNumberFormatterGetValueFromString (CFNumberFormatterRef fmt,
     parseRange.length = BUFFER_SIZE;
   CFStringGetCharacters (string, parseRange, ubuffer);
   
-  parsePos = parseRange.location;
+  parsePos = 0;
   switch (numberType)
     {
       case kCFNumberSInt8Type:
@@ -527,19 +527,19 @@ CFNumberFormatterGetValueFromString (CFNumberFormatterRef fmt,
         *(CFIndex*)valuePtr = (CFIndex)iresult;
         break;
       case kCFNumberFloat32Type:
-        *(Float32*)valuePtr = (Float32)iresult;
+        *(Float32*)valuePtr = (Float32)dresult;
         break;
       case kCFNumberFloat64Type:
-        *(Float64*)valuePtr = (Float64)iresult;
+        *(Float64*)valuePtr = (Float64)dresult;
         break;
       case kCFNumberFloatType:
-        *(float*)valuePtr = (float)iresult;
+        *(float*)valuePtr = (float)dresult;
         break;
       case kCFNumberDoubleType:
-        *(double*)valuePtr = (double)iresult;
+        *(double*)valuePtr = (double)dresult;
         break;
       case kCFNumberCGFloatType: // FIXME: Guess here, too
-        *(double*)valuePtr = (double)iresult;
+        *(double*)valuePtr = (double)dresult;
         break;
     }
   
