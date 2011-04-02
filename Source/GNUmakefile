@@ -22,6 +22,7 @@ libgnustep-corebase_OBJC_FILES = \
 
 libgnustep-corebase_C_FILES = \
   CFByteOrder.c \
+  CFCalendar.c \
   CFLocale.c \
   CFNumberFormatter.c
 

@@ -25,6 +25,7 @@
 */
 
 #include "CoreFoundation/CFBase.h"
+#include "CoreFoundation/CFCalendar.h"
 #include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
@@ -35,6 +36,7 @@
 #include <unicode/uloc.h>
 #include <unicode/ulocdata.h>
 #include <unicode/ucurr.h>
+#include <unicode/ucal.h>
 
 #define BUFFER_SIZE 1024
 
@@ -106,7 +108,7 @@ void CFLocaleInitialize (void)
   _kCFLocaleTypeID = _CFRuntimeRegisterClass(&CFLocaleClass);
 }
 
-static CFLocaleLanguageDirection
+static inline CFLocaleLanguageDirection
 ICUToCFLocaleOrientation (ULayoutType layout)
 {
   switch (layout)
@@ -150,9 +152,7 @@ CFLocaleCopyNumberFormatterCurrencyProperty (CFLocaleRef loc, CFStringRef key)
   return result;
 }
 
-
-
-static CFArrayRef
+static inline CFArrayRef
 _createArrayWithUEnumeration (CFAllocatorRef allocator, UEnumeration *en)
 {
   CFArrayRef mArray;
@@ -180,6 +180,34 @@ _createArrayWithUEnumeration (CFAllocatorRef allocator, UEnumeration *en)
   
   result = CFArrayCreateCopy (allocator, mArray);
   CFRelease (mArray);
+  return result;
+}
+
+static inline CFCalendarRef
+_createCalendar (CFAllocatorRef allocator, CFLocaleRef locale)
+{
+  CFCalendarRef result;
+  CFStringRef calId;
+  int len;
+  char cLocale[ULOC_FULLNAME_CAPACITY];
+  char buffer[ULOC_KEYWORDS_CAPACITY];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (!CFStringGetCString (CFLocaleGetIdentifier(locale), cLocale,
+      ULOC_FULLNAME_CAPACITY, CFStringGetSystemEncoding()))
+    return NULL;
+  
+  len = uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, buffer,
+    ULOC_KEYWORDS_CAPACITY, &err);
+  if (U_SUCCESS(err) && len > 0)
+    calId = CFStringCreateWithCString (allocator, buffer,
+      CFStringGetSystemEncoding());
+  else
+    calId = kCFGregorianCalendar;
+  
+  result = CFCalendarCreateWithIdentifier (allocator, calId);
+  CFRelease (calId);
+  
   return result;
 }
 
@@ -506,7 +534,7 @@ CFLocaleGetValue (CFLocaleRef locale,
   if (key == kCFLocaleMeasurementSystem
       || key == kCFLocaleUsesMetricSystem)
     {
-      UMeasurementSystem ums= ulocdata_getMeasurementSystem (cLocale, &err);
+      UMeasurementSystem ums = ulocdata_getMeasurementSystem (cLocale, &err);
       if (key == kCFLocaleMeasurementSystem)
         {
           if (ums == UMS_SI)
@@ -557,15 +585,13 @@ CFLocaleGetValue (CFLocaleRef locale,
     }
   else if (key == kCFLocaleCalendarIdentifier)
     {
-      length =
-        uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, buffer, BUFFER_SIZE, &err);
+      length = uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, buffer,
+        BUFFER_SIZE, &err);
       if (strncmp(buffer, "gregorian", sizeof("gregorian")-1) == 0)
         result = kCFGregorianCalendar;
     }
   else if (key == kCFLocaleCalendar)
-    {
-      return kCFNull;
-    }
+    result = _createCalendar (CFGetAllocator(locale), locale);
   else if (key == kCFLocaleCollationIdentifier)
     {
       length = uloc_getKeywordValue (cLocale, ICU_COLLATION_KEY,

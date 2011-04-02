@@ -34,6 +34,8 @@
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 
+CF_EXTERN_C_BEGIN
+
 /** @brief CFLocale provides basic functionality for language and/or region
  *  specific operations.
  *  
@@ -226,6 +228,8 @@ CFLocaleGetLanguageLineDirection (CFStringRef isoLangCode);
 uint32_t
 CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier (CFStringRef localeIdent);
 #endif
+
+CF_EXTERN_C_END
 
 #endif /* OS_API_VERSION >= MAC_OS_X_VERSION_10_3 */
 
