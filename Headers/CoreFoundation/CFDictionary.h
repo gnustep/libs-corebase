@@ -27,7 +27,9 @@
 #ifndef __COREFOUNDATION_CFDICTIONARY_H__
 #define __COREFOUNDATION_CFDICTIONARY_H__
 
-#include "CoreFoundation/CFBase.h"
+#include <CoreFoundation/CFBase.h>
+
+CF_EXTERN_C_BEGIN
 
 #ifdef __OBJC__
 @class NSDictionary;
@@ -74,9 +76,9 @@ struct _CFDictionaryValueCallBacks
    CFDictionaryEqualCallBack equal;
 };
 
-const CFDictionaryKeyCallBacks kCFCopyStringDictionaryKeyCallBacks;
-const CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks;
-const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks;
+CF_EXPORT const CFDictionaryKeyCallBacks kCFCopyStringDictionaryKeyCallBacks;
+CF_EXPORT const CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks;
+CF_EXPORT const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks;
 
 
 
@@ -166,5 +168,7 @@ CFDictionaryReplaceValue (CFMutableDictionaryRef theDict, const void *key,
 void
 CFDictionarySetValue (CFMutableDictionaryRef theDict, const void *key,
   const void *value);
+
+CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFDICTIONARY_H__ */

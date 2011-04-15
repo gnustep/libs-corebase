@@ -49,7 +49,6 @@ typedef const struct __CFLocale *CFLocaleRef;
 
 /** 
  */
-typedef CFIndex CFLocaleLanguageDirection;
 enum
 {
   kCFLocaleLanguageDirectionUnknown     = 0,
@@ -58,60 +57,61 @@ enum
   kCFLocaleLanguageDirectionTopToBottom = 3,
   kCFLocaleLanguageDirectionBottomToTop = 4
 };
+typedef CFIndex CFLocaleLanguageDirection;
 
 /** @defgroup LocaleKeys Locale property keys used to get corresponding values.
  *  @{
  */
 CF_EXPORT const CFStringRef kCFLocaleMeasurementSystem; // CFString
-const CFStringRef kCFLocaleDecimalSeparator; // CFString
-const CFStringRef kCFLocaleGroupingSeparator; // CFString
-const CFStringRef kCFLocaleCurrencySymbol; // CFString
-const CFStringRef kCFLocaleCurrencyCode; // CFString
+CF_EXPORT const CFStringRef kCFLocaleDecimalSeparator; // CFString
+CF_EXPORT const CFStringRef kCFLocaleGroupingSeparator; // CFString
+CF_EXPORT const CFStringRef kCFLocaleCurrencySymbol; // CFString
+CF_EXPORT const CFStringRef kCFLocaleCurrencyCode; // CFString
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-const CFStringRef kCFLocaleIdentifier; // CFString
-const CFStringRef kCFLocaleLanguageCode; // CFString
-const CFStringRef kCFLocaleCountryCode; // CFString
-const CFStringRef kCFLocaleScriptCode; // CFString
-const CFStringRef kCFLocaleVariantCode; // CFString
-const CFStringRef kCFLocaleExemplarCharacterSet; // CFCharacterSet
-const CFStringRef kCFLocaleCalendarIdentifier; // CFString
-const CFStringRef kCFLocaleCalendar; // CFCalendar
-const CFStringRef kCFLocaleCollationIdentifier; // CFString
-const CFStringRef kCFLocaleUsesMetricSystem; // CFBoolean
+CF_EXPORT const CFStringRef kCFLocaleIdentifier; // CFString
+CF_EXPORT const CFStringRef kCFLocaleLanguageCode; // CFString
+CF_EXPORT const CFStringRef kCFLocaleCountryCode; // CFString
+CF_EXPORT const CFStringRef kCFLocaleScriptCode; // CFString
+CF_EXPORT const CFStringRef kCFLocaleVariantCode; // CFString
+CF_EXPORT const CFStringRef kCFLocaleExemplarCharacterSet; // CFCharacterSet
+CF_EXPORT const CFStringRef kCFLocaleCalendarIdentifier; // CFString
+CF_EXPORT const CFStringRef kCFLocaleCalendar; // CFCalendar
+CF_EXPORT const CFStringRef kCFLocaleCollationIdentifier; // CFString
+CF_EXPORT const CFStringRef kCFLocaleUsesMetricSystem; // CFBoolean
 #endif
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-const CFStringRef kCFLocaleCollatorIdentifier; // CFString
-const CFStringRef kCFLocaleQuotationBeginDelimiterKey; // CFString
-const CFStringRef kCFLocaleQuotationEndDelimiterKey; // CFString
-const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey; // CFString
-const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey; //CFString
+CF_EXPORT const CFStringRef kCFLocaleCollatorIdentifier; // CFString
+CF_EXPORT const CFStringRef kCFLocaleQuotationBeginDelimiterKey; // CFString
+CF_EXPORT const CFStringRef kCFLocaleQuotationEndDelimiterKey; // CFString
+CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey; // CFString
+CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey; //CFString
 #endif
 /** @} */
 
 /** @defgroup CalendarIdentifiers CFCalendar identifiers
  *  @{
  */
-const CFStringRef kCFGregorianCalendar;
+CF_EXPORT const CFStringRef kCFGregorianCalendar;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-const CFStringRef kCFBuddhistCalendar;
-const CFStringRef kCFChineseCalendar;
-const CFStringRef kCFHebrewCalendar;
-const CFStringRef kCFIslamicCalendar;
-const CFStringRef kCFIslamicCivilCalendar;
-const CFStringRef kCFJapaneseCalendar;
+CF_EXPORT const CFStringRef kCFBuddhistCalendar;
+CF_EXPORT const CFStringRef kCFChineseCalendar;
+CF_EXPORT const CFStringRef kCFHebrewCalendar;
+CF_EXPORT const CFStringRef kCFIslamicCalendar;
+CF_EXPORT const CFStringRef kCFIslamicCivilCalendar;
+CF_EXPORT const CFStringRef kCFJapaneseCalendar;
 #endif
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-const CFStringRef kCFRepublicOfChinaCalendar;
-const CFStringRef kCFPersianCalendar;
-const CFStringRef kCFIndianCalendar;
-const CFStringRef kCFISO8601Calendar;
+CF_EXPORT const CFStringRef kCFRepublicOfChinaCalendar;
+CF_EXPORT const CFStringRef kCFPersianCalendar;
+CF_EXPORT const CFStringRef kCFIndianCalendar;
+CF_EXPORT const CFStringRef kCFISO8601Calendar;
 #endif
 /** @} */
 
 /** Locale Change Notification
  */
-const CFStringRef kCFLocaleCurrentLocaleDidChangeNotification;
+CF_EXPORT const CFStringRef kCFLocaleCurrentLocaleDidChangeNotification;
 
 
 

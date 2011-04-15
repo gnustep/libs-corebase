@@ -170,7 +170,7 @@ kCFNumberFormatterMaxSignificantDigits; // CFNumber
 //
 // Creating a Number Formatter
 //
-CFNumberFormatterRef
+CF_EXPORT CFNumberFormatterRef
 CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
   CFNumberFormatterStyle style);
 

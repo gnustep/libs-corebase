@@ -29,6 +29,16 @@
 #include "CoreFoundation/CFArray.h"
 
 
+
+const CFArrayCallBacks kCFTypeArrayCallBacks =
+{
+  0,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
 //
 // CFArray
 //

@@ -24,17 +24,17 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <CoreFoundation/CFBase.h>
-
 #ifndef __COREFOUNDATION_CFNUMBER_H__
 #define __COREFOUNDATION_CFNUMBER_H__
+
+#include <CoreFoundation/CFBase.h>
 
 CF_EXTERN_C_BEGIN
 
 typedef const struct __CFBoolean * CFBooleanRef;
 
-const CFBooleanRef kCFBooleanTrue;
-const CFBooleanRef kCFBooleanFalse;
+CF_EXPORT const CFBooleanRef kCFBooleanTrue;
+CF_EXPORT const CFBooleanRef kCFBooleanFalse;
 
 CFTypeID
 CFBooleanGetTypeID (void);
@@ -46,11 +46,10 @@ CFBooleanGetValue (CFBooleanRef boolean);
 
 typedef const struct CFNumber *CFNumberRef;
 
-const CFNumberRef kCFNumberNaN;
-const CFNumberRef kCFNumberNegativeInfinity;
-const CFNumberRef kCFNumberPositiveInfinity;
+CF_EXPORT const CFNumberRef kCFNumberNaN;
+CF_EXPORT const CFNumberRef kCFNumberNegativeInfinity;
+CF_EXPORT const CFNumberRef kCFNumberPositiveInfinity;
 
-typedef enum CFNumberType CFNumberType;
 enum CFNumberType
 {
   kCFNumberSInt8Type = 1,
@@ -75,6 +74,7 @@ enum CFNumberType
   kCFNumberMaxType = 14
 #endif
 };
+typedef enum CFNumberType CFNumberType;
 
 
 

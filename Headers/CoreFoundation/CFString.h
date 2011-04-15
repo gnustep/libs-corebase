@@ -36,10 +36,11 @@
 
 #include <stdarg.h>
 
+CF_EXTERN_C_BEGIN
+
 //
 // Data Types
 //
-typedef CFOptionFlags CFStringCompareFlags;
 typedef UInt32 CFStringEncoding;
 
 typedef struct _CFStringInlineBuffer CFStringInlineBuffer;
@@ -72,6 +73,7 @@ enum CFStringCompareFlags
   kCFCompareForcedOrdering = 512
 #endif
 };
+typedef enum CFStringCompareFlags CFStringCompareFlags;
 
 enum CFStringBuiltInEncodings
 {
@@ -124,35 +126,35 @@ CFStringRef __CFStringMakeConstantString(const char *str)
 #endif
 
 #if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
-typedef enum _CFStringNormalizationForm CFStringNormalizationForm;
-enum _CFStringNormalizationForm
+enum CFStringNormalizationForm
 {
   kCFStringNormalizationFormD = 0,
   kCFStringNormalizationFormKD = 1,
   kCFStringNormalizationFormC = 2,
   kCFStringNormalizationFormKC = 3
 };
+typedef enum CFStringNormalizationForm CFStringNormalizationForm;
 #endif
 
 #if GS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-const CFStringRef kCFStringTransformStripCombiningMarks;
-const CFStringRef kCFStringTransformToLatin;
-const CFStringRef kCFStringTransformFullwidthHalfwidth;
-const CFStringRef kCFStringTransformLatinKatakana;
-const CFStringRef kCFStringTransformLatinHiragana;
-const CFStringRef kCFStringTransformHiraganaKatakana;
-const CFStringRef kCFStringTransformMandarinLatin;
-const CFStringRef kCFStringTransformLatinHangul;
-const CFStringRef kCFStringTransformLatinArabic;
-const CFStringRef kCFStringTransformLatinHebrew;
-const CFStringRef kCFStringTransformLatinThai;
-const CFStringRef kCFStringTransformLatinCyrillic;
-const CFStringRef kCFStringTransformLatinGreek;
-const CFStringRef kCFStringTransformToXMLHex;
-const CFStringRef kCFStringTransformToUnicodeName;
+CF_EXPORT const CFStringRef kCFStringTransformStripCombiningMarks;
+CF_EXPORT const CFStringRef kCFStringTransformToLatin;
+CF_EXPORT const CFStringRef kCFStringTransformFullwidthHalfwidth;
+CF_EXPORT const CFStringRef kCFStringTransformLatinKatakana;
+CF_EXPORT const CFStringRef kCFStringTransformLatinHiragana;
+CF_EXPORT const CFStringRef kCFStringTransformHiraganaKatakana;
+CF_EXPORT const CFStringRef kCFStringTransformMandarinLatin;
+CF_EXPORT const CFStringRef kCFStringTransformLatinHangul;
+CF_EXPORT const CFStringRef kCFStringTransformLatinArabic;
+CF_EXPORT const CFStringRef kCFStringTransformLatinHebrew;
+CF_EXPORT const CFStringRef kCFStringTransformLatinThai;
+CF_EXPORT const CFStringRef kCFStringTransformLatinCyrillic;
+CF_EXPORT const CFStringRef kCFStringTransformLatinGreek;
+CF_EXPORT const CFStringRef kCFStringTransformToXMLHex;
+CF_EXPORT const CFStringRef kCFStringTransformToUnicodeName;
 #endif
 #if GS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
-const CFStringRef kCFStringTransformStripDiacritics;
+CF_EXPORT const CFStringRef kCFStringTransformStripDiacritics;
 #endif
 
 //
@@ -501,5 +503,7 @@ void
 CFStringFold (CFMutableStringRef theString, CFOptionFlags theFlags,
   CFLocaleRef theLocale);
 #endif
+
+CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFSTRING_H__ */

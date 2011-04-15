@@ -155,7 +155,7 @@ CFLocaleCopyNumberFormatterCurrencyProperty (CFLocaleRef loc, CFStringRef key)
 static inline CFArrayRef
 _createArrayWithUEnumeration (CFAllocatorRef allocator, UEnumeration *en)
 {
-  CFArrayRef mArray;
+  CFMutableArrayRef mArray;
   CFArrayRef result;
   int32_t count;
   int32_t len;

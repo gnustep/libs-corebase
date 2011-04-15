@@ -93,6 +93,8 @@ typedef UInt8  UTF8Char;
 # define FALSE 0
 #endif
 
+CF_EXTERN_C_BEGIN
+
 //
 // CFType types
 //
@@ -330,5 +332,7 @@ CF_EXPORT CFNullRef kCFNull;
 CFTypeID
 CFNullGetTypeID (void);
 #endif
+
+CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFBASE_H__ */

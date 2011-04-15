@@ -32,6 +32,33 @@
 
 
 
+const CFDictionaryKeyCallBacks kCFCopyStringDictionaryKeyCallBacks =
+{
+  0,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+const CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks =
+{
+  0,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks =
+{
+  0,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
 //
 // CFDictionary
 //

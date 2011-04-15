@@ -36,7 +36,7 @@ typedef NSDate* CFDateRef;
 typedef NSTimeZone* CFTimeZoneRef;
 #else
 typedef struct CFDate *CFDateRef;
-typedef struct CFTimeZone *CFTimeZoneRef;
+typedef const struct __CFTimeZone *CFTimeZoneRef;
 #endif
 
 typedef double CFTimeInterval;
@@ -64,7 +64,6 @@ struct CFGregorianUnits
   double seconds;
 };
 
-typedef enum CFGregorianUnitFlags CFGregorianUnitFlags;
 enum CFGregorianUnitFlags
 {
   kCFGregorianUnitsYears = (1 << 0),
@@ -75,9 +74,10 @@ enum CFGregorianUnitFlags
   kCFGregorianUnitsSeconds = (1 << 5),
   kCFGregorianAllUnits = 0x00FFFFFF
 };
+typedef enum CFGregorianUnitFlags CFGregorianUnitFlags;
 
-const CFTimeInterval kCFAbsoluteTimeIntervalSince1970;
-const CFTimeInterval kCFAbsoluteTimeIntervalSince1904;
+CF_EXPORT const CFTimeInterval kCFAbsoluteTimeIntervalSince1970;
+CF_EXPORT const CFTimeInterval kCFAbsoluteTimeIntervalSince1904;
 
 
 

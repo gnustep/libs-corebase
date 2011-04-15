@@ -1,3 +1,16 @@
+2011-04-15 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFArray.m:
+	* Source/CFDictionary.m:
+	* Headers/CoreFoundation/CFNumber.h
+	* Headers/CoreFoundation/CFLocale.h
+	* Headers/CoreFoundation/CFDictionary.h
+	* Headers/CoreFoundation/CFString.h
+	* Headers/CoreFoundation/CFBase.h
+	* Headers/CoreFoundation/CFNumberFormatter.h
+	* Headers/CoreFoundation/CFDate.h
+	* Headers/CoreFoundation/CFArray.h: Fixes for C++.
+
 2011-04-02 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m:

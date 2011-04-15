@@ -30,6 +30,8 @@
 
 #include <CoreFoundation/CFBase.h>
 
+CF_EXTERN_C_BEGIN
+
 #ifdef __OBJC__
 @class NSArray;
 @class NSMutableArray;
@@ -59,7 +61,7 @@ struct _CFArrayCallBacks
   CFArrayEqualCallBack equal;
 };
 
-const CFArrayCallBacks kCFTypeArrayCallBacks;
+CF_EXPORT const CFArrayCallBacks kCFTypeArrayCallBacks;
 
 
 
@@ -159,5 +161,7 @@ CFArraySetValueAtIndex (CFMutableArrayRef theArray, CFIndex idx,
 void
 CFArraySortValues (CFMutableArrayRef theArray, CFRange range,
   CFComparatorFunction comparator, void *context);
+
+CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFARRAY_H__ */
