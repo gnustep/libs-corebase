@@ -402,6 +402,7 @@ CFRetain (CFTypeRef cf)
 extern void CFBooleanInitialize (void);
 extern void CFCalendarInitialize (void);
 extern void CFLocaleInitialize (void);
+extern void CFBundleInitialize (void);
 extern void CFNullInitialize (void);
 extern void CFNumberFormatterInitialize (void);
 
@@ -423,6 +424,7 @@ void CFInitialize (void)
   CFBooleanInitialize ();
   CFCalendarInitialize ();
   CFLocaleInitialize ();
+  CFBundleInitialize();
   CFNullInitialize ();
   CFNumberFormatterInitialize ();
 }
