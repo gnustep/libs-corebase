@@ -1,3 +1,10 @@
+2011-05-06 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFString.m:
+	* Headers/CoreFoundation/CFString.h: Make inline string buffer functions
+	inline functions.
+	* Headers/CoreFoundation/CFBase.h: Add CF_INLINE.
+
 2011-04-15 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFArray.m:

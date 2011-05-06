@@ -74,7 +74,7 @@ typedef UInt8  UTF8Char;
 
 
 
-#ifndef CF_EXTERN_C_BEGIN
+#if !defined(CF_EXTERN_C_BEGIN)
 # if defined(__cplusplus)
 #  define CF_EXTERN_C_BEGIN extern "C" {
 #  define CF_EXTERN_C_END }
@@ -84,7 +84,15 @@ typedef UInt8  UTF8Char;
 # endif
 #endif
 
-#define CF_EXPORT GS_EXPORT
+#if !defined(CF_EXPORT)
+# if WIN32 && defined(__cplusplus)
+#  define CF_EXPORT extern "C" __declspec(dllimport) 
+# elif WIN32
+#  define CF_EXPORT extern __declspec(dllimport) 
+# else
+#  define CF_EXPORT extern
+# endif
+#endif
 
 #ifndef TRUE
 # define TRUE  1
@@ -94,6 +102,20 @@ typedef UInt8  UTF8Char;
 #endif
 
 CF_EXTERN_C_BEGIN
+
+#if !defined(CF_INLINE)
+# if defined(__GNUC__) && (__GNUC__ == 4)
+#  define CF_INLINE static __inline__ __attribute__((always_inline))
+# elif defined(__GNUC__)
+#  define CF_INLINE static __inline__
+# elif defined(__MWERKS__) || defined(__cplusplus)
+#  define CF_INLINE static inline
+# elif defined(_MSC_VER)
+#  define CF_INLINE static __inline
+# elif WIN32
+#  define CF_INLINE static __inline__
+# endif
+#endif
 
 //
 // CFType types

@@ -22,7 +22,7 @@
    If not, see <http://www.gnu.org/licenses/> or write to the 
    Free Software Foundation, 51 Franklin Street, Fifth Floor, 
    Boston, MA 02110-1301, USA.
-*/ 
+*/
 
 #import <Foundation/NSArray.h>
 #import <Foundation/NSSet.h>
@@ -525,23 +525,6 @@ CFStringGetCharacterAtIndex (CFStringRef theString, CFIndex idx)
   return [(NSString*)theString characterAtIndex: idx];
 }
 
-UniChar
-CFStringGetCharacterFromInlineBuffer (CFStringInlineBuffer *buf, CFIndex idx)
-{
-  if ((buf->bufferedRangeStart < idx) || (buf->bufferedRangeEnd >= idx))
-    {
-      CFRange range;
-
-      range.location = buf->rangeToBuffer.location + idx;
-      range.length = MIN(64, buf->rangeToBuffer.length);
-      CFStringGetCharacters(buf->theString, range, buf->buffer);
-      buf->bufferedRangeStart = range.location - buf->rangeToBuffer.location;
-      buf->bufferedRangeEnd = range.location + range.length - buf->rangeToBuffer.location;
-    }
-
-  return buf->buffer[idx - buf->bufferedRangeStart];
-}
-
 void
 CFStringGetCharacters (CFStringRef theString, CFRange range, UniChar *buffer)
 {
@@ -710,16 +693,6 @@ Boolean
 CFStringHasSuffix (CFStringRef theString, CFStringRef suffix)
 {
   return [(NSString*)theString hasSuffix: (NSString*)suffix];
-}
-
-void
-CFStringInitInlineBuffer (CFStringRef str, CFStringInlineBuffer *buf,
-                          CFRange range)
-{
-  buf->theString = str;
-  buf->rangeToBuffer = range;
-  buf->bufferedRangeStart = -1;
-  buf->bufferedRangeEnd = -1;
 }
 
 Boolean

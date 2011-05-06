@@ -43,17 +43,6 @@ CF_EXTERN_C_BEGIN
 //
 typedef UInt32 CFStringEncoding;
 
-typedef struct _CFStringInlineBuffer CFStringInlineBuffer;
-struct _CFStringInlineBuffer
-{
-  UniChar buffer[64];
-  CFStringRef theString;
-  const UniChar *directBuffer;
-  CFRange rangeToBuffer;
-  CFIndex bufferedRangeStart;
-  CFIndex bufferedRangeEnd;
-};
-
 //
 // Constants
 //
@@ -62,10 +51,8 @@ enum CFStringCompareFlags
   kCFCompareCaseInsensitive = 1,
   kCFCompareBackwards = 4,
   kCFCompareAnchored = 8,
-/* FIXME: Not supported by GNUstep
   kCFCompareNonliteral = 16,
   kCFCompareLocalized = 32,
-*/
   kCFCompareNumerically = 64,
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
   kCFCompareDiacriticInsensitive = 128,
@@ -103,26 +90,26 @@ enum CFStringBuiltInEncodings
 // If we're in Objective-C mode, just make this an ObjC string.
 #define CFSTR(x) ((CFStringRef)(@ x))
 #else
-        // If this compiler doesn't have __has_builtin(), it probably doesn't have
-        // any useful builtins  either
-#       ifndef __has_builtin
-#       define __has_builtin(x) 0
-#       endif
-        // If we have a builtin function for constructing Objective-C strings,
-        // let's use that.
-#       if __has_builtin(__builtin___NSStringMakeConstantString)
-#               define CFSTR(x) \
-                        ((CFStringRef)__builtin___NSStringMakeConstantString("" x ""))
-#       else
-        // If nothing else works, fall back to the really slow path.  The 'pure'
-        // attribute tells the compiler that this function will always return the
-        // same result with the same input.  If it has any skill, then constant
-        // propagation passes will magically make sure that this function is called
-        // as few times as possible.
-CFStringRef __CFStringMakeConstantString(const char *str) 
-        __attribute__ ((pure));
-#       define CFSTR(x) __CFStringMakeConstantString("" x "")
-#       endif
+  // If this compiler doesn't have __has_builtin(), it probably doesn't have
+  // any useful builtins  either
+# ifndef __has_builtin
+#   define __has_builtin(x) 0
+# endif
+  // If we have a builtin function for constructing Objective-C strings,
+  // let's use that.
+# if __has_builtin(__builtin___NSStringMakeConstantString)
+#   define CFSTR(x) \
+      ((CFStringRef)__builtin___NSStringMakeConstantString("" x ""))
+# else
+  // If nothing else works, fall back to the really slow path.  The 'pure'
+  // attribute tells the compiler that this function will always return the
+  // same result with the same input.  If it has any skill, then constant
+  // propagation passes will magically make sure that this function is called
+  // as few times as possible.
+    CFStringRef __CFStringMakeConstantString (const char *str)
+      __attribute__ ((pure));
+#   define CFSTR(x) __CFStringMakeConstantString("" x "")
+# endif
 #endif
 
 #if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
@@ -272,9 +259,6 @@ CFStringGetBytes (CFStringRef theString, CFRange range,
 UniChar
 CFStringGetCharacterAtIndex (CFStringRef theString, CFIndex idx);
 
-UniChar
-CFStringGetCharacterFromInlineBuffer (CFStringInlineBuffer *buf, CFIndex idx);
-
 void
 CFStringGetCharacters (CFStringRef theString, CFRange range, UniChar *buffer);
 
@@ -301,10 +285,6 @@ CFStringGetPascalStringPtr (CFStringRef theString, CFStringEncoding encoding);
 CFRange
 CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef theString,
   CFIndex theIndex);
-
-void
-CFStringInitInlineBuffer (CFStringRef str, CFStringInlineBuffer *buf,
-  CFRange range);
 
 //
 // Working With Encodings
@@ -410,9 +390,28 @@ CFStringGetParagraphBounds (CFStringRef string, CFRange range,
   CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex);
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+UTF32Char
+CFStringGetLongCharacterForSurrogatePair (UniChar surrogateHigh,
+  UniChar surrogateLow);
+
+Boolean
+CFStringGetSurrogatePairForLongCharacter (UTF32Char character,
+  UniChar *surrogates);
+
+Boolean
+CFStringIsSurrogateHighCharacter (UniChar character);
+
+Boolean
+CFStringIsSurrogateLowCharacter (UniChar character);
+#endif
+
 //
 // CFMutableString
 //
+/** @defgroup CFMutableStringRef Mutable Strings
+ *  @{
+ */
 void
 CFStringAppend (CFMutableStringRef theString, CFStringRef appendedString);
 
@@ -503,6 +502,71 @@ void
 CFStringFold (CFMutableStringRef theString, CFOptionFlags theFlags,
   CFLocaleRef theLocale);
 #endif
+/** @}
+ */
+
+
+
+/** @defgroup CFStringInlineBuffer Inline Buffer
+ *  @{
+ */
+#define __kCFStringInlineBufferLength 64
+struct CFStringInlineBuffer
+{
+  UniChar buffer[__kCFStringInlineBufferLength];
+  CFStringRef theString;
+  const UniChar *directBuffer;
+  CFRange rangeToBuffer;
+  CFIndex bufferedRangeStart;
+  CFIndex bufferedRangeEnd;
+};
+typedef struct CFStringInlineBuffer CFStringInlineBuffer;
+
+CF_INLINE void
+CFStringInitInlineBuffer (CFStringRef str, CFStringInlineBuffer *buf,
+  CFRange range)
+{
+  buf->theString = str;
+  buf->rangeToBuffer = range;
+  buf->directBuffer = CFStringGetCharactersPtr (str);
+  buf->bufferedRangeStart = 0;
+  buf->bufferedRangeEnd = 0;
+}
+
+CF_INLINE UniChar
+CFStringGetCharacterFromInlineBuffer (CFStringInlineBuffer *buf, CFIndex idx)
+{
+  if (buf->directBuffer)
+    {
+      if (idx < 0 || idx >= buf->rangeToBuffer.length)
+        return 0;
+      return buf->directBuffer[idx + buf->rangeToBuffer.location];
+    }
+  else if (idx >= buf->bufferedRangeEnd || idx < buf->bufferedRangeStart)
+    {
+      CFRange range;
+      
+      if (idx < 0 || idx >= buf->rangeToBuffer.length)
+        return 0;
+      
+      buf->bufferedRangeStart = idx - 4;
+      if (buf->bufferedRangeStart < 0)
+        buf->bufferedRangeStart = 0;
+      buf->bufferedRangeEnd =
+        buf->bufferedRangeStart + __kCFStringInlineBufferLength;
+      if (buf->bufferedRangeEnd > buf->rangeToBuffer.length)
+        buf->bufferedRangeEnd = buf->rangeToBuffer.length;
+      
+      range = CFRangeMake (buf->rangeToBuffer.location + buf->bufferedRangeStart,
+        buf->bufferedRangeEnd - buf->bufferedRangeStart);
+      
+      CFStringGetCharacters (buf->theString, range, buf->buffer);
+    }
+  
+  return buf->buffer[(idx - buf->bufferedRangeStart)];
+}
+/** @}
+ */
 
 CF_EXTERN_C_END
 
