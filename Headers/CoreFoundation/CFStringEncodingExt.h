@@ -20,6 +20,9 @@
  * along with this library.  If not, see <http://www.gnu.org/license>.
  */
 
+#ifndef __COREFOUNDATION_CFSTRINGENCODINGEXT__
+#define __COREFOUNDATION_CFSTRINGENCODINGEXT__ 1
+
 #include <CoreFoundation/CFBase.h>
 
 // External String Encodings
@@ -157,3 +160,5 @@ enum
   kCFStringEncodingShiftJIS_X0213_00 = 0x0628 /* Deprecated */
 #endif
 };
+
+#endif /* __COREFOUNDATION_CFSTRINGENCODINGEXT__ */

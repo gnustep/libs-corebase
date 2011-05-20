@@ -17,9 +17,9 @@
       str1__ = CFCopyDescription((CFTypeRef)(cf1__)); \
       str2__ = CFCopyDescription((CFTypeRef)(cf2__)); \
       CFStringGetCString (str1__, expr, CFTEST_BUFFER_SIZE, \
-        CFStringGetSystemEncoding()); \
+        kCFStringEncodingUTF8); \
       CFStringGetCString (str2__, expect, CFTEST_BUFFER_SIZE, \
-        CFStringGetSystemEncoding()); \
+        kCFStringEncodingUTF8); \
       CFRelease ((CFTypeRef)str1__); \
       CFRelease ((CFTypeRef)str2__); \
       fprintf (stderr, "expected %s, but got %s\n", \
@@ -40,9 +40,9 @@
       str1__ = CFCopyDescription((CFTypeRef)(cf1__)); \
       str2__ = CFCopyDescription((CFTypeRef)(cf2__)); \
       CFStringGetCString (str1__, expr, CFTEST_BUFFER_SIZE, \
-        CFStringGetSystemEncoding()); \
+        kCFStringEncodingUTF8); \
       CFStringGetCString (str2__, expect, CFTEST_BUFFER_SIZE, \
-        CFStringGetSystemEncoding()); \
+        kCFStringEncodingUTF8); \
       CFRelease ((CFTypeRef)str1__); \
       CFRelease ((CFTypeRef)str2__); \
       fprintf (stderr, "Did not expect %s, got %s\n", \

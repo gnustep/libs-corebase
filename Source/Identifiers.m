@@ -1,6 +1,42 @@
 #import <Foundation/NSString.h>
 
 //
+// CFString Transformation identifiers
+//
+const NSString *kCFStringTransformStripCombiningMarks =
+  @"kCFStringTransformStripCombiningMarks";
+const NSString *kCFStringTransformToLatin =
+  @"kCFStringTransformToLatin";
+const NSString *kCFStringTransformFullwidthHalfwidth =
+  @"kCFStringTransformFullwidthHalfwidth";
+const NSString *kCFStringTransformLatinKatakana =
+  @"kCFStringTransformLatinKatakana";
+const NSString *kCFStringTransformLatinHiragana =
+  @"kCFStringTransformLatinHiragana";
+const NSString *kCFStringTransformHiraganaKatakana  =
+  @"kCFStringTransformHiraganaKatakana";
+const NSString *kCFStringTransformMandarinLatin =
+  @"kCFStringTransformMandarinLatin";
+const NSString *kCFStringTransformLatinHangul =
+  @"kCFStringTransformLatinHangul";
+const NSString *kCFStringTransformLatinArabic =
+  @"kCFStringTransformLatinArabic";
+const NSString *kCFStringTransformLatinHebrew =
+  @"kCFStringTransformLatinHebrew";
+const NSString *kCFStringTransformLatinThai =
+  @"kCFStringTransformLatinThai";
+const NSString *kCFStringTransformLatinCyrillic =
+  @"kCFStringTransformLatinCyrillic";
+const NSString *kCFStringTransformLatinGreek =
+  @"kCFStringTransformLatinGreek";
+const NSString *kCFStringTransformToXMLHex =
+  @"kCFStringTransformToXMLHex";
+const NSString *kCFStringTransformToUnicodeName =
+  @"kCFStringTransformToUnicodeName";
+const NSString *kCFStringTransformStripDiacritics =
+  @"kCFStringTransformStripDiacritics";
+
+//
 // CFLocale keys
 //
 const NSString *kCFLocaleMeasurementSystem =

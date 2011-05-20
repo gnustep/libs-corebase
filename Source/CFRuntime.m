@@ -405,6 +405,7 @@ extern void CFLocaleInitialize (void);
 extern void CFBundleInitialize (void);
 extern void CFNullInitialize (void);
 extern void CFNumberFormatterInitialize (void);
+extern void CFStringInitialize (void);
 
 void CFInitialize (void)
 {
@@ -427,5 +428,6 @@ void CFInitialize (void)
   CFBundleInitialize();
   CFNullInitialize ();
   CFNumberFormatterInitialize ();
+  CFStringInitialize ();
 }
 

@@ -1,5 +1,19 @@
 2011-05-06 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFString.m: Deleted.
+	* Source/GNUmakefile:
+	* Source/CFRuntime.m:
+	* Source/Identifier.m:
+	* Source/CFString.c:
+	* Source/CFStringEncoding.c:
+	* Headers/CoreFoundation/ForFoundationOnly.h: Added initial CFString
+	implementation using the ICU library.
+	* Headers/CoreFoundation/CFStringEncodingExt.h: Protect against multiple
+	includes.
+	* Tests/CFString: Basic CFString test.
+
+2011-05-06 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFString.m:
 	* Headers/CoreFoundation/CFString.h: Make inline string buffer functions
 	inline functions.
