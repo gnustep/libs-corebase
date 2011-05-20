@@ -77,4 +77,12 @@ extern CFRuntimeClass **__CFRuntimeClassTable;
   return (CFTypeID)_typeID;
 }
 
+- (id) copyWithZone: (NSZone *) zone
+{
+  CFRuntimeClass *cls = __CFRuntimeClassTable[[self _cfTypeID]];
+  if (cls->copy)
+    return (id)cls->copy (zone, (CFTypeRef)self);
+  return RETAIN(self);
+}
+
 @end

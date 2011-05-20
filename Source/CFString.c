@@ -389,7 +389,7 @@ CFStringCreateCopy (CFAllocatorRef alloc, CFStringRef str)
   if (CFGetAllocator(str) == alloc && !CFStringIsMutable(str))
     return CFRetain (str);
   
-  enc = CFStringIsWide(str) ? kCFStringEncodingUTF16 : kCFStringEncodingUTF8;
+  enc = CFStringIsWide(str) ? kCFStringEncodingUTF16 : kCFStringEncodingASCII;
   new =
     CFStringCreateWithBytes (alloc, str->_contents, str->_count, enc, false);
   

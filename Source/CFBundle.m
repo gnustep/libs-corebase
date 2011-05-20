@@ -109,13 +109,13 @@ void* CFBundleGetFunctionPointerForName(CFBundleRef bundle,
                                         CFStringRef functionName)
 {
   [bundle->bundle load];
-  return dlsym(RTLD_DEFAULT, [functionName UTF8String]);
+  return dlsym(NULL, [functionName UTF8String]);
 }
 
 void* CFBundleGetDataPointerForName(CFBundleRef bundle,
                                     CFStringRef functionName)
 {
   [bundle->bundle load];
-  return dlsym(RTLD_DEFAULT, [functionName UTF8String]);
+  return dlsym(NULL, [functionName UTF8String]);
 }
 
