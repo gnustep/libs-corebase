@@ -27,7 +27,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <pthread.h>
-#include <unicode/ucol.h>
 #include <unicode/unorm.h>
 #include <unicode/urep.h>
 #include <unicode/ustring.h>
@@ -37,7 +36,6 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFArray.h"
-#include "CoreFoundation/CFCharacterSet.h"
 #include "CoreFoundation/CFData.h"
 #include "CoreFoundation/CFDictionary.h"
 #include "CoreFoundation/CFString.h"
@@ -48,9 +46,8 @@
 /* CFString has two possible internal encodings:
      * UTF-16 (preferable)
      * ASCII
-   If the the external encoding is not one of the 2 above it is converted
-   to UTF-16 using ICU's converter.  If a ASCII-superset encoding is used
-   and all characters are less than 0x80, ASCII is used.
+   If the encoding is not one of the two listed above, it will be converted
+   to UTF-16 any character is not ASCII.
 */
 
 struct __CFString
@@ -329,33 +326,25 @@ CFStringCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes,
   
   if (buffer.isASCII)
     {
-      if (strSize == 0)
-        {
-          new->_contents = buffer.chars.c;
-        }
-      else
-        {
-          memcpy (&(new[1]), buffer.chars.c, buffer.numChars);
-          new->_contents = &(new[1]);
-          CFStringSetInline((CFStringRef)new);
-        }
+      memcpy (&(new[1]), buffer.chars.c, buffer.numChars);
+      new->_contents = &(new[1]);
+      CFStringSetInline((CFStringRef)new);
+      
+      if (buffer.shouldFreeChars == true)
+        CFAllocatorDeallocate (buffer.allocator, buffer.chars.c);
     }
   else
     {
-      if (strSize == 0)
-        {
-          new->_contents = buffer.chars.u;
-        }
-      else
-        {
-          u_memcpy ((UChar*)&(new[1]), buffer.chars.u, buffer.numChars);
-          new->_contents = &(new[1]);
-          CFStringSetInline((CFStringRef)new);
-        }
+      u_memcpy ((UChar*)&(new[1]), buffer.chars.u, buffer.numChars);
+      new->_contents = &(new[1]);
+      CFStringSetInline((CFStringRef)new);
       CFStringSetWide((CFStringRef)new);
+      
+      if (buffer.shouldFreeChars == true)
+        CFAllocatorDeallocate (buffer.allocator, buffer.chars.c);
     }
+  
   CFStringSetHasNullByte((CFStringRef)new);
-  CFStringSetOwned((CFStringRef)new);
   new->_count = buffer.numChars;
   new->_deallocator = alloc;
   
@@ -508,143 +497,6 @@ CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
   return NULL;
 }
 
-CFArrayRef
-CFStringCreateArrayWithFindResults (CFAllocatorRef alloc,
-  CFStringRef str, CFStringRef stringToFind, CFRange rangeToSearch,
-  CFStringCompareFlags compareOptions)
-{
-  return NULL;
-}
-
-CFRange
-CFStringFind (CFStringRef str, CFStringRef stringToFind,
-  CFStringCompareFlags compareOptions)
-{
-  CFRange ret;
-  CFIndex len = CFStringGetLength (str);
-  if (!CFStringFindWithOptionsAndLocale (str, stringToFind,
-      CFRangeMake(0, len), compareOptions, NULL, &ret))
-    ret = CFRangeMake (kCFNotFound, 0);
-  
-  return ret;
-}
-
-Boolean
-CFStringFindWithOptions (CFStringRef str, CFStringRef stringToFind,
-  CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result)
-{
-  return CFStringFindWithOptionsAndLocale (str, stringToFind,
-    rangeToSearch, searchOptions, NULL, result);
-}
-
-Boolean
-CFStringFindWithOptionsAndLocale (CFStringRef str,
-  CFStringRef stringToFind, CFRange rangeToSearch,
-  CFStringCompareFlags searchOptions, CFLocaleRef locale, CFRange *result)
-{
-  return false;
-}
-
-Boolean
-CFStringHasPrefix (CFStringRef str, CFStringRef prefix)
-{
-  CFIndex len = CFStringGetLength (str);
-  return CFStringFindWithOptionsAndLocale (str, prefix, CFRangeMake(0, len),
-    kCFCompareAnchored, NULL, NULL);
-}
-
-Boolean
-CFStringHasSuffix (CFStringRef str, CFStringRef suffix)
-{
-  CFIndex len = CFStringGetLength (str);
-  return CFStringFindWithOptionsAndLocale (str, suffix, CFRangeMake(0, len),
-    kCFCompareBackwards | kCFCompareAnchored, NULL, NULL);
-}
-
-void
-CFStringGetLineBounds (CFStringRef str, CFRange range,
-  CFIndex *lineBeginIndex, CFIndex *lineEndIndex, CFIndex *contentsEndIndex)
-{
-  return;
-}
-
-CFComparisonResult
-CFStringCompare (CFStringRef str1, CFStringRef str2,
-  CFStringCompareFlags compareOptions)
-{
-  CFIndex len1 = CFStringGetLength (str1);
-  CFIndex len2 = CFStringGetLength (str2);
-  CFIndex len = MAX(len1, len2);
-  return CFStringCompareWithOptionsAndLocale (str1, str2, CFRangeMake(0, len),
-    compareOptions, NULL);
-}
-
-CFComparisonResult
-CFStringCompareWithOptions (CFStringRef str1, CFStringRef str2,
-  CFRange rangeToCompare, CFStringCompareFlags compareOptions)
-{
-  return CFStringCompareWithOptionsAndLocale (str1, str2, rangeToCompare,
-    compareOptions, NULL);
-}
-
-CFComparisonResult
-CFStringCompareWithOptionsAndLocale (CFStringRef str1,
-  CFStringRef str2, CFRange rangeToCompare,
-  CFStringCompareFlags compareOptions, CFLocaleRef locale)
-{
-  CFComparisonResult ret;
-  CFStringRef loc;
-  char *localeID;
-  UniChar *string1;
-  UniChar *string2;
-  CFIndex length1;
-  CFIndex length2;
-  UCollator *ucol;
-  UErrorCode err = U_ZERO_ERROR;
-  
-  if (locale != NULL)
-    {
-      loc = CFLocaleGetIdentifier (locale);
-      localeID = (char *)CFStringGetCStringPtr (loc, kCFStringEncodingUTF8);
-      if (localeID == NULL)
-        {
-          CFIndex len = CFStringGetLength (loc);
-          localeID = alloca (len + 1);
-          CFStringGetCString (loc, localeID, len, kCFStringEncodingUTF8);
-          localeID[len] = '\0';
-        }
-    }
-  else
-    {
-      localeID = NULL;
-    }
-  
-  length1 = rangeToCompare.length;
-  length2 = CFStringGetLength (str1);
-  string1 = (UniChar *)CFStringGetCharactersPtr (str1);
-  if (string1 == NULL)
-    {
-      string1 = alloca ((length1 + 1) * sizeof(UniChar));
-      CFStringGetCharacters (str1, rangeToCompare, string1);
-      string1[length1] = 0;
-    }
-  string2 = (UniChar *)CFStringGetCharactersPtr (str2);
-  if (string2 == NULL)
-    {
-      string2 = alloca ((length2 + 1) * sizeof(UniChar));
-      CFStringGetCharacters (str2, CFRangeMake(0, length2), string2);
-      string2[length2] = 0;
-    }
-  
-  /* FIXME: this doesn't take into acount the compare options for now... it's
-     just a quick an dirty compare so I can run tests. */
-  ucol = ucol_open (localeID, &err);
-  ret = ucol_strcoll (ucol, string1, length1, string2, length2);
-  ucol_close (ucol);
-  
-  return ret;
-}
-
 const UniChar *
 CFStringGetCharactersPtr (CFStringRef str)
 {
@@ -718,20 +570,6 @@ CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef str,
   CFIndex theIndex)
 {
   return CFRangeMake (0, 0);
-}
-
-Boolean
-CFStringFindCharacterFromSet (CFStringRef str, CFCharacterSetRef theSet,
-  CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result)
-{
-  return false;
-}
-
-void
-CFStringGetParagraphBounds (CFStringRef string, CFRange range,
-  CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex)
-{
-  return;
 }
 
 UTF32Char

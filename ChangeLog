@@ -1,5 +1,12 @@
 2011-05-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/GNUmakefile:
+	* Source/CFString.c:
+	* Source/CFStringUtilities.c: Moved some CFString functions to a different
+	file to reduce clutter and implemented them.
+
+2011-05-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* GNUmakefile:
 	* Source/CFUUID.c:
 	* Source/CFRuntime.m:

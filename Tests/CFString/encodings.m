@@ -17,5 +17,7 @@ int main (void)
   PASS_CFEQ (str, __CFStringMakeConstantString("UTF-16"),
     "Correctly converts to IANA Char Set.");
   
+  CFRelease(str);
+  
   return 0;
 }

@@ -27,6 +27,7 @@ libgnustep-corebase_C_FILES = \
   CFNumberFormatter.c \
   CFString.c \
   CFStringEncoding.c \
+  CFStringUtilities.c \
   CFUUID.c
 
 ADDITIONAL_INCLUDE_DIRS = -I../Headers
