@@ -226,7 +226,7 @@ CFCopyDescription (CFTypeRef cf)
     return NULL;
   
   if (IS_OBJC(cf))
-    return [(id)cf description];
+    return (CFStringRef)[(id)cf description];
   
   typeID = CFGetTypeID(cf);
   if (typeID < __CFRuntimeClassTableSize)
@@ -406,6 +406,7 @@ extern void CFBundleInitialize (void);
 extern void CFNullInitialize (void);
 extern void CFNumberFormatterInitialize (void);
 extern void CFStringInitialize (void);
+extern void CFUUIDInitialize (void);
 
 void CFInitialize (void)
 {
@@ -429,5 +430,6 @@ void CFInitialize (void)
   CFNullInitialize ();
   CFNumberFormatterInitialize ();
   CFStringInitialize ();
+  CFUUIDInitialize ();
 }
 

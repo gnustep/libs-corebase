@@ -26,11 +26,12 @@ libgnustep-corebase_C_FILES = \
   CFLocale.c \
   CFNumberFormatter.c \
   CFString.c \
-  CFStringEncoding.c
+  CFStringEncoding.c \
+  CFUUID.c
 
 ADDITIONAL_INCLUDE_DIRS = -I../Headers
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += `icu-config --ldflags-libsonly` \
-  -licuio
+  -licuio -luuid
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
 libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
 
@@ -53,7 +54,8 @@ libgnustep-corebase_HEADER_FILES = \
   CFStream.h \
   CFString.h \
   CFStringEncodingExt.h \
-  CFURL.h
+  CFURL.h \
+  CFUUID.h
 
 libgnustep-corebase_NEEDS_GUI = NO
 
