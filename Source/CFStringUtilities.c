@@ -89,14 +89,6 @@ CFStringICUCollatorClose (UCollator *collator)
 
 
 
-CFArrayRef
-CFStringCreateArrayWithFindResults (CFAllocatorRef alloc,
-  CFStringRef str, CFStringRef stringToFind, CFRange rangeToSearch,
-  CFStringCompareFlags compareOptions)
-{
-  return NULL;
-}
-
 CFRange
 CFStringFind (CFStringRef str, CFStringRef stringToFind,
   CFStringCompareFlags compareOptions)
@@ -187,13 +179,6 @@ CFStringHasSuffix (CFStringRef str, CFStringRef suffix)
     kCFCompareBackwards | kCFCompareAnchored, NULL, NULL);
 }
 
-void
-CFStringGetLineBounds (CFStringRef str, CFRange range,
-  CFIndex *lineBeginIndex, CFIndex *lineEndIndex, CFIndex *contentsEndIndex)
-{
-  return;
-}
-
 CFComparisonResult
 CFStringCompare (CFStringRef str1, CFStringRef str2,
   CFStringCompareFlags compareOptions)
@@ -248,7 +233,30 @@ Boolean
 CFStringFindCharacterFromSet (CFStringRef str, CFCharacterSetRef theSet,
   CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result)
 {
+  /* FIXME: Not really sure how to get this done. Input is welcome. */
   return false;
+}
+
+CFArrayRef
+CFStringCreateArrayWithFindResults (CFAllocatorRef alloc,
+  CFStringRef str, CFStringRef stringToFind, CFRange rangeToSearch,
+  CFStringCompareFlags compareOptions)
+{
+  /* FIXME: This requires CFArray to accept input other than objects */
+  return NULL;
+}
+
+/* These next two functions should be very similar.  According to Apple's
+   documentation the only different between the two is that ...ParagraphBounds
+   does not stop at Unicode NextLine or LineSeparactor characters.
+   
+   They can probably be implemented using ICU's break iterator.
+*/
+void
+CFStringGetLineBounds (CFStringRef str, CFRange range,
+  CFIndex *lineBeginIndex, CFIndex *lineEndIndex, CFIndex *contentsEndIndex)
+{
+  return;
 }
 
 void

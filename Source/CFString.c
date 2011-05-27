@@ -612,18 +612,24 @@ CFStringIsSurrogateLowCharacter (UniChar character)
    easier to use the ICU functions. */
 
 /* This function is used to grow the size of a CFMutableString buffer.
-   The string's buffer will grow to count characters.
-   
-   This function returns true if the buffer grew and false otherwise. */
-static inline Boolean
-CFStringCheckCapacityAndGrow (CFMutableStringRef str, CFIndex newCapacity)
+   The string's buffer will grow to (newCapacity * sizeof(UniChar)).
+   On return, oldContentBuffer will point to the old data.  If this value
+   is not provided, the old content buffer is freed and data will be lost. */
+static Boolean
+CFStringCheckCapacityAndGrow (CFMutableStringRef str, CFIndex newCapacity,
+  void **oldContentBuffer)
 {
   struct __CFMutableString *mStr = (struct __CFMutableString *)str;
   
   if (mStr->_capacity >= newCapacity)
     return false;
   
-  mStr->_contents = CFAllocatorReallocate (mStr->_allocator, mStr->_contents,
+  if (oldContentBuffer)
+    *oldContentBuffer = mStr->_contents;
+  else
+    CFAllocatorDeallocate (mStr->_allocator, mStr->_contents);
+  
+  mStr->_contents = CFAllocatorAllocate (mStr->_allocator,
     (newCapacity * sizeof(UniChar)), 0);
   if (mStr->_contents == NULL)
     {
@@ -708,8 +714,6 @@ CFStringCreateMutableWithExternalCharactersNoCopy (CFAllocatorRef alloc,
   UniChar *chars, CFIndex numChars, CFIndex capacity,
   CFAllocatorRef externalCharactersAllocator)
 {
-  struct __CFMutableString *new;
-  CFSTRING_INIT_MUTABLE(new);
   return NULL;
 }
 
@@ -752,18 +756,15 @@ void
 CFStringAppendFormat (CFMutableStringRef str,
   CFDictionaryRef formatOptions, CFStringRef format, ...)
 {
-  return;
+  va_list args;
+  va_start (args, format);
+  CFStringAppendFormatAndArguments (str, formatOptions, format, args);
+  va_end (args);
 }
 
 void
 CFStringAppendFormatAndArguments (CFMutableStringRef str,
   CFDictionaryRef formatOptions, CFStringRef format, va_list arguments)
-{
-  return;
-}
-
-void
-CFStringCapitalize (CFMutableStringRef str, CFLocaleRef locale)
 {
   return;
 }
@@ -788,12 +789,6 @@ CFStringInsert (CFMutableStringRef str, CFIndex idx, CFStringRef insertedStr)
       CFStringGetCharacters (str, CFRangeMake(0, textLen), text);
     }
   CFStringReplace_internal (str, CFRangeMake(idx, 0), text, textLen);
-}
-
-void
-CFStringLowercase (CFMutableStringRef str, CFLocaleRef locale)
-{
-  return;
 }
 
 void
@@ -832,10 +827,84 @@ CFStringTrimWhitespace (CFMutableStringRef str)
   return;
 }
 
+enum
+{
+  _kCFStringCapitalize,
+  _kCFStringLowercase,
+  _kCFStringUppercase,
+  _kCFStringFold
+};
+
+static inline void
+CFStringCaseMap (CFMutableStringRef str, CFLocaleRef locale,
+  CFOptionFlags flags, CFIndex op)
+{
+  char *localeID = NULL; // FIXME
+  const UniChar *oldContents;
+  CFIndex oldContentsLength;
+  CFIndex newLength;
+  int32_t optFlags;
+  UErrorCode err = U_ZERO_ERROR;
+  struct __CFMutableString *mStr = (struct __CFMutableString *)str;
+  
+  oldContents = CFStringGetCharactersPtr (str);
+  oldContentsLength = CFStringGetLength (str);
+  
+  /* Loops a maximum of 2 times, and should never loop more than that.  If
+     it does have to go through the loop a 3rd time something is wrong
+     and this whole thing will blow up. */
+  do
+    {
+      switch (op)
+        {
+          case _kCFStringCapitalize:
+            newLength = u_strToTitle (mStr->_contents, mStr->_capacity,
+              oldContents, oldContentsLength, NULL, localeID, &err);
+            break;
+          case _kCFStringLowercase:
+            newLength = u_strToLower (mStr->_contents, mStr->_capacity,
+              oldContents, oldContentsLength, localeID, &err);
+          case _kCFStringUppercase:
+            newLength = u_strToUpper (mStr->_contents, mStr->_capacity,
+              oldContents, oldContentsLength, localeID, &err);
+          case _kCFStringFold:
+            optFlags = 0; // FIXME
+            newLength = u_strFoldCase (mStr->_contents, mStr->_capacity,
+              oldContents, oldContentsLength, optFlags, &err);
+          default:
+            return;
+        }
+    } while (err == U_BUFFER_OVERFLOW_ERROR
+        && CFStringCheckCapacityAndGrow(str, newLength, (void**)&oldContents));
+  
+  mStr->_count = newLength;
+  
+  if (oldContents != mStr->_contents)
+    CFAllocatorDeallocate (mStr->_allocator, (void*)oldContents);
+}
+
+void
+CFStringCapitalize (CFMutableStringRef str, CFLocaleRef locale)
+{
+  CFStringCaseMap (str, locale, 0, _kCFStringCapitalize);
+}
+
+void
+CFStringLowercase (CFMutableStringRef str, CFLocaleRef locale)
+{
+  CFStringCaseMap (str, locale, 0, _kCFStringCapitalize);
+}
+
 void
 CFStringUppercase (CFMutableStringRef str, CFLocaleRef locale)
 {
-  return;
+  CFStringCaseMap (str, locale, 0, _kCFStringUppercase);
+}
+
+void
+CFStringFold (CFMutableStringRef str, CFOptionFlags flags, CFLocaleRef locale)
+{
+  CFStringCaseMap (str, locale, flags, _kCFStringFold);
 }
 
 static inline UNormalizationMode
@@ -860,16 +929,16 @@ void
 CFStringNormalize (CFMutableStringRef str,
   CFStringNormalizationForm theForm)
 {
-  UChar *ubuffer;
+/*  UChar *ubuffer;
   int32_t len;
   int32_t newLen;
   UErrorCode err = U_ZERO_ERROR;
   UNormalizationMode mode = CFToICUNormalization (theForm);
   UNormalizationCheckResult checkResult;
   
-  /* Make sure string isn't already normalized.  Use the quick check for speed.
+   Make sure string isn't already normalized.  Use the quick check for speed.
      We still go through the normalization if the quick check does not
-     return UNORM_YES. */
+     return UNORM_YES.
   len = (int32_t)CFStringGetLength (str);
   checkResult = unorm_quickCheck (str->_contents, len, mode, &err);
   if (U_FAILURE(err) || checkResult == UNORM_YES)
@@ -878,16 +947,17 @@ CFStringNormalize (CFMutableStringRef str,
   ubuffer = alloca (len * sizeof(UChar));
   u_memcpy (ubuffer, (UChar*)str->_contents, len);
   
-  /* Assume the resulting buffer is the same size.  We only reallocate
+   Assume the resulting buffer is the same size.  We only reallocate
      str's contents if the normalized string is larger than the 
-     unnormalized string. */
+     unnormalized string. 
   do
     {
       err = U_ZERO_ERROR;
       newLen = unorm_normalize (ubuffer, len, mode, 0,
         (UChar*)str->_contents, len, &err);
     } while (err == U_BUFFER_OVERFLOW_ERROR
-             && CFStringCheckCapacityAndGrow(str, newLen));
+             && CFStringCheckCapacityAndGrow(str, newLen, NULL)); */
+  return;
 }
 
 Boolean
@@ -924,12 +994,6 @@ CFStringTransform (CFMutableStringRef str, CFRange *range,
   return true;
 }
 
-void
-CFStringFold (CFMutableStringRef str, CFOptionFlags theFlags,
-  CFLocaleRef theLocale)
-{
-  return;
-}
 
 
 

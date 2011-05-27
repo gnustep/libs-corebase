@@ -1,3 +1,7 @@
+2011-05-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFString.c: Added case mapping functions to CFMutableString.
+
 2011-05-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GNUmakefile:
