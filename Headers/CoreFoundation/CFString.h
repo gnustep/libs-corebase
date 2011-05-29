@@ -468,6 +468,9 @@ CFStringReplace (CFMutableStringRef theString, CFRange range,
   CFStringRef replacement);
 
 void
+CFStringReplaceAll (CFMutableStringRef theString, CFStringRef replacement);
+
+void
 CFStringSetExternalCharactersNoCopy (CFMutableStringRef theString,
   UniChar *chars, CFIndex length, CFIndex capacity);
 

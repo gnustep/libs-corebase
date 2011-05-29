@@ -1,3 +1,7 @@
+2011-05-29 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSCFString.m: Add NSCFString class.
+
 2011-05-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFString.c: Added case mapping functions to CFMutableString.

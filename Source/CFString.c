@@ -816,6 +816,11 @@ CFStringReplace (CFMutableStringRef str, CFRange range,
 }
 
 void
+CFStringReplaceAll (CFMutableStringRef theString, CFStringRef replacement)
+{
+}
+
+void
 CFStringTrim (CFMutableStringRef str, CFStringRef trimString)
 {
   return;
