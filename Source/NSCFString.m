@@ -549,4 +549,9 @@
 {
   CFStringReplaceAll ((CFMutableStringRef)self, (CFStringRef)aString);
 }
+
+- (CFTypeID) _cfTypeID
+{
+  return CFStringGetTypeID ();
+}
 @end

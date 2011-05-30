@@ -356,14 +356,14 @@ CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
   CFIndex numBytes, CFStringEncoding encoding,
   Boolean isExternalRepresentation, CFAllocatorRef contentsDeallocator)
 {
-  return NULL;
+  return NULL; // FIXME
 }
 
 CFStringRef
 CFStringCreateByCombiningStrings (CFAllocatorRef alloc, CFArrayRef theArray,
   CFStringRef separatorString)
 {
-  return NULL;
+  return NULL; // FIXME
 }
 
 CFStringRef
@@ -389,7 +389,7 @@ CFStringRef
 CFStringCreateWithFileSystemRepresentation (CFAllocatorRef alloc,
   const char *buffer)
 {
-  return NULL;
+  return NULL; // FIXME
 }
 
 CFStringRef
@@ -455,13 +455,13 @@ CFStringRef
 CFStringCreateWithFormatAndArguments (CFAllocatorRef alloc,
   CFDictionaryRef formatOptions, CFStringRef format, va_list arguments)
 {
-  return NULL;
+  return NULL; // FIXME
 }
 
 CFStringRef
 CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str, CFRange range)
 {
-  return NULL;
+  return NULL; // FIXME
 }
 
 CFDataRef
@@ -494,7 +494,7 @@ CFArrayRef
 CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
   CFStringRef str, CFStringRef separatorString)
 {
-  return NULL;
+  return NULL; // FIXME
 }
 
 const UniChar *
@@ -535,7 +535,7 @@ CFStringGetCString (CFStringRef str, char *buffer, CFIndex bufferSize,
   CFIndex used;
   
   if (__CFStringEncodeByteStream (str, 0, len, false, encoding, '?',
-      (UInt8*)buffer, bufferSize, &used) == len)
+      (UInt8*)buffer, bufferSize, &used) == len && used <= len)
     {
       buffer[used] = '\0';
       return true;
@@ -548,7 +548,7 @@ Boolean
 CFStringGetFileSystemRepresentation (CFStringRef string, char *buffer,
   CFIndex maxBufLen)
 {
-  return false;
+  return false; // FIXME
 }
 
 
@@ -569,7 +569,7 @@ CFRange
 CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef str,
   CFIndex theIndex)
 {
-  return CFRangeMake (0, 0);
+  return CFRangeMake (0, 0); // FIXME
 }
 
 UTF32Char
@@ -697,9 +697,8 @@ CFStringCreateMutableCopy (CFAllocatorRef alloc, CFIndex maxLength,
   text = (UniChar*)CFStringGetCharactersPtr (str);
   if (text == NULL)
     {
-      text = alloca ((textLen + 1) * sizeof(UniChar));
+      text = alloca ((textLen) * sizeof(UniChar));
       CFStringGetCharacters (str, CFRangeMake(0, textLen), text);
-      text[textLen] = 0;
     }
   CFStringReplace_internal ((CFMutableStringRef)new, CFRangeMake(0, 0),
     text, textLen);
@@ -735,21 +734,21 @@ CFStringFindAndReplace (CFMutableStringRef str, CFStringRef stringToFind,
 void
 CFStringAppend (CFMutableStringRef str, CFStringRef appendedString)
 {
-  return;
+  return; // FIXME
 }
 
 void
 CFStringAppendCharacters (CFMutableStringRef str,
   const UniChar *chars, CFIndex numChars)
 {
-  return;
+  return; // FIXME
 }
 
 void
 CFStringAppendCString (CFMutableStringRef str, const char *cStr,
   CFStringEncoding encoding)
 {
-  return;
+  return; // FIXME
 }
 
 void
@@ -766,7 +765,7 @@ void
 CFStringAppendFormatAndArguments (CFMutableStringRef str,
   CFDictionaryRef formatOptions, CFStringRef format, va_list arguments)
 {
-  return;
+  return; // FIXME
 }
 
 void
@@ -818,18 +817,19 @@ CFStringReplace (CFMutableStringRef str, CFRange range,
 void
 CFStringReplaceAll (CFMutableStringRef theString, CFStringRef replacement)
 {
+  // FIXME
 }
 
 void
 CFStringTrim (CFMutableStringRef str, CFStringRef trimString)
 {
-  return;
+  return; // FIXME
 }
 
 void
 CFStringTrimWhitespace (CFMutableStringRef str)
 {
-  return;
+  return; // FIXME
 }
 
 enum
@@ -840,7 +840,7 @@ enum
   _kCFStringFold
 };
 
-static inline void
+static void
 CFStringCaseMap (CFMutableStringRef str, CFLocaleRef locale,
   CFOptionFlags flags, CFIndex op)
 {
@@ -881,6 +881,8 @@ CFStringCaseMap (CFMutableStringRef str, CFLocaleRef locale,
         }
     } while (err == U_BUFFER_OVERFLOW_ERROR
         && CFStringCheckCapacityAndGrow(str, newLength, (void**)&oldContents));
+  if (U_FAILURE(err))
+    return;
   
   mStr->_count = newLength;
   
@@ -934,68 +936,87 @@ void
 CFStringNormalize (CFMutableStringRef str,
   CFStringNormalizationForm theForm)
 {
-/*  UChar *ubuffer;
-  int32_t len;
-  int32_t newLen;
+  UniChar *oldContents;
+  CFIndex oldContentsLength;
+  CFIndex newLength;
+  UNormalizationCheckResult checkResult;
   UErrorCode err = U_ZERO_ERROR;
   UNormalizationMode mode = CFToICUNormalization (theForm);
-  UNormalizationCheckResult checkResult;
+  struct __CFMutableString *mStr;
   
-   Make sure string isn't already normalized.  Use the quick check for speed.
-     We still go through the normalization if the quick check does not
-     return UNORM_YES.
-  len = (int32_t)CFStringGetLength (str);
-  checkResult = unorm_quickCheck (str->_contents, len, mode, &err);
+  /* Make sure string isn't already normalized.  Use the quick check for
+     speed. We still go through the normalization if the quick check does not
+     return UNORM_YES. */
+  oldContents = (UniChar*)CFStringGetCharactersPtr (str);
+  oldContentsLength = CFStringGetLength (str);
+  checkResult = unorm_quickCheck (oldContents, oldContentsLength, mode, &err);
   if (U_FAILURE(err) || checkResult == UNORM_YES)
     return;
   
-  ubuffer = alloca (len * sizeof(UChar));
-  u_memcpy (ubuffer, (UChar*)str->_contents, len);
-  
-   Assume the resulting buffer is the same size.  We only reallocate
-     str's contents if the normalized string is larger than the 
-     unnormalized string. 
+  /* Works just like CFStringCaseMap() above... */
+  mStr = (struct __CFMutableString *)str;
   do
     {
-      err = U_ZERO_ERROR;
-      newLen = unorm_normalize (ubuffer, len, mode, 0,
-        (UChar*)str->_contents, len, &err);
+      newLength = unorm_normalize (mStr->_contents, mStr->_capacity, mode,
+        0, oldContents, oldContentsLength, &err);
     } while (err == U_BUFFER_OVERFLOW_ERROR
-             && CFStringCheckCapacityAndGrow(str, newLen, NULL)); */
-  return;
+        && CFStringCheckCapacityAndGrow(str, newLength, (void**)&oldContents));
+  if (U_FAILURE(err))
+    return;
+  
+  mStr->_count = newLength;
+  
+  if (oldContents != mStr->_contents)
+    CFAllocatorDeallocate (mStr->_allocator, (void*)oldContents);
 }
 
 Boolean
 CFStringTransform (CFMutableStringRef str, CFRange *range,
   CFStringRef transform, Boolean reverse)
 {
-/*#define UTRANS_LENGTH 128
+#define UTRANS_LENGTH 128
   struct __CFMutableString *mStr;
+  UniChar transID[UTRANS_LENGTH];
+  CFIndex idLength;
+  CFIndex newLength;
+  CFIndex start; 
+  CFIndex limit;
   UTransliterator *utrans;
-  UChar transID[UTRANS_LENGTH];
-  int32_t idLen;
-  int32_t limit;
   UTransDirection dir;
   UErrorCode err = U_ZERO_ERROR;
   
-  mStr = (struct __CFMutableString *)str;
-  
   dir = reverse ? UTRANS_REVERSE : UTRANS_FORWARD;
   
-  idLen = (int32_t)CFStringGetLength (str);
-  if (idLen > UTRANS_LENGTH)
-    idLen = UTRANS_LENGTH;
-  CFStringGetCharacters (str, CFRangeMake(0, idLen), transID);
-  utrans = utrans_openU (transID, idLen, dir, NULL, 0, NULL, &err);
+  idLength = CFStringGetLength (transform);
+  if (idLength > UTRANS_LENGTH)
+    idLength = UTRANS_LENGTH;
+  CFStringGetCharacters (transform, CFRangeMake(0, idLength), transID);
+  utrans = utrans_openU (transID, idLength, dir, NULL, 0, NULL, &err);
   if (U_FAILURE(err))
     return false;
   
-  do
+  newLength = CFStringGetLength (str);
+  if (range)
     {
-      newLen = utrans_transUChars (utrans, mStr->_contents, 
+      start = range->location;
+      limit = range->length + start;
+    }
+  else
+    {
+      start = 0;
+      limit = newLength;
+    }
+  
+  mStr = (struct __CFMutableString *)str;
+  utrans_transUChars (utrans, mStr->_contents, (int32_t*)&mStr->_count,
+    mStr->_capacity, start, (int32_t*)&limit, &err);
   if (U_FAILURE(err))
     return false;
-  */
+  utrans_close (utrans);
+  
+  if (range)
+    range->length = limit;
+  
   return true;
 }
 
