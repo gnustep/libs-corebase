@@ -1,5 +1,11 @@
 2011-05-30 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/internal.h: Define mutex functions to be used internally.
+	* Source/CFLocale.c:
+	* Source/CFRuntime.m: Use a mutex instead of spinlock.
+
+2011-05-30 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFString.c: Added CFStringNormalize and CFStringTransform.
 	* Source/NSCFString.m: Return CFString's type ID.
 

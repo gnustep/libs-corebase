@@ -31,7 +31,6 @@
 
 #include "CoreFoundation/CFNumberFormatter.h"
 
-#include <pthread.h>
 #include <unicode/uloc.h> // for ULOC_FULLNAME_CAPACITY
 #include <unicode/ucurr.h>
 #include <unicode/unum.h>
