@@ -1,4 +1,10 @@
-2011-05-30 Stefan Bidigaray <stefanbidi@gmail.com>
+2011-06-03 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFString.c: Implemented a few more functions.
+	* Headers/CoreFoundation/ForFoundationOnly.h: Added 2 more functions
+	to be used internally by CoreFoundation and Foundation.
+
+2011-05-31 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/internal.h: Define mutex functions to be used internally.
 	* Source/CFLocale.c:

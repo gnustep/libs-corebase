@@ -30,6 +30,8 @@
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStringEncodingExt.h>
 
+CF_EXTERN_C_BEGIN
+
 CF_INLINE Boolean
 __CFStringEncodingIsSupersetOfASCII (CFStringEncoding encoding)
 {
@@ -55,7 +57,7 @@ __CFStringEncodingIsSupersetOfASCII (CFStringEncoding encoding)
   return false;
 }
 
-CFIndex
+CF_EXPORT CFIndex
 __CFStringEncodeByteStream (CFStringRef string, CFIndex rangeLoc,
   CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding,
   char lossByte, UInt8 *buffer, CFIndex max, CFIndex *usedBufLen);
@@ -77,10 +79,22 @@ typedef struct
   UInt8          localBuffer[__kCFVarWidthLocalBufferSize];
 } CFVarWidthCharBuffer;
 
-Boolean
+CF_EXPORT Boolean
 __CFStringDecodeByteStream3 (const UInt8 *bytes, CFIndex len,
   CFStringEncoding encoding, Boolean alwaysUnicode,
   CFVarWidthCharBuffer *buffer, Boolean *useClientsMemoryPtr,
   UInt32 converterFlags);
+
+CF_EXPORT void
+_CFStringAppendFormatAndArgumentsAux (CFMutableStringRef outputString,
+  CFStringRef (*copyDescFunc)(void *, const void *loc),
+  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args);
+
+CF_EXPORT CFStringRef
+_CFStringCreateWithFormatAndArgumentsAux (CFAllocatorRef alloc,
+  CFStringRef (*copyDescFunc)(void *, const void *loc),
+  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args);
+
+CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_FORFOUNDATIONONLY__ */

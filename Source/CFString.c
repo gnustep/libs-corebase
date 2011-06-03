@@ -191,7 +191,6 @@ static CFHashCode CFStringHash (CFTypeRef cf)
   if (len > 0)
     {
       register CFIndex idx = 0;
-      register const UniChar *p = str->_contents;
       register const CFIndex len = str->_count;
       UChar32 c;
       
@@ -199,6 +198,7 @@ static CFHashCode CFStringHash (CFTypeRef cf)
          all bytes stored by CFString are guaranteed to be valid. */
       if (CFStringIsWide(str)) // UTF-16
         {
+          register const UniChar *p = str->_contents;
           U16_NEXT_UNSAFE(p, idx, c);
           while (idx < len)
             {
@@ -206,13 +206,14 @@ static CFHashCode CFStringHash (CFTypeRef cf)
               U16_NEXT_UNSAFE(p, idx, c);
             }
         }
-      else // UTF-8
+      else // ASCII
         {
-          U8_NEXT_UNSAFE(p, idx, c);
+          register const char *p = str->_contents;
+          c = *p;
           while (idx < len)
             {
               ret = (ret << 5) + ret + c;
-              U8_NEXT_UNSAFE(p, idx, c);
+              c = *(p++);
             }
         }
       
@@ -455,7 +456,8 @@ CFStringRef
 CFStringCreateWithFormatAndArguments (CFAllocatorRef alloc,
   CFDictionaryRef formatOptions, CFStringRef format, va_list arguments)
 {
-  return NULL; // FIXME
+  return _CFStringCreateWithFormatAndArgumentsAux (alloc, NULL,
+    formatOptions, format, arguments);
 }
 
 CFStringRef
@@ -604,6 +606,23 @@ CFStringIsSurrogateLowCharacter (UniChar character)
   return (Boolean)U16_IS_TRAIL(character);
 }
 
+CFStringRef
+_CFStringCreateWithFormatAndArgumentsAux (CFAllocatorRef alloc,
+  CFStringRef (*copyDescFunc)(void *, const void *loc),
+  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args)
+{
+  CFStringRef ret;
+  CFMutableStringRef string;
+  
+  string = CFStringCreateMutable (alloc, 0);
+  _CFStringAppendFormatAndArgumentsAux (string, copyDescFunc, formatOptions,
+    formatString, args);
+  
+  ret = CFStringCreateCopy (alloc, string);
+  CFRelease (string);
+  return ret;
+}
+
 
 
 /* CFMutableString functions start here. 
@@ -619,25 +638,27 @@ static Boolean
 CFStringCheckCapacityAndGrow (CFMutableStringRef str, CFIndex newCapacity,
   void **oldContentBuffer)
 {
+  void *currentContents;
+  void *newContents;
   struct __CFMutableString *mStr = (struct __CFMutableString *)str;
   
   if (mStr->_capacity >= newCapacity)
-    return false;
+    return true;
   
-  if (oldContentBuffer)
-    *oldContentBuffer = mStr->_contents;
-  else
-    CFAllocatorDeallocate (mStr->_allocator, mStr->_contents);
+  currentContents = mStr->_contents;
   
-  mStr->_contents = CFAllocatorAllocate (mStr->_allocator,
+  newContents = CFAllocatorAllocate (mStr->_allocator,
     (newCapacity * sizeof(UniChar)), 0);
-  if (mStr->_contents == NULL)
-    {
-      mStr->_capacity = 0;
+  if (newContents == NULL)
       return false;
-    }
+  mStr->_contents = newContents;
   mStr->_capacity = newCapacity;
   mStr->_hash = 0;
+  
+  if (oldContentBuffer)
+    *oldContentBuffer = currentContents;
+  else
+    CFAllocatorDeallocate (mStr->_allocator, currentContents);
   
   return true;
 }
@@ -732,9 +753,9 @@ CFStringFindAndReplace (CFMutableStringRef str, CFStringRef stringToFind,
 }
 
 void
-CFStringAppend (CFMutableStringRef str, CFStringRef appendedString)
+CFStringAppend (CFMutableStringRef str, CFStringRef appendString)
 {
-  return; // FIXME
+  CFStringReplace (str, CFRangeMake(CFStringGetLength(str), 0), appendString);
 }
 
 void
@@ -748,24 +769,48 @@ void
 CFStringAppendCString (CFMutableStringRef str, const char *cStr,
   CFStringEncoding encoding)
 {
-  return; // FIXME
+  UniChar *uStr;
+  CFIndex numChars;
+  CFVarWidthCharBuffer buffer;
+  
+  if (encoding == kCFStringEncodingUTF16)
+    {
+      numChars = u_strlen ((const UChar*)cStr);
+      uStr = (UniChar*)cStr;
+    }
+  else
+    {
+      buffer.allocator = CFGetAllocator (str);
+      /* FIXME: not sure strlen will work here.  If encoding is UTF-16BE or
+         UTF-32, for example, you'd expect there to be 0 bytes in multiple
+         places. */
+      if (!__CFStringDecodeByteStream3 ((const UInt8*)cStr, strlen(cStr),
+          encoding, true, &buffer, NULL, 0))
+        return; // OH NO!!!
+      uStr = buffer.chars.u;
+      numChars = buffer.numChars;
+    }
+  
+  CFStringAppendCharacters (str, (const UniChar*)uStr, numChars);
+  if (buffer.shouldFreeChars)
+    CFAllocatorDeallocate (buffer.allocator, buffer.chars.u);
 }
 
 void
-CFStringAppendFormat (CFMutableStringRef str,
-  CFDictionaryRef formatOptions, CFStringRef format, ...)
+CFStringAppendFormat (CFMutableStringRef str, CFDictionaryRef options,
+  CFStringRef format, ...)
 {
   va_list args;
   va_start (args, format);
-  CFStringAppendFormatAndArguments (str, formatOptions, format, args);
+  _CFStringAppendFormatAndArgumentsAux (str, NULL, options, format, args);
   va_end (args);
 }
 
 void
 CFStringAppendFormatAndArguments (CFMutableStringRef str,
-  CFDictionaryRef formatOptions, CFStringRef format, va_list arguments)
+  CFDictionaryRef options, CFStringRef format, va_list args)
 {
-  return; // FIXME
+  _CFStringAppendFormatAndArgumentsAux (str, NULL, options, format, args);
 }
 
 void
@@ -817,7 +862,23 @@ CFStringReplace (CFMutableStringRef str, CFRange range,
 void
 CFStringReplaceAll (CFMutableStringRef theString, CFStringRef replacement)
 {
-  // FIXME
+  CFIndex newCapacity;
+  UniChar *uStr;
+  struct __CFMutableString *mStr;
+  
+  newCapacity = CFStringGetLength (replacement);
+  if (!CFStringCheckCapacityAndGrow(theString, newCapacity + 1, NULL))
+    return;
+  
+  mStr = (struct __CFMutableString*)theString;
+  uStr = (UniChar*)CFStringGetCharactersPtr (replacement);
+  if (uStr == NULL)
+    {
+      uStr = alloca (newCapacity * sizeof(UniChar));
+      CFStringGetCharacters (replacement, CFRangeMake(0, newCapacity), uStr);
+    }
+  
+  u_memcpy (mStr->_contents, uStr, newCapacity);
 }
 
 void
@@ -1020,6 +1081,13 @@ CFStringTransform (CFMutableStringRef str, CFRange *range,
   return true;
 }
 
+void
+_CFStringAppendFormatAndArgumentsAux (CFMutableStringRef outputString,
+  CFStringRef (*copyDescFunc)(void *, const void *loc),
+  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args)
+{
+  // FIXME
+}
 
 
 
