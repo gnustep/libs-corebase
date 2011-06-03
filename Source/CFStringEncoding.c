@@ -46,6 +46,8 @@ static const _str_encoding str_encoding_table[] =
 {
   { kCFStringEncodingUTF8, 0, "UTF-8", 0 },
   { kCFStringEncodingUTF16, 0, "UTF-16", 0 },
+  { kCFStringEncodingUTF16LE, 0, "UTF-16LE", 0 },
+  { kCFStringEncodingUTF16BE, 0, "UTF-16BE", 0 },
   { kCFStringEncodingInvalidId, 0, NULL, 0 }
 };
 
@@ -276,6 +278,7 @@ __CFStringEncodeByteStream (CFStringRef string, CFIndex rangeLoc,
       if (err == U_BUFFER_OVERFLOW_ERROR)
         {
           char ibuffer[256]; // Arbitrary buffer size
+          targetLimit = ibuffer + sizeof(ibuffer);
           do
             {
               target = ibuffer;

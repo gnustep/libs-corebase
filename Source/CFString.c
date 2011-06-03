@@ -213,7 +213,7 @@ static CFHashCode CFStringHash (CFTypeRef cf)
           while (idx < len)
             {
               ret = (ret << 5) + ret + c;
-              c = *(p++);
+              c = p[idx++];
             }
         }
       
@@ -280,6 +280,7 @@ CFShowStr (CFStringRef s)
   fprintf (stdout, "InlineContents %d\n", CFStringIsInline(s));
   fprintf (stdout, "Allocator %p\n", CFGetAllocator(s)); // FIXME: allocator name
   fprintf (stdout, "Mutable %d\n", CFStringIsMutable(s));
+  fprintf (stdout, "Contents ");
   u_fprintf (_ustdout, CFStringIsWide(s) ? "%S\n" : "%s\n", s->_contents);
 }
 
@@ -525,8 +526,13 @@ CFStringGetBytes (CFStringRef str, CFRange range,
 void
 CFStringGetCharacters (CFStringRef str, CFRange range, UniChar *buffer)
 {
+#if GS_WORDS_BIGENDIAN
+  CFStringEncoding enc = kCFStringENcodingUTF16BE;
+#else
+  CFStringEncoding enc = kCFStringEncodingUTF16LE;
+#endif
   __CFStringEncodeByteStream (str, range.location, range.length,
-    false, kCFStringEncodingUTF16, '?', (UInt8*)buffer, range.length, NULL);
+    false, enc, '?', (UInt8*)buffer, range.length * sizeof(UniChar), NULL);
 }
 
 Boolean
@@ -623,6 +629,18 @@ _CFStringCreateWithFormatAndArgumentsAux (CFAllocatorRef alloc,
   return ret;
 }
 
+double
+CFStringGetDoubleValue (CFStringRef str)
+{
+  return 0.0;
+}
+
+SInt32
+CFStringGetIntValue (CFStringRef str)
+{
+  return 0;
+}
+
 
 
 /* CFMutableString functions start here. 
@@ -714,15 +732,17 @@ CFStringCreateMutableCopy (CFAllocatorRef alloc, CFIndex maxLength,
   
   new = (struct __CFMutableString *)CFStringCreateMutable (alloc, maxLength);
   
-  textLen = CFStringGetLength (str);
+  textLen = CFStringGetLength(str);
+  if ( maxLength < textLen)
+    textLen = maxLength;
   text = (UniChar*)CFStringGetCharactersPtr (str);
   if (text == NULL)
     {
       text = alloca ((textLen) * sizeof(UniChar));
       CFStringGetCharacters (str, CFRangeMake(0, textLen), text);
     }
-  CFStringReplace_internal ((CFMutableStringRef)new, CFRangeMake(0, 0),
-    text, textLen);
+  u_memcpy (new->_contents, text, textLen);
+  new->_count = textLen;
   
   CFSTRING_INIT_MUTABLE(new);
   
@@ -879,6 +899,8 @@ CFStringReplaceAll (CFMutableStringRef theString, CFStringRef replacement)
     }
   
   u_memcpy (mStr->_contents, uStr, newCapacity);
+  mStr->_count = newCapacity;
+  mStr->_hash = 0;
 }
 
 void
@@ -930,13 +952,16 @@ CFStringCaseMap (CFMutableStringRef str, CFLocaleRef locale,
           case _kCFStringLowercase:
             newLength = u_strToLower (mStr->_contents, mStr->_capacity,
               oldContents, oldContentsLength, localeID, &err);
+            break;
           case _kCFStringUppercase:
             newLength = u_strToUpper (mStr->_contents, mStr->_capacity,
               oldContents, oldContentsLength, localeID, &err);
+            break;
           case _kCFStringFold:
             optFlags = 0; // FIXME
             newLength = u_strFoldCase (mStr->_contents, mStr->_capacity,
               oldContents, oldContentsLength, optFlags, &err);
+            break;
           default:
             return;
         }
