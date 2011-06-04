@@ -399,6 +399,7 @@ CFStringCreateByCombiningStrings (CFAllocatorRef alloc, CFArrayRef theArray,
 CFStringRef
 CFStringCreateCopy (CFAllocatorRef alloc, CFStringRef str)
 {
+  CFIndex length;
   CFStringRef new;
   CFStringEncoding enc;
   
@@ -408,9 +409,9 @@ CFStringCreateCopy (CFAllocatorRef alloc, CFStringRef str)
   if (CFGetAllocator(str) == alloc && !CFStringIsMutable(str))
     return CFRetain (str);
   
+  length = CFStringIsWide(str) ? str->_count * sizeof(UniChar) : str->_count;
   enc = CFStringIsWide(str) ? kCFStringEncodingUTF16 : kCFStringEncodingASCII;
-  new =
-    CFStringCreateWithBytes (alloc, str->_contents, str->_count, enc, false);
+  new = CFStringCreateWithBytes (alloc, str->_contents, length, enc, false);
   
   return new;
 }
@@ -864,7 +865,7 @@ CFStringAppendFormatAndArguments (CFMutableStringRef str,
 void
 CFStringDelete (CFMutableStringRef str, CFRange range)
 {
-  CFStringReplace (str, range, NULL);
+  CFStringReplace (str, range, CFSTR(""));
 }
 
 void
@@ -1059,6 +1060,7 @@ CFStringCaseMap (CFMutableStringRef str, CFLocaleRef locale,
     return;
   
   mStr->_count = newLength;
+  mStr->_hash = 0;
   
   if (oldContents != mStr->_contents)
     CFAllocatorDeallocate (mStr->_allocator, (void*)oldContents);
