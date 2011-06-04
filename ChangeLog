@@ -1,5 +1,10 @@
 2011-06-04 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFString.c: Implemented CFStringReplace().
+	* Tests/CFString/mutablestring.m: Added more tests.
+
+2011-06-04 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFString.c: Use CFStringInlineBuffer where appropriate.
 	Also added CFStringTimeWhitespace().
 	* Source/CFStringEncoding.c: Fixed bug a uncovered by tests.

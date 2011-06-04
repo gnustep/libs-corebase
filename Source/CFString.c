@@ -694,7 +694,11 @@ CFStringCheckCapacityAndGrow (CFMutableStringRef str, CFIndex newCapacity,
   struct __CFMutableString *mStr = (struct __CFMutableString *)str;
   
   if (mStr->_capacity >= newCapacity)
-    return true;
+    {
+      if (oldContentBuffer)
+        *oldContentBuffer = str->_contents;
+      return true;
+    }
   
   currentContents = mStr->_contents;
   
@@ -704,7 +708,6 @@ CFStringCheckCapacityAndGrow (CFMutableStringRef str, CFIndex newCapacity,
       return false;
   mStr->_contents = newContents;
   mStr->_capacity = newCapacity;
-  mStr->_hash = 0;
   
   if (oldContentBuffer)
     *oldContentBuffer = currentContents;
@@ -885,13 +888,45 @@ CFStringReplace (CFMutableStringRef str, CFRange range,
   CFIndex textLength;
   CFIndex repLength;
   CFIndex idx;
+  UniChar *contents;
   
+  textLength = CFStringGetLength (str);
   repLength = CFStringGetLength (replacement);
-  if (!CFRANGE_CHECK(repLength, range))
+  if (!CFRANGE_CHECK(textLength, range))
     return; // out of range
   
+  if (repLength != range.length)
+    {
+      UniChar *moveFrom;
+      UniChar *moveTo;
+      UniChar *oldContents;
+      CFIndex newLength;
+      CFIndex moveLength;
+      
+      newLength = textLength - range.length + repLength;
+      if (!CFStringCheckCapacityAndGrow(str, newLength, (void**)&oldContents))
+        return;
+      moveFrom = (oldContents + range.location + range.length);
+      moveTo = (((UniChar*)str->_contents) + range.location + repLength);
+      moveLength = textLength - (range.location + range.length);
+      memmove (moveTo, moveFrom, moveLength * sizeof(UniChar));
+      
+      if (oldContents != str->_contents)
+        CFAllocatorDeallocate (str->_deallocator, (void*)oldContents);
+      
+      textLength = newLength;
+    }
+  
   CFStringInitInlineBuffer (replacement, &buffer, CFRangeMake(0, repLength));
-  // FIXME: This is as far as I got this time around.
+  contents = (((UniChar*)str->_contents) + range.location);
+  idx = 0;
+  while (idx < repLength)
+    {
+      UniChar c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
+      *(contents++) = c;
+    }
+  str->_count = textLength;
+  str->_hash = 0;
 }
 
 void
@@ -1038,7 +1073,7 @@ CFStringCapitalize (CFMutableStringRef str, CFLocaleRef locale)
 void
 CFStringLowercase (CFMutableStringRef str, CFLocaleRef locale)
 {
-  CFStringCaseMap (str, locale, 0, _kCFStringCapitalize);
+  CFStringCaseMap (str, locale, 0, _kCFStringLowercase);
 }
 
 void
