@@ -389,7 +389,12 @@ __CFStringDecodeByteStream3 (const UInt8 *bytes, CFIndex len,
   */
   
   if (len == 0)
-    return true;
+    {
+      buffer->numChars = 0;
+      buffer->chars.c = "";
+      buffer->isASCII = true;
+      return true;
+    }
   
   if (useClientsMemoryPtr)
     *useClientsMemoryPtr = true;

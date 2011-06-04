@@ -27,6 +27,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <unicode/uchar.h>
 #include <unicode/unorm.h>
 #include <unicode/urep.h>
 #include <unicode/ustring.h>
@@ -42,6 +43,9 @@
 #include "CoreFoundation/CFStringEncodingExt.h"
 
 #include "CoreFoundation/ForFoundationOnly.h"
+
+#define CFRANGE_CHECK(len, range) \
+  ((range.location + range.length) <= len)
 
 /* CFString has two possible internal encodings:
      * UTF-16 (preferable)
@@ -365,7 +369,31 @@ CFStringRef
 CFStringCreateByCombiningStrings (CFAllocatorRef alloc, CFArrayRef theArray,
   CFStringRef separatorString)
 {
-  return NULL; // FIXME
+  CFIndex idx;
+  CFIndex count;
+  CFMutableStringRef string;
+  CFStringRef *strings;
+  CFStringRef ret;
+  
+  count = CFArrayGetCount (theArray);
+  if (count == 0)
+    return NULL;
+  strings = alloca (count * sizeof(CFStringRef));
+  CFArrayGetValues (theArray, CFRangeMake(0, count), (const void**)strings);
+  
+  string = CFStringCreateMutable (NULL, 0);
+  idx = 0;
+  while (idx < count)
+    {
+      CFStringRef currentString = strings[idx];
+      CFStringAppend (string, currentString);
+      CFStringAppend (string, separatorString);
+      ++idx;
+    }
+  
+  ret = CFStringCreateCopy (alloc, string);
+  CFRelease (string);
+  return ret;
 }
 
 CFStringRef
@@ -407,8 +435,13 @@ CFStringRef
 CFStringCreateWithCharacters (CFAllocatorRef alloc, const UniChar *chars,
   CFIndex numChars)
 {
+#if GS_WORDS_BIGENDIAN
+  CFStringEncoding enc = kCFStringENcodingUTF16BE;
+#else
+  CFStringEncoding enc = kCFStringEncodingUTF16LE;
+#endif
   return CFStringCreateWithBytes (alloc, (const UInt8*)chars,
-    numChars * sizeof(UniChar), kCFStringEncodingUnicode, false);
+    numChars * sizeof(UniChar), enc, false);
 }
 
 CFStringRef
@@ -681,18 +714,6 @@ CFStringCheckCapacityAndGrow (CFMutableStringRef str, CFIndex newCapacity,
   return true;
 }
 
-/* This function will replace characters in a specified range with the
-   characters in the text parameter of textLen length.  If range.length is
-   0, this function will insert the text at the specified location.  If
-   text is NULL, this function will delete the text in range (textLen is
-   disregarded). */
-static inline void
-CFStringReplace_internal (CFMutableStringRef str, CFRange range,
-  UniChar *text, CFIndex textLen)
-{
-  
-}
-
 #define DEFAULT_STRING_CAPACITY 16
 
 #define CFSTRING_INIT_MUTABLE(str) do \
@@ -713,7 +734,7 @@ CFStringCreateMutable (CFAllocatorRef alloc, CFIndex maxLength)
   
   new->_capacity =
     maxLength < DEFAULT_STRING_CAPACITY ? DEFAULT_STRING_CAPACITY : maxLength;
-  new->_allocator = alloc;
+  new->_allocator = alloc ? alloc : CFAllocatorGetDefault();
   new->_contents = CFAllocatorAllocate (new->_allocator,
     new->_capacity * sizeof(UniChar), 0);
   
@@ -726,27 +747,31 @@ CFMutableStringRef
 CFStringCreateMutableCopy (CFAllocatorRef alloc, CFIndex maxLength,
   CFStringRef str)
 {
-  struct __CFMutableString *new;
-  UniChar *text;
+  CFMutableStringRef new;
+  CFStringInlineBuffer buffer;
+  UniChar *contents;
   CFIndex textLen;
-  
-  new = (struct __CFMutableString *)CFStringCreateMutable (alloc, maxLength);
+  CFIndex idx;
   
   textLen = CFStringGetLength(str);
-  if ( maxLength < textLen)
+  if (maxLength < textLen)
     textLen = maxLength;
-  text = (UniChar*)CFStringGetCharactersPtr (str);
-  if (text == NULL)
+  new = (CFMutableStringRef)CFStringCreateMutable (alloc, textLen);
+  
+  // An inline buffer is going to work well here...
+  CFStringInitInlineBuffer (str, &buffer, CFRangeMake(0, textLen));
+  contents = (UniChar*)new->_contents;
+  idx = 0;
+  while (idx < textLen)
     {
-      text = alloca ((textLen) * sizeof(UniChar));
-      CFStringGetCharacters (str, CFRangeMake(0, textLen), text);
+      UniChar c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
+      *(contents++) = c;
     }
-  u_memcpy (new->_contents, text, textLen);
   new->_count = textLen;
   
   CFSTRING_INIT_MUTABLE(new);
   
-  return (CFMutableStringRef)new;
+  return new;
 }
 
 CFMutableStringRef
@@ -836,23 +861,13 @@ CFStringAppendFormatAndArguments (CFMutableStringRef str,
 void
 CFStringDelete (CFMutableStringRef str, CFRange range)
 {
-  CFStringReplace_internal (str, range, NULL, 0);
+  CFStringReplace (str, range, NULL);
 }
 
 void
 CFStringInsert (CFMutableStringRef str, CFIndex idx, CFStringRef insertedStr)
 {
-  UniChar *text;
-  CFIndex textLen;
-  
-  textLen = CFStringGetLength (insertedStr);
-  text = (UniChar*)CFStringGetCharactersPtr (insertedStr);
-  if (text == NULL)
-    {
-      text = alloca (textLen * sizeof(UniChar));
-      CFStringGetCharacters (str, CFRangeMake(0, textLen), text);
-    }
-  CFStringReplace_internal (str, CFRangeMake(idx, 0), text, textLen);
+  CFStringReplace (str, CFRangeMake(idx, 0), insertedStr);
 }
 
 void
@@ -866,41 +881,44 @@ void
 CFStringReplace (CFMutableStringRef str, CFRange range,
   CFStringRef replacement)
 {
-  UniChar *text;
-  CFIndex textLen;
+  CFStringInlineBuffer buffer;
+  CFIndex textLength;
+  CFIndex repLength;
+  CFIndex idx;
   
-  textLen = CFStringGetLength (replacement);
-  text = (UniChar*)CFStringGetCharactersPtr (replacement);
-  if (text == NULL)
-    {
-      text = alloca (textLen * sizeof(UniChar));
-      CFStringGetCharacters (str, CFRangeMake(0, textLen), text);
-    }
-  CFStringReplace_internal (str, range, text, textLen);
+  repLength = CFStringGetLength (replacement);
+  if (!CFRANGE_CHECK(repLength, range))
+    return; // out of range
+  
+  CFStringInitInlineBuffer (replacement, &buffer, CFRangeMake(0, repLength));
+  // FIXME: This is as far as I got this time around.
 }
 
 void
 CFStringReplaceAll (CFMutableStringRef theString, CFStringRef replacement)
 {
-  CFIndex newCapacity;
-  UniChar *uStr;
-  struct __CFMutableString *mStr;
+  CFStringInlineBuffer buffer;
+  CFIndex textLength;
+  CFIndex idx;
+  UniChar *contents;
   
-  newCapacity = CFStringGetLength (replacement);
-  if (!CFStringCheckCapacityAndGrow(theString, newCapacity + 1, NULL))
+  /* This function is very similar to CFStringReplace() but takes a few
+     shortcuts and should be a little fast if all you need to do is replace
+     the whole string. */
+  textLength = CFStringGetLength (replacement);
+  if (!CFStringCheckCapacityAndGrow(theString, textLength + 1, NULL))
     return;
   
-  mStr = (struct __CFMutableString*)theString;
-  uStr = (UniChar*)CFStringGetCharactersPtr (replacement);
-  if (uStr == NULL)
+  CFStringInitInlineBuffer (replacement, &buffer, CFRangeMake(0, textLength));
+  contents = (UniChar*)theString->_contents;
+  idx = 0;
+  while (idx < textLength)
     {
-      uStr = alloca (newCapacity * sizeof(UniChar));
-      CFStringGetCharacters (replacement, CFRangeMake(0, newCapacity), uStr);
+      UniChar c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
+      *(contents++) = c;
     }
-  
-  u_memcpy (mStr->_contents, uStr, newCapacity);
-  mStr->_count = newCapacity;
-  mStr->_hash = 0;
+  theString->_count = textLength;
+  theString->_hash = 0;
 }
 
 void
@@ -912,7 +930,42 @@ CFStringTrim (CFMutableStringRef str, CFStringRef trimString)
 void
 CFStringTrimWhitespace (CFMutableStringRef str)
 {
-  return; // FIXME
+  CFStringInlineBuffer buffer;
+  CFIndex start;
+  CFIndex end;
+  CFIndex textLength;
+  CFIndex newLength;
+  CFIndex idx;
+  UniChar c;
+  UniChar *contents;
+  UniChar *contentsStart;
+  
+  /* I assume that the resulting string will be shorter than the original
+     so no bounds checking is done. */
+  textLength = CFStringGetLength (str);
+  CFStringInitInlineBuffer (str, &buffer, CFRangeMake(0, textLength));
+  
+  idx = 0;
+  c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
+  while (u_isUWhiteSpace((UChar32)c) && idx < textLength)
+    c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
+  start = idx - 1;
+  end = start;
+  while (idx < textLength)
+    {
+      c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
+      // reset the end point
+      if (!u_isUWhiteSpace((UChar32)c))
+        end = idx;
+    }
+  
+  newLength = end - start;
+  contents = (UniChar*)str->_contents;
+  contentsStart = (UniChar*)(contents + start);
+  memmove (contents, contentsStart, newLength * sizeof(UniChar));
+  
+  str->_count = newLength;
+  str->_hash = 0;
 }
 
 enum
@@ -1022,6 +1075,11 @@ void
 CFStringNormalize (CFMutableStringRef str,
   CFStringNormalizationForm theForm)
 {
+  /* FIXME: The unorm API has been officially deprecated on ICU 4.8, however,
+     the new unorm2 API was only introduced on ICU 4.4.  The current plan is
+     to provide compatibility down to ICU 4.0, so unorm is used here.  In
+     the future, when we no longer support building with older versions of
+     the library this code can be updated for the new API. */
   UniChar *oldContents;
   CFIndex oldContentsLength;
   CFIndex newLength;

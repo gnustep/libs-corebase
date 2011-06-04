@@ -1,3 +1,17 @@
+2011-06-04 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFString.c: Use CFStringInlineBuffer where appropriate.
+	Also added CFStringTimeWhitespace().
+	* Source/CFStringEncoding.c: Fixed bug a uncovered by tests.
+	* Tests/CFString/create.m:
+	* Tests/CFString/mutablestring.m: Added a few more tests.
+
+2011-06-03 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFString.c:
+	* Source/CFStringEncoding.c: Fixed bugs uncovered by tests.
+	* Tests/CFString/mutablestring.m: Added CFMutableString tests.
+
 2011-06-03 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFString.c: Implemented a few more functions.
