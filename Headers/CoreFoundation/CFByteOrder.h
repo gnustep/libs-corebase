@@ -5,7 +5,10 @@
    Written by: Eric Wasylishen
    Date: June, 2010
    
-   This file is part of CoreBase.
+   Most of the code here was copied from NSByteOrder.h in GNUstep-base
+   written by Richard Frith-Macdonald.
+   
+   This file is part of GNUstep CoreBase Library.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,7 +32,8 @@
 
 #include <CoreFoundation/CFBase.h>
 
-typedef enum {
+typedef enum
+{
   CFByteOrderUnknown,
   CFByteOrderLittleEndian,
   CFByteOrderBigEndian
@@ -38,76 +42,281 @@ typedef enum {
 typedef uint32_t CFSwappedFloat32;  /* Same as GNUstep NSSwappedFloat */
 typedef uint64_t CFSwappedFloat64;  /* Same as GNUstep NSSwappedDouble */
 
-CFByteOrder
-CFByteOrderGetCurrent();
+static inline CFByteOrder
+CFByteOrderGetCurrent()
+{
+#if GS_WORDS_BIGENDIAN
+  return CFByteOrderBigEndian;
+#else
+  return CFByteOrderLittleEndian;
+#endif
+}
 
-CFSwappedFloat64
-CFConvertDoubleHostToSwapped(double in);
+static inline uint16_t
+CFSwapInt16(uint16_t in)
+{
+  union swap
+    {
+      uint16_t num;
+      uint8_t  byt[2];
+    } dst;
+  union swap *src = (union swap*)&in;
+  dst.byt[0] = src->byt[1];
+  dst.byt[1] = src->byt[0];
+  return dst.num;
+}
 
-double
-CFConvertDoubleSwappedToHost(CFSwappedFloat64 in);
+static inline uint32_t
+CFSwapInt32(uint32_t in)
+{
+  union swap
+    {
+      uint32_t num;
+      uint8_t  byt[4];
+    } dst;
+  union swap *src = (union swap*)&in;
+  dst.byt[0] = src->byt[3];
+  dst.byt[1] = src->byt[2];
+  dst.byt[2] = src->byt[1];
+  dst.byt[3] = src->byt[0];
+  return dst.num;
+}
 
-CFSwappedFloat32
-CFConvertFloat32HostToSwapped(Float32 in);
+static inline uint64_t
+CFSwapInt64(uint64_t in)
+{
+  union swap
+    {
+      uint64_t num;
+      uint8_t  byt[8];
+    } dst;
+  union swap *src = (union swap*)&in;
+  dst.byt[0] = src->byt[7];
+  dst.byt[1] = src->byt[6];
+  dst.byt[2] = src->byt[5];
+  dst.byt[3] = src->byt[4];
+  dst.byt[4] = src->byt[3];
+  dst.byt[5] = src->byt[2];
+  dst.byt[6] = src->byt[1];
+  dst.byt[7] = src->byt[0];
+  return dst.num;
+}
 
-Float32
-CFConvertFloat32SwappedToHost(CFSwappedFloat32 in);
 
-CFSwappedFloat64
-CFConvertFloat64HostToSwapped(Float64 in);
 
-Float64
-CFConvertFloat64SwappedToHost(CFSwappedFloat64 in);
+#if GS_WORDS_BIGENDIAN
 
-CFSwappedFloat32
-CFConvertFloatHostToSwapped(float in);
+static inline uint16_t
+CFSwapInt16BigToHost(uint16_t in)
+{
+  return in;
+}
 
-float
-CFConvertFloatSwappedToHost(CFSwappedFloat32 in);
+static inline uint16_t
+CFSwapInt16HostToBig(uint16_t in)
+{
+  return in;
+}
+static inline uint16_t
+CFSwapInt16HostToLittle(uint16_t in)
+{
+  return CFSwapInt16(in);
+}
 
-uint16_t
-CFSwapInt16(uint16_t in);
+static inline uint16_t
+CFSwapInt16LittleToHost(uint16_t in)
+{
+  return CFSwapInt16(in);
+}
 
-uint16_t
-CFSwapInt16BigToHost(uint16_t in);
+static inline uint32_t
+CFSwapInt32BigToHost(uint32_t in)
+{
+  return in;
+}
 
-uint16_t
-CFSwapInt16HostToBig(uint16_t in);
+static inline uint32_t
+CFSwapInt32HostToBig(uint32_t in)
+{
+  return in;
+}
 
-uint16_t
-CFSwapInt16HostToLittle(uint16_t in);
+static inline uint32_t
+CFSwapInt32HostToLittle(uint32_t in)
+{
+  return CFSwapInt32(in);
+}
 
-uint16_t
-CFSwapInt16LittleToHost(uint16_t in);
+static inline uint32_t
+CFSwapInt32LittleToHost(uint32_t in)
+{
+  return CFSwapInt32(in);
+}
 
-uint32_t
-CFSwapInt32(uint32_t in);
+static inline uint64_t
+CFSwapInt64BigToHost(uint64_t in)
+{
+  return in;
+}
 
-uint32_t
-CFSwapInt32BigToHost(uint32_t in);
+static inline uint64_t
+CFSwapInt64HostToBig(uint64_t in)
+{
+  return in;
+}
 
-uint32_t
-CFSwapInt32HostToBig(uint32_t in);
+static inline uint64_t
+CFSwapInt64HostToLittle(uint64_t in)
+{
+  return CFSwapInt64(in);
+}
 
-uint32_t
-CFSwapInt32HostToLittle(uint32_t in);
+static inline uint64_t
+CFSwapInt64LittleToHost(uint64_t in)
+{
+  return CFSwapInt64(in);
+}
 
-uint32_t
-CFSwapInt32LittleToHost(uint32_t in);
+#else
 
-uint64_t
-CFSwapInt64(uint64_t in);
+static inline uint16_t
+CFSwapInt16BigToHost(uint16_t in)
+{
+  return CFSwapInt16(in);
+}
 
-uint64_t
-CFSwapInt64BigToHost(uint64_t in);
+static inline uint16_t
+CFSwapInt16HostToBig(uint16_t in)
+{
+  return CFSwapInt16(in);
+}
+static inline uint16_t
+CFSwapInt16HostToLittle(uint16_t in)
+{
+  return in;
+}
 
-uint64_t
-CFSwapInt64HostToBig(uint64_t in);
+static inline uint16_t
+CFSwapInt16LittleToHost(uint16_t in)
+{
+  return in;
+}
 
-uint64_t
-CFSwapInt64HostToLittle(uint64_t in);
+static inline uint32_t
+CFSwapInt32BigToHost(uint32_t in)
+{
+  return CFSwapInt32(in);
+}
 
-uint64_t
-CFSwapInt64LittleToHost(uint64_t in);
+static inline uint32_t
+CFSwapInt32HostToBig(uint32_t in)
+{
+  return CFSwapInt32(in);
+}
+
+static inline uint32_t
+CFSwapInt32HostToLittle(uint32_t in)
+{
+  return in;
+}
+
+static inline uint32_t
+CFSwapInt32LittleToHost(uint32_t in)
+{
+  return in;
+}
+
+static inline uint64_t
+CFSwapInt64BigToHost(uint64_t in)
+{
+  return CFSwapInt64(in);
+}
+
+static inline uint64_t
+CFSwapInt64HostToBig(uint64_t in)
+{
+  return CFSwapInt64(in);
+}
+
+static inline uint64_t
+CFSwapInt64HostToLittle(uint64_t in)
+{
+  return in;
+}
+
+static inline uint64_t
+CFSwapInt64LittleToHost(uint64_t in)
+{
+  return in;
+}
+
+#endif
+
+
+
+union dconv
+{
+  double           d;
+  Float64          num;
+  CFSwappedFloat64 sf;
+};
+
+union fconv
+{
+  float            f;
+  Float32          num;
+  CFSwappedFloat32 sf;
+};
+
+/* FIXME: Is all of this right?  GNUstep doesn't check for endianness
+   anywhere in it's SwappedFloat functions.  That just doesn't seem right. */
+
+static inline CFSwappedFloat64
+CFConvertFloat64HostToSwapped(Float64 in)
+{
+  return ((union dconv *)&in)->sf;
+}
+
+static inline Float64
+CFConvertFloat64SwappedToHost(CFSwappedFloat64 in)
+{
+  return ((union dconv *)&in)->num;
+}
+
+static inline CFSwappedFloat64
+CFConvertDoubleHostToSwapped(double in)
+{
+  return ((union dconv *)&in)->sf;
+}
+
+static inline double
+CFConvertDoubleSwappedToHost(CFSwappedFloat64 in)
+{
+  return ((union dconv *)&in)->d;
+}
+
+static inline CFSwappedFloat32
+CFConvertFloat32HostToSwapped(Float32 in)
+{
+  return ((union fconv *)&in)->sf;
+}
+
+static inline Float32
+CFConvertFloat32SwappedToHost(CFSwappedFloat32 in)
+{
+  return ((union fconv *)&in)->num;
+}
+
+static inline CFSwappedFloat32
+CFConvertFloatHostToSwapped(float in)
+{
+  return ((union fconv *)&in)->sf;
+}
+
+static inline float
+CFConvertFloatSwappedToHost(CFSwappedFloat32 in)
+{
+  return ((union fconv *)&in)->f;
+}
 
 #endif /* __COREFOUNDATION_CFBYTEORDER_H__ */
