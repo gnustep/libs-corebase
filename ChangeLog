@@ -1,3 +1,9 @@
+2011-06-09 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GNUmakefile:
+	* Source/CFByteOrder.c: Delete CFByteOrder.c.
+	* Headers/CoreFoundation/CFByteOrder.h: Inline byte order functions.
+
 2011-06-04 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFString.c: Fixed a few bugs.
