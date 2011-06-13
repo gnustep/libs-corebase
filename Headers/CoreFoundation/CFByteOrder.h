@@ -268,55 +268,60 @@ union fconv
   CFSwappedFloat32 sf;
 };
 
-/* FIXME: Is all of this right?  GNUstep doesn't check for endianness
-   anywhere in it's SwappedFloat functions.  That just doesn't seem right. */
-
 static inline CFSwappedFloat64
 CFConvertFloat64HostToSwapped(Float64 in)
 {
-  return ((union dconv *)&in)->sf;
+  union dconv conv.num = in;
+  return CFSwapInt64 (conv.sf);
 }
 
 static inline Float64
 CFConvertFloat64SwappedToHost(CFSwappedFloat64 in)
 {
-  return ((union dconv *)&in)->num;
+  union dconv conv.sf = CFSwapInt64 (in);
+  return conv.num;
 }
 
 static inline CFSwappedFloat64
 CFConvertDoubleHostToSwapped(double in)
 {
-  return ((union dconv *)&in)->sf;
+  union dconv conv.d = in;
+  return CFSwapInt64 (conv.sf);
 }
 
 static inline double
 CFConvertDoubleSwappedToHost(CFSwappedFloat64 in)
 {
-  return ((union dconv *)&in)->d;
+  union dconv conv.sf = CFSwapInt64 (in);
+  return conv.d;
 }
 
 static inline CFSwappedFloat32
 CFConvertFloat32HostToSwapped(Float32 in)
 {
-  return ((union fconv *)&in)->sf;
+  union fconv conv.num = in;
+  return CFSwapInt32 (conv.sf);
 }
 
 static inline Float32
 CFConvertFloat32SwappedToHost(CFSwappedFloat32 in)
 {
-  return ((union fconv *)&in)->num;
+  union fconv conv.sf = CFSwapInt32 (in);
+  return conv.num;
 }
 
 static inline CFSwappedFloat32
 CFConvertFloatHostToSwapped(float in)
 {
-  return ((union fconv *)&in)->sf;
+  union fconv conv.f = in;
+  return CFSwapInt32 (conv.sf);
 }
 
 static inline float
 CFConvertFloatSwappedToHost(CFSwappedFloat32 in)
 {
-  return ((union fconv *)&in)->f;
+  union fconv conv.sf = CFSwapInt32 (in);
+  return conv.f;
 }
 
 #endif /* __COREFOUNDATION_CFBYTEORDER_H__ */

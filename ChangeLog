@@ -1,3 +1,8 @@
+2011-06-13 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFByteOrder.h: Actually swap byte order in
+	CFSwappedFloat functions.
+
 2011-06-09 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GNUmakefile:
