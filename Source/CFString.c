@@ -29,7 +29,6 @@
 #include <pthread.h>
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
-#include <unicode/urep.h>
 #include <unicode/ustring.h>
 #include <unicode/utrans.h>
 #include <unicode/ustdio.h>
@@ -420,7 +419,8 @@ CFStringRef
 CFStringCreateWithFileSystemRepresentation (CFAllocatorRef alloc,
   const char *buffer)
 {
-  return NULL; // FIXME
+  // FIXME: Need to make sure the system encoding will work here.
+  return CFStringCreateWithCString(alloc, buffer, CFStringGetSystemEncoding());
 }
 
 CFStringRef
@@ -590,7 +590,9 @@ Boolean
 CFStringGetFileSystemRepresentation (CFStringRef string, char *buffer,
   CFIndex maxBufLen)
 {
-  return false; // FIXME
+  // FIXME
+  return CFStringGetCString (string, buffer, maxBufLen,
+    CFStringGetSystemEncoding());
 }
 
 
@@ -644,23 +646,6 @@ Boolean
 CFStringIsSurrogateLowCharacter (UniChar character)
 {
   return (Boolean)U16_IS_TRAIL(character);
-}
-
-CFStringRef
-_CFStringCreateWithFormatAndArgumentsAux (CFAllocatorRef alloc,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args)
-{
-  CFStringRef ret;
-  CFMutableStringRef string;
-  
-  string = CFStringCreateMutable (alloc, 0);
-  _CFStringAppendFormatAndArgumentsAux (string, copyDescFunc, formatOptions,
-    formatString, args);
-  
-  ret = CFStringCreateCopy (alloc, string);
-  CFRelease (string);
-  return ret;
 }
 
 double
@@ -1199,14 +1184,6 @@ CFStringTransform (CFMutableStringRef str, CFRange *range,
     range->length = limit;
   
   return true;
-}
-
-void
-_CFStringAppendFormatAndArgumentsAux (CFMutableStringRef outputString,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args)
-{
-  // FIXME
 }
 
 

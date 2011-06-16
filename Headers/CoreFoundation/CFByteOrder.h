@@ -269,58 +269,66 @@ union fconv
 };
 
 static inline CFSwappedFloat64
-CFConvertFloat64HostToSwapped(Float64 in)
+CFConvertFloat64HostToSwapped (Float64 in)
 {
-  union dconv conv.num = in;
+  union dconv conv;
+  conv.num = in;
   return CFSwapInt64 (conv.sf);
 }
 
 static inline Float64
-CFConvertFloat64SwappedToHost(CFSwappedFloat64 in)
+CFConvertFloat64SwappedToHost (CFSwappedFloat64 in)
 {
-  union dconv conv.sf = CFSwapInt64 (in);
+  union dconv conv;
+  conv.sf = CFSwapInt64 (in);
   return conv.num;
 }
 
 static inline CFSwappedFloat64
-CFConvertDoubleHostToSwapped(double in)
+CFConvertDoubleHostToSwapped (double in)
 {
-  union dconv conv.d = in;
+  union dconv conv;
+  conv.d = in;
   return CFSwapInt64 (conv.sf);
 }
 
 static inline double
 CFConvertDoubleSwappedToHost(CFSwappedFloat64 in)
 {
-  union dconv conv.sf = CFSwapInt64 (in);
+  union dconv conv;
+  conv.sf = CFSwapInt64 (in);
   return conv.d;
 }
 
 static inline CFSwappedFloat32
 CFConvertFloat32HostToSwapped(Float32 in)
 {
-  union fconv conv.num = in;
+  union fconv conv;
+  conv.num = in;
   return CFSwapInt32 (conv.sf);
 }
 
 static inline Float32
 CFConvertFloat32SwappedToHost(CFSwappedFloat32 in)
 {
-  union fconv conv.sf = CFSwapInt32 (in);
+  union fconv conv;
+  conv.sf = CFSwapInt32 (in);
   return conv.num;
 }
 
 static inline CFSwappedFloat32
 CFConvertFloatHostToSwapped(float in)
 {
-  union fconv conv.f = in;
+  union fconv conv;
+  conv.f = in;
   return CFSwapInt32 (conv.sf);
 }
 
 static inline float
 CFConvertFloatSwappedToHost(CFSwappedFloat32 in)
 {
-  union fconv conv.sf = CFSwapInt32 (in);
+  union fconv conv;
+  conv.sf = CFSwapInt32 (in);
   return conv.f;
 }
 

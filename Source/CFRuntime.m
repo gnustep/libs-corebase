@@ -27,10 +27,10 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
 
+#include <pthread.h>
+
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
-
-#include "internal.h"
 
 #import "NSCFType.h"
 
@@ -42,7 +42,7 @@ Class *__CFRuntimeObjCClassTable = NULL;
 static UInt32 __CFRuntimeClassTableCount = 0;
 static UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
 
-static _mutex_t _kCFRuntimeTableLock;
+static pthread_mutex_t _kCFRuntimeTableLock = PTHREAD_MUTEX_INITIALIZER;
 
 static Class NSCFTypeClass = Nil;
 
@@ -122,7 +122,7 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
 {
   CFTypeID ret;
   
-  _mutex_lock (&_kCFRuntimeTableLock);
+  pthread_mutex_lock (&_kCFRuntimeTableLock);
   if(__CFRuntimeClassTableCount >= __CFRuntimeClassTableSize)
     {
       NSLog (@"CoreBase class table is full, cannot register class %s",
@@ -133,7 +133,7 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
   __CFRuntimeClassTable[__CFRuntimeClassTableCount] = (CFRuntimeClass *)cls;
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   ret = __CFRuntimeClassTableCount++;
-  _mutex_unlock (&_kCFRuntimeTableLock);
+  pthread_mutex_unlock (&_kCFRuntimeTableLock);
   
   return ret;
 }
@@ -415,8 +415,6 @@ void CFInitialize (void)
                             sizeof(CFRuntimeClass *));
   __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
                       	        sizeof(Class));
-  
-  _mutex_init (&_kCFRuntimeTableLock);
   
   NSCFTypeClass = [NSCFType class];
   

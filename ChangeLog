@@ -1,3 +1,13 @@
+2011-06-15 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m:
+	* Source/CFLocale.c: Use pthread directly.
+	* Source/internal.h: Delete.
+	* Source/CFString.c: Added *FileSystemRepresentation functions.
+	* Source/CFStringEncoding.c: Implemented more encoding functions.
+	* Source/CFStringFormat.c: New file for CFString formatting functions.
+	* Headers/CoreFoundation/CFByteOrder.h: Fix compile mistake.
+
 2011-06-13 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CFByteOrder.h: Actually swap byte order in
