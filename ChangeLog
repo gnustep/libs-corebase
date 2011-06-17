@@ -1,5 +1,9 @@
 2011-06-15 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFString.c: Added CFStringAppendCharacters()
+
+2011-06-15 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFRuntime.m:
 	* Source/CFLocale.c: Use pthread directly.
 	* Source/internal.h: Delete.

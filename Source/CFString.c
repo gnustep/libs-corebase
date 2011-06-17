@@ -768,14 +768,14 @@ CFStringCreateMutableWithExternalCharactersNoCopy (CFAllocatorRef alloc,
   UniChar *chars, CFIndex numChars, CFIndex capacity,
   CFAllocatorRef externalCharactersAllocator)
 {
-  return NULL;
+  return NULL; // FIXME
 }
 
 void
 CFStringSetExternalCharactersNoCopy (CFMutableStringRef str, UniChar *chars,
   CFIndex length, CFIndex capacity)
 {
-  return;
+  return; // FIXME
 }
 
 CFIndex
@@ -783,7 +783,7 @@ CFStringFindAndReplace (CFMutableStringRef str, CFStringRef stringToFind,
   CFStringRef replacementString, CFRange rangeToSearch,
   CFOptionFlags compareOptions)
 {
-  return 0;
+  return 0; // FIXME
 }
 
 void
@@ -796,7 +796,18 @@ void
 CFStringAppendCharacters (CFMutableStringRef str,
   const UniChar *chars, CFIndex numChars)
 {
-  return; // FIXME
+  CFIndex length;
+  void *contents;
+  
+  length = str->_count;
+  
+  if (CFStringCheckCapacityAndGrow(str, (length + numChars), &contents))
+    {
+      memcpy (str->_contents, contents, length * sizeof(UniChar));
+      CFAllocatorDeallocate (str->_deallocator, contents);
+    }
+  
+  memcpy (str->_contents + length, chars, sizeof(UniChar));
 }
 
 void
