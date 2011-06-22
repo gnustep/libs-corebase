@@ -27,6 +27,7 @@ libgnustep-corebase_C_FILES = \
   CFNumberFormatter.c \
   CFString.c \
   CFStringEncoding.c \
+  CFStringFormat.c \
   CFStringUtilities.c \
   CFUUID.c
 

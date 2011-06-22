@@ -724,6 +724,7 @@ __CFStringEncodeByteStream (CFStringRef string, CFIndex rangeLoc,
         }
       else /* Use UConverter */
         {
+          /* FIXME: This code path isn't work... need to figure out why. */
           CFIndex len;
           UConverter *ucnv;
           char *target = (char *)buffer;

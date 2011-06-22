@@ -560,11 +560,7 @@ CFStringGetBytes (CFStringRef str, CFRange range,
 void
 CFStringGetCharacters (CFStringRef str, CFRange range, UniChar *buffer)
 {
-#if GS_WORDS_BIGENDIAN
-  CFStringEncoding enc = kCFStringENcodingUTF16BE;
-#else
-  CFStringEncoding enc = kCFStringEncodingUTF16LE;
-#endif
+  CFStringEncoding enc = kCFStringEncodingUTF16;
   __CFStringEncodeByteStream (str, range.location, range.length,
     false, enc, '?', (UInt8*)buffer, range.length * sizeof(UniChar), NULL);
 }
@@ -801,13 +797,16 @@ CFStringAppendCharacters (CFMutableStringRef str,
   
   length = str->_count;
   
-  if (CFStringCheckCapacityAndGrow(str, (length + numChars), &contents))
+  if (CFStringCheckCapacityAndGrow(str, (length + numChars), &contents)
+      && contents != str->_contents)
     {
       memcpy (str->_contents, contents, length * sizeof(UniChar));
       CFAllocatorDeallocate (str->_deallocator, contents);
     }
   
-  memcpy (str->_contents + length, chars, sizeof(UniChar));
+  memcpy ((UniChar*)str->_contents + length, chars,
+    numChars * sizeof(UniChar));
+  str->_count = length + numChars;
 }
 
 void
@@ -903,6 +902,7 @@ CFStringReplace (CFMutableStringRef str, CFRange range,
       newLength = textLength - range.length + repLength;
       if (!CFStringCheckCapacityAndGrow(str, newLength, (void**)&oldContents))
         return;
+      memmove (str->_contents, oldContents, range.location * sizeof(UniChar));
       moveFrom = (oldContents + range.location + range.length);
       moveTo = (((UniChar*)str->_contents) + range.location + repLength);
       moveLength = textLength - (range.location + range.length);

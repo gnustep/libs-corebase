@@ -1,4 +1,12 @@
-2011-06-15 Stefan Bidigaray <stefanbidi@gmail.com>
+2011-06-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GNUmakefile: Added CFStringFormat.c to build.
+	* Source/CFString.c: Fixed bugs and added a work around.
+	* Source/CFStringFormat.c: Added, still incomplete, string formatting
+	code.
+	* Tests/CFString/format.m: String formatting tests.
+
+2011-06-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFString.c: Added CFStringAppendCharacters()
 

@@ -141,6 +141,8 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
 const CFRuntimeClass *
 _CFRuntimeGetClassWithTypeID (CFTypeID typeID)
 {
+  if (typeID > __CFRuntimeClassTableCount)
+    typeID = 0;
   return __CFRuntimeClassTable[typeID];
 }
 
