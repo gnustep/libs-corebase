@@ -1,3 +1,8 @@
+2011-06-22 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFUUID.c: Generate uuids using random function instead of
+	relying on libuuid.
+
 2011-06-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GNUmakefile: Added CFStringFormat.c to build.
