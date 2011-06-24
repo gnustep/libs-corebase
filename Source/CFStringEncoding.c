@@ -256,9 +256,12 @@ CFStringICUConverterOpen (CFStringEncoding encoding, char lossByte)
   converterName = CFStringICUConverterName (encoding);
   
   cnv = ucnv_open (converterName, &err);
+  if (U_FAILURE(err))
+    cnv = NULL;
   
   if (lossByte)
     {
+      /* FIXME: for some reason this is returning U_ILLEGAL_ARGUMENTS_ERROR */
       ucnv_setSubstChars (cnv, &lossByte, 1, &err);
     }
   else
@@ -268,9 +271,6 @@ CFStringICUConverterOpen (CFStringEncoding encoding, char lossByte)
       ucnv_setFromUCallBack (cnv, UCNV_FROM_U_CALLBACK_STOP, NULL, NULL, NULL,
         &err);
     }
-  
-  if (U_FAILURE(err))
-    cnv = NULL;
   
   return cnv;
 }
@@ -661,33 +661,49 @@ __CFStringEncodeByteStream (CFStringRef string, CFIndex rangeLoc,
   
   if (characters)
     {
-      UConverter *ucnv;
       const UniChar *source = (const UniChar *)(characters + rangeLoc);
       const UniChar *sourceLimit = (const UniChar *)(source + rangeLen);
-      char *target = (char *)buffer;
-      const char *targetLimit = (const char *)(target + max);
-      UErrorCode err = U_ZERO_ERROR;
       
-      ucnv = CFStringICUConverterOpen (encoding, lossByte);
-      
-      ucnv_fromUnicode (ucnv, &target, targetLimit, &source, sourceLimit,
-        NULL, true, &err);
-      bytesNeeded = (CFIndex)(target - (char*)buffer);
-      charactersConverted = bytesNeeded;
-      if (err == U_BUFFER_OVERFLOW_ERROR)
+      if (encoding == kCFStringEncodingUTF16)
         {
-          char ibuffer[256]; // Arbitrary buffer size
-          targetLimit = ibuffer + sizeof(ibuffer);
-          do
+          UniChar *target = (UniChar *)buffer;
+          UniChar *targetLimit = target + rangeLen;
+          while (source < sourceLimit)
             {
-              target = ibuffer;
-              ucnv_fromUnicode (ucnv, &target, targetLimit, &source,
-                sourceLimit, NULL, true, &err);
-              bytesNeeded += (CFIndex)(target - ibuffer);
-            } while (err == U_BUFFER_OVERFLOW_ERROR);
+              if (target < targetLimit)
+                *(target++) = *(source++);
+            }
+          bytesNeeded = (CFIndex)(sourceLimit - characters);
+          charactersConverted = (CFIndex)(target - (UniChar*)buffer);
         }
-      
-      CFStringICUConverterClose (ucnv);
+      else
+        {
+          char *target = (char *)buffer;
+          const char *targetLimit = (const char *)(target + max);
+          UConverter *ucnv;
+          UErrorCode err = U_ZERO_ERROR;
+          
+          ucnv = CFStringICUConverterOpen (encoding, lossByte);
+          
+          ucnv_fromUnicode (ucnv, &target, targetLimit, &source, sourceLimit,
+            NULL, true, &err);
+          bytesNeeded = (CFIndex)(target - (char*)buffer);
+          charactersConverted = bytesNeeded;
+          if (err == U_BUFFER_OVERFLOW_ERROR)
+            {
+              char ibuffer[256]; // Arbitrary buffer size
+              targetLimit = ibuffer + sizeof(ibuffer);
+              do
+                {
+                  target = ibuffer;
+                  ucnv_fromUnicode (ucnv, &target, targetLimit, &source,
+                    sourceLimit, NULL, true, &err);
+                  bytesNeeded += (CFIndex)(target - ibuffer);
+                } while (err == U_BUFFER_OVERFLOW_ERROR);
+            }
+          
+          CFStringICUConverterClose (ucnv);
+        }
     }
   else /* CFString is ASCII */
     {

@@ -26,6 +26,7 @@
 
 #include <unicode/ubrk.h>
 #include <unicode/ucol.h>
+#include <unicode/uloc.h>
 #include <unicode/usearch.h>
 
 #include "CoreFoundation/CFBase.h"
@@ -40,6 +41,7 @@ static inline UCollator *
 CFStringICUCollatorOpen (CFStringCompareFlags options, CFLocaleRef locale)
 {
   char *localeID;
+  char buffer[ULOC_FULLNAME_CAPACITY];
   CFStringRef loc;
   UCollator *ret;
   UErrorCode err = U_ZERO_ERROR;
@@ -47,14 +49,9 @@ CFStringICUCollatorOpen (CFStringCompareFlags options, CFLocaleRef locale)
   if (locale != NULL && (options & kCFCompareLocalized))
     {
       loc = CFLocaleGetIdentifier (locale);
-      localeID = (char *)CFStringGetCStringPtr (loc, kCFStringEncodingASCII);
-      if (localeID == NULL)
-        {
-          CFIndex len = CFStringGetLength (loc);
-          localeID = alloca (len + 1);
-          CFStringGetCString (loc, localeID, len, kCFStringEncodingASCII);
-          localeID[len] = '\0';
-        }
+      CFStringGetCString (loc, buffer, ULOC_FULLNAME_CAPACITY,
+        kCFStringEncodingASCII);
+      localeID = buffer;
     }
   else
     {
@@ -121,19 +118,21 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
   CFIndex textLength;
   CFIndex start;
   CFIndex end;
+  CFAllocatorRef alloc;
   UCollator *ucol;
   UStringSearch *usrch;
   UErrorCode err = U_ZERO_ERROR;
   
+  alloc = CFAllocatorGetDefault ();
   textLength = CFStringGetLength (stringToFind);
   if (textLength == 0)
     return false;
   
   patternLength = rangeToSearch.length;
-  pattern = alloca (patternLength * sizeof(UniChar));
+  pattern = CFAllocatorAllocate (alloc, patternLength * sizeof(UniChar), 0);
   CFStringGetCharacters (str, rangeToSearch, pattern);
   
-  text = alloca (textLength * sizeof(UniChar));
+  text = CFAllocatorAllocate (alloc, textLength * sizeof(UniChar), 0);
   CFStringGetCharacters (stringToFind, CFRangeMake(0, textLength), text);
   
   ucol = CFStringICUCollatorOpen (searchOptions, locale);
@@ -152,7 +151,11 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
       start = usearch_first (usrch, &err);
     }
   if (start == USEARCH_DONE)
-    return false;
+    {
+      CFAllocatorDeallocate (alloc, pattern);
+      CFAllocatorDeallocate (alloc, text);
+      return false;
+    }
   end = usearch_getMatchedLength (usrch);
   usearch_close (usrch);
   CFStringICUCollatorClose (ucol);
@@ -160,6 +163,8 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
   if (result)
     *result = CFRangeMake (start, end);
   
+  CFAllocatorDeallocate (alloc, pattern);
+  CFAllocatorDeallocate (alloc, text);
   return true;
 }
 
@@ -208,24 +213,25 @@ CFStringCompareWithOptionsAndLocale (CFStringRef str1,
   UniChar *string2;
   CFIndex length1;
   CFIndex length2;
+  CFAllocatorRef alloc;
   UCollator *ucol;
   
+  alloc = CFAllocatorGetDefault ();
+  
   length1 = rangeToCompare.length;
-  string1 = alloca ((length1) * sizeof(UniChar));
+  string1 = CFAllocatorAllocate (alloc, (length1) * sizeof(UniChar), 0);
   CFStringGetCharacters (str1, rangeToCompare, string1);
   
   length2 = CFStringGetLength (str2);
-  string2 = (UniChar *)CFStringGetCharactersPtr (str2);
-  if (string2 == NULL)
-    {
-      string2 = alloca ((length2) * sizeof(UniChar));
-      CFStringGetCharacters (str2, CFRangeMake(0, length2), string2);
-    }
+  string2 = CFAllocatorAllocate (alloc, (length2) * sizeof(UniChar), 0);
+  CFStringGetCharacters (str2, CFRangeMake(0, length2), string2);
   
   ucol = CFStringICUCollatorOpen (compareOptions, locale);
   ret = ucol_strcoll (ucol, string1, length1, string2, length2);
   CFStringICUCollatorClose (ucol);
   
+  CFAllocatorDeallocate (alloc, string1);
+  CFAllocatorDeallocate (alloc, string2);
   return ret;
 }
 

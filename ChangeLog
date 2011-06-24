@@ -1,3 +1,9 @@
+2011-06-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStringUtilities.c: Remove use of alloca().
+	* Source/CFStringEncoding.c: Fix conversion bug.
+	* Source/CFStringFormat.c: Added more formatting code.
+
 2011-06-22 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFUUID.c: Generate uuids using random function instead of
