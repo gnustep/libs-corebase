@@ -28,6 +28,7 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFNumberFormatter.h"
 
+#include <math.h>
 #include <unicode/unum.h>
 
 #define CF_FMT_FLAG_SIGN       (1<<0)
@@ -75,11 +76,12 @@
   || (c) == CF_FMT_Q \
   || (c) == CF_FMT_T \
   || (c) == CF_FMT_Z
+#define CF_FMT_IS_CAPS(c) (c) >= 0x0041 && (c) <= 0x005A
 
 typedef enum
 {
-  CFCharIntLength = 1,
-  CFShortIntLength,
+  CFCharLength = 1,
+  CFShortLength,
   CFLongLength,
   CFLongLongLength,
   CFLongDoubleLength,
@@ -88,9 +90,9 @@ typedef enum
   CFPtrDiffTLength
 } CFArgLength;
 
+#define CFUnknownType -1
 typedef enum
 {
-  CFUnknownType,
   CFUnsignedType,
   CFIntegerType,
   CFFloatType,
@@ -118,7 +120,7 @@ typedef union
 typedef struct
 {
   CFIndex       argPos;
-  CFArgType     type;
+  UniChar       type;
   Boolean       useCaps;
   CFOptionFlags flags;
   CFIndex       width;
@@ -144,10 +146,10 @@ typedef struct
 } CFFormatSpecInfo;
 
 #define CFUnknownFormat    { CFUnknownType,    NULL }
-#define CFUnsignedFormat   { CFUnsignedType,   CFFormatNumber }
-#define CFIntegerFormat    { CFIntegerType,    CFFormatNumber }
-#define CFFloatFormat      { CFFloatType,      CFFormatNumber }
-#define CFDoubleFormat     { CFDoubleType,     CFFormatNumber }
+#define CFUnsignedFormat   { CFUnsignedType,   CFFormatInteger }
+#define CFIntegerFormat    { CFIntegerType,    CFFormatInteger }
+#define CFFloatFormat      { CFFloatType,      CFFormatFloat }
+#define CFDoubleFormat     { CFDoubleType,     CFFormatDouble }
 #define CFScientificFormat { CFScientificType, CFFormatScientific }
 #define CFHexFormat        { CFHexType,        CFFormatHex }
 #define CFPointerFormat    { CFPointerType,    CFFormatHex }
@@ -158,28 +160,10 @@ typedef struct
 #define CFUCharFormat      { CFUCharType,      CFFormatUChar }
 #define CFObjectFormat     { CFObjectType,     CFFormatObject }
 
-static CFStringRef CFFormatNumber (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
+static void
+CFFormatUNumberFormatApplySpec (UNumberFormat *fmt, CFFormatSpec *spec)
 {
-#define BUFFER_SIZE 256
-  int64_t i = 0;
-  double d = 0.0;
-  CFIndex numChars;
-  UniChar buffer[BUFFER_SIZE];
-  CFStringRef ret;
-  UNumberFormat *fmt;
   UErrorCode err = U_ZERO_ERROR;
-  
-  /* Using unum directly because CFNumberFormatter proved to be too complex
-     because of the need to generate CFNumberRefs in order to set any
-     property.  Those CFNumberRefs then get turned into int32_t before
-     being set, not very efficient either. */
-  
-  fmt = unum_open (UNUM_DECIMAL, NULL, 0, NULL, NULL, &err);
-  if (U_FAILURE(err))
-    return NULL;
   
   if (spec->flags & CF_FMT_FLAG_SIGN)
     {
@@ -195,6 +179,12 @@ static CFStringRef CFFormatNumber (CFFormatSpec *spec,
       UChar attrib[] = { 0x0030, 0x0000 };
       unum_setTextAttribute (fmt, UNUM_PADDING_CHARACTER, attrib, 1, &err);
     }
+  else
+    {
+      // ICU, by default, pads with '*'
+      UChar attrib[] = { 0x0020, 0x0000 };
+      unum_setTextAttribute (fmt, UNUM_PADDING_CHARACTER, attrib, 1, &err);
+    }
   if (spec->flags & CF_FMT_FLAG_GROUP_SEP)
     {
       unum_setAttribute (fmt, UNUM_GROUPING_USED, 1);
@@ -204,148 +194,250 @@ static CFStringRef CFFormatNumber (CFFormatSpec *spec,
     {
       unum_setAttribute (fmt, UNUM_FORMAT_WIDTH, spec->width);
     }
+}
+
+static CFStringRef
+CFFormatInteger (CFFormatSpec *spec,
+                 CFStringRef (*copyDescFunc)(void *, const void *loc),
+                 CFFormatArgument *arg,
+                 CFDictionaryRef formatOptions)
+{
+#define BUFFER_SIZE 256
+  int64_t i = 0;
+  CFIndex numChars;
+  UniChar buffer[BUFFER_SIZE];
+  CFStringRef ret;
+  UNumberFormat *fmt;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  /* Using unum directly because CFNumberFormatter proved to be too complex
+     because of the need to generate CFNumberRefs in order to set any
+     property.  Those CFNumberRefs then get turned into int32_t before
+     being set, not very efficient either. */
+  fmt = unum_open (UNUM_DECIMAL, NULL, 0, NULL, NULL, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  
+  CFFormatUNumberFormatApplySpec (fmt, spec);
   
   if (spec->precision >= 0)
+    unum_setAttribute (fmt, UNUM_MIN_INTEGER_DIGITS, spec->precision);
+  
+  if (spec->type == CFIntegerType)
     {
-      switch ((int)spec->type)
+      switch (spec->length)
         {
-          case CFIntegerType:
-          case CFUnsignedType:
-            unum_setAttribute (fmt, UNUM_MIN_INTEGER_DIGITS, spec->precision);
+          case CFCharLength:
+            i = (int64_t)((char)arg->intValue);
             break;
-          case CFFloatType:
-          case CFDoubleType:
-            unum_setAttribute (fmt, UNUM_MAX_FRACTION_DIGITS, spec->precision);
+          case CFShortLength:
+            i = (int64_t)((short)arg->intValue);
             break;
+          case CFLongLength:
+            i = (int64_t)((long)arg->intValue);
+            break;
+          case CFLongLongLength:
+            i = (int64_t)((long long)arg->intValue);
+            break;
+          case CFSizeTLength:
+            i = (int64_t)((size_t)arg->intValue);
+            break;
+          case CFIntMaxTLength:
+            i = (int64_t)((intmax_t)arg->intValue);
+            break;
+          case CFPtrDiffTLength:
+            i = (int64_t)((ptrdiff_t)arg->intValue);
+            break;
+          default:
+            i = (int64_t)((int)arg->intValue);
         }
     }
-  
-  switch (spec->type)
+  else if (spec->type == CFUnsignedType)
     {
-      case CFIntegerType:
-      case CFUnsignedType:
-        switch (spec->length)
-          {
-            case CFCharIntLength:
-              i = (int64_t)((char)arg->intValue);
-              break;
-            case CFShortIntLength:
-              i = (int64_t)((short)arg->intValue);
-              break;
-            case CFLongLength:
-              i = (int64_t)((long)arg->intValue);
-              break;
-            case CFLongLongLength:
-              i = (int64_t)((long long)arg->intValue);
-              break;
-            case CFSizeTLength:
-              i = (int64_t)((size_t)arg->intValue);
-              break;
-            case CFIntMaxTLength:
-              i = (int64_t)((intmax_t)arg->intValue);
-              break;
-            case CFPtrDiffTLength:
-              i = (int64_t)((ptrdiff_t)arg->intValue);
-              break;
-            default:
-              i = (int64_t)((int)arg->intValue);
-          }
-        numChars = unum_formatInt64 (fmt, i, (UChar*)buffer, BUFFER_SIZE,
-          NULL, &err);
-        ret = CFStringCreateWithCharacters (NULL, buffer, numChars);
-        break;
-      case CFFloatType:
-      case CFDoubleType:
-        if (spec->length == CFLongDoubleLength)
-          d = (double)((long double)arg->doubleValue);
-          numChars = unum_formatDouble (fmt, d, (UChar*)buffer, BUFFER_SIZE,
-          NULL, &err);
-        ret = CFStringCreateWithCharacters (NULL, buffer, numChars);
-        break;
-      default:
-        ret = NULL;
+      switch (spec->length)
+        {
+          case CFCharLength:
+            i = (int64_t)((unsigned char)arg->intValue);
+            break;
+          case CFShortLength:
+            i = (int64_t)((unsigned short)arg->intValue);
+            break;
+          case CFLongLength:
+            i = (int64_t)((unsigned long)arg->intValue);
+            break;
+          case CFLongLongLength:
+            i = (int64_t)((signed long long)arg->intValue);
+            break;
+          case CFSizeTLength:
+            i = (int64_t)((size_t)arg->intValue); // Already unsigned
+            break;
+          case CFIntMaxTLength:
+            i = (int64_t)((uintmax_t)arg->intValue);
+            break;
+          case CFPtrDiffTLength:
+            i = (int64_t)((ptrdiff_t)arg->intValue); // Unsigned version?
+            break;
+          default:
+            i = (int64_t)((unsigned int)arg->intValue);
+        }
     }
+  numChars = unum_formatInt64 (fmt, i, (UChar*)buffer, BUFFER_SIZE,
+    NULL, &err);
+  ret = CFStringCreateWithCharacters (NULL, buffer, numChars);
   
   unum_close (fmt);
   return ret;
 }
 
-static CFStringRef CFFormatScientific (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
+static CFStringRef
+CFFormatFloat (CFFormatSpec *spec,
+               CFStringRef (*copyDescFunc)(void *, const void *loc),
+               CFFormatArgument *arg,
+               CFDictionaryRef formatOptions)
 {
-  return CFSTR("Hex");
-}
-
-static CFStringRef CFFormatHex (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
-{
-  return CFSTR("Hex");
-}
-
-static CFStringRef CFFormatOctal (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
-{
-  return CFSTR("Octal");
-}
-
-static CFStringRef CFFormatString (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
-{
-  CFIndex length;
+  double d;
   CFIndex numChars;
-  const char *chars;
-  CFAllocatorRef alloc;
-  CFMutableStringRef str;
+  UniChar buffer[BUFFER_SIZE];
   CFStringRef ret;
+  UNumberFormat *fmt;
+  UErrorCode err = U_ZERO_ERROR;
   
-  alloc = CFAllocatorGetDefault();
-  chars = (const char *)arg->ptrValue;
-  numChars = spec->precision;
-  if (numChars < 0)
-    {
-      numChars = strlen (chars);
-    }
-  length = spec->width;
-  if (length < 0)
-    {
-      length = numChars;
-    }
+  fmt = unum_open (UNUM_DECIMAL, NULL, 0, NULL, NULL, &err);
+  if (U_FAILURE(err))
+    return NULL;
   
-  str = CFStringCreateMutable (alloc, length);
-  CFStringAppendCString (str, chars, CFStringGetSystemEncoding());
-  if (length > numChars)
-    CFStringPad (str, CFSTR(" "), length - numChars, 0);
+  CFFormatUNumberFormatApplySpec (fmt, spec);
   
-  ret = CFStringCreateCopy (alloc, str);
-  CFRelease (str);
+  unum_setAttribute (fmt, UNUM_MIN_FRACTION_DIGITS, 6);
   
+  if (spec->precision >= 0)
+    unum_setAttribute (fmt, UNUM_MAX_FRACTION_DIGITS, spec->precision);
+  
+  if (spec->length == CFLongDoubleLength)
+    d = (double)((long double)arg->doubleValue);
+  else
+    d = arg->doubleValue;
+  numChars = unum_formatDouble (fmt, d, (UChar*)buffer, BUFFER_SIZE,
+    NULL, &err);
+  if (numChars > BUFFER_SIZE)
+    numChars = BUFFER_SIZE;
+  ret = CFStringCreateWithCharacters (NULL, buffer, numChars);
+  
+  unum_close (fmt);
   return ret;
 }
 
-static CFStringRef CFFormatChar (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
+static const UChar expPattern[] =
+  { '#', '.', '0', '0', '0', '0', '0', '0', 'E', '+', '0' , '0' };
+static const int32_t expPatternSize = sizeof(expPattern) / sizeof(UChar);
+
+static CFStringRef
+CFFormatScientific (CFFormatSpec *spec,
+                    CFStringRef (*copyDescFunc)(void *, const void *loc),
+                    CFFormatArgument *arg,
+                    CFDictionaryRef formatOptions)
 {
-  return CFStringCreateWithBytes (CFAllocatorGetDefault(),
-    (const UInt8*)&arg->intValue, 1, CFStringGetSystemEncoding(), false);
+  double d;
+  CFIndex numChars;
+  UniChar buffer[BUFFER_SIZE];
+  CFStringRef ret;
+  UNumberFormat *fmt;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  fmt = unum_open (UNUM_DECIMAL, NULL, 0, NULL, NULL, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  
+  unum_applyPattern (fmt, false, expPattern, expPatternSize, NULL, &err);
+  CFFormatUNumberFormatApplySpec (fmt, spec);
+  
+  if (spec->precision >= 0)
+    unum_setAttribute (fmt, UNUM_MAX_FRACTION_DIGITS, spec->precision);
+  
+  if (!spec->useCaps)
+    {
+      UChar symbol[] = { 0x0065, 0x0000 };
+      unum_setSymbol (fmt, UNUM_EXPONENTIAL_SYMBOL, symbol, 1, &err);
+    }
+  
+  if (spec->length == CFLongDoubleLength)
+    // FIXME: not really supported
+    d = (double)((long double)arg->doubleValue);
+  else
+    d = arg->doubleValue;
+  numChars = unum_formatDouble (fmt, d, (UChar*)buffer, BUFFER_SIZE,
+    NULL, &err);
+  ret = CFStringCreateWithCharacters (NULL, buffer, numChars);
+  
+  unum_close (fmt);
+  return ret;
+}
+
+static CFStringRef
+CFFormatDouble (CFFormatSpec *spec,
+                CFStringRef (*copyDescFunc)(void *, const void *loc),
+                CFFormatArgument *arg,
+                CFDictionaryRef formatOptions)
+{
+  double d = arg->doubleValue;
+  CFIndex precision = spec->precision;
+  CFIndex numChars;
+  UniChar buffer[BUFFER_SIZE];
+  CFStringRef ret;
+  UNumberFormat *fmt;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (d < 0.0001 // exponent < -4
+      || (precision < 1 && 1000000.0 <= d) // exponent > precision
+      || (precision != -1 && d > pow(10.0, (double)precision))) // Same
+    {
+      return CFFormatScientific (spec, copyDescFunc, arg, formatOptions);
+    }
+  
+  /* Very similar to CFFormatInteger() */
+  fmt = unum_open (UNUM_DECIMAL, NULL, 0, NULL, NULL, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  
+  CFFormatUNumberFormatApplySpec (fmt, spec);
+  
+  if (spec->precision >= 0)
+    unum_setAttribute (fmt, UNUM_MAX_FRACTION_DIGITS, precision);
+  
+  numChars = unum_formatDouble (fmt, d, (UChar*)buffer, BUFFER_SIZE,
+    NULL, &err);
+  ret = CFStringCreateWithCharacters (NULL, buffer, numChars);
+  
+  unum_close (fmt);
+  return ret;
+}
+
+static CFStringRef
+CFFormatHex (CFFormatSpec *spec,
+             CFStringRef (*copyDescFunc)(void *, const void *loc),
+             CFFormatArgument *arg,
+             CFDictionaryRef formatOptions)
+{
+  return CFSTR("Hex");
+}
+
+static CFStringRef
+CFFormatOctal (CFFormatSpec *spec,
+               CFStringRef (*copyDescFunc)(void *, const void *loc),
+               CFFormatArgument *arg,
+               CFDictionaryRef formatOptions)
+{
+  return CFSTR("Octal");
 }
 
 /* Keep in mind that, according to Apple docs, both %C and %S take UniChars
    as arguments, not %lc and %ls, respectively, as the specification
    suggests. */
-static CFStringRef CFFormatUString (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
+static CFStringRef
+CFFormatUString (CFFormatSpec *spec,
+                 CFStringRef (*copyDescFunc)(void *, const void *loc),
+                 CFFormatArgument *arg,
+                 CFDictionaryRef formatOptions)
 {
   CFIndex length;
   CFIndex numChars;
@@ -382,19 +474,73 @@ static CFStringRef CFFormatUString (CFFormatSpec *spec,
   return ret;
 }
 
-static CFStringRef CFFormatUChar (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
+static CFStringRef
+CFFormatUChar (CFFormatSpec *spec,
+               CFStringRef (*copyDescFunc)(void *, const void *loc),
+               CFFormatArgument *arg,
+               CFDictionaryRef formatOptions)
 {
   return CFStringCreateWithCharacters (CFAllocatorGetDefault(),
     (const UniChar *)&arg->intValue, 1);
 }
 
-static CFStringRef CFFormatObject (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
+static CFStringRef
+CFFormatString (CFFormatSpec *spec,
+                CFStringRef (*copyDescFunc)(void *, const void *loc),
+                CFFormatArgument *arg,
+                CFDictionaryRef formatOptions)
+{
+  CFIndex length;
+  CFIndex numChars;
+  const char *chars;
+  CFAllocatorRef alloc;
+  CFMutableStringRef str;
+  CFStringRef ret;
+  
+  if (spec->length == CFLongLength)
+    return CFFormatUString (spec, copyDescFunc, arg, formatOptions);
+  
+  alloc = CFAllocatorGetDefault();
+  chars = (const char *)arg->ptrValue;
+  numChars = spec->precision;
+  if (numChars < 0)
+    {
+      numChars = strlen (chars);
+    }
+  length = spec->width;
+  if (length < 0)
+    {
+      length = numChars;
+    }
+  
+  str = CFStringCreateMutable (alloc, length);
+  CFStringAppendCString (str, chars, CFStringGetSystemEncoding());
+  if (length > numChars)
+    CFStringPad (str, CFSTR(" "), length - numChars, 0);
+  
+  ret = CFStringCreateCopy (alloc, str);
+  CFRelease (str);
+  
+  return ret;
+}
+
+static CFStringRef
+CFFormatChar (CFFormatSpec *spec,
+              CFStringRef (*copyDescFunc)(void *, const void *loc),
+              CFFormatArgument *arg,
+              CFDictionaryRef formatOptions)
+{
+  if (spec->length == CFLongLength)
+    return CFFormatUChar (spec, copyDescFunc, arg, formatOptions);
+  return CFStringCreateWithBytes (CFAllocatorGetDefault(),
+    (const UInt8*)&arg->intValue, 1, CFStringGetSystemEncoding(), false);
+}
+
+static CFStringRef
+CFFormatObject(CFFormatSpec *spec,
+               CFStringRef (*copyDescFunc)(void *, const void *loc),
+               CFFormatArgument *arg,
+               CFDictionaryRef formatOptions)
 {
   const CFRuntimeClass *cls;
   /* Disregard all formatting */
@@ -408,16 +554,16 @@ static CFStringRef CFFormatObject (CFFormatSpec *spec,
   return CFCopyDescription ((CFTypeRef)arg->ptrValue);
 }
 
-static CFStringRef CFPercentFormatter (CFFormatSpec *spec,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFFormatArgument *arg,
-  CFDictionaryRef formatOptions)
+static CFStringRef
+CFFormatPercent (CFFormatSpec *spec,
+                 CFStringRef (*copyDescFunc)(void *, const void *loc),
+                 CFFormatArgument *arg,
+                 CFDictionaryRef formatOptions)
 {
   return CFSTR("%");
 }
 
-/* FIXME: %a and %A are not implemented because I'm not sure what how it
-   works. */
+/* FIXME: %a and %A are not implemented because I'm not sure how it works. */
 static const CFFormatFormatterInfo _kCFStringFormatter[] =
 {
   /* 0x40 */
@@ -445,6 +591,7 @@ static const CFFormatFormatterInfo _kCFStringFormatter[] =
 #define CF_FMT_MIN_TYPE 0x0040
 #define CF_FMT_MAX_TYPE \
   (sizeof(_kCFStringFormatter) / sizeof(CFFormatFormatterInfo))
+#define CF_FMT_CAPS_TYPE 0x005B - CF_FMT_MIN_TYPE
 
 CFFormatArgument *
 CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
@@ -518,12 +665,14 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
                 {
                   int callout = num - 1;
                   ++current;
-                  typeList[callout] = CFIntegerType;
-                  if (callout > count)
-                    count = callout;
+                  if (callout > pos)
+                    {
+                      typeList[callout] = CFIntegerType; // FIXME
+                      count = callout;
+                    }
                 }
             }
-          else if (CF_FMT_IS_FLAG(*current))
+          else if (CF_FMT_IS_FLAG(*current) || *current == CF_FMT_PERIOD)
             {
               ++current;
             }
@@ -531,10 +680,6 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
             {
               typeList[pos] = CFIntegerType;
               pos += 1;
-              ++current;
-            }
-          else if (*current == CF_FMT_PERIOD)
-            {
               ++current;
             }
           else
@@ -570,9 +715,6 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
         typeList[pos++] = _kCFStringFormatter[typeIdx].type;
       else
         typeList[pos++] = CFUnknownType;
-      
-      if (pos < count)
-        pos = count;
     }
   
   if (pos < count)
@@ -734,11 +876,11 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
         if (*current == CF_FMT_H)
           {
             ++current;
-            info->spec.length = CFCharIntLength;
+            info->spec.length = CFCharLength;
           }
         else
           {
-            info->spec.length = CFShortIntLength;
+            info->spec.length = CFShortLength;
           }
         break;
       case CF_FMT_J:
@@ -771,7 +913,7 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
   if (*current == CF_FMT_PERCENT)
     {
       ++current;
-      info->fmt = CFPercentFormatter;
+      info->fmt = CFFormatPercent;
       return (current - start);
     }
   typeIdx = *(current++) - CF_FMT_MIN_TYPE;
@@ -784,6 +926,7 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
           info->spec.argPos = *arg;
           *arg += 1;
         }
+      info->spec.useCaps = (typeIdx < CF_FMT_CAPS_TYPE);
     }
   else
     {

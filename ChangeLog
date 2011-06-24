@@ -1,5 +1,10 @@
 2011-06-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFStringFormat.c: Added double formatting code.
+	* Tests/CFString/format.m: Add double formatting test.
+
+2011-06-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFStringUtilities.c: Remove use of alloca().
 	* Source/CFStringEncoding.c: Fix conversion bug.
 	* Source/CFStringFormat.c: Added more formatting code.

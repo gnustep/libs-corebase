@@ -655,6 +655,8 @@ __CFStringEncodeByteStream (CFStringRef string, CFIndex rangeLoc,
                usedBufLen)
   */
   
+  /* FIXME: Currently disregarding isExternalRepresentation flag. */
+  
   const UniChar *characters = CFStringGetCharactersPtr (string);
   CFIndex bytesNeeded = 0;
   CFIndex charactersConverted = 0;
@@ -727,7 +729,7 @@ __CFStringEncodeByteStream (CFStringRef string, CFIndex rangeLoc,
         {
           UniChar *target = (UniChar *)buffer;
           const UniChar *targetLimit = (const UniChar *)(target + max);
-          const char *source = str;
+          const char *source = (str + rangeLoc);
           const char *sourceLimit = (source + rangeLen);
           
           while (source < sourceLimit)

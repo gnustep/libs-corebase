@@ -21,5 +21,12 @@ int main (void)
   CFRelease(str1);
   CFRelease(str2);
   
+  str1 = CFStringCreateWithFormat (NULL, NULL,
+    __CFStringMakeConstantString("%f %1$-5.2g %e"), 5.5, .000003);
+  str2 = __CFStringMakeConstantString ("5.500000 5.5   3.000000e-06");
+  PASS_CFEQ(str1, str2, "Float/Doubles are formatted correctly");
+  CFRelease(str1);
+  CFRelease(str2);
+  
   return 0;
 }
