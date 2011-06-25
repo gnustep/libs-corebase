@@ -1,3 +1,8 @@
+2011-06-25 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStringFormat.c: Added hex and octal formatting code.
+	* Tests/CFString/format.m: Add hex and octal formatting test.
+
 2011-06-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFStringFormat.c: Added double formatting code.

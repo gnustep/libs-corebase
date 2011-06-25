@@ -28,5 +28,19 @@ int main (void)
   CFRelease(str1);
   CFRelease(str2);
   
+  str1 = CFStringCreateWithFormat (NULL, NULL,
+    __CFStringMakeConstantString("%x %1$#08X %hhx"), 10788, 256);
+  str2 = __CFStringMakeConstantString ("2a24 0X00002A24 0");
+  PASS_CFEQ(str1, str2, "Hexs are formatted correctly");
+  CFRelease(str1);
+  CFRelease(str2);
+  
+  str1 = CFStringCreateWithFormat (NULL, NULL,
+    __CFStringMakeConstantString("%o %1$#06o %hho"), 10788, 256);
+  str2 = __CFStringMakeConstantString ("25044 0025044 0");
+  PASS_CFEQ(str1, str2, "Octals are formatted correctly");
+  CFRelease(str1);
+  CFRelease(str2);
+  
   return 0;
 }

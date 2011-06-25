@@ -57,11 +57,15 @@
 #define CF_FMT_EIGHT 0x0038
 #define CF_FMT_NINE  0x0039
 
+#define CF_FMT_CAP_A 0x0041
 #define CF_FMT_CAP_L 0x004C
+#define CF_FMT_CAP_X 0x0058
+#define CF_FMT_A 0x0061
 #define CF_FMT_H 0x0068
 #define CF_FMT_J 0x006A
 #define CF_FMT_L 0x006C
 #define CF_FMT_T 0x0074
+#define CF_FMT_X 0x0078
 #define CF_FMT_Z 0x007A
 
 #define CF_FMT_IS_DIGIT(c) (c) >= CF_FMT_ZERO && (c) <= CF_FMT_NINE
@@ -196,13 +200,14 @@ CFFormatUNumberFormatApplySpec (UNumberFormat *fmt, CFFormatSpec *spec)
     }
 }
 
+#define BUFFER_SIZE 256
+
 static CFStringRef
 CFFormatInteger (CFFormatSpec *spec,
                  CFStringRef (*copyDescFunc)(void *, const void *loc),
                  CFFormatArgument *arg,
                  CFDictionaryRef formatOptions)
 {
-#define BUFFER_SIZE 256
   int64_t i = 0;
   CFIndex numChars;
   UniChar buffer[BUFFER_SIZE];
@@ -413,12 +418,69 @@ CFFormatDouble (CFFormatSpec *spec,
 }
 
 static CFStringRef
+CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
+{
+  UniChar buffer[BUFFER_SIZE];
+  UniChar *right;
+  UniChar *left;
+  UniChar tmp;
+  UInt64 value;
+  CFIndex length = 0;
+  
+  switch (spec->length)
+    {
+      case CFCharLength:
+        value = (unsigned char)arg->intValue;
+        break;
+      case CFShortLength:
+        value = (unsigned short)arg->intValue;
+        break;
+      case CFLongLength:
+        value = (unsigned long)arg->intValue;
+        break;
+      default:
+        value = (UInt64)arg->intValue;
+    }
+  
+#define TO_CAP_DIGIT(n) (n < 10 ? n + CF_FMT_ZERO : n - 10 + CF_FMT_CAP_A)
+#define TO_LOWER_DIGIT(n) (n < 10 ? n + CF_FMT_ZERO : n - 10 + CF_FMT_A)
+  do
+    {
+      int num = value % base;
+      value /= base;
+      buffer[length++] =
+        spec->useCaps ? TO_CAP_DIGIT(num) : TO_LOWER_DIGIT(num);
+    } while (value != 0);
+  
+  while (length < spec->width) // pad
+    buffer[length++] = CF_FMT_ZERO;
+  
+  if (spec->flags & CF_FMT_FLAG_ALT)
+    {
+      if (base == 16)
+        buffer[length++] = spec->useCaps ? CF_FMT_CAP_X : CF_FMT_X;
+      buffer[length++] = CF_FMT_ZERO;
+    }
+  
+  left = buffer;
+  right = buffer + length;
+  while (left < --right) // reverse
+    {
+      tmp = *left;
+      *left++ = *right;
+      *right = tmp;
+    }
+  
+  return CFStringCreateWithCharacters (NULL, buffer, length);
+}
+
+static CFStringRef
 CFFormatHex (CFFormatSpec *spec,
              CFStringRef (*copyDescFunc)(void *, const void *loc),
              CFFormatArgument *arg,
              CFDictionaryRef formatOptions)
 {
-  return CFSTR("Hex");
+  return CFFormatUInt64ToString (spec, arg, 16);
 }
 
 static CFStringRef
@@ -427,7 +489,7 @@ CFFormatOctal (CFFormatSpec *spec,
                CFFormatArgument *arg,
                CFDictionaryRef formatOptions)
 {
-  return CFSTR("Octal");
+  return CFFormatUInt64ToString (spec, arg, 8);
 }
 
 /* Keep in mind that, according to Apple docs, both %C and %S take UniChars
