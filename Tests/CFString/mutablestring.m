@@ -40,7 +40,16 @@ int main (void)
   PASS_CFEQ(str1, __CFStringMakeConstantString("tTest string.t"),
     "String replacement works");
   
-  CFRelease(str1);
+  CFRelease (str1);
+  
+  str1 = CFStringCreateMutable (NULL, 0);
+  CFStringReplaceAll (str1, __CFStringMakeConstantString("abcdef"));
+  str2 = __CFStringMakeConstantString("123");
+  CFStringPad (str1, str2, 9, 1);
+  PASS_CFEQ(str1, __CFStringMakeConstantString("abcdef231"), "Padding works.");
+  CFStringPad (str1, NULL, 3, 0);
+  PASS_CFEQ(str1, __CFStringMakeConstantString("abc"), "Truncating works.");
+  CFRelease (str1);
   
   return 0;
 }

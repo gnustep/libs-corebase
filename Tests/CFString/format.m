@@ -44,7 +44,6 @@ int main (void)
   CFRelease(str2);
   
   ptr = 12;
-  printf ("%d %d %d\n", sizeof(void*), sizeof(long), sizeof(long long));
   str1 = CFStringCreateWithFormat (NULL, NULL,
     __CFStringMakeConstantString("%p %s"), ptr, "A longer than usual string.");
   str2 = __CFStringMakeConstantString ("0xc A longer than usual string.");

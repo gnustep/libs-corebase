@@ -873,7 +873,46 @@ void
 CFStringPad (CFMutableStringRef str, CFStringRef padString,
   CFIndex length, CFIndex indexIntoPad)
 {
-  return;
+  if (padString == NULL && length < CFStringGetLength(str)) // truncating
+    {
+      ((UniChar*)str->_contents)[length] = 0x0000;
+      str->_count = length;
+    }
+  else
+    {
+      CFIndex padLength;
+      UniChar *padContents;
+      UniChar *contents;
+      UniChar *end;
+      
+      if (!CFStringCheckCapacityAndGrow(str, length, (void**)&contents))
+        return;
+      if (contents != str->_contents)
+        {
+          memcpy (str->_contents, contents, length * sizeof(UniChar));
+          CFAllocatorDeallocate (str->_deallocator, contents);
+        }
+      
+      contents = ((UniChar*)str->_contents) + CFStringGetLength (str);
+      end = ((UniChar*)str->_contents) + length;
+      
+      padLength = CFStringGetLength (padString);
+      padContents = CFAllocatorAllocate (NULL, padLength * sizeof(UniChar), 0);
+      CFStringGetCharacters (padString, CFRangeMake(0, padLength),
+        padContents);
+      
+      while (contents < end)
+        {
+          *contents++ = padContents[indexIntoPad++];
+          if (indexIntoPad == padLength)
+            indexIntoPad = 0;
+        }
+      
+      CFAllocatorDeallocate (NULL, padContents);
+      
+      str->_count = length;
+      str->_hash = 0;
+    }
 }
 
 void
@@ -902,7 +941,11 @@ CFStringReplace (CFMutableStringRef str, CFRange range,
       newLength = textLength - range.length + repLength;
       if (!CFStringCheckCapacityAndGrow(str, newLength, (void**)&oldContents))
         return;
-      memmove (str->_contents, oldContents, range.location * sizeof(UniChar));
+      if (oldContents != str->_contents)
+        {
+          memcpy (str->_contents, oldContents,
+            range.location * sizeof(UniChar));
+        }
       moveFrom = (oldContents + range.location + range.length);
       moveTo = (((UniChar*)str->_contents) + range.location + repLength);
       moveLength = textLength - (range.location + range.length);
@@ -956,7 +999,11 @@ CFStringReplaceAll (CFMutableStringRef theString, CFStringRef replacement)
 void
 CFStringTrim (CFMutableStringRef str, CFStringRef trimString)
 {
-  return; // FIXME
+  CFStringFindAndReplace (str, trimString, NULL,
+    CFRangeMake(0, CFStringGetLength(str)), kCFCompareAnchored);
+  CFStringFindAndReplace (str, trimString, NULL,
+    CFRangeMake(0, CFStringGetLength(str)),
+    kCFCompareBackwards | kCFCompareAnchored);
 }
 
 void

@@ -742,7 +742,10 @@ __CFStringEncodeByteStream (CFStringRef string, CFIndex rangeLoc,
         }
       else /* Use UConverter */
         {
-          /* FIXME: This code path isn't work... need to figure out why. */
+          /* FIXME: This code path isn't working properly.  Instead of
+             using ucnv_fromAlgorithmic use a small buffer to make the
+             conversion from ASCII to Unicode then use ucnv_toUnicode()
+             to convert from Unicode to another encoding. */
           CFIndex len;
           UConverter *ucnv;
           char *target = (char *)buffer;
