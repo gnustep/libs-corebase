@@ -156,7 +156,7 @@ typedef struct
 #define CFDoubleFormat     { CFDoubleType,     CFFormatDouble }
 #define CFScientificFormat { CFScientificType, CFFormatScientific }
 #define CFHexFormat        { CFHexType,        CFFormatHex }
-#define CFPointerFormat    { CFPointerType,    CFFormatHex }
+#define CFPointerFormat    { CFPointerType,    CFFormatPointer }
 #define CFOctalFormat      { CFOctalType,      CFFormatOctal }
 #define CFStringFormat     { CFStringType,     CFFormatString }
 #define CFUStringFormat    { CFUStringType,    CFFormatUString }
@@ -438,6 +438,18 @@ CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
       case CFLongLength:
         value = (unsigned long)arg->intValue;
         break;
+      case CFLongLongLength:
+        value = (unsigned long long)arg->intValue;
+        break;
+      case CFSizeTLength:
+        value = (size_t)arg->intValue;
+        break;
+      case CFIntMaxTLength:
+        value = (uintmax_t)arg->intValue;
+        break;
+      case CFPtrDiffTLength:
+        value = (ptrdiff_t)arg->intValue;
+        break;
       default:
         value = (UInt64)arg->intValue;
     }
@@ -472,6 +484,17 @@ CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
     }
   
   return CFStringCreateWithCharacters (NULL, buffer, length);
+}
+
+static CFStringRef
+CFFormatPointer (CFFormatSpec *spec,
+                 CFStringRef (*copyDescFunc)(void *, const void *loc),
+                 CFFormatArgument *arg,
+                 CFDictionaryRef formatOptions)
+{
+  spec->length = CFPtrDiffTLength;
+  spec->flags |= CF_FMT_FLAG_ALT;
+  return CFFormatUInt64ToString (spec, arg, 16);
 }
 
 static CFStringRef
@@ -666,6 +689,7 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
   UniChar type;
   CFIndex typeIdx;
   CFIndex pos;
+  CFIndex callout;
   CFIndex count = 0;
   
   /* Count total number of arguments
@@ -713,6 +737,7 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
           continue;
         }
       
+      callout = 0;
       for (;;)
         {
           if (CF_FMT_IS_DIGIT(*current))
@@ -725,13 +750,10 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
                 }
               if (*current == CF_FMT_DOLLAR)
                 {
-                  int callout = num - 1;
+                  callout = num - 1;
                   ++current;
                   if (callout > pos)
-                    {
-                      typeList[callout] = CFIntegerType; // FIXME
-                      count = callout;
-                    }
+                    count = num;
                 }
             }
           else if (CF_FMT_IS_FLAG(*current) || *current == CF_FMT_PERIOD)
@@ -774,7 +796,10 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
       
       typeIdx = type - CF_FMT_MIN_TYPE;
       if (typeIdx < CF_FMT_MAX_TYPE)
-        typeList[pos++] = _kCFStringFormatter[typeIdx].type;
+        if (callout)
+          typeList[callout] = _kCFStringFormatter[typeIdx].type;
+        else
+          typeList[pos++] = _kCFStringFormatter[typeIdx].type;
       else
         typeList[pos++] = CFUnknownType;
     }

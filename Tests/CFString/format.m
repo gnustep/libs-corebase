@@ -6,6 +6,7 @@ int main (void)
 {
   CFStringRef str1;
   CFStringRef str2;
+  void *ptr;
   
   str1 = CFStringCreateWithFormat (NULL, NULL,
     __CFStringMakeConstantString("%c %c%c"), 'r', 'u', 'n');
@@ -39,6 +40,22 @@ int main (void)
     __CFStringMakeConstantString("%o %1$#06o %hho"), 10788, 256);
   str2 = __CFStringMakeConstantString ("25044 0025044 0");
   PASS_CFEQ(str1, str2, "Octals are formatted correctly");
+  CFRelease(str1);
+  CFRelease(str2);
+  
+  ptr = 12;
+  printf ("%d %d %d\n", sizeof(void*), sizeof(long), sizeof(long long));
+  str1 = CFStringCreateWithFormat (NULL, NULL,
+    __CFStringMakeConstantString("%p %s"), ptr, "A longer than usual string.");
+  str2 = __CFStringMakeConstantString ("0xc A longer than usual string.");
+  PASS_CFEQ(str1, str2, "Strings are formatted correctly");
+  CFRelease(str1);
+  CFRelease(str2);
+  
+  str2 = __CFStringMakeConstantString ("Object test");
+  str1 = CFStringCreateWithFormat (NULL, NULL,
+    __CFStringMakeConstantString("%@"), str2);
+  PASS_CFEQ(str1, str2, "Objects are formatted correctly");
   CFRelease(str1);
   CFRelease(str2);
   

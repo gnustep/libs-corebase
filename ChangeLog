@@ -1,3 +1,7 @@
+2011-06-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStringFormat.c: Fix a few bugs in string formatting code.
+
 2011-06-25 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFStringFormat.c: Added hex and octal formatting code.
