@@ -38,6 +38,7 @@
 #include "CoreFoundation/CFArray.h"
 #include "CoreFoundation/CFData.h"
 #include "CoreFoundation/CFDictionary.h"
+#include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
 
@@ -335,18 +336,19 @@ CFStringCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes,
       new->_contents = &(new[1]);
       CFStringSetInline((CFStringRef)new);
       
-      if (buffer.shouldFreeChars == true)
+      if (buffer.shouldFreeChars)
         CFAllocatorDeallocate (buffer.allocator, buffer.chars.c);
     }
   else
     {
-      u_memcpy ((UChar*)&(new[1]), buffer.chars.u, buffer.numChars);
+      memcpy ((UChar*)&(new[1]), buffer.chars.u,
+        buffer.numChars * sizeof(UniChar));
       new->_contents = &(new[1]);
       CFStringSetInline((CFStringRef)new);
       CFStringSetWide((CFStringRef)new);
       
-      if (buffer.shouldFreeChars == true)
-        CFAllocatorDeallocate (buffer.allocator, buffer.chars.c);
+      if (buffer.shouldFreeChars)
+        CFAllocatorDeallocate (buffer.allocator, buffer.chars.u);
     }
   
   CFStringSetHasNullByte((CFStringRef)new);
@@ -361,7 +363,69 @@ CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
   CFIndex numBytes, CFStringEncoding encoding,
   Boolean isExternalRepresentation, CFAllocatorRef contentsDeallocator)
 {
-  return NULL; // FIXME
+  struct __CFString *new;
+  Boolean useClientMemory;
+  CFIndex strSize;
+  CFIndex size;
+  CFVarWidthCharBuffer buffer;
+  
+  buffer.allocator = alloc;
+  if (!__CFStringDecodeByteStream3 (bytes, numBytes, encoding, false, &buffer,
+      &useClientMemory, 0))
+    return NULL;
+  
+  /* We'll inline the string buffer if __CFStringDecodeByteStream3() has not
+     already allocated a buffer for us. */
+  if (useClientMemory)
+    strSize = 0;
+  else
+    strSize =
+      (buffer.numChars + 1) * (buffer.isASCII ? sizeof(char) : sizeof(UniChar));
+  
+  size = sizeof(struct __CFString) + strSize - sizeof(struct __CFRuntimeBase);
+  new = (struct __CFString *)
+    _CFRuntimeCreateInstance (alloc, _kCFStringTypeID, size, NULL);
+  
+  if (buffer.isASCII)
+    {
+      if (useClientMemory)
+        {
+          new->_contents = (void *)bytes;
+        }
+      else
+        {
+          memcpy (&(new[1]), buffer.chars.c, buffer.numChars);
+          new->_contents = &(new[1]);
+          CFStringSetInline((CFStringRef)new);
+          
+          if (buffer.shouldFreeChars)
+            CFAllocatorDeallocate (buffer.allocator, buffer.chars.c);
+        }
+    }
+  else
+    {
+      if (useClientMemory)
+        {
+          new->_contents = (void *)bytes;
+        }
+      else
+        {
+          memcpy ((UChar*)&(new[1]), buffer.chars.u,
+            buffer.numChars * sizeof(UniChar));
+          new->_contents = &(new[1]);
+          CFStringSetInline((CFStringRef)new);
+          CFStringSetWide((CFStringRef)new);
+          
+          if (buffer.shouldFreeChars)
+            CFAllocatorDeallocate (buffer.allocator, buffer.chars.u);
+        }
+    }
+  
+  CFStringSetHasNullByte((CFStringRef)new);
+  new->_count = buffer.numChars;
+  new->_deallocator = alloc;
+  
+  return (CFStringRef)new;
 }
 
 CFStringRef
@@ -371,24 +435,23 @@ CFStringCreateByCombiningStrings (CFAllocatorRef alloc, CFArrayRef theArray,
   CFIndex idx;
   CFIndex count;
   CFMutableStringRef string;
-  CFStringRef *strings;
+  CFStringRef currentString;
   CFStringRef ret;
   
-  count = CFArrayGetCount (theArray);
+  count = CFArrayGetCount (theArray) - 1;
   if (count == 0)
     return NULL;
-  strings = alloca (count * sizeof(CFStringRef));
-  CFArrayGetValues (theArray, CFRangeMake(0, count), (const void**)strings);
   
   string = CFStringCreateMutable (NULL, 0);
   idx = 0;
   while (idx < count)
     {
-      CFStringRef currentString = strings[idx];
+      currentString = (CFStringRef)CFArrayGetValueAtIndex (theArray, idx++);
       CFStringAppend (string, currentString);
       CFStringAppend (string, separatorString);
-      ++idx;
     }
+  currentString = CFArrayGetValueAtIndex (theArray, idx);
+  CFStringAppend (string, currentString);
   
   ret = CFStringCreateCopy (alloc, string);
   CFRelease (string);
@@ -496,9 +559,28 @@ CFStringCreateWithFormatAndArguments (CFAllocatorRef alloc,
 }
 
 CFStringRef
-CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str, CFRange range)
+CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
+  CFRange range)
 {
-  return NULL; // FIXME
+  void *contents;
+  CFIndex len;
+  CFStringEncoding enc;
+  
+  if (CFStringIsWide(str))
+    {
+      enc = kCFStringEncodingUTF16;
+      len = range.length * sizeof(UniChar);
+      contents = ((UniChar*)str->_contents) + range.location;
+    }
+  else
+    {
+      enc = kCFStringEncodingASCII;
+      len = range.length;
+      contents = ((char*)str->_contents) + range.location;
+    }
+  
+  return CFStringCreateWithBytes (alloc, (const UInt8*)contents, len, enc,
+    false);
 }
 
 CFDataRef
@@ -647,13 +729,37 @@ CFStringIsSurrogateLowCharacter (UniChar character)
 double
 CFStringGetDoubleValue (CFStringRef str)
 {
-  return 0.0;
+  double d;
+  Boolean success;
+  CFNumberFormatterRef fmt;
+  
+  fmt = CFNumberFormatterCreate (NULL, NULL, kCFNumberFormatterDecimalStyle);
+  if (fmt == NULL)
+    return 0.0;
+  
+  success = CFNumberFormatterGetValueFromString(fmt, str, NULL,
+    kCFNumberDoubleType, (void*)&d);
+  
+  CFRelease (fmt);
+  return success ? d : 0.0;
 }
 
 SInt32
 CFStringGetIntValue (CFStringRef str)
 {
-  return 0;
+  SInt32 i;
+  Boolean success;
+  CFNumberFormatterRef fmt;
+  
+  fmt = CFNumberFormatterCreate (NULL, NULL, kCFNumberFormatterNoStyle);
+  if (fmt == NULL)
+    return 0;
+  
+  success = CFNumberFormatterGetValueFromString(fmt, str, NULL,
+    kCFNumberSInt32Type, (void*)&i);
+  
+  CFRelease (fmt);
+  return success ? i : 0;
 }
 
 
