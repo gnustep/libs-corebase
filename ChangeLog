@@ -1,5 +1,10 @@
 2011-07-08 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFCalendar.c: Added implementation for
+	CFCalendarGetMaximumRangeOfUnit and CFCalendarGetMinimumRangeOfUnit.
+
+2011-07-08 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFDate.m:
 	* Source/CFDate.c:
 	* Source/GNUmakefile:

@@ -47,38 +47,6 @@ static CFTypeID _kCFCalendarTypeID;
 static CFCalendarRef _kCFCalendarCurrent = NULL;
 static pthread_mutex_t _kCFCalendarLock = PTHREAD_MUTEX_INITIALIZER;
 
-static Boolean CFCalendarEqual (CFTypeRef cf1, CFTypeRef cf2)
-{
-  CFCalendarRef o1 = (CFCalendarRef)cf1;
-  CFCalendarRef o2 = (CFCalendarRef)cf2;
-  
-  return (Boolean)ucal_equivalentTo (o1->_ucal, o2->_ucal);
-}
-
-static CFStringRef CFCalendarCopyFormattingDesc (CFTypeRef cf,
-  CFDictionaryRef formatOptions)
-{
-  return CFRetain (((CFCalendarRef)cf)->_ident);
-}
-
-static const CFRuntimeClass CFCalendarClass =
-{
-  0,
-  "CFLocale",
-  NULL,
-  NULL,
-  NULL,
-  CFCalendarEqual,
-  NULL,
-  CFCalendarCopyFormattingDesc,
-  NULL
-};
-
-void CFCalendarInitialize (void)
-{
-  _kCFCalendarTypeID = _CFRuntimeRegisterClass (&CFCalendarClass);
-}
-
 static void
 CFCalendarSetupUCalendar (CFCalendarRef cal)
 {
@@ -117,6 +85,137 @@ CFCalendarCloseUCalendar (CFCalendarRef cal)
 {
   ucal_close (cal->_ucal);
   cal->_ucal = NULL;
+}
+
+static void CFCalendarDealloc (CFTypeRef cf)
+{
+  CFCalendarRef cal = (CFCalendarRef)cf;
+  
+  CFCalendarCloseUCalendar (cal);
+  CFRelease (cal->_ident);
+  CFRelease (cal->_localeIdent);
+  CFRelease (cal->_tzIdent);
+}
+
+static Boolean CFCalendarEqual (CFTypeRef cf1, CFTypeRef cf2)
+{
+  CFCalendarRef o1 = (CFCalendarRef)cf1;
+  CFCalendarRef o2 = (CFCalendarRef)cf2;
+  
+  return (Boolean)(CFEqual(o1->_ident, o2->_ident)
+                   && CFEqual(o1->_localeIdent, o2->_localeIdent)
+                   && CFEqual(o1->_tzIdent, o2->_tzIdent));
+}
+
+static CFHashCode CFCalendarHash (CFTypeRef cf)
+{
+  return CFHash (((CFCalendarRef)cf)->_ident);
+}
+
+static CFStringRef CFCalendarCopyFormattingDesc (CFTypeRef cf,
+  CFDictionaryRef formatOptions)
+{
+  return CFRetain (((CFCalendarRef)cf)->_ident);
+}
+
+static const CFRuntimeClass CFCalendarClass =
+{
+  0,
+  "CFLocale",
+  NULL,
+  NULL,
+  CFCalendarDealloc,
+  CFCalendarEqual,
+  CFCalendarHash,
+  CFCalendarCopyFormattingDesc,
+  NULL
+};
+
+void CFCalendarInitialize (void)
+{
+  _kCFCalendarTypeID = _CFRuntimeRegisterClass (&CFCalendarClass);
+}
+
+static inline UCalendarDateFields
+CFCalendarUnitToUCalendarDateFields (CFCalendarUnit unit)
+{
+  UCalendarDateFields ret;
+  switch (unit)
+    {
+      case kCFCalendarUnitEra:
+        ret = UCAL_ERA;
+        break;
+      case kCFCalendarUnitYear:
+        ret = UCAL_YEAR;
+        break;
+      case kCFCalendarUnitMonth:
+        ret = UCAL_MONTH;
+        break;
+      case kCFCalendarUnitDay:
+        ret = UCAL_DATE;
+        break;
+      case kCFCalendarUnitHour:
+        ret = UCAL_HOUR_OF_DAY;
+        break;
+      case kCFCalendarUnitMinute:
+        ret = UCAL_MINUTE;
+        break;
+      case kCFCalendarUnitSecond:
+        ret = UCAL_SECOND;
+        break;
+      case kCFCalendarUnitWeek:
+        ret = UCAL_WEEK_OF_YEAR;
+        break;
+      case kCFCalendarUnitWeekday:
+        ret = UCAL_DAY_OF_WEEK;
+        break;
+      case kCFCalendarUnitWeekdayOrdinal:
+        ret = UCAL_DAY_OF_WEEK_IN_MONTH;
+        break;
+      case kCFCalendarUnitQuarter:
+        ret = UCAL_MONTH; // FIXME
+        break;
+      default:
+        ret = -1;
+    }
+  return ret;
+}
+
+static inline CFCalendarUnit
+CFCalendarGetCalendarUnitsFromDescription (const char *description)
+{
+  CFCalendarUnit ret;
+  
+  if (description == NULL)
+    return 0;
+  
+  ret = 0;
+  while (*description != '\0')
+    {
+      switch (*description)
+        {
+          case 'y':
+            ret |= kCFCalendarUnitYear;
+            break;
+          case 'M':
+            ret |= kCFCalendarUnitMonth;
+            break;
+          case 'd':
+            ret |= kCFCalendarUnitDay;
+            break;
+          case 'H':
+            ret |= kCFCalendarUnitHour;
+            break;
+          case 'm':
+            ret |= kCFCalendarUnitMinute;
+            break;
+          case 's':
+            ret |= kCFCalendarUnitSecond;
+            break;
+        }
+      ++description;
+    }
+  return ret;
 }
 
 
@@ -309,14 +408,52 @@ CFCalendarGetTimeRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit,
 
 CFRange
 CFCalendarGetRangeOfUnit (CFCalendarRef cal, CFCalendarUnit smallerUnit,
-  CFCalendarUnit biggerUnit, CFAbsoluteTime at);
+  CFCalendarUnit biggerUnit, CFAbsoluteTime at)
+{
+  return CFRangeMake (kCFNotFound, 0);
+}
 
 CFIndex
 CFCalendarGetOrdinalityOfUnit (CFCalendarRef cal, CFCalendarUnit smallerUnit,
-  CFCalendarUnit biggerUnit, CFAbsoluteTime at);
+  CFCalendarUnit biggerUnit, CFAbsoluteTime at)
+{
+  return 0;
+}
 
 CFRange
-CFCalendarGetMaximumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit);
+CFCalendarGetMaximumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit)
+{
+  CFRange range;
+  UErrorCode err = U_ZERO_ERROR;
+  UCalendarDateFields field = CFCalendarUnitToUCalendarDateFields (unit);
+  
+  CFCalendarOpenUCalendar (cal);
+  
+  range.location = ucal_getLimit (cal->_ucal, field, UCAL_GREATEST_MINIMUM,
+    &err);
+  range.length = ucal_getLimit (cal->_ucal, field, UCAL_LEAST_MAXIMUM, &err)
+    - range.location + 1;
+  if (unit == kCFCalendarUnitMonth)
+    range.location += 1;
+  
+  return range;
+}
 
 CFRange
-CFCalendarGetMinimumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit);
+CFCalendarGetMinimumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit)
+{
+  CFRange range;
+  UErrorCode err = U_ZERO_ERROR;
+  UCalendarDateFields field = CFCalendarUnitToUCalendarDateFields (unit);
+  
+  CFCalendarOpenUCalendar (cal);
+  
+  range.location = ucal_getLimit (cal->_ucal, field, UCAL_MINIMUM,
+    &err);
+  range.length = ucal_getLimit (cal->_ucal, field, UCAL_MAXIMUM, &err)
+    - range.location + 1;
+  if (unit == kCFCalendarUnitMonth)
+    range.location += 1;
+  
+  return range;
+}
