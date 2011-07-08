@@ -541,10 +541,17 @@ CFLocaleGetValue (CFLocaleRef locale,
     }
   else if (key == kCFLocaleCalendarIdentifier)
     {
-      length = uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, buffer,
-        BUFFER_SIZE, &err);
-      if (strncmp(buffer, "gregorian", sizeof("gregorian")-1) == 0)
-        result = kCFGregorianCalendar;
+      if (uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, buffer,
+          BUFFER_SIZE, &err) > 0 && U_SUCCESS(err))
+        {
+          char *calIdent = buffer;
+          if (strncmp(calIdent, "gregorian", sizeof("gregorian")-1) == 0)
+            result = kCFGregorianCalendar;
+        }
+      else
+        {
+          result = kCFGregorianCalendar; // Default calendar
+        }
     }
   else if (key == kCFLocaleCalendar)
     result = _createCalendar (CFGetAllocator(locale), locale);
@@ -599,20 +606,29 @@ CFStringRef
 CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
                                                    CFStringRef localeIdent)
 {
-  char cLocale[ULOC_FULLNAME_CAPACITY];
+  char *cLocale;
   char buffer[ULOC_FULLNAME_CAPACITY];
+  char canonical[ULOC_FULLNAME_CAPACITY];
   UErrorCode err = U_ZERO_ERROR;
   
-  if (!CFStringGetCString(localeIdent, cLocale, ULOC_FULLNAME_CAPACITY,
-         CFStringGetSystemEncoding()))
-    return NULL;
+  if (localeIdent == NULL)
+    {
+      cLocale = (char *)uloc_getDefault ();
+    }
+  else
+    {
+      if (!CFStringGetCString(localeIdent, buffer, ULOC_FULLNAME_CAPACITY,
+             CFStringGetSystemEncoding()))
+        return NULL;
+      cLocale = buffer;
+    }
   
-  uloc_canonicalize (cLocale, buffer, ULOC_FULLNAME_CAPACITY, &err);
+  uloc_canonicalize (cLocale, canonical, ULOC_FULLNAME_CAPACITY, &err);
   if (U_FAILURE(err))
     return NULL;
   
-  return
-    CFStringCreateWithCString (allocator, buffer, CFStringGetSystemEncoding());
+  return CFStringCreateWithCString (allocator, canonical,
+    CFStringGetSystemEncoding());
 }
 
 CFStringRef

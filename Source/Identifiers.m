@@ -95,7 +95,7 @@ const NSString *kCFJapaneseCalendar = @"japanese";
 const NSString *kCFRepublicOfChinaCalendar = @"roc";
 const NSString *kCFPersianCalendar = @"persian";
 const NSString *kCFIndianCalendar = @"indian";
-const NSString *kCFISO8601Calendar = @"";
+const NSString *kCFISO8601Calendar = @"iso8601"; // Introduced on UTS #35 v2.0
 
 
 

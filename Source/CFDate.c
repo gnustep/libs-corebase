@@ -24,43 +24,123 @@
    Boston, MA 02110-1301, USA.
 */
 
-#import <Foundation/NSDate.h>
-
 #include "CoreFoundation/CFDate.h"
+#include "CoreFoundation/CFCalendar.h"
+#include "CoreFoundation/CFRuntime.h"
+
+#include <math.h>
+#include <unicode/ucal.h>
+
+static CFTypeID _kCFDateTypeID = 0;
+
+struct __CFDate
+{
+  CFRuntimeBase _parent;
+  CFAbsoluteTime _absTime;
+};
 
 const CFTimeInterval kCFAbsoluteTimeIntervalSince1970 = 978307200.0;
 const CFTimeInterval kCFAbsoluteTimeIntervalSince1904 = 3061152000.0;
 
+static const CFRuntimeClass CFDateClass =
+{
+  0,
+  "CFDate",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+void CFDateInitialize (void)
+{
+  _kCFDateTypeID = _CFRuntimeRegisterClass(&CFDateClass);
+}
 
 
-//
-// Time Utilities
-//
+
+#define UDATE_TO_ABSOLUTETIME(d) \
+  (((d) * 1000.0) + kCFAbsoluteTimeIntervalSince1970)
+#define ABSOLUTETIME_TO_UDATE(at) \
+  (((at) - kCFAbsoluteTimeIntervalSince1970) / 1000.0)
+
+CFComparisonResult
+CFDateCompare (CFDateRef theDate, CFDateRef otherDate, void *context)
+{
+// context is unused!
+  CFAbsoluteTime diff = CFDateGetTimeIntervalSinceDate (theDate, otherDate);
+  
+  if (diff < 0.0)
+    return kCFCompareLessThan;
+  if (diff > 0.0)
+    return kCFCompareGreaterThan;
+  
+  return kCFCompareEqualTo;
+}
+
+CFDateRef
+CFDateCreate (CFAllocatorRef allocator, CFAbsoluteTime at)
+{
+  struct __CFDate *new;
+  
+  new = (struct __CFDate *)_CFRuntimeCreateInstance (allocator,
+    _kCFDateTypeID,
+    sizeof(struct __CFDate) - sizeof(CFRuntimeBase),
+    NULL);
+  new->_absTime = at;
+  
+  return (CFDateRef)new;
+}
+
+CFAbsoluteTime
+CFDateGetAbsoluteTime (CFDateRef theDate)
+{
+  return theDate->_absTime;
+}
+
+CFTimeInterval
+CFDateGetTimeIntervalSinceDate (CFDateRef theDate, CFDateRef otherDate)
+{
+  CFAbsoluteTime first = CFDateGetAbsoluteTime (theDate);
+  CFAbsoluteTime second = CFDateGetAbsoluteTime (otherDate);
+  
+  return first - second;
+}
+
+CFTypeID
+CFDateGetTypeID (void)
+{
+  return _kCFDateTypeID;
+}
+
+
+
+/* The following functions all use CFCalendar. */
 CFAbsoluteTime
 CFAbsoluteTimeAddGregorianUnits (CFAbsoluteTime at, CFTimeZoneRef tz,
   CFGregorianUnits units)
 {
-  // FIXME
-  return 0.0;
+  return at;
 }
 
 CFAbsoluteTime
 CFAbsoluteTimeGetCurrent (void)
 {
-  return [NSDate timeIntervalSinceReferenceDate];
+  return UDATE_TO_ABSOLUTETIME(ucal_getNow());
 }
 
 SInt32
 CFAbsoluteTimeGetDayOfWeek (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
-  // FIXME
   return 0;
 }
 
 SInt32
 CFAbsoluteTimeGetDayOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
-  // FIXME
   return 0;
 }
 
@@ -68,28 +148,30 @@ CFGregorianUnits
 CFAbsoluteTimeGetDifferenceAsGregorianUnits (CFAbsoluteTime at1,
   CFAbsoluteTime at2, CFTimeZoneRef tz, CFOptionFlags unitFlags)
 {
-  // FIXME
-  return (CFGregorianUnits){0, 0, 0, 0, 0, 0.0};
+//  double d;
+  CFGregorianUnits gunits = { 0 };
+  
+//  gunits.seconds += modf (at1 - at2, &d);
+  
+  return gunits;
 }
 
 CFGregorianDate
 CFAbsoluteTimeGetGregorianDate (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
-  // FIXME
-  return (CFGregorianDate){0, 0, 0, 0, 0, 0.0};
+  CFGregorianDate gdate = { 0 };
+  return gdate;
 }
 
 SInt32
 CFAbsoluteTimeGetWeekOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
-  // FIXME
   return 0;
 }
 
 CFAbsoluteTime
 CFGregorianDateGetAbsoluteTime (CFGregorianDate gdate, CFTimeZoneRef tz)
 {
-  // FIXME
   return 0.0;
 }
 
@@ -114,39 +196,4 @@ CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags)
     isValid = ((gdate.second >= 0.0) && (gdate.second < 60.0));
   
   return isValid;
-}
-
-//
-// CFDate Functions
-//
-CFComparisonResult
-CFDateCompare (CFDateRef theDate, CFDateRef otherDate, void *context)
-{
-  return [(NSDate *)theDate compare: (NSDate *)otherDate];
-}
-
-CFDateRef
-CFDateCreate (CFAllocatorRef allocator, CFAbsoluteTime at)
-{
-  return (CFDateRef)[[NSDate allocWithZone: allocator]
-                      initWithTimeIntervalSinceReferenceDate: at];
-}
-
-CFAbsoluteTime
-CFDateGetAbsoluteTime (CFDateRef theDate)
-{
-  return [(NSDate *)theDate timeIntervalSinceReferenceDate];
-}
-
-CFTimeInterval
-CFDateGetTimeIntervalSinceDate (CFDateRef theDate, CFDateRef otherDate)
-{
-  return (CFTimeInterval)[(NSDate *)theDate
-           timeIntervalSinceDate: (NSDate *)otherDate];
-}
-
-CFTypeID
-CFDateGetTypeID (void)
-{
-  return (CFTypeID)[NSDate class];
 }

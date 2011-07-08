@@ -9,7 +9,6 @@ libgnustep-corebase_OBJC_FILES = \
   CFBundle.m \
   CFArray.m \
   CFData.m \
-  CFDate.m \
   CFDictionary.m \
   CFError.m \
   CFNumber.m \
@@ -23,6 +22,7 @@ libgnustep-corebase_OBJC_FILES = \
 
 libgnustep-corebase_C_FILES = \
   CFCalendar.c \
+  CFDate.c \
   CFLocale.c \
   CFNumberFormatter.c \
   CFString.c \
@@ -43,6 +43,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFBundle.h \
   CFArray.h \
   CFByteOrder.h \
+  CFCalendar.h \
   CFCharacterSet.h \
   CFData.h \
   CFDate.h \

@@ -39,7 +39,7 @@ CF_EXTERN_C_BEGIN
  *
  *  CFCalendar is "toll-free bridged" to NSCalendar.
  */
-typedef const struct __CFCalendar *CFCalendarRef;
+typedef struct __CFCalendar *CFCalendarRef;
 
 typedef enum
 {

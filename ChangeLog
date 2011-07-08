@@ -1,3 +1,15 @@
+2011-07-08 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFDate.m:
+	* Source/CFDate.c:
+	* Source/GNUmakefile:
+	* Headers/CoreFoundation/CFDate.h: Make CFDate a C file.  Will use
+	CFCalendar and ICU functions to implement this functionality.
+	* Source/CFLocale.c: Fix a few bugs found when testing CFCalendar.
+	* Source/Identifiers.m: Add ISO8601 calendar identifier.
+	* Source/CFCalendar.c:
+	* Headers/CoreFoundation/CFCalendar.h: Started implementing CFCalendar.
+
 2011-06-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFString.c: Implemented CFStringCreateWithBytesNoCopy() and

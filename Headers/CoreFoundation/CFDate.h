@@ -24,10 +24,10 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <CoreFoundation/CFBase.h>
-
 #ifndef __COREFOUNDATION_CFDATE_H__
 #define __COREFOUNDATION_CFDATE_H__
+
+#include <CoreFoundation/CFBase.h>
 
 #ifdef __OBJC__
 @class NSDate;
@@ -35,7 +35,7 @@
 typedef NSDate* CFDateRef;
 typedef NSTimeZone* CFTimeZoneRef;
 #else
-typedef struct CFDate *CFDateRef;
+typedef const struct __CFDate *CFDateRef;
 typedef const struct __CFTimeZone *CFTimeZoneRef;
 #endif
 
