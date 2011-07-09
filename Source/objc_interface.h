@@ -40,12 +40,8 @@ extern UInt32 __CFRuntimeClassTableCount;
 static inline void *
 __CFISAForTypeID (CFTypeID typeID)
 {
-  if (typeID >= __CFRuntimeClassTableCount)
-    {
-      // Assume typeID is actually the address to a ObjC class.
-      return (void *)typeID;
-    }
-  return (void *)__CFRuntimeObjCClassTable[typeID];
+  return (void *)(typeID < __CFRuntimeClassTableCount ?
+    __CFRuntimeObjCClassTable[typeID] : 0);
 }
 
 static inline Boolean

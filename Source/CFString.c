@@ -643,6 +643,8 @@ CFStringGetBytes (CFStringRef str, CFRange range,
 void
 CFStringGetCharacters (CFStringRef str, CFRange range, UniChar *buffer)
 {
+  CF_OBJC_FUNCDISPATCH2(_kCFStringTypeID, void, str,
+    "getCharacters:range:", buffer, range);
   CFStringEncoding enc = kCFStringEncodingUTF16;
   __CFStringEncodeByteStream (str, range.location, range.length,
     false, enc, '?', (UInt8*)buffer, range.length * sizeof(UniChar), NULL);

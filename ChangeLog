@@ -1,5 +1,11 @@
 2011-07-09 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/objc_interface.h:
+	* Source/CFRuntime.m: Minor fixes to ObjC interface.
+	* Source/CFString.c: Add ObjC dispatch to CFStringGetCharacters().
+
+2011-07-09 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/objc_interface.h: Add Objective-C runtime interface.
 	* Source/CFRuntime.m: Moved private functions to objc_interface.h.
 	* Source/CFString.c: First steps towards toll-free bridged objects.

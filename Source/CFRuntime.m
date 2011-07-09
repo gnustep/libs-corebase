@@ -33,8 +33,6 @@
 
 #include <pthread.h>
 
-#import "NSCFType.h"
-
 
 
 // CFRuntimeClass Table
@@ -78,8 +76,6 @@ struct obj_layout {
 };
 typedef	struct obj_layout *obj;
 /******************************/
-
-#define IS_OBJC(cf) CF_IS_OBJC(CFGetTypeID(cf), cf)
 
 // CFNotATypeClass declaration for index 0 of the class table.
 static CFRuntimeClass CFNotATypeClass = 
@@ -201,35 +197,29 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
 CFStringRef
 CFCopyDescription (CFTypeRef cf)
 {
-  CFTypeID typeID;
+  CFRuntimeClass *cfclass;
+  CFTypeID typeID = CFGetTypeID(cf);
+  
   if (NULL == cf)
     return NULL;
   
-  if (IS_OBJC(cf))
-    return (CFStringRef)[(id)cf description];
+  CF_OBJC_FUNCDISPATCH0(typeID, CFStringRef, cf, "description");
   
-  typeID = CFGetTypeID(cf);
   if (typeID < __CFRuntimeClassTableSize)
     if (NULL == __CFRuntimeClassTable[typeID])
       return NULL;
-
-  if (IS_OBJC(cf))
+  
+  cfclass = __CFRuntimeClassTable[CFGetTypeID(cf)];
+  if (NULL != cfclass->copyFormattingDesc)
     {
-      return (CFStringRef)CFRetain([(id)cf description]);
+      return cfclass->copyFormattingDesc(cf, NULL);
     }
   else
     {
-      CFRuntimeClass *cfclass = __CFRuntimeClassTable[CFGetTypeID(cf)];
-      if (NULL != cfclass->copyFormattingDesc)
-        {
-          return cfclass->copyFormattingDesc(cf, NULL);
-        }
-      else
-        {
-          CFStringCreateWithFormat (NULL, NULL, CFSTR("<%s: %p>"),
-            cfclass->className, cf);
-        }
+      return CFStringCreateWithFormat (NULL, NULL, CFSTR("<%s: %p>"),
+        cfclass->className, cf);
     }
+  
   return NULL;
 }
 
@@ -263,10 +253,8 @@ CFEqual (CFTypeRef cf1, CFTypeRef cf2)
     return false;
   
   // Can't compare here if either objects are ObjC objects.
-  if (IS_OBJC(cf1))
-    return [(id)cf1 isEqual: (id)cf2];
-  if (IS_OBJC(cf2))
-    return [(id)cf2 isEqual: (id)cf1];
+  CF_OBJC_FUNCDISPATCH1(CFGetTypeID(cf1), Boolean, cf1, "isEqual:", cf2);
+  CF_OBJC_FUNCDISPATCH1(CFGetTypeID(cf2), Boolean, cf2, "isEqual:", cf1);
   
   tID1 = CFGetTypeID(cf1);
   tID2 = CFGetTypeID(cf2);
@@ -286,8 +274,7 @@ CFGetAllocator (CFTypeRef cf)
   if (cf == NULL)
     return NULL;
   
-  if (IS_OBJC(cf))
-    return [(id)cf zone];
+  CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFAllocatorRef, cf, "zone");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     return (CFAllocatorRef)(((obj)cf)[-1]).zone;
@@ -301,8 +288,7 @@ CFGetRetainCount (CFTypeRef cf)
   if (cf == NULL)
     return 0;
   
-  if (IS_OBJC(cf))
-    return [(id)cf retainCount];
+  CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFIndex, cf, "retainCount");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     return (CFIndex)NSExtraRefCount ((id)cf) + 1;
@@ -313,7 +299,12 @@ CFGetRetainCount (CFTypeRef cf)
 CFTypeID
 CFGetTypeID (CFTypeRef cf)
 {
-  return [(id)cf _cfTypeID];
+  /* This is unsafe, but I don't see any other way of getting the typeID
+     for this call. */
+  CF_OBJC_FUNCDISPATCH0(((CFRuntimeBase*)cf)->_typeID, CFTypeID, cf,
+    "_cfTypeID");
+  
+  return ((CFRuntimeBase*)cf)->_typeID;
 }
 
 CFHashCode
@@ -324,8 +315,7 @@ CFHash (CFTypeRef cf)
   if (cf == NULL)
     return 0;
   
-  if (IS_OBJC(cf))
-    return [(id)cf hash];
+  CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFHashCode, cf, "hash");
   
   cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
   if (cls->hash)
@@ -347,8 +337,7 @@ CFRelease (CFTypeRef cf)
   if (cf == NULL)
     return;
   
-  if (IS_OBJC(cf))
-    return RELEASE((id)cf);
+  CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), void, cf, "release");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
@@ -369,8 +358,7 @@ CFRetain (CFTypeRef cf)
   if (cf == NULL)
     return NULL;
   
-  if (IS_OBJC(cf))
-    return RETAIN((id)cf);
+  CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFTypeRef, cf, "retain");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     NSIncrementExtraRefCount ((id)cf);
@@ -396,7 +384,7 @@ void CFInitialize (void)
   __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
                       	        sizeof(Class));
   
-  NSCFTypeClass = [NSCFType class];
+  NSCFTypeClass = objc_getClass ("NSCFType");
   
   // CFNotATypeClass should be at index = 0
   _CFRuntimeRegisterClass (&CFNotATypeClass);
