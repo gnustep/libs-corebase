@@ -43,6 +43,7 @@
 #include "CoreFoundation/CFStringEncodingExt.h"
 
 #include "CoreFoundation/ForFoundationOnly.h"
+#include "objc_interface.h"
 
 #define CFRANGE_CHECK(len, range) \
   ((range.location + range.length) <= len)
@@ -654,6 +655,10 @@ CFStringGetCString (CFStringRef str, char *buffer, CFIndex bufferSize,
   CFIndex len = CFStringGetLength (str);
   CFIndex used;
   
+  CF_OBJC_FUNCDISPATCH3(_kCFStringTypeID, Boolean, str,
+    "getCString:maxLength:encoding:", buffer, bufferSize,
+    CFStringConvertEncodingToNSStringEncoding(encoding));
+  
   if (__CFStringEncodeByteStream (str, 0, len, false, encoding, '?',
       (UInt8*)buffer, bufferSize, &used) == len && used <= len)
     {
@@ -677,6 +682,8 @@ CFStringGetFileSystemRepresentation (CFStringRef string, char *buffer,
 UniChar
 CFStringGetCharacterAtIndex (CFStringRef str, CFIndex idx)
 {
+  CF_OBJC_FUNCDISPATCH1(_kCFStringTypeID, UniChar, str,
+    "characterAtIndex:", idx);
   return CFStringIsWide(str) ? ((UniChar*)str->_contents)[idx] :
     ((char*)str->_contents)[idx];
 }
@@ -684,6 +691,7 @@ CFStringGetCharacterAtIndex (CFStringRef str, CFIndex idx)
 CFIndex
 CFStringGetLength (CFStringRef str)
 {
+  CF_OBJC_FUNCDISPATCH0(_kCFStringTypeID, CFIndex, str, "length");
   return str->_count;
 }
 

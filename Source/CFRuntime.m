@@ -27,10 +27,11 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
 
-#include <pthread.h>
-
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
+#include "objc_interface.h"
+
+#include <pthread.h>
 
 #import "NSCFType.h"
 
@@ -39,8 +40,8 @@
 // CFRuntimeClass Table
 CFRuntimeClass **__CFRuntimeClassTable = NULL;
 Class *__CFRuntimeObjCClassTable = NULL;
-static UInt32 __CFRuntimeClassTableCount = 0;
-static UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
+UInt32 __CFRuntimeClassTableCount = 0;
+UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
 
 static pthread_mutex_t _kCFRuntimeTableLock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -77,29 +78,6 @@ struct obj_layout {
 };
 typedef	struct obj_layout *obj;
 /******************************/
-
-
-
-// These functions are declared in CFInternal.h, but since corebase
-// doesn't have this file, they'll be done in here.
-static inline void *
-__CFISAForTypeID (CFTypeID typeID)
-{
-  if (typeID >= __CFRuntimeClassTableSize)
-    {
-      // Assume typeID is actually the address to a ObjC class.
-      return (void *)typeID;
-    }
-  return (void *)__CFRuntimeObjCClassTable[typeID];
-}
-
-static inline Boolean
-CF_IS_OBJC (CFTypeID typeID, const void *obj)
-{
-  return (typeID >= __CFRuntimeClassTableSize
-          || (obj != NULL
-              && (((CFRuntimeBase*)obj)->_isa != __CFISAForTypeID (typeID))));
-}
 
 #define IS_OBJC(cf) CF_IS_OBJC(CFGetTypeID(cf), cf)
 
