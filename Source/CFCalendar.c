@@ -47,7 +47,7 @@ static CFTypeID _kCFCalendarTypeID;
 static CFCalendarRef _kCFCalendarCurrent = NULL;
 static pthread_mutex_t _kCFCalendarLock = PTHREAD_MUTEX_INITIALIZER;
 
-static void
+static Boolean
 CFCalendarSetupUCalendar (CFCalendarRef cal)
 {
   char localeIdent[ULOC_FULLNAME_CAPACITY];
@@ -68,16 +68,21 @@ CFCalendarSetupUCalendar (CFCalendarRef cal)
   
   ucal = ucal_open (tzIdent, 0, localeIdent, UCAL_TRADITIONAL, &err);
   if (U_FAILURE(err))
-    ucal = NULL;
+    {
+      ucal = NULL;
+      return false;
+    }
   
   cal->_ucal = ucal;
+  return true;
 }
 
-static inline void
+static inline Boolean
 CFCalendarOpenUCalendar (CFCalendarRef cal)
 {
   if (cal->_ucal == NULL)
-    CFCalendarSetupUCalendar (cal);
+    return CFCalendarSetupUCalendar (cal);
+  return true; // Already open
 }
 
 static inline void
@@ -181,41 +186,41 @@ CFCalendarUnitToUCalendarDateFields (CFCalendarUnit unit)
   return ret;
 }
 
-static inline CFCalendarUnit
-CFCalendarGetCalendarUnitsFromDescription (const char *description)
+/* This function returns true is there is still characters to be consumed. */
+static inline Boolean
+CFCalendarGetCalendarUnitFromDescription (const unsigned char **description,
+  CFCalendarUnit *unit)
 {
-  CFCalendarUnit ret;
+  const unsigned char *current = *description;
   
-  if (description == NULL)
-    return 0;
+  if (current == NULL || *current == '\0')
+    return false;
   
-  ret = 0;
-  while (*description != '\0')
+  switch (*current++)
     {
-      switch (*description)
-        {
-          case 'y':
-            ret |= kCFCalendarUnitYear;
-            break;
-          case 'M':
-            ret |= kCFCalendarUnitMonth;
-            break;
-          case 'd':
-            ret |= kCFCalendarUnitDay;
-            break;
-          case 'H':
-            ret |= kCFCalendarUnitHour;
-            break;
-          case 'm':
-            ret |= kCFCalendarUnitMinute;
-            break;
-          case 's':
-            ret |= kCFCalendarUnitSecond;
-            break;
-        }
-      ++description;
+      case 'y':
+        *unit = kCFCalendarUnitYear;
+        break;
+      case 'M':
+        *unit = kCFCalendarUnitMonth;
+        break;
+      case 'd':
+        *unit = kCFCalendarUnitDay;
+        break;
+      case 'H':
+        *unit = kCFCalendarUnitHour;
+        break;
+      case 'm':
+        *unit = kCFCalendarUnitMinute;
+        break;
+      case 's':
+        *unit = kCFCalendarUnitSecond;
+        break;
     }
-  return ret;
+  
+  *description = current;
+  
+  return true;
 }
 
 
@@ -259,17 +264,17 @@ CFCalendarCreateWithIdentifier (CFAllocatorRef allocator, CFStringRef ident)
   CFLocaleRef locale;
   CFCalendarRef new;
   
-  if (ident != kCFGregorianCalendar
-      && ident != kCFBuddhistCalendar
-      && ident != kCFChineseCalendar
-      && ident != kCFHebrewCalendar
-      && ident != kCFIslamicCalendar
-      && ident != kCFIslamicCivilCalendar
-      && ident != kCFJapaneseCalendar
-      && ident != kCFRepublicOfChinaCalendar
-      && ident != kCFPersianCalendar
-      && ident != kCFIndianCalendar
-      && ident != kCFISO8601Calendar)
+  if (!(ident == kCFGregorianCalendar
+      || ident == kCFBuddhistCalendar
+      || ident == kCFChineseCalendar
+      || ident == kCFHebrewCalendar
+      || ident == kCFIslamicCalendar
+      || ident == kCFIslamicCivilCalendar
+      || ident == kCFJapaneseCalendar
+      || ident == kCFRepublicOfChinaCalendar
+      || ident == kCFPersianCalendar
+      || ident == kCFIndianCalendar
+      || ident == kCFISO8601Calendar))
     {
       if (CFEqual(ident, kCFGregorianCalendar))
         ident = kCFGregorianCalendar;
@@ -352,28 +357,30 @@ CFCalendarGetFirstWeekday (CFCalendarRef cal)
 void
 CFCalendarSetFirstWeekday (CFCalendarRef cal, CFIndex wkdy)
 {
-  CFCalendarOpenUCalendar (cal);
-  ucal_setAttribute (cal->_ucal, UCAL_FIRST_DAY_OF_WEEK, wkdy);
+  if (CFCalendarOpenUCalendar (cal))
+    ucal_setAttribute (cal->_ucal, UCAL_FIRST_DAY_OF_WEEK, wkdy);
 }
 
 CFIndex
 CFCalendarGetMinimumDaysInFirstWeek (CFCalendarRef cal)
 {
-  CFCalendarOpenUCalendar (cal);
-  return ucal_getAttribute (cal->_ucal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK);
+  if (CFCalendarOpenUCalendar (cal))
+    return ucal_getAttribute (cal->_ucal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK);
+  return 0;
 }
 
 void
 CFCalendarSetMinimumDaysInFirstWeek (CFCalendarRef cal, CFIndex mwd)
 {
-  CFCalendarOpenUCalendar (cal);
-  ucal_setAttribute (cal->_ucal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, mwd);
+  if (CFCalendarOpenUCalendar (cal))
+    ucal_setAttribute (cal->_ucal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK, mwd);
 }
 
 Boolean
 CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
   CFOptionFlags options, const unsigned char *componentDesc, ...)
 {
+  
   return false;
 }
 
@@ -381,7 +388,54 @@ Boolean
 CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
   const unsigned char *componentDesc, ...)
 {
-  return false;
+  va_list arg;
+  int year = 0, month = 0, date = 0, hour = 0, minute = 0, second = 0;
+  CFCalendarUnit unit = 0;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (!CFCalendarOpenUCalendar(cal))
+    return false;
+  
+  va_start (arg, componentDesc);
+  while (CFCalendarGetCalendarUnitFromDescription(&componentDesc, &unit))
+    {
+      switch (unit)
+        {
+          case kCFCalendarUnitYear:
+            year = va_arg (arg, int);
+            break;
+          case kCFCalendarUnitMonth:
+            month = va_arg (arg, int);
+            break;
+          case kCFCalendarUnitDay:
+            date = va_arg (arg, int);
+            break;
+          case kCFCalendarUnitHour:
+            hour = va_arg (arg, int);
+            break;
+          case kCFCalendarUnitMinute:
+            minute = va_arg (arg, int);
+            break;
+          case kCFCalendarUnitSecond:
+            second = va_arg (arg, int);
+            break;
+          default:
+            va_arg (arg, int); // Skip
+        }
+    }
+  va_end(arg);
+  
+  ucal_clear (cal->_ucal);
+  ucal_setDateTime (cal->_ucal, year, month, date, hour, minute, second, &err);
+  if (U_FAILURE(err))
+    return false;
+  
+  *at = (ucal_getMillis (cal->_ucal, &err) / 1000.0)
+    + kCFAbsoluteTimeIntervalSince1970;
+  if (U_FAILURE(err))
+    return false;
+  
+  return true;
 }
 
 Boolean
@@ -396,6 +450,8 @@ CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startinAT,
   CFAbsoluteTime resultAT, CFOptionFlags options,
   const unsigned char *componentDesc, ...)
 {
+  /* FIXME: ICU 4.8 introduced ucal_getFieldDifference() which
+     should make implementing this function very easy. */
   return false;
 }
 
@@ -417,7 +473,7 @@ CFIndex
 CFCalendarGetOrdinalityOfUnit (CFCalendarRef cal, CFCalendarUnit smallerUnit,
   CFCalendarUnit biggerUnit, CFAbsoluteTime at)
 {
-  return 0;
+  return kCFNotFound;
 }
 
 CFRange
@@ -427,7 +483,8 @@ CFCalendarGetMaximumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit)
   UErrorCode err = U_ZERO_ERROR;
   UCalendarDateFields field = CFCalendarUnitToUCalendarDateFields (unit);
   
-  CFCalendarOpenUCalendar (cal);
+  if (!CFCalendarOpenUCalendar (cal))
+    return CFRangeMake (kCFNotFound, 0);
   
   range.location = ucal_getLimit (cal->_ucal, field, UCAL_GREATEST_MINIMUM,
     &err);
@@ -446,7 +503,8 @@ CFCalendarGetMinimumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit)
   UErrorCode err = U_ZERO_ERROR;
   UCalendarDateFields field = CFCalendarUnitToUCalendarDateFields (unit);
   
-  CFCalendarOpenUCalendar (cal);
+  if (!CFCalendarOpenUCalendar (cal))
+    return CFRangeMake (kCFNotFound, 0);
   
   range.location = ucal_getLimit (cal->_ucal, field, UCAL_MINIMUM,
     &err);

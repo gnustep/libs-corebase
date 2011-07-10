@@ -15,8 +15,7 @@ int main (void)
   PASS(fmt != NULL, "CFNumberFormatterCreate() return non-nil");
   str = CFNumberFormatterCopyProperty (fmt,
     kCFNumberFormatterDefaultFormat);
-  PASS_CFEQ(str, CFSTR("#"),
-    "Default no-style format same as cocoa");
+  PASS_CFEQ(str, CFSTR("#"), "Default no-style format same as cocoa");
   CFRelease (fmt);
   
   fmt = CFNumberFormatterCreate (NULL, locale,
@@ -32,8 +31,7 @@ int main (void)
   str = CFNumberFormatterCopyProperty (fmt,
     kCFNumberFormatterDefaultFormat);
   exp = CFStringCreateWithCString (NULL, "¤#,##0.00", kCFStringEncodingUTF8);
-  PASS_CFEQ(str, exp,
-    "Default currency-style format same as cocoa");
+  PASS_CFEQ(str, exp, "Default currency-style format same as cocoa");
   CFRelease (exp);
   CFRelease (fmt);
   

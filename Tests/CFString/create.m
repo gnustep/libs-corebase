@@ -21,10 +21,9 @@ int main (void)
   arrayValues[1] = str2;
   array = CFArrayCreate (NULL, (const void **)arrayValues, 2,
     &kCFTypeArrayCallBacks);
-  string = CFStringCreateByCombiningStrings (NULL, array,
-    __CFStringMakeConstantString("! "));
+  string = CFStringCreateByCombiningStrings (NULL, array, CFSTR("! "));
   
-  PASS_CFEQ(string, __CFStringMakeConstantString("OK! OK"),
+  PASS_CFEQ(string, CFSTR("OK! OK"),
     "Strings were combined successfully.");
   
   CFRelease(str1);

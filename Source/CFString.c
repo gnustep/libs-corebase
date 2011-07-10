@@ -996,6 +996,7 @@ CFStringPad (CFMutableStringRef str, CFStringRef padString,
     {
       ((UniChar*)str->_contents)[length] = 0x0000;
       str->_count = length;
+      str->_hash = 0;
     }
   else
     {
