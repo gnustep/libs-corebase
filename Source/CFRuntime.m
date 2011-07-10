@@ -144,7 +144,9 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
   if (NULL == allocator)
     allocator = CFAllocatorGetDefault ();
   
-  new = (CFRuntimeBase *)NSAllocateObject (NSCFTypeClass, extraBytes, allocator);
+  new = (CFRuntimeBase *)NSAllocateObject (NSCFTypeClass, extraBytes,
+    allocator);
+  _CFRuntimeSetInstanceTypeID (new, typeID);
   if (new)
     {
       new->_typeID = typeID;

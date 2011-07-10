@@ -1,3 +1,9 @@
+2011-07-10 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/objc_interface.h:
+	* Source/CFRuntime.m: Add bridging function.
+	* Source/CFString.c: Bridge NSCFString with CFString types.
+
 2011-07-09 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/objc_interface.h:

@@ -35,6 +35,12 @@
 extern Class *__CFRuntimeObjCClassTable;
 extern UInt32 __CFRuntimeClassTableCount;
 
+static inline void
+CFRuntimeBridgeClass (CFTypeID typeID, const char *cls)
+{
+  __CFRuntimeObjCClassTable[typeID] = (Class)objc_getClass (cls);
+}
+
 /* These functions are declared in CFInternal.h, but since corebase
    doesn't have this file, they'll be done in here. */
 static inline void *

@@ -259,6 +259,7 @@ static const CFRuntimeClass CFStringClass =
 void CFStringInitialize (void)
 {
   _kCFStringTypeID = _CFRuntimeRegisterClass (&CFStringClass);
+  CFRuntimeBridgeClass (_kCFStringTypeID, "NSCFString");
   _ustdout = u_finit (stdout, NULL, NULL);
 }
 
