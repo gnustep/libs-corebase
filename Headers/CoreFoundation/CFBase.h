@@ -225,8 +225,15 @@ typedef struct CFPropertyList *CFPropertyListRef;
 //
 // CFString
 //
+#if __OBJC__
+@class NSString;
+@class NSMutableString;
+typedef NSString * CFStringRef;
+typedef NSMutableString * CFMutableStringRef; 
+#else
 typedef const struct __CFString * CFStringRef;
 typedef struct __CFString * CFMutableStringRef;
+#endif
 
 
 
