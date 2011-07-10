@@ -1,3 +1,8 @@
+2011-07-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFCalendar.c: Implemented CFCalendarAddComponents() and
+	CFCalendarDecomposeAbsoluteTime().
+
 2011-07-10 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFCalendar.c: Implemented a few more functions.
