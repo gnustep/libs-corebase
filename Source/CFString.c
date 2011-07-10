@@ -196,30 +196,18 @@ static CFHashCode CFStringHash (CFTypeRef cf)
   if (len > 0)
     {
       register CFIndex idx = 0;
-      register const CFIndex len = str->_count;
-      UChar32 c;
       
-      /* We'll use the _UNSAFE variant of the U*_NEXT macros because
-         all bytes stored by CFString are guaranteed to be valid. */
       if (CFStringIsWide(str)) // UTF-16
         {
           register const UniChar *p = str->_contents;
-          U16_NEXT_UNSAFE(p, idx, c);
           while (idx < len)
-            {
-              ret = (ret << 5) + ret + c;
-              U16_NEXT_UNSAFE(p, idx, c);
-            }
+            ret = (ret << 5) + ret + p[idx++];
         }
       else // ASCII
         {
           register const char *p = str->_contents;
-          c = *p;
           while (idx < len)
-            {
-              ret = (ret << 5) + ret + c;
-              c = p[idx++];
-            }
+            ret = (ret << 5) + ret + p[idx++];
         }
       
       ret &= 0x0fffffff;
@@ -702,7 +690,21 @@ CFRange
 CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef str,
   CFIndex theIndex)
 {
-  return CFRangeMake (0, 0); // FIXME
+  if (CFStringIsWide(str))
+    {
+      CFIndex len = 1;
+      UniChar *characters = ((UniChar*)str->_contents) + theIndex;
+      if (U16_IS_SURROGATE(*characters))
+        {
+          len = 2;
+          if (U16_IS_SURROGATE_TRAIL(*characters))
+            theIndex -= 1;  
+        }
+      
+      return CFRangeMake (theIndex, len);
+    }
+  
+  return CFRangeMake (theIndex, 1);
 }
 
 UTF32Char
