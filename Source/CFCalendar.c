@@ -82,6 +82,8 @@ CFCalendarOpenUCalendar (CFCalendarRef cal)
 {
   if (cal->_ucal == NULL)
     return CFCalendarSetupUCalendar (cal);
+  
+  ucal_clear (cal->_ucal);
   return true; // Already open
 }
 
@@ -390,6 +392,11 @@ CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
   if (!CFCalendarOpenUCalendar(cal))
     return false;
   
+  ucal_setMillis (cal->_ucal,
+    (*at + kCFAbsoluteTimeIntervalSince1970) * 1000.0, &err);
+  if (U_FAILURE(err))
+    return false;
+  
   va_start (arg, componentDesc);
   while (CFCalendarGetCalendarUnitFromDescription(&componentDesc, &unit))
     {
@@ -417,7 +424,7 @@ CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
             break;
           case kCFCalendarUnitSecond:
             field = UCAL_SECOND;
-            value = va_arg (arg, int);
+            value = va_arg (arg, int) - 1;
             break;
           default:
             va_arg (arg, int); // Skip
@@ -429,6 +436,9 @@ CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
         ucal_add (cal->_ucal, field, value, &err);
     }
   va_end(arg);
+  
+  *at = (ucal_getMillis (cal->_ucal, &err) / 1000.0)
+    - kCFAbsoluteTimeIntervalSince1970;
   
   if (U_FAILURE(err))
     return false;
@@ -457,7 +467,7 @@ CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
             year = va_arg (arg, int);
             break;
           case kCFCalendarUnitMonth:
-            month = va_arg (arg, int);
+            month = va_arg (arg, int) - 1;
             break;
           case kCFCalendarUnitDay:
             date = va_arg (arg, int);
@@ -546,6 +556,7 @@ CFCalendarDecomposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime at,
           *value = ucal_get (cal->_ucal, field, &err);
           if (unit == kCFCalendarUnitMonth)
             *value += 1;
+        }
     }
   va_end(arg);
   
@@ -556,13 +567,149 @@ CFCalendarDecomposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime at,
 }
 
 Boolean
-CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startinAT,
+CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startAT,
   CFAbsoluteTime resultAT, CFOptionFlags options,
   const unsigned char *componentDesc, ...)
 {
   /* FIXME: ICU 4.8 introduced ucal_getFieldDifference() which
      should make implementing this function very easy. */
-  return false;
+  va_list arg;
+  int *value;
+  int32_t mult;
+  CFCalendarUnit unit = 0;
+  UDate start;
+  UDate end;
+  UCalendarDateFields field;
+  UCalendar *ucal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (!CFCalendarOpenUCalendar(cal))
+    return false;
+  
+  if (startAT > resultAT)
+    {
+      start = (resultAT + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
+      end = (startAT + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
+      mult = -1;
+    }
+  else
+    {
+      start = (startAT + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
+      end = (resultAT + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
+      mult = 1;
+    }
+  
+  ucal = cal->_ucal;
+  ucal_setMillis (ucal, start, &err);
+  if (U_FAILURE(err))
+    return false;
+  
+  va_start (arg, componentDesc);
+  while (CFCalendarGetCalendarUnitFromDescription(&componentDesc, &unit))
+    {
+      int32_t min = 0;
+      int32_t max = 1;
+      double millis;
+      
+      value = NULL;
+      switch (unit)
+        {
+          case kCFCalendarUnitYear:
+            field = UCAL_YEAR;
+            value = va_arg (arg, int*);
+            break;
+          case kCFCalendarUnitMonth:
+            field = UCAL_MONTH;
+            value = va_arg (arg, int*);
+            break;
+          case kCFCalendarUnitDay:
+            field = UCAL_DAY_OF_MONTH;
+            value = va_arg (arg, int*);
+            break;
+          case kCFCalendarUnitHour:
+            field = UCAL_HOUR_OF_DAY;
+            value = va_arg (arg, int*);
+            break;
+          case kCFCalendarUnitMinute:
+            field = UCAL_MINUTE;
+            value = va_arg (arg, int*);
+            break;
+          case kCFCalendarUnitSecond:
+            field = UCAL_SECOND;
+            value = va_arg (arg, int*);
+            break;
+          default:
+            va_arg (arg, int*); // Skip
+            continue;
+        }
+      
+      /* Get a range */
+      do
+        {
+          ucal_setMillis (ucal, start, &err);
+          if (options & kCFCalendarComponentsWrap)
+            ucal_roll (cal->_ucal, field, max, &err);
+          else
+            ucal_add (cal->_ucal, field, max, &err);
+          millis = ucal_getMillis (ucal, &err);
+          
+          if (millis < end)
+            {
+              min = max;
+              max <<= 1; // multiply by 2...
+              if (max < 0)
+                return false;
+            }
+        } while (millis < end && U_SUCCESS(err));
+      
+      if (millis != end)
+        {
+          while ((max - min) > 1 && U_SUCCESS(err))
+            {
+              int32_t add = (max + min) / 2;
+              ucal_setMillis (ucal, start, &err);
+              if (options & kCFCalendarComponentsWrap)
+                ucal_roll (cal->_ucal, field, add, &err);
+              else
+                ucal_add (cal->_ucal, field, add, &err);
+              millis = ucal_getMillis (ucal, &err);
+              
+              if (millis == end)
+                {
+                  *value = add * mult;
+                  break;
+                }
+              else if (millis < end)
+                {
+                  min = add;
+                }
+              else
+                {
+                  max = add;
+                }
+            }
+          
+          if (millis > end)
+            *value = min * mult;
+        }
+      else
+        {
+          *value = max * mult;
+        }
+      
+      ucal_setMillis (ucal, start, &err);
+      if (options & kCFCalendarComponentsWrap)
+        ucal_roll (cal->_ucal, field, min, &err);
+      else
+        ucal_add (cal->_ucal, field, min, &err);
+      start = ucal_getMillis (ucal, &err);
+      
+      if (U_FAILURE(err))
+        return false;
+    }
+  va_end(arg);
+  
+  return true;
 }
 
 Boolean
@@ -625,3 +772,4 @@ CFCalendarGetMinimumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit)
   
   return range;
 }
+

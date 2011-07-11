@@ -1,5 +1,9 @@
 2011-07-11 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFCalendar.c: Implemented CFCalendarGetComponentDifference().
+
+2011-07-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFCalendar.c: Implemented CFCalendarAddComponents() and
 	CFCalendarDecomposeAbsoluteTime().
 
