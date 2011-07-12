@@ -47,6 +47,11 @@ static CFTypeID _kCFCalendarTypeID;
 static CFCalendarRef _kCFCalendarCurrent = NULL;
 static pthread_mutex_t _kCFCalendarLock = PTHREAD_MUTEX_INITIALIZER;
 
+#define UDATE_TO_ABSOLUTETIME(d) \
+  (((d) / 1000.0) - kCFAbsoluteTimeIntervalSince1970)
+#define ABSOLUTETIME_TO_UDATE(at) \
+  (((at) + kCFAbsoluteTimeIntervalSince1970) * 1000.0)
+
 static Boolean
 CFCalendarSetupUCalendar (CFCalendarRef cal)
 {
@@ -392,8 +397,7 @@ CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
   if (!CFCalendarOpenUCalendar(cal))
     return false;
   
-  ucal_setMillis (cal->_ucal,
-    (*at + kCFAbsoluteTimeIntervalSince1970) * 1000.0, &err);
+  ucal_setMillis (cal->_ucal, ABSOLUTETIME_TO_UDATE(*at), &err);
   if (U_FAILURE(err))
     return false;
   
@@ -437,8 +441,7 @@ CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
     }
   va_end(arg);
   
-  *at = (ucal_getMillis (cal->_ucal, &err) / 1000.0)
-    - kCFAbsoluteTimeIntervalSince1970;
+  *at = UDATE_TO_ABSOLUTETIME(ucal_getMillis (cal->_ucal, &err));
   
   if (U_FAILURE(err))
     return false;
@@ -492,8 +495,7 @@ CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
   if (U_FAILURE(err))
     return false;
   
-  *at = (ucal_getMillis (cal->_ucal, &err) / 1000.0)
-    - kCFAbsoluteTimeIntervalSince1970;
+  *at = UDATE_TO_ABSOLUTETIME(ucal_getMillis (cal->_ucal, &err));
   if (U_FAILURE(err))
     return false;
   
@@ -513,8 +515,7 @@ CFCalendarDecomposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime at,
   if (!CFCalendarOpenUCalendar(cal))
     return false;
   
-  ucal_setMillis (cal->_ucal, (at + kCFAbsoluteTimeIntervalSince1970) * 1000.0,
-    &err);
+  ucal_setMillis (cal->_ucal, ABSOLUTETIME_TO_UDATE(at), &err);
   if (U_FAILURE(err))
     return false;
   
@@ -588,14 +589,14 @@ CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startAT,
   
   if (startAT > resultAT)
     {
-      start = (resultAT + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
-      end = (startAT + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
+      start = ABSOLUTETIME_TO_UDATE(resultAT);
+      end = ABSOLUTETIME_TO_UDATE(startAT);
       mult = -1;
     }
   else
     {
-      start = (startAT + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
-      end = (resultAT + kCFAbsoluteTimeIntervalSince1970) * 1000.0;
+      start = ABSOLUTETIME_TO_UDATE(startAT);
+      end = ABSOLUTETIME_TO_UDATE(resultAT);
       mult = 1;
     }
   
@@ -716,14 +717,67 @@ Boolean
 CFCalendarGetTimeRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit,
   CFAbsoluteTime at, CFAbsoluteTime *startp, CFTimeInterval *tip)
 {
-  return false;
+  int32_t min, max;
+  double start, end;
+  UCalendar *ucal;
+  UErrorCode err = U_ZERO_ERROR;
+  UCalendarDateFields field = CFCalendarUnitToUCalendarDateFields (unit);
+  
+  if (!CFCalendarOpenUCalendar (cal))
+    return false;
+  
+  ucal = cal->_ucal;
+  
+  ucal_setMillis (cal->_ucal, ABSOLUTETIME_TO_UDATE(at), &err);
+  if (U_FAILURE(err))
+    return false;
+  
+  min = ucal_getLimit(ucal, field, UCAL_ACTUAL_MINIMUM, &err);
+  max = ucal_getLimit(ucal, field, UCAL_ACTUAL_MAXIMUM, &err);
+  
+  /* Clear lower fields */
+  switch (field)
+    {
+      case UCAL_ERA:
+        ucal_clearField (ucal, UCAL_YEAR);
+      case UCAL_YEAR:
+        ucal_clearField (ucal, UCAL_MONTH);
+      case UCAL_MONTH:
+        ucal_clearField (ucal, UCAL_DATE);
+      case UCAL_DATE:
+      case UCAL_DAY_OF_YEAR:
+      case UCAL_DAY_OF_WEEK:
+      case UCAL_DAY_OF_WEEK_IN_MONTH:
+        ucal_clearField (ucal, UCAL_HOUR_OF_DAY);
+      case UCAL_HOUR_OF_DAY:
+        ucal_clearField (ucal, UCAL_MINUTE);
+      case UCAL_MINUTE:
+        ucal_clearField (ucal, UCAL_SECOND);
+      default:
+        break;
+    }
+  
+  ucal_set (ucal, field, min);
+  start = UDATE_TO_ABSOLUTETIME(ucal_getMillis (cal->_ucal, &err));
+  ucal_add (ucal, field, max, &err);
+  end = UDATE_TO_ABSOLUTETIME(ucal_getMillis (cal->_ucal, &err));
+  
+  if (startp)
+    *startp = start;
+  if (tip)
+    *tip = end - start;
+  
+  if (U_FAILURE(err))
+    return false;
+  
+  return true;
 }
 
 CFRange
 CFCalendarGetRangeOfUnit (CFCalendarRef cal, CFCalendarUnit smallerUnit,
   CFCalendarUnit biggerUnit, CFAbsoluteTime at)
 {
-  return CFRangeMake (kCFNotFound, 0);
+  return CFRangeMake (kCFNotFound, kCFNotFound);
 }
 
 CFIndex

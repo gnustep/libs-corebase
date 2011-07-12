@@ -8,6 +8,7 @@ int main (void)
 {
   CFCalendarRef cal;
   CFAbsoluteTime at = 0.0;
+  CFTimeInterval ti= 0.0;
   int year, month, hour, minute, second;
   
   cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
@@ -30,6 +31,11 @@ int main (void)
     "Got wrapped components difference.");
   PASS(hour == 1 && minute == 1 && second == 3,
     "Got component difference correctly.");
+  
+  PASS(CFCalendarGetTimeRangeOfUnit (cal, kCFCalendarUnitWeekday, at, &at, &ti),
+    "Got time range of kCFCalendarUnitWeekday.");
+  PASS(at == 331365600.0, "Got start of week.");
+  PASS(ti == 604800.0, "Time interval is 7 days long.");
   
   CFRelease (cal);
   

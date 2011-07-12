@@ -63,9 +63,9 @@ void CFDateInitialize (void)
 
 
 #define UDATE_TO_ABSOLUTETIME(d) \
-  (((d) * 1000.0) + kCFAbsoluteTimeIntervalSince1970)
+  (((d) / 1000.0) - kCFAbsoluteTimeIntervalSince1970)
 #define ABSOLUTETIME_TO_UDATE(at) \
-  (((at) - kCFAbsoluteTimeIntervalSince1970) / 1000.0)
+  (((at) + kCFAbsoluteTimeIntervalSince1970) * 1000.0)
 
 CFComparisonResult
 CFDateCompare (CFDateRef theDate, CFDateRef otherDate, void *context)
