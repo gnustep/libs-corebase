@@ -827,3 +827,59 @@ CFCalendarGetMinimumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit)
   return range;
 }
 
+
+
+/* Function defined in CFDate.h which require UCalendar support. */
+SInt32
+CFAbsoluteTimeGetDayOfWeek (CFAbsoluteTime at, CFTimeZoneRef tz)
+{
+  int32_t ret;
+  CFCalendarRef cal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
+  CFCalendarSetTimeZone (cal, tz);
+  
+  ucal_setMillis (cal->_ucal, ABSOLUTETIME_TO_UDATE(at), &err);
+  ret = ucal_get (cal->_ucal, UCAL_DAY_OF_WEEK, &err);
+  
+  CFRelease (cal);
+  
+  return ret;
+}
+
+SInt32
+CFAbsoluteTimeGetDayOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
+{
+  int32_t ret;
+  CFCalendarRef cal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
+  CFCalendarSetTimeZone (cal, tz);
+  
+  ucal_setMillis (cal->_ucal, ABSOLUTETIME_TO_UDATE(at), &err);
+  ret = ucal_get (cal->_ucal, UCAL_DAY_OF_YEAR, &err);
+  
+  CFRelease (cal);
+  
+  return ret;
+}
+
+SInt32
+CFAbsoluteTimeGetWeekOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
+{
+  int32_t ret;
+  CFCalendarRef cal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
+  CFCalendarSetTimeZone (cal, tz);
+  
+  ucal_setMillis (cal->_ucal, ABSOLUTETIME_TO_UDATE(at), &err);
+  ret = ucal_get (cal->_ucal, UCAL_WEEK_OF_YEAR, &err);
+  
+  CFRelease (cal);
+  
+  return ret;
+}

@@ -1,5 +1,10 @@
 2011-07-12 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFCalendar.c:
+	* Source/CFDate.c: Added most time utility functions.
+
+2011-07-12 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFCalendar.c: Added CFCalendarGetTimeRangeOfUnit().
 
 2011-07-11 Stefan Bidigaray <stefanbidi@gmail.com>

@@ -132,26 +132,37 @@ CFAbsoluteTimeGetCurrent (void)
   return UDATE_TO_ABSOLUTETIME(ucal_getNow());
 }
 
-SInt32
-CFAbsoluteTimeGetDayOfWeek (CFAbsoluteTime at, CFTimeZoneRef tz)
-{
-  return 0;
-}
-
-SInt32
-CFAbsoluteTimeGetDayOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
-{
-  return 0;
-}
-
 CFGregorianUnits
 CFAbsoluteTimeGetDifferenceAsGregorianUnits (CFAbsoluteTime at1,
   CFAbsoluteTime at2, CFTimeZoneRef tz, CFOptionFlags unitFlags)
 {
-//  double d;
+  /* FIXME: This is wrong but I'll fix it later... */
+  int year, month, day, hour, minute, second;
+  CFCalendarRef cal;
   CFGregorianUnits gunits = { 0 };
   
-//  gunits.seconds += modf (at1 - at2, &d);
+  cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
+  CFCalendarSetTimeZone (cal, tz);
+  
+  CFCalendarGetComponentDifference (cal, at1, at2, 0, "yMdHms",
+    &year, &month, &day, &hour, &minute, &second);
+  if (unitFlags & kCFGregorianUnitsYears)
+    gunits.years = year;
+  if (unitFlags & kCFGregorianUnitsMonths)
+    gunits.months = month;
+  if (unitFlags & kCFGregorianUnitsDays)
+    gunits.days = day;
+  if (unitFlags & kCFGregorianUnitsHours)
+    gunits.hours = hour;
+  if (unitFlags & kCFGregorianUnitsMinutes)
+    gunits.minutes = minute;
+  if (unitFlags & kCFGregorianUnitsSeconds)
+    {
+      gunits.seconds = (double)second;
+      gunits.seconds += modf (at1 - at2, NULL);
+    }
+  
+  CFRelease (cal);
   
   return gunits;
 }
@@ -159,20 +170,44 @@ CFAbsoluteTimeGetDifferenceAsGregorianUnits (CFAbsoluteTime at1,
 CFGregorianDate
 CFAbsoluteTimeGetGregorianDate (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
-  CFGregorianDate gdate = { 0 };
+  int year, month, day, hour, minute, second;
+  CFCalendarRef cal;
+  CFGregorianDate gdate;
+  
+  cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
+  CFCalendarSetTimeZone (cal, tz);
+  
+  CFCalendarDecomposeAbsoluteTime (cal, at, "yMdHms",
+    &year, &month, &day, &hour, &minute, &second);
+  gdate.year = year;
+  gdate.month = month;
+  gdate.day = day;
+  gdate.hour = hour;
+  gdate.minute = minute;
+  gdate.second = (double)second;
+  gdate.second += modf (at, NULL);
+  
+  CFRelease (cal);
+  
   return gdate;
-}
-
-SInt32
-CFAbsoluteTimeGetWeekOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
-{
-  return 0;
 }
 
 CFAbsoluteTime
 CFGregorianDateGetAbsoluteTime (CFGregorianDate gdate, CFTimeZoneRef tz)
 {
-  return 0.0;
+  CFCalendarRef cal;
+  CFAbsoluteTime at = 0.0;
+  
+  cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
+  CFCalendarSetTimeZone (cal, tz);
+  
+  CFCalendarComposeAbsoluteTime (cal, &at, "yMdHms",
+    (int)gdate.year, (int)gdate.month, (int)gdate.day,
+    (int)gdate.hour, (int)gdate.minute, (int)gdate.second);
+  
+  CFRelease (cal);
+  
+  return at;
 }
 
 Boolean
