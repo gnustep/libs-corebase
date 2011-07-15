@@ -34,7 +34,7 @@ libgnustep-corebase_C_FILES = \
 
 ADDITIONAL_INCLUDE_DIRS = -I../Headers
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += `icu-config --ldflags-libsonly` \
-  -licuio -luuid
+  -licuio 
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
 libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
 

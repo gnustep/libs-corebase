@@ -30,6 +30,9 @@
 #include <Foundation/NSURL.h>
 
 #include <dlfcn.h>
+#ifndef RTLD_DEFAULT
+# define RTLD_DEFAULT   ((void *) 0)
+#endif
 
 struct __CFBundle
 {
