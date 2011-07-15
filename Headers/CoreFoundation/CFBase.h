@@ -29,6 +29,7 @@
 #define __COREFOUNDATION_CFBASE_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <GNUstepBase/GSVersionMacros.h>
 
