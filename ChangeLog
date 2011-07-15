@@ -1,3 +1,8 @@
+2011-07-15 10:52  David Chisnall <theraven@gna.org>
+
+	* libs/corebase/trunk/Source/objc_interface.h: Include a file that
+	  actually exists, instead of one that might exist.
+
 2011-07-15 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GNUmakefile:
