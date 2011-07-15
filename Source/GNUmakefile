@@ -29,6 +29,7 @@ libgnustep-corebase_C_FILES = \
   CFStringEncoding.c \
   CFStringFormat.c \
   CFStringUtilities.c \
+  CFTimeZone.c \
   CFUUID.c
 
 ADDITIONAL_INCLUDE_DIRS = -I../Headers
@@ -57,6 +58,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFStream.h \
   CFString.h \
   CFStringEncodingExt.h \
+  CFTimeZone.h \
   CFURL.h \
   CFUUID.h
 

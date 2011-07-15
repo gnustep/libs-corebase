@@ -1,3 +1,11 @@
+2011-07-15 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GNUmakefile:
+	* Source/CFRuntime.m:
+	* Source/CFTimeZone.c:
+	* Headers/CoreFoundation/CFTimeZone.h: Added new CFTimeZone type base on
+	ICU's zoneinfo64 resource bundle.
+
 2011-07-12 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFCalendar.c:

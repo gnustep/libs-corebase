@@ -376,6 +376,7 @@ extern void CFBundleInitialize (void);
 extern void CFNullInitialize (void);
 extern void CFNumberFormatterInitialize (void);
 extern void CFStringInitialize (void);
+extern void CFTimeZoneInitialize (void);
 extern void CFUUIDInitialize (void);
 
 void CFInitialize (void)
@@ -398,6 +399,7 @@ void CFInitialize (void)
   CFNullInitialize ();
   CFNumberFormatterInitialize ();
   CFStringInitialize ();
+  CFTimeZoneInitialize ();
   CFUUIDInitialize ();
 }
 
