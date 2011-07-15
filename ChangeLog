@@ -1,3 +1,10 @@
+2011-07-15 10:57  David Chisnall <theraven@gna.org>
+
+	* libs/corebase/trunk/Source/CFBundle.m,
+	  libs/corebase/trunk/Source/GNUmakefile: Define RTLD_DEFAULT on
+	  systems where it isn't defined (stupid glibc headers).
+	  Remove -luuid, since it seems not to be required anymore.
+
 2011-07-15 10:52  David Chisnall <theraven@gna.org>
 
 	* libs/corebase/trunk/Source/objc_interface.h: Include a file that
