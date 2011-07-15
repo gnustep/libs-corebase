@@ -28,7 +28,7 @@
 #define __OBJC_INTERFACE_H__ 1
 
 #include "CoreFoundation/CFRuntime.h"
-#include <ObjectiveC2/runtime.h>
+#include <GNUstepBase/preface.h>
 
 
 
