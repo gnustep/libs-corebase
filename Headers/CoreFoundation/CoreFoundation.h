@@ -31,6 +31,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFByteOrder.h>
+#include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFCharacterSet.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDate.h>
@@ -42,6 +43,8 @@
 #include <CoreFoundation/CFStream.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStringEncodingExt.h>
+#include <CoreFoundation/CFTimeZone.h>
 #include <CoreFoundation/CFURL.h>
+#include <CoreFoundation/CFUUID.h>
 
 #endif /* __COREFOUNDATION_COREFOUNDATION_H__ */
