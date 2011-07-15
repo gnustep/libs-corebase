@@ -397,6 +397,7 @@ CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
       if (useClientMemory)
         {
           new->_contents = (void *)bytes;
+          CFStringSetWide((CFStringRef)new);
         }
       else
         {
@@ -413,7 +414,7 @@ CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
   
   CFStringSetHasNullByte((CFStringRef)new);
   new->_count = buffer.numChars;
-  new->_deallocator = alloc;
+  new->_deallocator = contentsDeallocator;
   
   return (CFStringRef)new;
 }
@@ -502,9 +503,13 @@ CFStringRef
 CFStringCreateWithCharactersNoCopy (CFAllocatorRef alloc, const UniChar *chars,
   CFIndex numChars, CFAllocatorRef contentsDeallocator)
 {
+#if GS_WORDS_BIGENDIAN
+  CFStringEncoding enc = kCFStringEncodingUTF16BE;
+#else
+  CFStringEncoding enc = kCFStringEncodingUTF16LE;
+#endif
   return CFStringCreateWithBytesNoCopy (alloc, (const UInt8*)chars,
-    numChars * sizeof(UniChar), kCFStringEncodingUnicode, false,
-    contentsDeallocator);
+    numChars * sizeof(UniChar), enc, false, contentsDeallocator);
 }
 
 CFStringRef

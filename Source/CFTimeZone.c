@@ -36,6 +36,7 @@
 #include <pthread.h>
 #include <unicode/ucal.h>
 #include <unicode/ures.h>
+#include <unicode/ustring.h>
 
 /* Only using ICU's zoneinfo64, right now.  If anyone is using the data
    related time zone functions, tzhead struct support can be added.
@@ -123,15 +124,15 @@ struct __CFTimeZone
   CFDataRef     _data;
   struct
     {
-      int32_t *transPre32; // zoneinfo64 only
+      const int32_t *transPre32; // zoneinfo64 only
       int32_t transPre32Count;
-      int32_t *trans;
+      const int32_t *trans;
       int32_t transCount;
-      int32_t *transPost32; // zoneinfo64 only
+      const int32_t *transPost32; // zoneinfo64 only
       int32_t transPost32Count;
-      int32_t *typeOffsets;
-      uint8_t *typeMap;
-      int32_t *finalRule;
+      const int32_t *typeOffsets;
+      const uint8_t *typeMap;
+      const int32_t *finalRule;
       int32_t finalRaw;
       int32_t finalYear;
     } _info;
@@ -140,7 +141,7 @@ struct __CFTimeZone
 static CFTypeID _kCFTimeZoneTypeID;
 
 static pthread_mutex_t _kCFTimeZoneLock = PTHREAD_MUTEX_INITIALIZER;
-static CFArrayRef _kCFTimeZoneKnownNames = NULL;
+static CFArrayRef _kCFTimeZoneBuiltinNames = NULL;
 static CFTimeZoneRef _kCFTimeZoneDefault = NULL;
 static CFTimeZoneRef _kCFTimeZoneSystem = NULL;
 static CFDictionaryRef _kCFTimeZoneAbbreviations = NULL;
@@ -165,18 +166,103 @@ void CFTimeZoneInitialize (void)
 
 
 
-static inline CFIndex
-CFTimeZoneFindName (CFArrayRef names)
+static CFArrayRef
+CFTimeZoneGetBuiltinNames (void)
 {
-  return 0;
+  pthread_mutex_lock (&_kCFTimeZoneLock);
+  if (_kCFTimeZoneBuiltinNames == NULL)
+    {
+      int32_t size;
+      int32_t idx;
+      int32_t len;
+      CFMutableArrayRef array;
+      CFStringRef name;
+      const UChar *str;
+      UResourceBundle *res;
+      UResourceBundle *names;
+      UErrorCode err = U_ZERO_ERROR;
+      
+      /* Open the "Names" resource in "zoneinfo"/"zoneinfo64" */
+      res = ures_openDirect (NULL, ICU_ZONEINFO, &err);
+      names = ures_getByKey (res, ICU_ZONENAMES, NULL, &err);
+      
+      array = CFArrayCreateMutable (NULL, 0, &kCFTypeArrayCallBacks);
+      size = ures_getSize (names);
+      idx = 0;
+      while (idx < size)
+        {
+          str = ures_getStringByIndex (names, idx++, &len, &err);
+          if (U_FAILURE(err))
+            break;
+          name = CFStringCreateWithCharactersNoCopy (NULL, str, len,
+            kCFAllocatorNull);
+          CFArrayAppendValue (array, name);
+          CFRelease(name);
+        }
+      
+      if (idx == size)
+        _kCFTimeZoneBuiltinNames = CFArrayCreateCopy (NULL, array);
+      
+      CFRelease (array);
+      ures_close (names);
+      ures_close (res);
+    }
+  pthread_mutex_unlock (&_kCFTimeZoneLock);
+  
+  return _kCFTimeZoneBuiltinNames;
+}
+
+static CFArrayRef
+CFTimeZoneGetCustomNames (void)
+{
+  return NULL;
+}
+
+CFIndex
+CFTimeZoneFindName (CFStringRef value, CFArrayRef names)
+{
+  CFIndex min, max, mid, oldMid = INT32_MAX;
+  
+  min = 0;
+  max = CFArrayGetCount (names);
+  
+  while (min <= max)
+    {
+      CFStringRef midValue;
+      CFComparisonResult res;
+      
+      mid = (min + max) / 2;
+      if (oldMid == mid)
+        break;
+      
+      oldMid = mid;
+      
+      midValue = CFArrayGetValueAtIndex (names, mid);
+      res = CFStringCompare (value, midValue, 0);
+      if (res == kCFCompareEqualTo)
+        {
+          return mid;
+        }
+      if (res == kCFCompareGreaterThan)
+        {
+          max = mid;
+        }
+      else
+        {
+          min = mid;
+        }
+    }
+  
+  return -1;
 }
 
 CFTimeZoneRef
 CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
   Boolean tryAbbrev)
 {
+  UniChar c;
   CFIndex idx;
-  CFArrayRef known;
+  CFArrayRef builtins;
   struct __CFTimeZone *new;
   UResourceBundle *top;
   UResourceBundle *res;
@@ -184,20 +270,72 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
   
   /* FIXME: what to do with tryAbbrev? */
   
-  known = CFTimeZoneCopyKnownNames ();
-  idx = CFTimeZoneFindName (known);
-  CFRelease (known);
+  builtins = CFTimeZoneGetBuiltinNames ();
+  idx = CFTimeZoneFindName (name, builtins);
   if (idx < 0)
     {
-      // FIXME
-      return NULL;
+      /* Most of this was lifted from NSTimeZone.m.  Don't have to worry
+         about GMT, UTC, etc because ICU already includes those timezones. */
+      CFIndex ti = 0.0;
+      CFIndex length = CFStringGetLength (name);
+      
+      if (length == 5 && CFStringHasPrefix(name, CFSTR("GMT"))
+          && ((c = CFStringGetCharacterAtIndex(name, 3)) == '+' || c == '-')
+          && ((c = CFStringGetCharacterAtIndex(name, 4)) >= '0' && c <= '9'))
+        {
+          // GMT-9 to GMT+9
+          ti = (c - '0') * 60 * 60;
+          if (CFStringGetCharacterAtIndex(name, 3) == '-')
+            ti = -ti;
+        }
+      else if (length == 6 && CFStringHasPrefix(name, CFSTR("GMT"))
+          && ((c = CFStringGetCharacterAtIndex(name, 3)) == '+' || c == '-')
+          && ((c = CFStringGetCharacterAtIndex(name, 4)) == '0' || c == '1')
+          && ((c = CFStringGetCharacterAtIndex(name, 4)) >= '0' && c <= '4'))
+        {
+          // GMT-14 to GMT-10 and GMT+10 to GMT+14
+          ti = (c - '0') * 60 * 60;
+          if (CFStringGetCharacterAtIndex(name, 4) == '1')
+            ti += 60 * 60 * 10;
+          if (CFStringGetCharacterAtIndex(name, 3) == '-')
+            ti = -ti;
+        }
+      else if (length == 0 && CFStringHasPrefix(name, CFSTR("GMT"))
+          && ((c = CFStringGetCharacterAtIndex(name, 3)) == '+' || c == '-'))
+        {
+          // GMT+NNNN and GMT-NNNN
+          c = CFStringGetCharacterAtIndex(name, 4);
+          if (c >= '0' && c <= '9')
+            {
+              ti = c - '0';
+              c = CFStringGetCharacterAtIndex(name, 5);
+              if (c >= '0' && c <= '9')
+                {
+                ti = ti * 10 + (c - '0');
+                c = CFStringGetCharacterAtIndex(name, 6);
+                if (c >= '0' && c <= '9')
+                  {
+                  ti = ti * 6 + (c - '0');
+                  c = CFStringGetCharacterAtIndex(name, 7);
+                  if (c >= '0' && c <= '9')
+                    {
+                      ti = ti * 10 + (c - '0');
+                      ti = ti * 60;
+                      if (CFStringGetCharacterAtIndex(name, 3) == '-')
+                        ti = -ti;              
+                    }
+                  }
+                }
+            }
+        }
+      else
+        {
+          return NULL;
+        }
+      
+      return CFTimeZoneCreateWithTimeIntervalFromGMT (alloc,
+        (CFTimeInterval)ti);
     }
-  
-  new = (struct __CFTimeZone*)_CFRuntimeCreateInstance (alloc,
-    _kCFTimeZoneTypeID, sizeof(struct __CFTimeZone) - sizeof(CFRuntimeBase),
-    0);
-  if (new == NULL)
-    return NULL;
   
   top = ures_openDirect (NULL, ICU_ZONEINFO, &err);
   ures_getByKey (top, ICU_ZONES, top, &err);
@@ -208,13 +346,26 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
       ures_getByIndex (top, idx, res, &err);
     }
   
+  if (U_FAILURE(err))
+    return NULL;
+  
+  new = (struct __CFTimeZone*)_CFRuntimeCreateInstance (alloc,
+    _kCFTimeZoneTypeID, sizeof(struct __CFTimeZone) - sizeof(CFRuntimeBase),
+    0);
+  if (new == NULL)
+    return NULL;
+  
+  new->_name = CFStringCreateCopy (alloc,
+    CFArrayGetValueAtIndex(builtins, idx));
+  
   if (U_SUCCESS(err))
     {
       UResourceBundle *info;
+      const UChar *ruleName;
       int32_t len;
       
       info = ures_getByKey (res, ICU_TRANSPRE32, NULL, &err);
-      new->_info.transPre32 = (int32_t*)ures_getIntVector (info, &len, &err);
+      new->_info.transPre32 = ures_getIntVector (info, &len, &err);
       new->_info.transPre32Count = len / 2;
       if (err == U_MISSING_RESOURCE_ERROR)
         {
@@ -224,7 +375,7 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
         }
       
       ures_getByKey (res, ICU_TRANS, info, &err);
-      new->_info.trans = (int32_t*)ures_getIntVector (info, &len, &err);
+      new->_info.trans = ures_getIntVector (info, &len, &err);
       new->_info.transCount = len;
       if (err == U_MISSING_RESOURCE_ERROR)
         {
@@ -234,7 +385,7 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
         }
       
       ures_getByKey (res, ICU_TRANSPOST32, info, &err);
-      new->_info.transPost32 = (int32_t*)ures_getIntVector (info, &len, &err);
+      new->_info.transPost32 = ures_getIntVector (info, &len, &err);
       new->_info.transPost32Count = len * 2;
       if (err == U_MISSING_RESOURCE_ERROR)
         {
@@ -244,7 +395,7 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
         }
       
       ures_getByKey (res, ICU_TYPEOFFSETS, info, &err);
-      new->_info.typeOffsets = (int32_t*)ures_getIntVector (info, NULL, &err);
+      new->_info.typeOffsets = ures_getIntVector (info, NULL, &err);
       if (U_FAILURE(err))
         {
           ures_close (info);
@@ -253,7 +404,7 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
         }
       
       ures_getByKey (res, ICU_TYPEMAP, info, &err);
-      new->_info.typeMap = (uint8_t*)ures_getBinary (info, &len, &err);
+      new->_info.typeMap = ures_getBinary (info, &len, &err);
       if (U_FAILURE(err))
         {
           ures_close (info);
@@ -261,12 +412,45 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
           return NULL;
         }
       
+      ruleName = ures_getStringByKey (info, ICU_FINALRULE, &len, &err);
+      ures_getByKey (res, ICU_FINALRAW, info, &err);
+      new->_info.finalRaw = ures_getInt (info, &err);
+      ures_getByKey (res, ICU_FINALYEAR, info, &err);
+      new->_info.finalYear = ures_getInt (info, &err);
+      if (U_SUCCESS(err))
+        {
+          char key[32];
+          UResourceBundle *rule;
+          u_strToUTF8 (key, 32, &len, ruleName, len, &err);
+          rule = ures_getByKey (top, ICU_ZONERULES, NULL, &err);
+          ures_getByKey (rule, key, rule, &err);
+          if (ures_getType(rule) == URES_INT_VECTOR)
+            {
+              new->_info.finalRule = ures_getIntVector (rule, NULL, &err);
+              if (U_FAILURE(err)) // Shouldn't ever happen...
+                {
+                  ures_close (rule);
+                  CFRelease (new);
+                  return NULL;
+                }
+            }
+          
+          ures_close (rule);
+        }
+      else
+        {
+          new->_info.finalRule = NULL;
+          new->_info.finalRaw = 0;
+          new->_info.finalYear = 0;
+        }
+      
       ures_close (info);
     }
   
   ures_close (res);
+  ures_close (top);
   
-  return new;
+  return (CFTimeZoneRef)new;
 }
 
 CFTimeZoneRef
@@ -320,47 +504,27 @@ CFTimeZoneSetDefault (CFTimeZoneRef tz)
 CFArrayRef
 CFTimeZoneCopyKnownNames (void)
 {
-  pthread_mutex_lock (&_kCFTimeZoneLock);
-  if (_kCFTimeZoneKnownNames == NULL)
-    {
-      int32_t size;
-      int32_t idx;
-      int32_t len;
-      CFMutableArrayRef array;
-      CFStringRef name;
-      const UChar *str;
-      UResourceBundle *res;
-      UResourceBundle *names;
-      UErrorCode err = U_ZERO_ERROR;
-      
-      /* Open the "Names" resource in "zoneinfo"/"zoneinfo64" */
-      res = ures_openDirect (NULL, ICU_ZONEINFO, &err);
-      names = ures_getByKey (res, ICU_ZONENAMES, NULL, &err);
-      
-      array = CFArrayCreateMutable (NULL, 0, &kCFTypeArrayCallBacks);
-      size = ures_getSize (names);
-      idx = 0;
-      while (idx < size)
-        {
-          str = ures_getStringByIndex (names, idx++, &len, &err);
-          if (U_FAILURE(err))
-            break;
-          name = CFStringCreateWithCharactersNoCopy (NULL, str, len,
-            kCFAllocatorNull);
-          CFArrayAppendValue (array, name);
-          CFRelease(name);
-        }
-      
-      if (idx == size)
-        _kCFTimeZoneKnownNames = CFArrayCreateCopy (NULL, array);
-      
-      CFRelease (array);
-      ures_close (names);
-      ures_close (res);
-    }
-  pthread_mutex_unlock (&_kCFTimeZoneLock);
+  CFIndex builtinLen;
+  CFIndex customLen;
+  CFArrayRef builtins;
+  CFArrayRef customs;
+  CFArrayRef allNames;
+  CFArrayRef ret;
   
-  return CFRetain(_kCFTimeZoneKnownNames);
+  builtins = CFTimeZoneGetBuiltinNames ();
+  builtinLen = CFArrayGetCount (builtins);
+  customs = CFTimeZoneGetCustomNames ();
+  customLen = CFArrayGetCount (customs);
+  
+  allNames = CFArrayCreateMutable (NULL, builtinLen + customLen,
+    &kCFTypeArrayCallBacks);
+  CFArrayAppendArray (allNames, builtins, CFRangeMake(0, builtinLen));
+  CFArrayAppendArray (allNames, customs, CFRangeMake(0, customLen));
+  
+  ret = CFArrayCreateCopy (NULL, allNames);
+  CFRelease (allNames);
+  
+  return ret;
 }
 
 void

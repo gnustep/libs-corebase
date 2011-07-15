@@ -188,9 +188,7 @@ CFComparisonResult
 CFStringCompare (CFStringRef str1, CFStringRef str2,
   CFStringCompareFlags compareOptions)
 {
-  CFIndex len1 = CFStringGetLength (str1);
-  CFIndex len2 = CFStringGetLength (str2);
-  CFIndex len = MAX(len1, len2);
+  CFIndex len = CFStringGetLength (str1);
   return CFStringCompareWithOptionsAndLocale (str1, str2, CFRangeMake(0, len),
     compareOptions, NULL);
 }
@@ -227,7 +225,7 @@ CFStringCompareWithOptionsAndLocale (CFStringRef str1,
   CFStringGetCharacters (str2, CFRangeMake(0, length2), string2);
   
   ucol = CFStringICUCollatorOpen (compareOptions, locale);
-  ret = ucol_strcoll (ucol, string1, length1, string2, length2);
+  ret = ucol_strcoll (ucol, string2, length2, string1, length1);
   CFStringICUCollatorClose (ucol);
   
   CFAllocatorDeallocate (alloc, string1);
