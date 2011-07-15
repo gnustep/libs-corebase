@@ -490,7 +490,7 @@ CFStringCreateWithCharacters (CFAllocatorRef alloc, const UniChar *chars,
   CFIndex numChars)
 {
 #if GS_WORDS_BIGENDIAN
-  CFStringEncoding enc = kCFStringENcodingUTF16BE;
+  CFStringEncoding enc = kCFStringEncodingUTF16BE;
 #else
   CFStringEncoding enc = kCFStringEncodingUTF16LE;
 #endif
