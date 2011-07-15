@@ -28,6 +28,7 @@
 #define __COREFOUNDATION_COREFOUNDATION_H__
 
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFCharacterSet.h>
