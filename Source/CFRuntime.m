@@ -146,7 +146,7 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
   
   new = (CFRuntimeBase *)NSAllocateObject (NSCFTypeClass, extraBytes,
     allocator);
-  _CFRuntimeSetInstanceTypeID (new, typeID);
+  new->_isa = __CFRuntimeObjCClassTable[typeID];
   if (new)
     {
       new->_typeID = typeID;
@@ -163,7 +163,7 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
 void
 _CFRuntimeSetInstanceTypeID (CFTypeRef cf, CFTypeID typeID)
 {
-  ((CFRuntimeBase *)cf)->_isa = __CFISAForTypeID (typeID);
+  ((CFRuntimeBase *)cf)->_typeID = typeID;
 }
 
 void

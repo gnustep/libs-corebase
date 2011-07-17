@@ -1,3 +1,8 @@
+2011-07-17 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFTimeZone.c: Fixed bug in CFTimeZoneCreateWithName ().
+	* Source/CFRuntime.m: Fixed bug when setting isa.
+
 2011-07-15 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFTimeZone.c: Complete CFTimeZoneCreateWithName().

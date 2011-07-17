@@ -36,7 +36,7 @@
 #include <pthread.h>
 #include <unicode/ucal.h>
 #include <unicode/ures.h>
-#include <unicode/ustring.h>
+#include <unicode/putil.h>
 
 /* Only using ICU's zoneinfo64, right now.  If anyone is using the data
    related time zone functions, tzhead struct support can be added.
@@ -116,11 +116,12 @@ struct ttinfo
 #define ICU_FINALYEAR   "finalYear"
 #define ICU_LINKS       "links"
 
+#define BUFFER_SIZE 256
+
 struct __CFTimeZone
 {
   CFRuntimeBase _parent;
   CFStringRef   _name;
-  CFArrayRef    _aliases;
   CFDataRef     _data;
   struct
     {
@@ -134,7 +135,7 @@ struct __CFTimeZone
       const uint8_t *typeMap;
       const int32_t *finalRule;
       int32_t finalRaw;
-      int32_t finalYear;
+      CFAbsoluteTime finalYear; // In seconds from epoc
     } _info;
 };
 
@@ -142,6 +143,8 @@ static CFTypeID _kCFTimeZoneTypeID;
 
 static pthread_mutex_t _kCFTimeZoneLock = PTHREAD_MUTEX_INITIALIZER;
 static CFArrayRef _kCFTimeZoneBuiltinNames = NULL;
+static CFMutableArrayRef _kCFTimeZoneCustomNames = NULL;
+static CFMutableDictionaryRef _kCFTimeZoneDictionary = NULL;
 static CFTimeZoneRef _kCFTimeZoneDefault = NULL;
 static CFTimeZoneRef _kCFTimeZoneSystem = NULL;
 static CFDictionaryRef _kCFTimeZoneAbbreviations = NULL;
@@ -169,7 +172,6 @@ void CFTimeZoneInitialize (void)
 static CFArrayRef
 CFTimeZoneGetBuiltinNames (void)
 {
-  pthread_mutex_lock (&_kCFTimeZoneLock);
   if (_kCFTimeZoneBuiltinNames == NULL)
     {
       int32_t size;
@@ -207,7 +209,6 @@ CFTimeZoneGetBuiltinNames (void)
       ures_close (names);
       ures_close (res);
     }
-  pthread_mutex_unlock (&_kCFTimeZoneLock);
   
   return _kCFTimeZoneBuiltinNames;
 }
@@ -215,7 +216,19 @@ CFTimeZoneGetBuiltinNames (void)
 static CFArrayRef
 CFTimeZoneGetCustomNames (void)
 {
-  return NULL;
+  return (CFArrayRef)_kCFTimeZoneCustomNames;
+}
+
+static void
+CFTimeZoneAddCustomName (CFStringRef name)
+{
+  if (_kCFTimeZoneCustomNames == NULL)
+    {
+      _kCFTimeZoneCustomNames = CFArrayCreateMutable (kCFAllocatorSystemDefault,
+        0, &kCFTypeArrayCallBacks);
+    }
+  
+  CFArrayAppendValue (_kCFTimeZoneCustomNames, (const void*)name);
 }
 
 CFIndex
@@ -256,19 +269,44 @@ CFTimeZoneFindName (CFStringRef value, CFArrayRef names)
   return -1;
 }
 
+static CFTimeZoneRef
+CFTimeZoneCreateCopy (CFAllocatorRef alloc, CFTimeZoneRef tz)
+{
+  if (alloc == NULL)
+    alloc = CFAllocatorGetDefault ();
+  
+  if (alloc == CFGetAllocator(tz))
+    return CFRetain (tz);
+  
+  return NULL; // FIXME
+}
+
 CFTimeZoneRef
 CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
   Boolean tryAbbrev)
 {
   UniChar c;
   CFIndex idx;
+  int32_t len;
+  const UChar *ruleName;
   CFArrayRef builtins;
   struct __CFTimeZone *new;
+  CFTimeZoneRef ret;
   UResourceBundle *top;
   UResourceBundle *res;
+  UResourceBundle *info;
   UErrorCode err = U_ZERO_ERROR;
   
   /* FIXME: what to do with tryAbbrev? */
+  
+  if (CFEqual(CFSTR(""), name))
+    return NULL;
+  
+  pthread_mutex_lock (&_kCFTimeZoneLock);
+  if (CFDictionaryGetValueIfPresent(_kCFTimeZoneDictionary, name,
+      (const void**)&ret))
+    return CFTimeZoneCreateCopy (alloc, ret);
+  pthread_mutex_unlock (&_kCFTimeZoneLock);
   
   builtins = CFTimeZoneGetBuiltinNames ();
   idx = CFTimeZoneFindName (name, builtins);
@@ -276,10 +314,12 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
     {
       /* Most of this was lifted from NSTimeZone.m.  Don't have to worry
          about GMT, UTC, etc because ICU already includes those timezones. */
-      CFIndex ti = 0.0;
-      CFIndex length = CFStringGetLength (name);
+      CFIndex ti;
       
-      if (length == 5 && CFStringHasPrefix(name, CFSTR("GMT"))
+      ti = 0.0;
+      len = CFStringGetLength (name);
+      
+      if (len == 5 && CFStringHasPrefix(name, CFSTR("GMT"))
           && ((c = CFStringGetCharacterAtIndex(name, 3)) == '+' || c == '-')
           && ((c = CFStringGetCharacterAtIndex(name, 4)) >= '0' && c <= '9'))
         {
@@ -288,7 +328,7 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
           if (CFStringGetCharacterAtIndex(name, 3) == '-')
             ti = -ti;
         }
-      else if (length == 6 && CFStringHasPrefix(name, CFSTR("GMT"))
+      else if (len == 6 && CFStringHasPrefix(name, CFSTR("GMT"))
           && ((c = CFStringGetCharacterAtIndex(name, 3)) == '+' || c == '-')
           && ((c = CFStringGetCharacterAtIndex(name, 4)) == '0' || c == '1')
           && ((c = CFStringGetCharacterAtIndex(name, 4)) >= '0' && c <= '4'))
@@ -300,7 +340,7 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
           if (CFStringGetCharacterAtIndex(name, 3) == '-')
             ti = -ti;
         }
-      else if (length == 0 && CFStringHasPrefix(name, CFSTR("GMT"))
+      else if (len == 0 && CFStringHasPrefix(name, CFSTR("GMT"))
           && ((c = CFStringGetCharacterAtIndex(name, 3)) == '+' || c == '-'))
         {
           // GMT+NNNN and GMT-NNNN
@@ -338,8 +378,8 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
     }
   
   top = ures_openDirect (NULL, ICU_ZONEINFO, &err);
-  ures_getByKey (top, ICU_ZONES, top, &err);
-  res = ures_getByIndex (top, idx, NULL, &err);
+  res = ures_getByKey (top, ICU_ZONES, NULL, &err);
+  ures_getByIndex (res, idx, res, &err);
   if (ures_getType(res) == URES_INT) // This is an alias
     {
       idx = ures_getInt (res, &err);
@@ -350,7 +390,7 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
     return NULL;
   
   new = (struct __CFTimeZone*)_CFRuntimeCreateInstance (alloc,
-    _kCFTimeZoneTypeID, sizeof(struct __CFTimeZone) - sizeof(CFRuntimeBase),
+    _kCFTimeZoneTypeID, sizeof(struct __CFTimeZone)- sizeof(CFRuntimeBase),
     0);
   if (new == NULL)
     return NULL;
@@ -358,97 +398,98 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
   new->_name = CFStringCreateCopy (alloc,
     CFArrayGetValueAtIndex(builtins, idx));
   
+  info = ures_getByKey (res, ICU_TRANSPRE32, NULL, &err);
+  new->_info.transPre32 = ures_getIntVector (info, &len, &err);
+  new->_info.transPre32Count = len / 2;
+  if (err == U_MISSING_RESOURCE_ERROR)
+    {
+      new->_info.transPre32 = NULL;
+      new->_info.transPre32Count = 0;
+      err = U_ZERO_ERROR;
+    }
+  
+  ures_getByKey (res, ICU_TRANS, info, &err);
+  new->_info.trans = ures_getIntVector (info, &len, &err);
+  new->_info.transCount = len;
+  if (err == U_MISSING_RESOURCE_ERROR)
+    {
+      new->_info.trans = NULL;
+      new->_info.transCount = 0;
+      err = U_ZERO_ERROR;
+    }
+  
+  ures_getByKey (res, ICU_TRANSPOST32, info, &err);
+  new->_info.transPost32 = ures_getIntVector (info, &len, &err);
+  new->_info.transPost32Count = len * 2;
+  if (err == U_MISSING_RESOURCE_ERROR)
+    {
+      new->_info.transPost32 = NULL;
+      new->_info.transPost32Count = 0;
+      err = U_ZERO_ERROR;
+    }
+  
+  ures_getByKey (res, ICU_TYPEOFFSETS, info, &err);
+  new->_info.typeOffsets = ures_getIntVector (info, NULL, &err);
+  
+  ures_getByKey (res, ICU_TYPEMAP, info, &err);
+  new->_info.typeMap = ures_getBinary (info, &len, &err);
+  
+  ures_getByKey (res, ICU_FINALRULE, info, &err);
+  ruleName = ures_getString (info, &len, &err);
+  ures_getByKey (res, ICU_FINALRAW, info, &err);
+  new->_info.finalRaw = ures_getInt (info, &err);
   if (U_SUCCESS(err))
     {
-      UResourceBundle *info;
-      const UChar *ruleName;
-      int32_t len;
+      int32_t finalYear;
+      UCalendar *ucal;
       
-      info = ures_getByKey (res, ICU_TRANSPRE32, NULL, &err);
-      new->_info.transPre32 = ures_getIntVector (info, &len, &err);
-      new->_info.transPre32Count = len / 2;
-      if (err == U_MISSING_RESOURCE_ERROR)
-        {
-          new->_info.transPre32 = NULL;
-          new->_info.transPre32Count = 0;
-          err = U_ZERO_ERROR;
-        }
-      
-      ures_getByKey (res, ICU_TRANS, info, &err);
-      new->_info.trans = ures_getIntVector (info, &len, &err);
-      new->_info.transCount = len;
-      if (err == U_MISSING_RESOURCE_ERROR)
-        {
-          new->_info.trans = NULL;
-          new->_info.transCount = 0;
-          err = U_ZERO_ERROR;
-        }
-      
-      ures_getByKey (res, ICU_TRANSPOST32, info, &err);
-      new->_info.transPost32 = ures_getIntVector (info, &len, &err);
-      new->_info.transPost32Count = len * 2;
-      if (err == U_MISSING_RESOURCE_ERROR)
-        {
-          new->_info.transPost32 = NULL;
-          new->_info.transPost32Count = 0;
-          err = U_ZERO_ERROR;
-        }
-      
-      ures_getByKey (res, ICU_TYPEOFFSETS, info, &err);
-      new->_info.typeOffsets = ures_getIntVector (info, NULL, &err);
-      if (U_FAILURE(err))
-        {
-          ures_close (info);
-          CFRelease (new);
-          return NULL;
-        }
-      
-      ures_getByKey (res, ICU_TYPEMAP, info, &err);
-      new->_info.typeMap = ures_getBinary (info, &len, &err);
-      if (U_FAILURE(err))
-        {
-          ures_close (info);
-          CFRelease (new);
-          return NULL;
-        }
-      
-      ruleName = ures_getStringByKey (info, ICU_FINALRULE, &len, &err);
-      ures_getByKey (res, ICU_FINALRAW, info, &err);
-      new->_info.finalRaw = ures_getInt (info, &err);
       ures_getByKey (res, ICU_FINALYEAR, info, &err);
-      new->_info.finalYear = ures_getInt (info, &err);
+      finalYear = ures_getInt (info, &err);
+      
+      ucal = ucal_open (NULL, 0, NULL, UCAL_DEFAULT, &err);
+      ucal_clear (ucal);
+      ucal_set (ucal, UCAL_YEAR, finalYear);
+      new->_info.finalYear = ucal_getMillis (ucal, &err) / 1000.0 -
+        kCFAbsoluteTimeIntervalSince1970;
+      
       if (U_SUCCESS(err))
         {
           char key[32];
           UResourceBundle *rule;
-          u_strToUTF8 (key, 32, &len, ruleName, len, &err);
+          
+          if (len > 31)
+            len = 31;
+          u_UCharsToChars (ruleName, key, len);
+          key[len] = '\0';
+          
+          err = U_ZERO_ERROR;
           rule = ures_getByKey (top, ICU_ZONERULES, NULL, &err);
           ures_getByKey (rule, key, rule, &err);
           if (ures_getType(rule) == URES_INT_VECTOR)
-            {
-              new->_info.finalRule = ures_getIntVector (rule, NULL, &err);
-              if (U_FAILURE(err)) // Shouldn't ever happen...
-                {
-                  ures_close (rule);
-                  CFRelease (new);
-                  return NULL;
-                }
-            }
+            new->_info.finalRule = ures_getIntVector (rule, NULL, &err);
           
           ures_close (rule);
         }
-      else
-        {
-          new->_info.finalRule = NULL;
-          new->_info.finalRaw = 0;
-          new->_info.finalYear = 0;
-        }
       
-      ures_close (info);
+      ucal_close (ucal);
+    }
+  else
+    {
+      new->_info.finalRule = NULL;
+      new->_info.finalRaw = 0;
+      new->_info.finalYear = 0.0;
+      err = U_ZERO_ERROR;
     }
   
+  ures_close (info);
   ures_close (res);
   ures_close (top);
+  
+  if (U_FAILURE(err))
+    {
+      CFRelease (new);
+      return NULL;
+    }
   
   return (CFTimeZoneRef)new;
 }
@@ -545,7 +586,7 @@ CFTimeZoneSetAbbreviationDictionary (CFDictionaryRef dict)
   pthread_mutex_lock (&_kCFTimeZoneLock);
   if (_kCFTimeZoneAbbreviations != NULL)
     CFRelease (_kCFTimeZoneAbbreviations);
-  _kCFTimeZoneAbbreviations = CFRetain (dict);
+  _kCFTimeZoneAbbreviations = (CFDictionaryRef)CFRetain (dict);
   pthread_mutex_unlock (&_kCFTimeZoneLock);
 }
 
@@ -559,19 +600,61 @@ CFStringRef
 CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
   CFLocaleRef locale)
 {
-  return NULL; // FIXME
-}
-
-CFTimeInterval
-CFTimeZoneGetSecondsFromGMT (CFTimeZoneRef tz, CFAbsoluteTime at)
-{
-  return 0.0; // FIXME
+  CFIndex length;
+  UniChar zoneID[BUFFER_SIZE];
+  char *localeID;
+  CFStringRef name;
+  CFStringRef ret = NULL;
+  UCalendar *ucal;
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (locale == NULL)
+    {
+      localeID = NULL;
+    }
+  else
+    {
+      CFStringRef localeIdent = CFLocaleGetIdentifier (locale);
+      CFIndex len = CFStringGetLength (localeIdent) + 1;
+      localeID = CFAllocatorAllocate (NULL, len, 0);
+      CFStringGetCString (localeIdent, localeID, len, kCFStringEncodingASCII);
+    }
+  
+  name = CFTimeZoneGetName (tz);
+  length = CFStringGetLength (name);
+  if (length > BUFFER_SIZE)
+    length = BUFFER_SIZE;
+  CFStringGetCharacters (name, CFRangeMake(0, length), zoneID);
+  
+  ucal = ucal_open (zoneID, length, localeID, UCAL_DEFAULT, &err);
+  
+  if (U_SUCCESS(err))
+    {
+      length = ucal_getTimeZoneDisplayName (ucal, style, localeID, zoneID,
+        BUFFER_SIZE, &err);
+      if (length > BUFFER_SIZE)
+        length = BUFFER_SIZE;
+      
+      if (U_SUCCESS(err))
+        ret = CFStringCreateWithCharacters (NULL, zoneID, length);
+    }
+  
+  if (localeID == NULL)
+    CFAllocatorDeallocate (NULL, localeID);
+  
+  return ret;
 }
 
 CFDataRef
 CFTimeZoneGetData (CFTimeZoneRef tz)
 {
   return tz->_data;
+}
+
+CFTimeInterval
+CFTimeZoneGetSecondsFromGMT (CFTimeZoneRef tz, CFAbsoluteTime at)
+{
+  return 0.0; // FIXME
 }
 
 Boolean

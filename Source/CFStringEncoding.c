@@ -513,10 +513,9 @@ CFStringEncoding
 CFStringConvertWindowsCodepageToEncoding (UInt32 codepage)
 {
   CFIndex idx = 0;
-  CFStringEncoding enc;
   while (idx < str_encoding_table_size)
     if (str_encoding_table[idx++].winCodepage == codepage)
-      return enc;
+      return str_encoding_table[idx - 1].enc;
   return kCFStringEncodingInvalidId;
 }
 

@@ -39,13 +39,14 @@ CF_EXTERN_C_BEGIN
 CF_EXPORT const CFStringRef kCFTimeZoneSystemTimeZoneDidChangeNotification;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
-typedef enum
+typedef CFIndex CFTimeZoneNameStyle;
+enum
 {
   kCFTimeZoneNameStyleStandard,
   kCFTimeZoneNameStyleShortStandard,
   kCFTimeZoneNameStyleDaylightSaving,
   kCFTimeZoneNameStyleShortDaylightSaving
-} CFTimeZoneNameStyle;
+};
 #endif
 
 
