@@ -301,7 +301,7 @@ CFAbsoluteTimeGetDayOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
   
   CFAbsoluteTimeToFields (at, &year, NULL, NULL, NULL, NULL, &dayOfYear);
   
-  return dayOfWeek;
+  return dayOfYear;
 }
 
 SInt32
@@ -314,7 +314,7 @@ CFAbsoluteTimeGetWeekOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
   
   CFAbsoluteTimeToFields (at, &year, NULL, NULL, &weekOfYear, NULL, NULL);
   
-  return dayOfWeek;
+  return weekOfYear;
 }
 
 CFAbsoluteTime
