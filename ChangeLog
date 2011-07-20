@@ -1,3 +1,9 @@
+2011-07-20 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFDate.c:
+	* Source/CFCalendar.m: Modify absolute time function to not require
+	ucal support and move back into CFDate.c.
+
 2011-07-17 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFTimeZone.c: Fixed bug in CFTimeZoneCreateWithName ().

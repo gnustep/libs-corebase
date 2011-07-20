@@ -26,6 +26,7 @@
 
 #include "CoreFoundation/CFDate.h"
 #include "CoreFoundation/CFCalendar.h"
+#include "CoreFoundation/CFTimeZone.h"
 #include "CoreFoundation/CFRuntime.h"
 
 #include <math.h>
@@ -61,6 +62,9 @@ void CFDateInitialize (void)
 }
 
 
+
+/* isleap() defined in tzfile.h */
+#define isleap(y) (((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
 
 #define UDATE_TO_ABSOLUTETIME(d) \
   (((d) / 1000.0) - kCFAbsoluteTimeIntervalSince1970)
@@ -118,18 +122,87 @@ CFDateGetTypeID (void)
 
 
 
-/* The following functions all use CFCalendar. */
-CFAbsoluteTime
-CFAbsoluteTimeAddGregorianUnits (CFAbsoluteTime at, CFTimeZoneRef tz,
-  CFGregorianUnits units)
-{
-  return at;
-}
-
 CFAbsoluteTime
 CFAbsoluteTimeGetCurrent (void)
 {
   return UDATE_TO_ABSOLUTETIME(ucal_getNow());
+}
+
+static const uint16_t _daysBeforeMonth[] =
+  { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334,
+    0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335 };
+
+/* This function does most of the work for the GregorianDate functions.
+   month, day, weekOfYear, dayOfWeek and dayOfYear are optional. */
+static double
+CFAbsoluteTimeToFields (CFAbsoluteTime at, SInt32 *year, SInt8 *month,
+  SInt8 *day, SInt32 *weekOfYear, SInt32 *dayOfWeek, SInt32 *dayOfYear)
+{
+  Boolean isLeap;
+  SInt32 y400, y100, y4, y1, M, d;
+  double days, ret = modf (at / 86400.0, &days) * 86400.0;
+  
+  d = days;
+  y400 = d / 146097; // 400 years
+  d %= 146097;
+  y100 = d / 36524; // 100 years
+  d %= 36524;
+  y4 = d / 1461; // 4 years
+  d %= 1461;
+  y1 = d / 365; // 1 year
+  d %= 365;
+  *year = y400 * 400 + y100 * 100 + y4 * 4 + y1 + 2001;
+  isLeap = isleap (*year);
+  
+  if (ret < 0.0)
+    {
+      d += isLeap ? 365 : 364;
+      *year -= 1;
+      ret += 86400.0;
+    }
+  
+  if (weekOfYear)
+    *weekOfYear = d / 7 % 52; // FIXME: I don't think this is correct.
+  if (dayOfWeek)
+    {
+      *dayOfWeek = (int)days % 7;
+      /* 2001-01-01 was a Monday (day of week == 1), so that's our base. */
+      *dayOfWeek += *dayOfWeek < 1 ? 7 : 1;
+    }
+  if (dayOfYear)
+    *dayOfYear = d;
+  
+  M = isLeap ? 11 : 13;
+  while (d < _daysBeforeMonth[M])
+    ++M;
+  if (month)
+    *month = ++M;
+  if (day)
+    *day = d - _daysBeforeMonth[M] + 1;
+  
+  return ret;
+}
+
+static double
+CFFieldsToAbsoluteTime (SInt32 year, SInt32 month, SInt32 day)
+{
+  double days;
+  SInt32 y400, y100, y4, d;
+  
+  year = year - 2001;
+  y400 = year / 400;
+  year %= 400;
+  y100 = year / 100;
+  year %= 100;
+  y4 = year / 4;
+  year %= 4;
+  d = y400 * 146097 + y100 * 36524 + y4 * 1461 + year * 365;
+  d += _daysBeforeMonth[month - 1];
+  d += day - (d >= 0 ? 1 : 0);
+  
+  days = (double)d;
+  
+  return days;
 }
 
 CFGregorianUnits
@@ -170,24 +243,18 @@ CFAbsoluteTimeGetDifferenceAsGregorianUnits (CFAbsoluteTime at1,
 CFGregorianDate
 CFAbsoluteTimeGetGregorianDate (CFAbsoluteTime at, CFTimeZoneRef tz)
 {
-  int year, month, day, hour, minute, second;
-  CFCalendarRef cal;
+  double seconds;
   CFGregorianDate gdate;
   
-  cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
-  CFCalendarSetTimeZone (cal, tz);
+  if (tz != NULL)
+    at += CFTimeZoneGetSecondsFromGMT (tz, at);
   
-  CFCalendarDecomposeAbsoluteTime (cal, at, "yMdHms",
-    &year, &month, &day, &hour, &minute, &second);
-  gdate.year = year;
-  gdate.month = month;
-  gdate.day = day;
-  gdate.hour = hour;
-  gdate.minute = minute;
-  gdate.second = (double)second;
-  gdate.second += modf (at, NULL);
+  seconds = CFAbsoluteTimeToFields (at, &gdate.year, &gdate.month, &gdate.day,
+    NULL, NULL, NULL);
   
-  CFRelease (cal);
+  gdate.hour = (SInt8)floor (seconds / 3600.0) % 24;
+  gdate.minute = (SInt8)floor (seconds / 60.0) % 60;
+  gdate.second = seconds - (floor(seconds / 60.0) * 60.0);
   
   return gdate;
 }
@@ -195,20 +262,67 @@ CFAbsoluteTimeGetGregorianDate (CFAbsoluteTime at, CFTimeZoneRef tz)
 CFAbsoluteTime
 CFGregorianDateGetAbsoluteTime (CFGregorianDate gdate, CFTimeZoneRef tz)
 {
-  CFCalendarRef cal;
-  CFAbsoluteTime at = 0.0;
+  double seconds;
+  CFAbsoluteTime at;
   
-  cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
-  CFCalendarSetTimeZone (cal, tz);
+  at = CFFieldsToAbsoluteTime (gdate.year, gdate.month, gdate.day);
   
-  CFCalendarComposeAbsoluteTime (cal, &at, "yMdHms",
-    (int)gdate.year, (int)gdate.month, (int)gdate.day,
-    (int)gdate.hour, (int)gdate.minute, (int)gdate.second);
+  seconds = (gdate.hour * 3600 + gdate.minute * 60) + gdate.second;
+  if (at < 0.0)
+    seconds = -seconds;
+  at += seconds;
   
-  CFRelease (cal);
+  if (tz != NULL)
+    at += CFTimeZoneGetSecondsFromGMT (tz, at);
   
   return at;
 }
+
+SInt32
+CFAbsoluteTimeGetDayOfWeek (CFAbsoluteTime at, CFTimeZoneRef tz)
+{
+  SInt32 year, dayOfWeek;
+  
+  if (tz != NULL)
+    at += CFTimeZoneGetSecondsFromGMT (tz, at);
+  
+  CFAbsoluteTimeToFields (at, &year, NULL, NULL, NULL, &dayOfWeek, NULL);
+  
+  return dayOfWeek;
+}
+
+SInt32
+CFAbsoluteTimeGetDayOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
+{
+  SInt32 year, dayOfYear;
+  
+  if (tz != NULL)
+    at += CFTimeZoneGetSecondsFromGMT (tz, at);
+  
+  CFAbsoluteTimeToFields (at, &year, NULL, NULL, NULL, NULL, &dayOfYear);
+  
+  return dayOfWeek;
+}
+
+SInt32
+CFAbsoluteTimeGetWeekOfYear (CFAbsoluteTime at, CFTimeZoneRef tz)
+{
+  SInt32 year, weekOfYear;
+  
+  if (tz != NULL)
+    at += CFTimeZoneGetSecondsFromGMT (tz, at);
+  
+  CFAbsoluteTimeToFields (at, &year, NULL, NULL, &weekOfYear, NULL, NULL);
+  
+  return dayOfWeek;
+}
+
+CFAbsoluteTime
+CFAbsoluteTimeAddGregorianUnits (CFAbsoluteTime at, CFTimeZoneRef tz,
+  CFGregorianUnits units)
+{
+  return at;
+} 
 
 Boolean
 CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags)
@@ -224,7 +338,6 @@ CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags)
     isValid = TRUE; // FIXME
   if (unitFlags | kCFGregorianUnitsHours)
     isValid = ((gdate.hour >= 0) && (gdate.hour < 24));
-    // FIXME: I'm assuming this would be in 24 hour time (24 == 0 in this case)
   if (unitFlags | kCFGregorianUnitsMinutes)
     isValid = ((gdate.minute >= 0) && (gdate.minute < 60));
   if (unitFlags | kCFGregorianUnitsSeconds)
