@@ -54,7 +54,7 @@ static inline Boolean
 CF_IS_OBJC (CFTypeID typeID, const void *obj)
 {
   return (typeID >= __CFRuntimeClassTableCount
-          || ((CFRuntimeBase*)obj)->_isa != __CFISAForTypeID (typeID));
+          || object_getClass(obj) != __CFISAForTypeID (typeID));
 }
 
 #define CF_OBJC_FUNCDISPATCH0(typeID, rettype, obj, sel) do { \
