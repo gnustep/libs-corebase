@@ -1,6 +1,28 @@
 #import <Foundation/NSString.h>
 
 //
+// CFError identifiers
+//
+const NSString *kCFErrorDomainPOSIX = 
+  @"NSPOSIXErrorDomain";
+const NSString *kCFErrorDomainOSStatus = 
+  @"NSOSStatusErrorDomain";
+const NSString *kCFErrorDomainMach = 
+  @"NSMACHErrorDomain";
+const NSString *kCFErrorDomainCocoa = 
+  @"NSCocoaErrorDomain";
+const NSString *kCFErrorLocalizedDescriptionKey = 
+  @"NSLocalizedDescriptionKey";
+const NSString *kCFErrorLocalizedFailureReasonKey = 
+  @"NSLocalizedFailureReasonErrorKey";
+const NSString *kCFErrorLocalizedRecoverySuggestionKey = 
+  @"NSLocalizedRecoverySuggestionErrorKey";
+const NSString *kCFErrorDescriptionKey = 
+  @"kCFErrorDescriptionKey"; // FIXME
+const NSString *kCFErrorUnderlyingErrorKey = 
+  @"NSUnderlyingErrorKey";
+
+//
 // CFString Transformation identifiers
 //
 const NSString *kCFStringTransformStripCombiningMarks =

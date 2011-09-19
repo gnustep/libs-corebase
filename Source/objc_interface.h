@@ -28,7 +28,7 @@
 #define __OBJC_INTERFACE_H__ 1
 
 #include "CoreFoundation/CFRuntime.h"
-#include <GNUstepBase/preface.h>
+#include <objc/runtime.h>
 
 
 
@@ -54,7 +54,7 @@ static inline Boolean
 CF_IS_OBJC (CFTypeID typeID, const void *obj)
 {
   return (typeID >= __CFRuntimeClassTableCount
-          || object_getClass(obj) != __CFISAForTypeID (typeID));
+          || object_getClass((id)obj) != __CFISAForTypeID (typeID));
 }
 
 #define CF_OBJC_FUNCDISPATCH0(typeID, rettype, obj, sel) do { \

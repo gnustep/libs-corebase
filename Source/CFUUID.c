@@ -56,7 +56,7 @@ static void CFsrandomdev(void)
 	int fd;
 	unsigned int seed = 0;
 	size_t len = sizeof(seed);
-	BOOL hasSeed = NO;
+	Boolean hasSeed = false;
   
 	fd = open("/dev/random", O_RDONLY | O_NONBLOCK, 0);
 	if (fd >= 0) 
@@ -64,12 +64,12 @@ static void CFsrandomdev(void)
       if (errno != EWOULDBLOCK)
         {
           if (read(fd, &seed, len) == (ssize_t)len)
-            hasSeed = YES;
+            hasSeed = true;
         }
       close(fd);
     }
   
-	if (hasSeed == NO) 
+	if (hasSeed == false) 
     {
       struct timeval tv;
       unsigned long junk;

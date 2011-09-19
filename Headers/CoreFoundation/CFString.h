@@ -86,10 +86,10 @@ enum CFStringBuiltInEncodings
 # define kCFStringEncodingInvalidId (0xffffffffU)
 #endif
 
-#ifdef __OBJC__
+//#ifdef __OBJC__
 // If we're in Objective-C mode, just make this an ObjC string.
-#define CFSTR(x) ((CFStringRef)(@ x))
-#else
+//#define CFSTR(x) ((CFStringRef)(@ x))
+//#else
   // If this compiler doesn't have __has_builtin(), it probably doesn't have
   // any useful builtins  either
 # ifndef __has_builtin
@@ -110,7 +110,7 @@ enum CFStringBuiltInEncodings
       __attribute__ ((pure));
 #   define CFSTR(x) __CFStringMakeConstantString("" x "")
 # endif
-#endif
+//#endif
 
 #if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 enum CFStringNormalizationForm

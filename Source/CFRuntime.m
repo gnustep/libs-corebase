@@ -60,7 +60,6 @@ static Class NSCFTypeClass = Nil;
  */
 struct obj_layout_unpadded {
   CFIndex        retained;
-  CFAllocatorRef zone;
 };
 #define	UNP sizeof(struct obj_layout_unpadded)
 
@@ -70,9 +69,8 @@ struct obj_layout_unpadded {
  *	structure correct.
  */
 struct obj_layout {
-  CFIndex        retained;
-  CFAllocatorRef zone;
   char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
+  CFIndex        retained;
 };
 typedef	struct obj_layout *obj;
 /******************************/
@@ -279,7 +277,7 @@ CFGetAllocator (CFTypeRef cf)
   CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFAllocatorRef, cf, "zone");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
-    return (CFAllocatorRef)(((obj)cf)[-1]).zone;
+    return (CFAllocatorRef)NSZoneFromPointer((id)cf);
   
   return kCFAllocatorSystemDefault;
 }

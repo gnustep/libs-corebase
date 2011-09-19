@@ -250,7 +250,8 @@ CFNullRef kCFNull = &_kCFNull;
 void CFNullInitialize (void)
 {
   _kCFNullTypeID = _CFRuntimeRegisterClass (&CFNullClass);
-  ((CFRuntimeBase*)kCFNull)->_isa = [NSNull class];
+  /* don't use [NSNull class] before autorelease pool setup. */
+  ((CFRuntimeBase*)kCFNull)->_isa = objc_getClass("NSNull");
 }
 
 CFTypeID

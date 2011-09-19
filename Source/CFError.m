@@ -30,26 +30,6 @@
 #include "CoreFoundation/CFError.h"
 #include "CoreFoundation/CFString.h"
 
-const CFStringRef kCFErrorDomainPOSIX = 
-  CFSTR("NSPOSIXErrorDomain");
-const CFStringRef kCFErrorDomainOSStatus = 
-  CFSTR("NSOSStatusErrorDomain");
-const CFStringRef kCFErrorDomainMach = 
-  CFSTR("NSMACHErrorDomain");
-const CFStringRef kCFErrorDomainCocoa = 
-  CFSTR("NSCocoaErrorDomain");
-
-const CFStringRef kCFErrorLocalizedDescriptionKey = 
-  CFSTR("NSLocalizedDescriptionKey");
-const CFStringRef kCFErrorLocalizedFailureReasonKey = 
-  CFSTR("NSLocalizedFailureReasonErrorKey");
-const CFStringRef kCFErrorLocalizedRecoverySuggestionKey = 
-  CFSTR("NSLocalizedRecoverySuggestionErrorKey");
-const CFStringRef kCFErrorDescriptionKey = 
-  CFSTR("kCFErrorDescriptionKey"); // FIXME
-const CFStringRef kCFErrorUnderlyingErrorKey = 
-  CFSTR("NSUnderlyingErrorKey");
-
 
 
 CFStringRef

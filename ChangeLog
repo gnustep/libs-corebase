@@ -1,3 +1,19 @@
+2011-09-19 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m: Update to reflect latest changes in gnustep-base.
+	* Source/CFError.m:
+	* Source/Identifiers.m: Moved definition of identifiers.
+	* Headers/CoreFoundation/CFString.h: Do not define CFSTR() to @""
+	in ObjC source files.
+
+2011-08-28 Matt Rice <ratmice@gmail.com>
+
+	* Source/objc_interface.h: Remove referene to preface.h
+	add runtime.h.
+	(CF_IS_OBJC): Add cast to avoid warning.
+	* Source/CFUUID.c: Replace BOOL/YES/NO with Boolean/true/false.
+	* Source/CFBase.m (CFNullInitialize): Avoid +initialize.
+
 2011-07-20 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFDate.c:
