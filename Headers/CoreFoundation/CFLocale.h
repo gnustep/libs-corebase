@@ -36,14 +36,17 @@
 
 CF_EXTERN_C_BEGIN
 
-/** @brief CFLocale provides basic functionality for language and/or region
- *  specific operations.
- *  
- *  Locale-sensitive operations, such as collation, calendars and
- *  capitalization, may use CFLocale objects to provide language and/or region
- *  specific functionality.
- *
- *  CFLocale is "toll-free bridged" to NSLocale.
+/** @defgroup CFLocale
+    @brief CFLocale provides basic functionality for language and/or region
+    specific operations.
+    
+    Locale-sensitive operations, such as collation, calendars and
+    capitalization, may use CFLocale objects to provide language and/or region
+    specific functionality.
+  
+    CFLocale is "toll-free bridged" to NSLocale.
+    
+    @{
  */
 typedef const struct __CFLocale *CFLocaleRef;
 
@@ -59,15 +62,14 @@ enum
 };
 typedef CFIndex CFLocaleLanguageDirection;
 
-/** @defgroup LocaleKeys Locale property keys used to get corresponding values.
- *  @{
+/** @name CFLocale Property Keys
+    @{
  */
 CF_EXPORT const CFStringRef kCFLocaleMeasurementSystem; // CFString
 CF_EXPORT const CFStringRef kCFLocaleDecimalSeparator; // CFString
 CF_EXPORT const CFStringRef kCFLocaleGroupingSeparator; // CFString
 CF_EXPORT const CFStringRef kCFLocaleCurrencySymbol; // CFString
 CF_EXPORT const CFStringRef kCFLocaleCurrencyCode; // CFString
-
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFLocaleIdentifier; // CFString
 CF_EXPORT const CFStringRef kCFLocaleLanguageCode; // CFString
@@ -87,10 +89,11 @@ CF_EXPORT const CFStringRef kCFLocaleQuotationEndDelimiterKey; // CFString
 CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey; // CFString
 CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey; //CFString
 #endif
-/** @} */
+/** @}
+ */
 
-/** @defgroup CalendarIdentifiers CFCalendar identifiers
- *  @{
+/** @name CFCalendar Identifiers
+    @{
  */
 CF_EXPORT const CFStringRef kCFGregorianCalendar;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
@@ -107,9 +110,10 @@ CF_EXPORT const CFStringRef kCFPersianCalendar;
 CF_EXPORT const CFStringRef kCFIndianCalendar;
 CF_EXPORT const CFStringRef kCFISO8601Calendar;
 #endif
-/** @} */
+/** @}
+ */
 
-/** Locale Change Notification
+/** CFLocale Change Notification
  */
 CF_EXPORT const CFStringRef kCFLocaleCurrentLocaleDidChangeNotification;
 
@@ -135,8 +139,6 @@ CFLocaleGetSystem (void);
 //
 // Getting System Locale Information
 //
-/** @return 
- */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CFArrayRef
 CFLocaleCopyAvailableLocaleIdentifiers (void);
@@ -228,6 +230,9 @@ CFLocaleGetLanguageLineDirection (CFStringRef isoLangCode);
 uint32_t
 CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier (CFStringRef localeIdent);
 #endif
+
+/** @}
+ */
 
 CF_EXTERN_C_END
 

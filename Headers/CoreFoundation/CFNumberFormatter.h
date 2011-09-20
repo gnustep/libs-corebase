@@ -36,10 +36,14 @@
 
 CF_EXTERN_C_BEGIN
 
-/** 
- *
- *  Unlike other Core Foundation types with similar names to Cocoa classes,
- *  CFNumberFormatter is NOT toll-free bridged to NSNumberFormatter.
+/** @defgroup CFNumberFormatter
+    @brief CFNumberFormatter can be used to format and parse CFStrings
+    into numbers.
+    
+    Unlike other Core Foundation types with similar names to Cocoa classes
+    CFNumberFormatter is @b not "toll-free bridged" to NSNumberFormatter.
+    
+    @{
  */
 typedef struct __CFNumberFormatter *CFNumberFormatterRef;
 
@@ -81,8 +85,6 @@ enum
   kCFNumberFormatterSpellOutStyle   = 5
 };
 
-/** @defgroup CFNumberFormatterKeys Number Formatter Property Keys
- *  @{ */
 CF_EXPORT const CFStringRef
 kCFNumberFormatterCurrencyCode; // CFString
 CF_EXPORT const CFStringRef
@@ -163,7 +165,6 @@ kCFNumberFormatterMinSignificantDigits; // CFNumber
 CF_EXPORT const CFStringRef
 kCFNumberFormatterMaxSignificantDigits; // CFNumber
 #endif
-/** @} */
 
 
 
@@ -231,6 +232,9 @@ CFNumberFormatterGetStyle (CFNumberFormatterRef formatter);
 //
 CFTypeID
 CFNumberFormatterGetTypeID (void);
+
+/** @}
+*/
 
 CF_EXTERN_C_END
 

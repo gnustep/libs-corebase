@@ -38,6 +38,13 @@
 
 CF_EXTERN_C_BEGIN
 
+/** @defgroup CFString
+    @brief The CFString type defines opaque objects representing strings.
+    
+    CFString is "toll-free bridged" to NSString.
+    @{
+ */
+
 //
 // Data Types
 //
@@ -86,6 +93,11 @@ enum CFStringBuiltInEncodings
 # define kCFStringEncodingInvalidId (0xffffffffU)
 #endif
 
+/** @def CFSTR(x)
+    @brief Creates a constant string object.
+    
+    @warning This macro will create the constant string at runtime.
+ */
 //#ifdef __OBJC__
 // If we're in Objective-C mode, just make this an ObjC string.
 //#define CFSTR(x) ((CFStringRef)(@ x))
@@ -112,41 +124,12 @@ enum CFStringBuiltInEncodings
 # endif
 //#endif
 
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
-enum CFStringNormalizationForm
-{
-  kCFStringNormalizationFormD = 0,
-  kCFStringNormalizationFormKD = 1,
-  kCFStringNormalizationFormC = 2,
-  kCFStringNormalizationFormKC = 3
-};
-typedef enum CFStringNormalizationForm CFStringNormalizationForm;
-#endif
-
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-CF_EXPORT const CFStringRef kCFStringTransformStripCombiningMarks;
-CF_EXPORT const CFStringRef kCFStringTransformToLatin;
-CF_EXPORT const CFStringRef kCFStringTransformFullwidthHalfwidth;
-CF_EXPORT const CFStringRef kCFStringTransformLatinKatakana;
-CF_EXPORT const CFStringRef kCFStringTransformLatinHiragana;
-CF_EXPORT const CFStringRef kCFStringTransformHiraganaKatakana;
-CF_EXPORT const CFStringRef kCFStringTransformMandarinLatin;
-CF_EXPORT const CFStringRef kCFStringTransformLatinHangul;
-CF_EXPORT const CFStringRef kCFStringTransformLatinArabic;
-CF_EXPORT const CFStringRef kCFStringTransformLatinHebrew;
-CF_EXPORT const CFStringRef kCFStringTransformLatinThai;
-CF_EXPORT const CFStringRef kCFStringTransformLatinCyrillic;
-CF_EXPORT const CFStringRef kCFStringTransformLatinGreek;
-CF_EXPORT const CFStringRef kCFStringTransformToXMLHex;
-CF_EXPORT const CFStringRef kCFStringTransformToUnicodeName;
-#endif
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
-CF_EXPORT const CFStringRef kCFStringTransformStripDiacritics;
-#endif
-
 //
 // Creating a CFString
 //
+/** @name Creating a CFString
+    @{
+ */
 CFArrayRef
 CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
   CFStringRef theString, CFStringRef separatorString);
@@ -191,20 +174,30 @@ CFStringCreateWithFormatAndArguments (CFAllocatorRef alloc,
   CFDictionaryRef formatOptions, CFStringRef format, va_list arguments);
 
 CFStringRef
-CFStringCreateWithPascalString (CFAllocatorRef alloc, ConstStr255Param pStr,
-  CFStringEncoding encoding);
+CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
+  CFRange range);
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CFStringRef
-CFStringCreateWithPascalStringNoCopy (CFAllocatorRef alloc,
-  ConstStr255Param pStr, CFStringEncoding encoding,
-  CFAllocatorRef contentsDeallocate);
+CFStringCreateWithFileSystemRepresentation (CFAllocatorRef alloc,
+  const char *buffer);
+#endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 CFStringRef
-CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str, CFRange range);
+CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
+  CFIndex numBytes, CFStringEncoding encoding, Boolean isExternalReprentation,
+  CFAllocatorRef contentsDeallocator);
+#endif
+/** @}
+ */
 
 //
 // Searching Strings
 //
+/** @name Searching CFStrings
+    @{
+ */
 CFArrayRef
 CFStringCreateArrayWithFindResults (CFAllocatorRef alloc, CFStringRef theString,
   CFStringRef stringToFind, CFRange rangeToSearch,
@@ -227,9 +220,26 @@ void
 CFStringGetLineBounds (CFStringRef theString, CFRange range,
   CFIndex *lineBeginIndex, CFIndex *lineEndIndex, CFIndex *contentsEndIndex);
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+Boolean
+CFStringFindCharacterFromSet (CFStringRef theString, CFCharacterSetRef theSet,
+  CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result);
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+void
+CFStringGetParagraphBounds (CFStringRef string, CFRange range,
+  CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex);
+#endif
+/** @}
+ */
+
 //
 // Comparing Strings
 //
+/** @name Comparing String
+    @{
+ */
 CFComparisonResult
 CFStringCompare (CFStringRef theString1, CFStringRef theString2,
   CFStringCompareFlags compareOptions);
@@ -244,9 +254,21 @@ CFStringHasPrefix (CFStringRef theString, CFStringRef prefix);
 Boolean
 CFStringHasSuffix (CFStringRef theString, CFStringRef suffix);
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+CFComparisonResult
+CFStringCompareWithOptionsAndLocale (CFStringRef theString1,
+  CFStringRef theString2, CFRange rangeToCOmpare,
+  CFStringCompareFlags compareOptions, CFLocaleRef locale);
+#endif
+/** @}
+ */
+
 //
 // Accessing Characters
 //
+/** @name Accessing Characters
+    @{
+ */
 CFDataRef
 CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
   CFStringRef theString, CFStringEncoding encoding, UInt8 lossByte);
@@ -275,20 +297,34 @@ CFStringGetCStringPtr (CFStringRef theString, CFStringEncoding encoding);
 CFIndex
 CFStringGetLength (CFStringRef str);
 
-Boolean
-CFStringGetPascalString (CFStringRef theString, StringPtr buffer,
-  CFIndex bufferSize, CFStringEncoding encoding);
-
-ConstStringPtr
-CFStringGetPascalStringPtr (CFStringRef theString, CFStringEncoding encoding);
-
 CFRange
 CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef theString,
   CFIndex theIndex);
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+UTF32Char
+CFStringGetLongCharacterForSurrogatePair (UniChar surrogateHigh,
+  UniChar surrogateLow);
+
+Boolean
+CFStringGetSurrogatePairForLongCharacter (UTF32Char character,
+  UniChar *surrogates);
+
+Boolean
+CFStringIsSurrogateHighCharacter (UniChar character);
+
+Boolean
+CFStringIsSurrogateLowCharacter (UniChar character);
+#endif
+/** @}
+ */
+
 //
 // Working With Encodings
 //
+/** @name Working with Encodings
+    @{
+ */
 CFStringRef
 CFStringConvertEncodingToIANACharSetName (CFStringEncoding encoding);
 
@@ -331,18 +367,37 @@ CFStringGetSystemEncoding (void);
 Boolean
 CFStringIsEncodingAvailable (CFStringEncoding encoding);
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+Boolean
+CFStringGetFileSystemRepresentation (CFStringRef string, char *buffer,
+  CFIndex maxBufLen);
+
+CFIndex
+CFStringGetMaximumSizeOfFileSystemRepresentation (CFStringRef string);
+#endif
+/** @}
+ */
+
 //
 // Getting Numeric Values
 //
+/** @name Getting Numeric Values
+    @{
+ */
 double
 CFStringGetDoubleValue (CFStringRef str);
 
 SInt32
 CFStringGetIntValue (CFStringRef str);
+/** @}
+ */
 
 //
 // Getting String Properties
 //
+/** @name Getting String Properties
+    @{
+ */
 void
 CFShow (CFTypeRef obj);
 
@@ -351,67 +406,73 @@ CFShowStr (CFStringRef str);
 
 CFTypeID
 CFStringGetTypeID (void);
+/** @}
+ */
 
-//
-// New Functions
-//
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
-Boolean
-CFStringFindCharacterFromSet (CFStringRef theString, CFCharacterSetRef theSet,
-  CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result);
-#endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+
+/** @name Pascal Strings
+    @{
+ */
 CFStringRef
-CFStringCreateWithFileSystemRepresentation (CFAllocatorRef alloc,
-  const char *buffer);
-
-Boolean
-CFStringGetFileSystemRepresentation (CFStringRef string, char *buffer,
-  CFIndex maxBufLen);
-
-CFIndex
-CFStringGetMaximumSizeOfFileSystemRepresentation (CFStringRef string);
-#endif
-
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
-CFComparisonResult
-CFStringCompareWithOptionsAndLocale (CFStringRef theString1,
-  CFStringRef theString2, CFRange rangeToCOmpare,
-  CFStringCompareFlags compareOptions, CFLocaleRef locale);
+CFStringCreateWithPascalString (CFAllocatorRef alloc, ConstStr255Param pStr,
+  CFStringEncoding encoding);
 
 CFStringRef
-CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
-  CFIndex numBytes, CFStringEncoding encoding, Boolean isExternalReprentation,
-  CFAllocatorRef contentsDeallocator);
+CFStringCreateWithPascalStringNoCopy (CFAllocatorRef alloc,
+  ConstStr255Param pStr, CFStringEncoding encoding,
+  CFAllocatorRef contentsDeallocate);
 
-void
-CFStringGetParagraphBounds (CFStringRef string, CFRange range,
-  CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex);
+Boolean
+CFStringGetPascalString (CFStringRef theString, StringPtr buffer,
+  CFIndex bufferSize, CFStringEncoding encoding);
+
+ConstStringPtr
+CFStringGetPascalStringPtr (CFStringRef theString, CFStringEncoding encoding);
+/** @}
+ */
+/** @}
+ */
+
+
+
+/** @defgroup CFMutableString
+ *  @{
+ */
+#if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+enum CFStringNormalizationForm
+{
+  kCFStringNormalizationFormD = 0,
+  kCFStringNormalizationFormKD = 1,
+  kCFStringNormalizationFormC = 2,
+  kCFStringNormalizationFormKC = 3
+};
+typedef enum CFStringNormalizationForm CFStringNormalizationForm;
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-UTF32Char
-CFStringGetLongCharacterForSurrogatePair (UniChar surrogateHigh,
-  UniChar surrogateLow);
-
-Boolean
-CFStringGetSurrogatePairForLongCharacter (UTF32Char character,
-  UniChar *surrogates);
-
-Boolean
-CFStringIsSurrogateHighCharacter (UniChar character);
-
-Boolean
-CFStringIsSurrogateLowCharacter (UniChar character);
+#if GS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+CF_EXPORT const CFStringRef kCFStringTransformStripCombiningMarks;
+CF_EXPORT const CFStringRef kCFStringTransformToLatin;
+CF_EXPORT const CFStringRef kCFStringTransformFullwidthHalfwidth;
+CF_EXPORT const CFStringRef kCFStringTransformLatinKatakana;
+CF_EXPORT const CFStringRef kCFStringTransformLatinHiragana;
+CF_EXPORT const CFStringRef kCFStringTransformHiraganaKatakana;
+CF_EXPORT const CFStringRef kCFStringTransformMandarinLatin;
+CF_EXPORT const CFStringRef kCFStringTransformLatinHangul;
+CF_EXPORT const CFStringRef kCFStringTransformLatinArabic;
+CF_EXPORT const CFStringRef kCFStringTransformLatinHebrew;
+CF_EXPORT const CFStringRef kCFStringTransformLatinThai;
+CF_EXPORT const CFStringRef kCFStringTransformLatinCyrillic;
+CF_EXPORT const CFStringRef kCFStringTransformLatinGreek;
+CF_EXPORT const CFStringRef kCFStringTransformToXMLHex;
+CF_EXPORT const CFStringRef kCFStringTransformToUnicodeName;
 #endif
-
+#if GS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+CF_EXPORT const CFStringRef kCFStringTransformStripDiacritics;
+#endif
 //
 // CFMutableString
 //
-/** @defgroup CFMutableStringRef Mutable Strings
- *  @{
- */
 void
 CFStringAppend (CFMutableStringRef theString, CFStringRef appendedString);
 
@@ -510,7 +571,7 @@ CFStringFold (CFMutableStringRef theString, CFOptionFlags theFlags,
 
 
 
-/** @defgroup CFStringInlineBuffer Inline Buffer
+/** @defgroup CFStringInlineBuffer
  *  @{
  */
 #define __kCFStringInlineBufferLength 64

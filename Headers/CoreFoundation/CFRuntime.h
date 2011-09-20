@@ -32,7 +32,7 @@
 
 CF_EXTERN_C_BEGIN
 
-/** @defgroup CFRuntime CoreBase Runtime
+/** @defgroup CFRuntime
  *  @{
  */
 
@@ -71,9 +71,9 @@ struct __CFRuntimeClass
     class table and so is thread-safe.
     
     @param cls A constant CFRuntimeClass.
-    @see _CFRuntimeUnregisterClassWithTypeID()
     @return The next available CFTypeID or _kCFRuntimeNotATypeID
     if none are available.
+    @see _CFRuntimeUnregisterClassWithTypeID()
  */
 CFTypeID
 _CFRuntimeRegisterClass (const CFRuntimeClass * const cls);
@@ -120,9 +120,9 @@ struct __CFRuntimeBase
     @param extraBytes The amount of extra bytes over a CFRuntimeBase type
     needed by this instance.
     @param category Currently unused, use NULL.
+    @return A newly allocator object.
     @see CFRetain()
     @see CFRelease()
-    @return A newly allocator object.
  */
 CFTypeRef
 _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
