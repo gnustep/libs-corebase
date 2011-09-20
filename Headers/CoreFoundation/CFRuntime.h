@@ -32,6 +32,10 @@
 
 CF_EXTERN_C_BEGIN
 
+/** @defgroup CFRuntime CoreBase Runtime
+ *  @{
+ */
+
 enum
 {
   _kCFRuntimeNotATypeID = 0,
@@ -63,12 +67,31 @@ struct __CFRuntimeClass
 
 
 
+/** Registers a new CF class with the runtime.  This function locks the
+    class table and so is thread-safe.
+    
+    @param cls A constant CFRuntimeClass.
+    @see _CFRuntimeUnregisterClassWithTypeID()
+    @return The next available CFTypeID or _kCFRuntimeNotATypeID
+    if none are available.
+ */
 CFTypeID
 _CFRuntimeRegisterClass (const CFRuntimeClass * const cls);
 
+/** Gets the class structure associated with the @a typeID.
+    
+    @param typeID A CFTypeID to look up.
+    @return The CFRuntimeClass for the @typeID
+ */
 const CFRuntimeClass *
 _CFRuntimeGetClassWithTypeID (CFTypeID typeID);
 
+/** Unregisters a class.
+    @warning This function is not thread-safe.
+    
+    @param typeID The CFTypeID to unregister.
+    @see _CFRuntimeRegisterClass()
+ */
 void
 _CFRuntimeUnregisterClassWithTypeID (CFTypeID typeID);
 
@@ -89,16 +112,41 @@ struct __CFRuntimeBase
 
 #define INIT_CFRUNTIME_BASE(...) { 0, 0, { 1, 0, 0 } }
 
+/** Creates a new CF instance.
+    
+    @param allocator The CFAllocatorRef to use or NULL for the default
+    allocator.
+    @param typeID The CFTypeID of the class.
+    @param extraBytes The amount of extra bytes over a CFRuntimeBase type
+    needed by this instance.
+    @param category Currently unused, use NULL.
+    @see CFRetain()
+    @see CFRelease()
+    @return A newly allocator object.
+ */
 CFTypeRef
 _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
                           CFIndex extraBytes, unsigned char *category);
 
+/** Sets the CFTypeID for an instance.
+    
+    @param cf The object instance to set the type ID.
+    @param typeID The new CFTypeID.
+ */
 void
 _CFRuntimeSetInstanceTypeID (CFTypeRef cf, CFTypeID typeID);
 
+/** Initializes a static CF object instance.
+    
+    @param memory A pointer to a static CF object instance.
+    @param typeID The CFTypeID of the instance.
+ */
 void
 _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID);
 #define CF_HAS_INIT_STATIC_INSTANCE 0
+
+/** @}
+ */
 
 CF_EXTERN_C_END
 
