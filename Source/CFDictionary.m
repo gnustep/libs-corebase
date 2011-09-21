@@ -88,15 +88,15 @@ CFDictionaryCreate (CFAllocatorRef allocator, const void **keys,
                     const CFDictionaryValueCallBacks *valueCallBacks)
 {
   /* FIXME: will this even work if keys and values aren't objects? */
-  return (CFDictionaryRef)[[NSDictionary allocWithZone: allocator] initWithObjects: (id *)keys
-                                                          forKeys: (id *)values
-                                                            count: numValues];
+  return (CFDictionaryRef)[[NSDictionary alloc] initWithObjects: (id *)keys
+                                                        forKeys: (id *)values
+                                                          count: numValues];
 }
 
 CFDictionaryRef
 CFDictionaryCreateCopy (CFAllocatorRef allocator, CFDictionaryRef theDict)
 {
-  return (CFDictionaryRef)[(NSDictionary*)theDict copyWithZone: allocator];
+  return (CFDictionaryRef)[(NSDictionary*)theDict copy];
 }
 
 CFIndex
@@ -184,7 +184,7 @@ CFDictionaryCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
                            const CFDictionaryValueCallBacks *valueCallBacks)
 {
   // FIXME
-  return (CFMutableDictionaryRef)[[NSMutableDictionary allocWithZone: allocator]
+  return (CFMutableDictionaryRef)[[NSMutableDictionary alloc]
     initWithCapacity: capacity];
 }
 
@@ -193,7 +193,7 @@ CFDictionaryCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
                                CFDictionaryRef theDict)
 {
   // FIXME
-  return (CFMutableDictionaryRef)[(NSMutableDictionary*)theDict mutableCopyWithZone: allocator];
+  return (CFMutableDictionaryRef)[(NSMutableDictionary*)theDict mutableCopy];
 }
 
 void

@@ -99,15 +99,14 @@ CFArrayCreate (CFAllocatorRef allocator, const void **values,
                CFIndex numValues, const CFArrayCallBacks *callBacks)
 {
   // FIXME
-  return (CFArrayRef)[[NSArray allocWithZone: allocator] 
-                       initWithObjects: (id *)values
-                                 count: numValues];
+  return (CFArrayRef)[[NSArray alloc] initWithObjects: (id *)values
+                                                count: numValues];
 }
 
 CFArrayRef
 CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef theArray)
 {
-  return (CFArrayRef)[(NSArray*)theArray copyWithZone: allocator];
+  return (CFArrayRef)[(NSArray*)theArray copy];
 }
 
 CFIndex
@@ -192,7 +191,7 @@ CFArrayCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
                       const CFArrayCallBacks *callBacks)
 {
   // FIXME
-  return (CFMutableArrayRef)[[NSMutableArray allocWithZone: allocator]
+  return (CFMutableArrayRef)[[NSMutableArray alloc]
                               initWithCapacity: capacity];
 }
 
@@ -200,7 +199,7 @@ CFMutableArrayRef
 CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
                           CFArrayRef theArray)
 {
-  return (CFMutableArrayRef)[(NSArray*)theArray mutableCopyWithZone: allocator];
+  return (CFMutableArrayRef)[(NSArray*)theArray mutableCopy];
 }
 
 void

@@ -40,14 +40,14 @@ CFDataGetTypeID (void)
 CFDataRef
 CFDataCreate (CFAllocatorRef allocator, const UInt8 *bytes, CFIndex length)
 {
-  return (CFDataRef)[[NSData allocWithZone: allocator] initWithBytes: bytes
-                                                              length: length];
+  return (CFDataRef)[[NSData alloc] initWithBytes: bytes
+                                           length: length];
 }
 
 CFDataRef
 CFDataCreateCopy (CFAllocatorRef allocator, CFDataRef theData)
 {
-  return (CFDataRef)[(NSData*)theData copyWithZone: allocator];
+  return (CFDataRef)[(NSData*)theData copy];
 }
 
 CFDataRef
@@ -56,10 +56,9 @@ CFDataCreateWithBytesNoCopy (CFAllocatorRef allocator, const UInt8 *bytes,
 {
   BOOL freeWhenDone = (bytesDeallocator == kCFAllocatorNull);
   
-  return (CFDataRef)[[NSData allocWithZone: allocator]
-                      initWithBytesNoCopy: (void*)bytes
-                                   length: length
-                             freeWhenDone: freeWhenDone];
+  return (CFDataRef)[[NSData alloc] initWithBytesNoCopy: (void*)bytes
+                                                 length: length
+                                           freeWhenDone: freeWhenDone];
 }
 
 const UInt8 *
@@ -95,15 +94,14 @@ CFDataAppendBytes (CFMutableDataRef theData, const UInt8 *bytes, CFIndex length)
 CFMutableDataRef
 CFDataCreateMutable (CFAllocatorRef allocator, CFIndex capacity)
 {
-  return (CFMutableDataRef)[[NSMutableData allocWithZone: allocator] 
-                             initWithCapacity: capacity];
+  return (CFMutableDataRef)[[NSMutableData alloc] initWithCapacity: capacity];
 }
 
 CFMutableDataRef
 CFDataCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
                          CFDataRef theData)
 {
-  return (CFMutableDataRef)[[(NSMutableData*)theData mutableCopyWithZone: allocator] 
+  return (CFMutableDataRef)[[(NSMutableData*)theData mutableCopy] 
                              setCapacity: capacity];
 }
 

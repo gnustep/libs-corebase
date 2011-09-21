@@ -156,7 +156,7 @@ CFNumberRef CFNumberCreate (CFAllocatorRef allocator, CFNumberType theType,
         break;
     }
   
-  return (CFNumberRef)[[NSNumber allocWithZone: allocator]
+  return (CFNumberRef)[[NSNumber alloc]
                         initWithBytes: valuePtr objCType: type];
 }
 

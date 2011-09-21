@@ -28,7 +28,7 @@
 
 /* This is NSCFType, the ObjC class that all non-bridged CF types belong to.
  */
-@interface NSCFType : NSObject <NSCopying>
+@interface NSCFType : NSObject
 {
   /* NSCFType's ivar layout must match CFRuntimeBase.
    */

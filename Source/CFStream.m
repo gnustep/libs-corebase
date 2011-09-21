@@ -123,11 +123,10 @@ CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
                                     UInt32 port, CFReadStreamRef *readStream,
                                     CFWriteStreamRef *writeStream)
 {
-  [[NSStream allocWithZone: alloc]
-    getStreamsToHost: [NSHost hostWithName: (NSString *)host]
-                port: (NSUInteger)port
-         inputStream: (NSInputStream **)readStream
-        outputStream: (NSOutputStream **)writeStream];
+  [[NSStream alloc] getStreamsToHost: [NSHost hostWithName: (NSString *)host]
+                                port: (NSUInteger)port
+                         inputStream: (NSInputStream **)readStream
+                        outputStream: (NSOutputStream **)writeStream];
 }
 
 
@@ -168,7 +167,7 @@ CFWriteStreamRef
 CFWriteStreamCreateWithBuffer (CFAllocatorRef alloc, UInt8 *buffer,
                                CFIndex bufferCapacity)
 {
-  return (CFWriteStreamRef)[[NSOutputStream allocWithZone: (NSZone *)alloc]
+  return (CFWriteStreamRef)[[NSOutputStream alloc]
                              initToBuffer: buffer
                                  capacity: (NSUInteger)bufferCapacity];
 }
@@ -177,7 +176,7 @@ CFWriteStreamRef
 CFWriteStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
 {
   // FIXME: there's nothing in -base to set the append option at a later time.
-  return (CFWriteStreamRef)[[NSOutputStream allocWithZone: (NSZone *)alloc]
+  return (CFWriteStreamRef)[[NSOutputStream alloc]
                              initToFileAtPath: [(NSURL *)fileURL absoluteString]
                                        append: NO];
 }
@@ -277,7 +276,7 @@ CFReadStreamCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
 CFReadStreamRef
 CFReadStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
 {
-  return (CFReadStreamRef)[[NSInputStream allocWithZone: alloc]
+  return (CFReadStreamRef)[[NSInputStream alloc]
                            initWithFileAtPath: [(NSURL *)fileURL absoluteString]];
 }
 

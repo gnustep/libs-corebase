@@ -51,7 +51,7 @@ CFURLCreateWithFileSystemPath (CFAllocatorRef allocator,
 {
   // FIXME: Handle the style parameter
   // FIXME: Should call initFileURLWithPath:isDirectory:
-  return (CFURLRef)[[NSURL allocWithZone: allocator] initFileURLWithPath:
+  return (CFURLRef)[[NSURL alloc] initFileURLWithPath:
     (NSString*)fileSystemPath];
 }
 
@@ -59,7 +59,6 @@ CFURLRef
 CFURLCreateWithString (CFAllocatorRef allocator, CFStringRef string,
                        CFURLRef baseURL)
 {
-  return (CFURLRef)[[NSURL allocWithZone: allocator]
-    initWithString: (NSString*)string
-     relativeToURL: (NSURL*)baseURL];
+  return (CFURLRef)[[NSURL alloc] initWithString: (NSString*)string
+                                   relativeToURL: (NSURL*)baseURL];
 }

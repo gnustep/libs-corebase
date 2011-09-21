@@ -122,8 +122,14 @@ CF_EXTERN_C_BEGIN
 // CFType types
 //
 typedef unsigned long CFHashCode;
+/** @defgroup CFType
+    @{
+    @class CFType
+ */
 typedef unsigned long CFTypeID;
 typedef const void *CFTypeRef;
+/** @}
+ */
 
 //
 // Base Utilities
@@ -207,7 +213,12 @@ CF_EXPORT const double kCFCoreFoundationVersionNumber;
 #define kCFCoreFoundationVersionNumber10_5_5  476.15
 #define kCFCoreFoundationVersionNumber10_5_6  476.17
 
-/* Creates new range. */
+/** Creates new range.
+    
+    @param location The start location.
+    @param length The length.
+    @return A CFRange structure.
+ */
 static inline CFRange
 CFRangeMake(CFIndex location, CFIndex length)
 {
@@ -238,19 +249,26 @@ typedef struct __CFString * CFMutableStringRef;
 
 
 
-//
-// CFAllocator
-//
-typedef struct _NSZone *CFAllocatorRef;
+/** @defgroup CFAllocator
+    @{
+    @class CFAllocator
+    @extends CFType
+    @brief CFAllocator is an opaque type used to allocate and deallocate
+    memory.
+ */
+/** @brief A reference to a CFAllocator object.
+ */
+typedef const struct __CFAllocator * CFAllocatorRef;
 
-typedef void*       (*CFAllocatorAllocateCallBack)(CFIndex allocSize, CFOptionFlags hint, void *info);
+typedef void*       (*CFAllocatorAllocateCallBack)(CFIndex allocSize,
+  CFOptionFlags hint, void *info);
 typedef void        (*CFAllocatorDeallocateCallBack)(void *ptr, void *info);
-typedef void*       (*CFAllocatorReallocateCallBack)(void *ptr, CFIndex newsize, CFOptionFlags hint, void *info);
-typedef CFIndex     (*CFAllocatorPreferredSizeCallBack)(CFIndex size, CFOptionFlags hint, void *info);
-
+typedef void*       (*CFAllocatorReallocateCallBack)(void *ptr,
+  CFIndex newsize, CFOptionFlags hint, void *info);
+typedef CFIndex     (*CFAllocatorPreferredSizeCallBack)(CFIndex size,
+  CFOptionFlags hint, void *info);
 typedef const void* (*CFAllocatorRetainCallBack)(const void *info);
 typedef void        (*CFAllocatorReleaseCallBack)(const void *info);
-
 typedef CFStringRef	(*CFAllocatorCopyDescriptionCallBack)(const void *info);
 
 struct _CFAllocatorContext
@@ -267,29 +285,73 @@ struct _CFAllocatorContext
 };
 typedef struct _CFAllocatorContext CFAllocatorContext;
 
+/** The default allocator and is equivalent to NULL.
+    @see CFAllocatorGetDefault()
+    @see CFAllocatorSetDefault()
+ */
 CF_EXPORT const CFAllocatorRef kCFAllocatorDefault;
+/** The default system allocator is used internally by GNUstep and is the
+    default allocator if none is been defined.
+    @see CFAllocatorSetDefault()
+ */
 CF_EXPORT const CFAllocatorRef kCFAllocatorSystemDefault;
+/** An allocator that uses the system's malloc, realloc and free functions.
+ */
 CF_EXPORT const CFAllocatorRef kCFAllocatorMalloc;
-#if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+/** Equivalent to kCFAllocatorSystemDefault
+    @since Mac OS X 10.4
+    does not exist on systems other than Darwin.
+ */
 CF_EXPORT const CFAllocatorRef kCFAllocatorMallocZone;
 #endif
+/** The NULL allocator does perform any operations.  Can be passed as
+    a deallocator if you do not want GNUstep to deallocate the data.
+ */
 CF_EXPORT const CFAllocatorRef kCFAllocatorNull;
+/** This is a special case allocator directing CFAllocatorCreate() to use
+    the given CFAllocatorContext structure to allocate the new allocator.
+ */
 CF_EXPORT const CFAllocatorRef kCFAllocatorUseContext;
 
+/** Create a new CFAllocator.
+    
+    @param allocator The allocator used to create this allocator or
+      kCFAllocatorUseContext to use the functions in @context.
+    @param context The new allocator's context functions.
+    @return A new CFAllocator or NULL in case of failure.
+    @see CFAllocatorContext
+ */
 CFAllocatorRef
 CFAllocatorCreate (CFAllocatorRef allocator, CFAllocatorContext *context);
 
+/** Allocate new memory.
+    
+    @param allocator The CFAllocator to use.
+    @param size The number of bytes to allocate.
+    @param hint Option flags.  Currently unused and should be 0.
+    @return Newly allocated memory of NULL in case of failure.
+    @see CFAllocatorDeallocate()
+ */
 void *
 CFAllocatorAllocate (CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint);
 
+/** Deallocate the memory pointed to by @ptr.
+    
+    @param allocator The CFAllocator to use.
+    @param ptr A pointer previously allocated by CFAllocatorAllocate().
+    @see CFAllocatorAllocate()
+ */
 void
 CFAllocatorDeallocate (CFAllocatorRef allocator, void *ptr);
 
 CFIndex
-CFAllocatorGetPreferredSizeForSize (CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint);
+CFAllocatorGetPreferredSizeForSize (CFAllocatorRef allocator, CFIndex size,
+  CFOptionFlags hint);
 
 void *
-CFAllocatorReallocate (CFAllocatorRef allocator, void *ptr, CFIndex newsize, CFOptionFlags hint);
+CFAllocatorReallocate (CFAllocatorRef allocator, void *ptr, CFIndex newsize,
+  CFOptionFlags hint);
 
 CFAllocatorRef
 CFAllocatorGetDefault (void);
@@ -302,12 +364,17 @@ CFAllocatorGetContext (CFAllocatorRef allocator, CFAllocatorContext *context);
 
 CFTypeID
 CFAllocatorGetTypeID (void);
+/** @}
+ */
 
 
 
 //
 // CFType Functions
 //
+/** @ingroup CFType
+    @{
+ */
 /* These function will be implemented in CFRuntime.c since they 
    require runtime support. */
 CF_EXPORT CFStringRef
@@ -341,6 +408,8 @@ CFRelease (CFTypeRef cf);
 
 CF_EXPORT CFTypeRef
 CFRetain (CFTypeRef cf);
+/** @}
+ */
 
 
 

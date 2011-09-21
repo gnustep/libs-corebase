@@ -59,6 +59,7 @@ static Class NSCFTypeClass = Nil;
  *	(before the start) in each object.
  */
 struct obj_layout_unpadded {
+  CFAllocatorRef allocator;
   CFIndex        retained;
 };
 #define	UNP sizeof(struct obj_layout_unpadded)
@@ -70,6 +71,7 @@ struct obj_layout_unpadded {
  */
 struct obj_layout {
   char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
+  CFAllocatorRef allocator;
   CFIndex        retained;
 };
 typedef	struct obj_layout *obj;
@@ -130,6 +132,7 @@ CFTypeRef
 _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
                           CFIndex extraBytes, unsigned char *category)
 { // category is not used and should be NULL.
+  CFIndex instSize;
   CFRuntimeClass *cls;
   CFRuntimeBase *new;
   
@@ -142,11 +145,13 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
   if (NULL == allocator)
     allocator = CFAllocatorGetDefault ();
   
-  new = (CFRuntimeBase *)NSAllocateObject (NSCFTypeClass, extraBytes,
-    allocator);
-  new->_isa = __CFRuntimeObjCClassTable[typeID];
+  instSize = sizeof(struct obj_layout) + sizeof(CFRuntimeBase) + extraBytes;
+  new = (CFRuntimeBase*)CFAllocatorAllocate (allocator, instSize, 0);
   if (new)
     {
+      ((obj)new)->allocator = allocator;
+      new = (CFRuntimeBase*)&((obj)new)[1];
+      new->_isa = __CFRuntimeObjCClassTable[typeID];
       new->_typeID = typeID;
       if (NULL != cls->init)
         {
@@ -194,6 +199,9 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
 //
 // CFType Functions
 //
+extern CFStringRef
+__CFStringMakeConstantString (const char *str) __attribute__ ((pure));
+
 CFStringRef
 CFCopyDescription (CFTypeRef cf)
 {
@@ -235,8 +243,7 @@ CFCopyTypeIDDescription (CFTypeID typeID)
       if (NULL == __CFRuntimeClassTable[typeID])
         return NULL;
       CFRuntimeClass *cfclass = __CFRuntimeClassTable[typeID];
-      return CFStringCreateWithCStringNoCopy (NULL, cfclass->className,
-	       CFStringGetSystemEncoding(), kCFAllocatorNull);
+      return (CFStringRef)CFRetain(__CFStringMakeConstantString(cfclass->className));
     }
 }
 
@@ -274,10 +281,11 @@ CFGetAllocator (CFTypeRef cf)
   if (cf == NULL)
     return NULL;
   
-  CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFAllocatorRef, cf, "zone");
+  /* FIXME: This will crash for any ObjC objects.  Need to check for
+      this case before returning the allocator. */
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
-    return (CFAllocatorRef)NSZoneFromPointer((id)cf);
+    return (&((obj)cf)[-1])->allocator;
   
   return kCFAllocatorSystemDefault;
 }
@@ -301,8 +309,7 @@ CFGetTypeID (CFTypeRef cf)
 {
   /* This is unsafe, but I don't see any other way of getting the typeID
      for this call. */
-  CF_OBJC_FUNCDISPATCH0(0, CFTypeID, cf,
-    "_cfTypeID");
+  CF_OBJC_FUNCDISPATCH0(0, CFTypeID, cf, "_cfTypeID");
   
   return ((CFRuntimeBase*)cf)->_typeID;
 }
@@ -347,7 +354,7 @@ CFRelease (CFTypeRef cf)
           
           if (cls->finalize)
             cls->finalize (cf);
-          NSDeallocateObject ((id)cf);
+          CFAllocatorDeallocate (CFGetAllocator(cf), (void*)&((obj)cf)[-1]);
         }
     }
 }

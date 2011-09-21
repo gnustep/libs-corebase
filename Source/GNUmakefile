@@ -5,7 +5,6 @@ PACKAGE_NAME = gnustep-corebase
 LIBRARY_NAME = libgnustep-corebase
 
 libgnustep-corebase_OBJC_FILES = \
-  CFBase.m \
   CFBundle.m \
   CFArray.m \
   CFData.m \
@@ -21,6 +20,7 @@ libgnustep-corebase_OBJC_FILES = \
   Identifiers.m
 
 libgnustep-corebase_C_FILES = \
+  CFBase.c \
   CFCalendar.c \
   CFDate.c \
   CFLocale.c \

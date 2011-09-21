@@ -846,6 +846,7 @@ CFStringCreateMutable (CFAllocatorRef alloc, CFIndex maxLength)
   new->_allocator = alloc ? alloc : CFAllocatorGetDefault();
   new->_contents = CFAllocatorAllocate (new->_allocator,
     new->_capacity * sizeof(UniChar), 0);
+  new->_count = 0;
   
   CFSTRING_INIT_MUTABLE(new);
   

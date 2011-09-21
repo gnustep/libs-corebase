@@ -1,3 +1,23 @@
+2011-09-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m: Create instances ourselves instead relying on
+	gnustep-base.
+	* Source/GNUmakefile:
+	* Source/CFBase.c:
+	* Source/CFBase.m: Implement a true CFAllocator type.  It is no longer
+	compatible with a NSZone.  This change also eliminates the objc dependency
+	so the file is now pure C.
+	* Source/CFArray.m:
+	* Source/CFNumber.m:
+	* Source/CFStream.m:
+	* Source/CFURL.m:
+	* Source/CFDictionary.m:
+	* Source/CFData.m: Do not use CFAllocators as NSZones.
+	* Source/NSCFType.h:
+	* Source/NSCFType.m: NSCFType no longer conforms to NSCopying.  I'm not
+	sure it ever had to.
+	* Source/CFString.c: Fix bug in CFStringCreateMutable().
+
 2011-09-19 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m: Update to reflect latest changes in gnustep-base.
