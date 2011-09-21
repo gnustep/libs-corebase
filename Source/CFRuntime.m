@@ -25,13 +25,13 @@
 */
 
 #import <Foundation/NSObject.h>
-#import <Foundation/NSString.h>
+
+#include <string.h>
+#include <pthread.h>
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
 #include "objc_interface.h"
-
-#include <pthread.h>
 
 
 
@@ -99,8 +99,8 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
   pthread_mutex_lock (&_kCFRuntimeTableLock);
   if(__CFRuntimeClassTableCount >= __CFRuntimeClassTableSize)
     {
-      NSLog (@"CoreBase class table is full, cannot register class %s",
-        cls->className);
+      /* FIXME NSLog (@"CoreBase class table is full, cannot register class %s",
+        cls->className); */
       return _kCFRuntimeNotATypeID;
     }
   
@@ -149,6 +149,7 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
   new = (CFRuntimeBase*)CFAllocatorAllocate (allocator, instSize, 0);
   if (new)
     {
+      new = memset (new, 0, instSize);
       ((obj)new)->allocator = allocator;
       new = (CFRuntimeBase*)&((obj)new)[1];
       new->_isa = __CFRuntimeObjCClassTable[typeID];
@@ -234,17 +235,15 @@ CFCopyDescription (CFTypeRef cf)
 CFStringRef
 CFCopyTypeIDDescription (CFTypeID typeID)
 {
-  if (typeID >= __CFRuntimeClassTableSize)
-    {
-      return (CFStringRef)CFRetain([(Class)typeID description]);
-    }
-  else
-    {
-      if (NULL == __CFRuntimeClassTable[typeID])
-        return NULL;
-      CFRuntimeClass *cfclass = __CFRuntimeClassTable[typeID];
-      return (CFStringRef)CFRetain(__CFStringMakeConstantString(cfclass->className));
-    }
+  CFRuntimeClass *cfclass;
+  
+  if (_kCFRuntimeNotATypeID == typeID
+      || typeID >= __CFRuntimeClassTableCount
+      || NULL == __CFRuntimeClassTable[typeID])
+    return NULL;
+  
+  cfclass = __CFRuntimeClassTable[typeID];
+  return CFRetain(__CFStringMakeConstantString(cfclass->className));
 }
 
 Boolean

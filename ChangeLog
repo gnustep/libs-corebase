@@ -1,5 +1,12 @@
 2011-09-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFRuntime.m: Set memory to 0 when creating new objects, and do
+	not accept anything but an actual CFTypeID in CFCopyTypeIDDescription().
+	* Source/CFString.c: Reverted previous changes, bug was actually in
+	CFRuntime.
+
+2011-09-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFRuntime.m: Create instances ourselves instead relying on
 	gnustep-base.
 	* Source/GNUmakefile:
