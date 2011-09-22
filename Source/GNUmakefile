@@ -12,7 +12,6 @@ libgnustep-corebase_OBJC_FILES = \
   CFError.m \
   CFNumber.m \
   CFPropertyList.m \
-  CFRuntime.m \
   CFStream.m \
   CFURL.m \
   NSCFString.m \
@@ -25,6 +24,7 @@ libgnustep-corebase_C_FILES = \
   CFDate.c \
   CFLocale.c \
   CFNumberFormatter.c \
+  CFRuntime.c \
   CFString.c \
   CFStringEncoding.c \
   CFStringFormat.c \

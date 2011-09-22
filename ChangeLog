@@ -1,3 +1,11 @@
+2011-09-22 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.m:
+	* Source/CFRuntime.c: Increment and decrement reference count ourselves
+	instead of relying on Foundation functions.
+	* Source/GNUmakefile: Replace CFRuntime.m with CFRuntime.c.
+	* Source/atomic_ops.h: Atomic increment and decrement operations.
+
 2011-09-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m: Set memory to 0 when creating new objects, and do

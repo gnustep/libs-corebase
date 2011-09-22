@@ -1,4 +1,4 @@
-/* CFRuntime.m
+/* CFRuntime.c
    
    Copyright (C) 2010-2011 Free Software Foundation, Inc.
    
@@ -24,13 +24,13 @@
    Boston, MA 02110-1301, USA.
 */
 
-#import <Foundation/NSObject.h>
-
+#include <assert.h>
 #include <string.h>
 #include <pthread.h>
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
+#include "atomic_ops.h"
 #include "objc_interface.h"
 
 
@@ -138,7 +138,7 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
   
   // Return NULL if typeID is unknown.
   if (_kCFRuntimeNotATypeID == typeID
-      || NULL == (cls = __CFRuntimeClassTable[typeID]))
+      || typeID >= __CFRuntimeClassTableCount)
     {
       return NULL;
     }
@@ -154,6 +154,8 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
       new = (CFRuntimeBase*)&((obj)new)[1];
       new->_isa = __CFRuntimeObjCClassTable[typeID];
       new->_typeID = typeID;
+      
+      cls = __CFRuntimeClassTable[typeID];
       if (NULL != cls->init)
         {
           // Init instance...
@@ -177,21 +179,19 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
   CFRuntimeBase  *obj = (CFRuntimeBase *)memory;
   
   if (_kCFRuntimeNotATypeID == typeID
-      || NULL == (cls = __CFRuntimeClassTable[typeID])
+      || typeID >= __CFRuntimeClassTableCount
       || NULL == memory)
     {
       return;
     }
   
+  cls = __CFRuntimeClassTable[typeID];
   obj->_isa = __CFISAForTypeID (typeID);
-  if (obj)
+  obj->_typeID = typeID;
+  if (cls->init != NULL)
     {
-      obj->_typeID = typeID;
-      if (cls->init != NULL)
-        {
-          // Init instance...
-          cls->init(memory);
-        }
+      // Init instance...
+      cls->init(memory);
     }
 }
 
@@ -214,11 +214,10 @@ CFCopyDescription (CFTypeRef cf)
   
   CF_OBJC_FUNCDISPATCH0(typeID, CFStringRef, cf, "description");
   
-  if (typeID < __CFRuntimeClassTableSize)
-    if (NULL == __CFRuntimeClassTable[typeID])
-      return NULL;
+  if (_kCFRuntimeNotATypeID == typeID)
+    return NULL;
   
-  cfclass = __CFRuntimeClassTable[CFGetTypeID(cf)];
+  cfclass = __CFRuntimeClassTable[typeID];
   if (NULL != cfclass->copyFormattingDesc)
     {
       return cfclass->copyFormattingDesc(cf, NULL);
@@ -238,8 +237,7 @@ CFCopyTypeIDDescription (CFTypeID typeID)
   CFRuntimeClass *cfclass;
   
   if (_kCFRuntimeNotATypeID == typeID
-      || typeID >= __CFRuntimeClassTableCount
-      || NULL == __CFRuntimeClassTable[typeID])
+      || typeID >= __CFRuntimeClassTableCount)
     return NULL;
   
   cfclass = __CFRuntimeClassTable[typeID];
@@ -267,7 +265,7 @@ CFEqual (CFTypeRef cf1, CFTypeRef cf2)
   if (tID1 != tID2)
     return false;
   
-  cls = __CFRuntimeClassTable[CFGetTypeID(cf1)];
+  cls = __CFRuntimeClassTable[tID1];
   if (NULL != cls->equal)
     return cls->equal(cf1, cf2);
   
@@ -284,7 +282,7 @@ CFGetAllocator (CFTypeRef cf)
       this case before returning the allocator. */
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
-    return (&((obj)cf)[-1])->allocator;
+    return ((obj)cf)[-1].allocator;
   
   return kCFAllocatorSystemDefault;
 }
@@ -298,7 +296,7 @@ CFGetRetainCount (CFTypeRef cf)
   CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFIndex, cf, "retainCount");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
-    return (CFIndex)NSExtraRefCount ((id)cf) + 1;
+    return ((obj)cf)[-1].retained + 1;
   
   return 1;
 }
@@ -347,8 +345,11 @@ CFRelease (CFTypeRef cf)
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
-      if (NSDecrementExtraRefCountWasZero((id)cf))
+      CFIndex result = CF_ATOMIC_DEC (&(((obj)cf)[-1].retained));
+      if (result < 0)
         {
+          assert (result == -1);
+          
           CFRuntimeClass *cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
           
           if (cls->finalize)
@@ -367,7 +368,11 @@ CFRetain (CFTypeRef cf)
   CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFTypeRef, cf, "retain");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
-    NSIncrementExtraRefCount ((id)cf);
+    {
+      CFIndex result = CF_ATOMIC_INC (&(((obj)cf)[-1].retained));
+      assert (result < INT_MAX);
+    }
+  
   return cf;
 }
 
