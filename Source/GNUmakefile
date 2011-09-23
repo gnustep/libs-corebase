@@ -13,6 +13,7 @@ libgnustep-corebase_OBJC_FILES = \
   CFPropertyList.m \
   CFStream.m \
   CFURL.m \
+  NSCFData.m \
   NSCFString.m \
   NSCFType.m \
   Identifiers.m
@@ -33,8 +34,7 @@ libgnustep-corebase_C_FILES = \
   CFUUID.c
 
 ADDITIONAL_INCLUDE_DIRS = -I../Headers
-libgnustep-corebase_LIBRARIES_DEPEND_UPON += `icu-config --ldflags-libsonly` \
-  -licuio 
+libgnustep-corebase_LIBRARIES_DEPEND_UPON += `icu-config --ldflags-libsonly`
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
 libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
 

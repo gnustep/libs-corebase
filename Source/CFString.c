@@ -31,7 +31,6 @@
 #include <unicode/unorm.h>
 #include <unicode/ustring.h>
 #include <unicode/utrans.h>
-#include <unicode/ustdio.h>
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
@@ -75,7 +74,6 @@ struct __CFMutableString
 };
 
 static CFTypeID _kCFStringTypeID;
-static UFILE *_ustdout;
 
 /* These are some masks to access the data in CFRuntimeBase's _flags.info
    field. */
@@ -248,7 +246,6 @@ void CFStringInitialize (void)
 {
   _kCFStringTypeID = _CFRuntimeRegisterClass (&CFStringClass);
   CFRuntimeBridgeClass (_kCFStringTypeID, "NSCFString");
-  _ustdout = u_finit (stdout, NULL, NULL);
 }
 
 
@@ -257,25 +254,31 @@ void
 CFShow (CFTypeRef obj)
 {
   CFStringRef str = CFCopyDescription (obj);
-  char *out;
+  const char *out;
+  char buffer[1024];
   
-  out = CFStringIsWide(str) ? "%S" : "%s";
+  out = CFStringGetCStringPtr (str, kCFStringEncodingASCII);
+  if (out == NULL)
+    {
+      CFStringGetCString (str, buffer, 1024, kCFStringEncodingASCII);
+      out = buffer;
+    }
   
-  u_fprintf (_ustdout, out, str->_contents);
+  fprintf (stdout, "%s\n", out);
 }
 
 void
 CFShowStr (CFStringRef s)
 {
-  fprintf (stdout, "Length %d\n", (int)s->_count);
-  fprintf (stdout, "IsWide %d\n", CFStringIsWide(s));
-  fprintf (stdout, "HasLengthByte %d\n", CFStringHasLengthByte(s));
-  fprintf (stdout, "HasNullByte %d\n", CFStringHasNullByte(s));
-  fprintf (stdout, "InlineContents %d\n", CFStringIsInline(s));
-  fprintf (stdout, "Allocator %p\n", CFGetAllocator(s)); // FIXME: allocator name
-  fprintf (stdout, "Mutable %d\n", CFStringIsMutable(s));
-  fprintf (stdout, "Contents ");
-  u_fprintf (_ustdout, CFStringIsWide(s) ? "%S\n" : "%s\n", s->_contents);
+  fprintf (stderr, "Length %d\n", (int)s->_count);
+  fprintf (stderr, "IsWide %d\n", CFStringIsWide(s));
+  fprintf (stderr, "HasLengthByte %d\n", CFStringHasLengthByte(s));
+  fprintf (stderr, "HasNullByte %d\n", CFStringHasNullByte(s));
+  fprintf (stderr, "InlineContents %d\n", CFStringIsInline(s));
+  fprintf (stderr, "Allocator %p\n", CFGetAllocator(s));
+  fprintf (stderr, "Mutable %d\n", CFStringIsMutable(s));
+  fprintf (stderr, "Contents ");
+  CFShow (s);
 }
 
 CFTypeID
