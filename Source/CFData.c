@@ -162,14 +162,18 @@ CFDataCreate_internal (CFAllocatorRef allocator, const UInt8 *bytes,
   size = sizeof(struct __CFData) - sizeof(CFRuntimeBase);
   size += copy == true ? length : 0;
   
+  if (bytesDealloc == NULL)
+    bytesDealloc = CFAllocatorGetDefault ();
+  
   newData = (struct __CFData*)_CFRuntimeCreateInstance (allocator,
     _kCFDataTypeID, size, NULL);
   
   newData->_length = length;
-  newData->_deallocator = CFRetain(bytesDealloc);
   
   if (copy)
     {
+      newData->_deallocator = CFRetain(bytesDealloc);
+      
       memcpy (&(newData[1]), bytes, length);
       bytes = (const UInt8*)&(newData[1]);
     }

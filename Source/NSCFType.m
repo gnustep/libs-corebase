@@ -24,8 +24,8 @@
    Boston, MA 02110-1301, USA.
 */
 
+#include <Foundation/NSObject.h>
 #include "CoreFoundation/CFRuntime.h"
-#import "NSCFType.h"
 
 extern void CFInitialize (void);
 extern CFRuntimeClass **__CFRuntimeClassTable;
@@ -39,6 +39,24 @@ extern CFRuntimeClass **__CFRuntimeClassTable;
 {
   return _kCFRuntimeNotATypeID;
 }
+@end
+
+/* This is NSCFType, the ObjC class that all non-bridged CF types belong to.
+ */
+@interface NSCFType : NSObject
+{
+  /* NSCFType's ivar layout must match CFRuntimeBase.
+   */
+  int16_t _typeID;
+  struct
+    {
+      int16_t ro:       1; // 0 = read-only object
+      int16_t unused:   7;
+      int16_t reserved: 8;
+    } _flags;
+}
+
+- (CFTypeID) _cfTypeID;
 @end
 
 @implementation NSCFType
