@@ -35,8 +35,8 @@
 typedef NSData* CFDataRef;
 typedef NSMutableData* CFMutableDataRef;
 #else
-typedef struct CFData *CFDataRef;
-typedef struct CFMutableData *CFMutableDataRef;
+typedef const struct __CFData * CFDataRef;
+typedef struct __CFData * CFMutableDataRef;
 #endif
 
 

@@ -1,3 +1,10 @@
+2011-09-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFData.h:
+	* Source/CFData.m:
+	* Source/CFData.c:
+	* Source/GNUmakefile: Replace CFData.m with CFData.c.
+
 2011-09-22 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.m:

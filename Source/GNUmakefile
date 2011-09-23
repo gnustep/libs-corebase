@@ -7,7 +7,6 @@ LIBRARY_NAME = libgnustep-corebase
 libgnustep-corebase_OBJC_FILES = \
   CFBundle.m \
   CFArray.m \
-  CFData.m \
   CFDictionary.m \
   CFError.m \
   CFNumber.m \
@@ -21,6 +20,7 @@ libgnustep-corebase_OBJC_FILES = \
 libgnustep-corebase_C_FILES = \
   CFBase.c \
   CFCalendar.c \
+  CFData.c \
   CFDate.c \
   CFLocale.c \
   CFNumberFormatter.c \
