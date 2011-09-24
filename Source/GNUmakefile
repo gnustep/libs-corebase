@@ -8,12 +8,12 @@ libgnustep-corebase_OBJC_FILES = \
   CFBundle.m \
   CFArray.m \
   CFDictionary.m \
-  CFError.m \
   CFNumber.m \
   CFPropertyList.m \
   CFStream.m \
   CFURL.m \
   NSCFData.m \
+  NSCFError.m \
   NSCFString.m \
   NSCFType.m \
   Identifiers.m
@@ -23,6 +23,7 @@ libgnustep-corebase_C_FILES = \
   CFCalendar.c \
   CFData.c \
   CFDate.c \
+  CFError.c \
   CFLocale.c \
   CFNumberFormatter.c \
   CFRuntime.c \

@@ -381,6 +381,7 @@ CFRetain (CFTypeRef cf)
 extern void CFBooleanInitialize (void);
 extern void CFCalendarInitialize (void);
 extern void CFDataInitialize (void);
+extern void CFErrorInitialize (void);
 extern void CFLocaleInitialize (void);
 extern void CFBundleInitialize (void);
 extern void CFNullInitialize (void);
@@ -405,6 +406,7 @@ void CFInitialize (void)
   CFBooleanInitialize ();
   CFCalendarInitialize ();
   CFDataInitialize ();
+  CFErrorInitialize ();
   CFLocaleInitialize ();
   CFBundleInitialize();
   CFNullInitialize ();

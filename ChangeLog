@@ -1,5 +1,18 @@
 2011-09-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFError.m:
+	* Source/CFError.c:
+	* Source/NSCFError.m:
+	* Source/CFRuntime.c:
+	* Source/GNUmakefile: Add C only implementation of CFError.
+
+2011-09-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.c: Initialize CFData.
+	* Source/CFData.c: Release instead of deallocate ivar.
+
+2011-09-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/NSCFType.h:
 	* Source/NSCFType.m: Delete NSCFType.h and move interface definition to
 	NSCFType.m.

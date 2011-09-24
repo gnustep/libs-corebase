@@ -29,12 +29,16 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
-#include <GNUstepBase/GSVersionMacros.h>
 
 // CFError implementation didn't show up until OS X 10.5
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 
-typedef struct __CFError * CFErrorRef;
+#if __OBJC__
+@class NSError;
+typedef NSError * CFErrorRef;
+#else
+typedef const struct __CFError * CFErrorRef;
+#endif
 
 const CFStringRef kCFErrorDomainPOSIX;
 const CFStringRef kCFErrorDomainOSStatus;
