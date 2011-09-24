@@ -77,8 +77,7 @@ CFDataFinalize (CFTypeRef cf)
 {
   CFDataRef d = (CFDataRef)cf;
   
-  if (d->_deallocator)
-    CFAllocatorDeallocate (d->_deallocator, (UInt8*)d->_contents);
+  CFRelease (d->_deallocator);
 }
 
 static Boolean
