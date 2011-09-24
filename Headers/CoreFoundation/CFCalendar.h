@@ -77,20 +77,20 @@ CFCalendarCreateWithIdentifier (CFAllocatorRef allocator, CFStringRef ident);
 //
 Boolean
 CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
-  CFOptionFlags options, const unsigned char *componentDesc, ...);
+  CFOptionFlags options, const char *componentDesc, ...);
 
 Boolean
 CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
-  const unsigned char *componentDesc, ...);
+  const char *componentDesc, ...);
 
 Boolean
 CFCalendarDecomposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime at,
-  const unsigned char *componentDesc, ...);
+  const char *componentDesc, ...);
 
 Boolean
 CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startinAT,
   CFAbsoluteTime resultAT, CFOptionFlags options,
-  const unsigned char *componentDesc, ...);
+  const char *componentDesc, ...);
 
 //
 // Getting Ranges of Units

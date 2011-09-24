@@ -132,8 +132,8 @@ CFErrorCopyDescription (CFErrorRef err)
   CF_OBJC_FUNCDISPATCH0(_kCFErrorTypeID, CFStringRef, err,
     "localizedDescription");
   
-  return CFDictionaryGetValue (err->_userInfo,
-    kCFErrorLocalizedDescriptionKey);
+  return CFRetain(CFDictionaryGetValue (err->_userInfo,
+    kCFErrorLocalizedDescriptionKey));
 }
 
 CFStringRef
@@ -142,8 +142,8 @@ CFErrorCopyFailureReason (CFErrorRef err)
   CF_OBJC_FUNCDISPATCH0(_kCFErrorTypeID, CFStringRef, err,
     "localizedFailureReason");
   
-  return CFDictionaryGetValue (err->_userInfo,
-    kCFErrorLocalizedFailureReasonKey);
+  return CFRetain(CFDictionaryGetValue (err->_userInfo,
+    kCFErrorLocalizedFailureReasonKey));
 }
 
 CFStringRef
@@ -152,8 +152,8 @@ CFErrorCopyRecoverySuggestion (CFErrorRef err)
   CF_OBJC_FUNCDISPATCH0(_kCFErrorTypeID, CFStringRef, err,
     "localizedRecoverySuggestion");
   
-  return CFDictionaryGetValue (err->_userInfo,
-    kCFErrorLocalizedRecoverySuggestionKey);
+  return CFRetain(CFDictionaryGetValue (err->_userInfo,
+    kCFErrorLocalizedRecoverySuggestionKey));
 }
 
 CFDictionaryRef
@@ -161,7 +161,7 @@ CFErrorCopyUserInfo (CFErrorRef err)
 {
   CF_OBJC_FUNCDISPATCH0(_kCFErrorTypeID, CFDictionaryRef, err, "userInfo");
   
-  return err->_userInfo;
+  return CFRetain(err->_userInfo);
 }
 
 CFIndex

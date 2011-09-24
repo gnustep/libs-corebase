@@ -47,10 +47,10 @@
   #include <sys/time.h>
   #include <sys/types.h>
   #include <sys/stat.h>
-  #include <fcntl.h>
-  #include <errno.h>
   #define INITRANDOM() CFsrandomdev()
     #if defined(__linux__)
+    #include <fcntl.h>
+    #include <errno.h>
 static void CFsrandomdev(void)
 {
 	int fd;
@@ -72,10 +72,9 @@ static void CFsrandomdev(void)
 	if (hasSeed == false) 
     {
       struct timeval tv;
-      unsigned long junk;
       
       gettimeofday(&tv, NULL);
-      seed = ((getpid() << 16) ^ tv.tv_sec ^ tv.tv_usec ^ junk);
+      seed = ((getpid() << 16) ^ tv.tv_sec ^ tv.tv_usec ^ time(NULL));
     }
 	
 	srandom(seed);
@@ -84,7 +83,6 @@ static void CFsrandomdev(void)
 static void CFsrandomdev(void)
 {
 	struct timeval tv;
-	unsigned long junk;
 	unsigned int seed = 0;
   
 	/* Within a process, junk is always initialized to the same value (on Linux),
@@ -92,7 +90,7 @@ static void CFsrandomdev(void)
 	   collisions if you call ETSRandomDev() in a loop, as -testString does
 	   in TestUUID.m. */
 	gettimeofday(&tv, NULL);
-	seed = ((getpid() << 16) ^ tv.tv_sec ^ tv.tv_usec ^ junk);
+	seed = ((getpid() << 16) ^ tv.tv_sec ^ tv.tv_usec ^ time(NULL));
   
 	srandom(seed);
 }

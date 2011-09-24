@@ -195,10 +195,10 @@ CFCalendarUnitToUCalendarDateFields (CFCalendarUnit unit)
 
 /* This function returns true is there is still characters to be consumed. */
 static inline Boolean
-CFCalendarGetCalendarUnitFromDescription (const unsigned char **description,
+CFCalendarGetCalendarUnitFromDescription (const char **description,
   CFCalendarUnit *unit)
 {
-  const unsigned char *current = *description;
+  const char *current = *description;
   
   if (current == NULL || *current == '\0')
     return false;
@@ -386,7 +386,7 @@ CFCalendarSetMinimumDaysInFirstWeek (CFCalendarRef cal, CFIndex mwd)
 
 Boolean
 CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
-  CFOptionFlags options, const unsigned char *componentDesc, ...)
+  CFOptionFlags options, const char *componentDesc, ...)
 {
   va_list arg;
   int value;
@@ -451,7 +451,7 @@ CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
 
 Boolean
 CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
-  const unsigned char *componentDesc, ...)
+  const char *componentDesc, ...)
 {
   va_list arg;
   int year = 0, month = 0, date = 0, hour = 0, minute = 0, second = 0;
@@ -504,7 +504,7 @@ CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
 
 Boolean
 CFCalendarDecomposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime at,
-  const unsigned char *componentDesc, ...)
+  const char *componentDesc, ...)
 {
   va_list arg;
   int *value;
@@ -570,7 +570,7 @@ CFCalendarDecomposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime at,
 Boolean
 CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startAT,
   CFAbsoluteTime resultAT, CFOptionFlags options,
-  const unsigned char *componentDesc, ...)
+  const char *componentDesc, ...)
 {
   /* FIXME: ICU 4.8 introduced ucal_getFieldDifference() which
      should make implementing this function very easy. */

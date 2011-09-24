@@ -1,5 +1,12 @@
 2011-09-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFError.c: Retain objects before returning on Copy operations.
+	* Source/CFUUID.c:
+	* Source/CFCalendar.c:
+	* Headers/CoreFoundation/CFCalendar.h: Avoid warnings.
+
+2011-09-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFError.m:
 	* Source/CFError.c:
 	* Source/NSCFError.m:
