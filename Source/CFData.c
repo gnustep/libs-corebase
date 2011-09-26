@@ -141,6 +141,7 @@ static const CFRuntimeClass CFDataClass =
 void CFDataInitialize (void)
 {
   _kCFDataTypeID = _CFRuntimeRegisterClass(&CFDataClass);
+  CFRuntimeBridgeClass (_kCFDataTypeID, "NSCFData");
 }
 
 

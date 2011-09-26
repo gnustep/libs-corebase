@@ -1,3 +1,7 @@
+2011-09-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFData.c: Bridge CFData to NSCFData.
+
 2011-09-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/threading.h:
