@@ -33,9 +33,6 @@ int main (void)
   PASS_CFEQ(obj, kCFNull, "No script code for locale");
   obj = CFLocaleGetValue (locale, kCFLocaleVariantCode);
   PASS_CFEQ(obj, kCFNull, "No variant code for locale");
-  obj = CFLocaleGetValue (locale, kCFLocaleExemplarCharacterSet);
-  // There isn't a good way to test this so I'm just testing it isn't NULL.
-  PASS_CFNEQ(obj, kCFNull, "There is a character set");
   obj = CFLocaleGetValue (locale, kCFLocaleCalendarIdentifier);
   PASS_CFEQ(obj, CFSTR("gregorian"), "Calendar is 'gregorian'");
   obj = CFLocaleGetValue (locale, kCFLocaleCalendar);
