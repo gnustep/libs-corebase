@@ -85,14 +85,22 @@ typedef UInt8  UTF8Char;
 # endif
 #endif
 
-#if !defined(CF_EXPORT)
-# if WIN32 && defined(__cplusplus)
-#  define CF_EXPORT extern "C" __declspec(dllimport) 
-# elif WIN32
-#  define CF_EXPORT extern __declspec(dllimport) 
+#if _WIN32
+# if defined(BUILDING_SELF)
+#  if defined(__cplusplus)
+#   define CF_EXPORT extern "C" __declspec(dllexport)
+#  else
+#   define CF_EXPORT extern __declspec(dllexport)
+#  endif
 # else
-#  define CF_EXPORT extern
+#  if defined(__cplusplus)
+#   define CF_EXPORT extern "C" __declspec(dllimport)
+#  else
+#   define CF_EXPORT extern __declspec(dllimport)
+#  endif
 # endif
+#else
+# define CF_EXPORT extern
 #endif
 
 #ifndef TRUE
@@ -113,7 +121,7 @@ CF_EXTERN_C_BEGIN
 #  define CF_INLINE static inline
 # elif defined(_MSC_VER)
 #  define CF_INLINE static __inline
-# elif WIN32
+# elif _WIN32
 #  define CF_INLINE static __inline__
 # endif
 #endif
@@ -289,30 +297,30 @@ typedef struct _CFAllocatorContext CFAllocatorContext;
     @see CFAllocatorGetDefault()
     @see CFAllocatorSetDefault()
  */
-CF_EXPORT const CFAllocatorRef kCFAllocatorDefault;
+CF_EXPORT CFAllocatorRef kCFAllocatorDefault;
 /** The default system allocator is used internally by GNUstep and is the
     default allocator if none is been defined.
     @see CFAllocatorSetDefault()
  */
-CF_EXPORT const CFAllocatorRef kCFAllocatorSystemDefault;
+CF_EXPORT CFAllocatorRef kCFAllocatorSystemDefault;
 /** An allocator that uses the system's malloc, realloc and free functions.
  */
-CF_EXPORT const CFAllocatorRef kCFAllocatorMalloc;
+CF_EXPORT CFAllocatorRef kCFAllocatorMalloc;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 /** Equivalent to kCFAllocatorSystemDefault
     @since Mac OS X 10.4
     does not exist on systems other than Darwin.
  */
-CF_EXPORT const CFAllocatorRef kCFAllocatorMallocZone;
+CF_EXPORT CFAllocatorRef kCFAllocatorMallocZone;
 #endif
 /** The NULL allocator does perform any operations.  Can be passed as
     a deallocator if you do not want GNUstep to deallocate the data.
  */
-CF_EXPORT const CFAllocatorRef kCFAllocatorNull;
+CF_EXPORT CFAllocatorRef kCFAllocatorNull;
 /** This is a special case allocator directing CFAllocatorCreate() to use
     the given CFAllocatorContext structure to allocate the new allocator.
  */
-CF_EXPORT const CFAllocatorRef kCFAllocatorUseContext;
+CF_EXPORT CFAllocatorRef kCFAllocatorUseContext;
 
 /** Create a new CFAllocator.
     
@@ -322,7 +330,7 @@ CF_EXPORT const CFAllocatorRef kCFAllocatorUseContext;
     @return A new CFAllocator or NULL in case of failure.
     @see CFAllocatorContext
  */
-CFAllocatorRef
+CF_EXPORT CFAllocatorRef
 CFAllocatorCreate (CFAllocatorRef allocator, CFAllocatorContext *context);
 
 /** Allocate new memory.
@@ -333,7 +341,7 @@ CFAllocatorCreate (CFAllocatorRef allocator, CFAllocatorContext *context);
     @return Newly allocated memory of NULL in case of failure.
     @see CFAllocatorDeallocate()
  */
-void *
+CF_EXPORT void *
 CFAllocatorAllocate (CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint);
 
 /** Deallocate the memory pointed to by @ptr.
@@ -342,27 +350,27 @@ CFAllocatorAllocate (CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
     @param ptr A pointer previously allocated by CFAllocatorAllocate().
     @see CFAllocatorAllocate()
  */
-void
+CF_EXPORT void
 CFAllocatorDeallocate (CFAllocatorRef allocator, void *ptr);
 
-CFIndex
+CF_EXPORT CFIndex
 CFAllocatorGetPreferredSizeForSize (CFAllocatorRef allocator, CFIndex size,
   CFOptionFlags hint);
 
-void *
+CF_EXPORT void *
 CFAllocatorReallocate (CFAllocatorRef allocator, void *ptr, CFIndex newsize,
   CFOptionFlags hint);
 
-CFAllocatorRef
+CF_EXPORT CFAllocatorRef
 CFAllocatorGetDefault (void);
 
-void
+CF_EXPORT void
 CFAllocatorSetDefault (CFAllocatorRef allocator);
 
-void
+CF_EXPORT void
 CFAllocatorGetContext (CFAllocatorRef allocator, CFAllocatorContext *context);
 
-CFTypeID
+CF_EXPORT CFTypeID
 CFAllocatorGetTypeID (void);
 /** @}
  */

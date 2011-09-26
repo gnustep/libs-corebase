@@ -1,3 +1,12 @@
+2011-09-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/objc_interface.h:
+	* Source/atomic_ops.h:
+	* Source/GNUmakefile:
+	* Source/CFBase.c:
+	* Headers/CoreFoundation/CFRuntime.h:
+	* Headers/CoreFoundation/CFBase.h: Fixes for compilation on Windows.
+
 2011-09-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFError.c: Retain objects before returning on Copy operations.

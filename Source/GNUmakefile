@@ -34,7 +34,6 @@ libgnustep-corebase_C_FILES = \
   CFTimeZone.c \
   CFUUID.c
 
-ADDITIONAL_INCLUDE_DIRS = -I../Headers
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += `icu-config --ldflags-libsonly`
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
 libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
@@ -64,5 +63,10 @@ libgnustep-corebase_HEADER_FILES = \
   CFUUID.h
 
 libgnustep-corebase_NEEDS_GUI = NO
+
+ADDITIONAL_INCLUDE_DIRS = -I../Headers
+ADDITIONAL_CFLAGS = "-DBUILDING_SELF"
+ADDITIONAL_CXXFLAGS = "-DBUILDING_SELF"
+ADDITIONAL_OBJCFLAGS = "-DBUILDING_SELF"
 
 include $(GNUSTEP_MAKEFILES)/library.make

@@ -143,7 +143,7 @@ _CFRuntimeSetInstanceTypeID (CFTypeRef cf, CFTypeID typeID);
  */
 void
 _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID);
-#define CF_HAS_INIT_STATIC_INSTANCE 0
+#define CF_HAS_INIT_STATIC_INSTANCE 1
 
 /** @}
  */

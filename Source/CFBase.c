@@ -26,9 +26,9 @@
 
 #include <stddef.h>
 #include <stdlib.h>
-#include <objc/runtime.h>
 #include <pthread.h>
 
+#include "objc_interface.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFRuntime.h"
 
@@ -84,13 +84,13 @@ static struct __CFAllocator _kCFAllocatorNull =
   { 0, NULL, NULL, NULL, NULL, null_alloc, null_realloc, NULL, NULL }
 };
 
-const CFAllocatorRef kCFAllocatorDefault = NULL;
+CFAllocatorRef kCFAllocatorDefault = NULL;
 /* Just use the default system allocator everywhere! */
-const CFAllocatorRef kCFAllocatorSystemDefault = &_kCFAllocatorSystemDefault;
-const CFAllocatorRef kCFAllocatorMalloc = &_kCFAllocatorSystemDefault;
-const CFAllocatorRef kCFAllocatorMallocZone = &_kCFAllocatorSystemDefault;
-const CFAllocatorRef kCFAllocatorNull = &_kCFAllocatorNull;
-const CFAllocatorRef kCFAllocatorUseContext = (CFAllocatorRef)0x01;
+CFAllocatorRef kCFAllocatorSystemDefault = &_kCFAllocatorSystemDefault;
+CFAllocatorRef kCFAllocatorMalloc = &_kCFAllocatorSystemDefault;
+CFAllocatorRef kCFAllocatorMallocZone = &_kCFAllocatorSystemDefault;
+CFAllocatorRef kCFAllocatorNull = &_kCFAllocatorNull;
+CFAllocatorRef kCFAllocatorUseContext = (CFAllocatorRef)0x01;
 
 // this will hold the default zone if set with CFAllocatorSetDefault ()
 //static CFAllocatorRef _kCFDefaultAllocator = NULL;
@@ -204,8 +204,8 @@ CFNullRef kCFNull = &_kCFNull;
 void CFNullInitialize (void)
 {
   _kCFNullTypeID = _CFRuntimeRegisterClass (&CFNullClass);
-  /* don't use [NSNull class] before autorelease pool setup. */
-  ((CFRuntimeBase*)kCFNull)->_isa = objc_getClass("NSNull");
+  CFRuntimeBridgeClass (_kCFNullTypeID, "NSNull");
+  _CFRuntimeInitStaticInstance (&_kCFNull, _kCFNullTypeID);
 }
 
 CFTypeID

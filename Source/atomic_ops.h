@@ -27,7 +27,7 @@
 #ifndef __ATOMIC_OPS_H__
 #define __ATOMIC_OPS_H__ 1
 
-#if	defined(__MINGW__)
+#if	_WIN32
 #include <windows.h>
 #ifndef _WIN64
 #undef InterlockedIncrement

@@ -27,7 +27,7 @@
 #ifndef __OBJC_INTERFACE_H__
 #define __OBJC_INTERFACE_H__ 1
 
-#include "CoreFoundation/CFRuntime.h"
+#include "CoreFoundation/CFBase.h"
 #include <objc/runtime.h>
 
 
