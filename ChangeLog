@@ -1,5 +1,16 @@
 2011-09-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/threading.h:
+	* Source/CFBase.c:
+	* Source/CFCalendar.c:
+	* Source/CFLocale.c:
+	* Source/CFString.c:
+	* Source/CFStringEncoding.c:
+	* Source/CFRuntime.c: Abstract threading functions for platforms that
+	do not include pthread.
+
+2011-09-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/objc_interface.h:
 	* Source/atomic_ops.h:
 	* Source/GNUmakefile:

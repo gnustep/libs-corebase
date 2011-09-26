@@ -24,18 +24,17 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <pthread.h>
 #include <unicode/uloc.h>
 #include <unicode/ulocdata.h>
 #include <unicode/ucurr.h>
 #include <unicode/ucal.h>
 
+#include "threading.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFCalendar.h"
 #include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
-
 #include "CoreFoundation/CFLocale.h"
 
 #define BUFFER_SIZE 1024
@@ -52,10 +51,7 @@ struct __CFLocale
   CFMutableDictionaryRef _components;
 };
 
-/* Use a spin lock because it's faster than a mutex.  Just make sure to not
-   keep it locked for very long. */
-static pthread_mutex_t _kCFLocaleLock = PTHREAD_MUTEX_INITIALIZER;
-
+static CFMutex _kCFLocaleLock;
 static CFTypeID _kCFLocaleTypeID;
 static CFLocaleRef _kCFLocaleCurrent = NULL;
 static CFLocaleRef _kCFLocaleSystem = NULL;
@@ -103,6 +99,7 @@ static const CFRuntimeClass CFLocaleClass =
 void CFLocaleInitialize (void)
 {
   _kCFLocaleTypeID = _CFRuntimeRegisterClass(&CFLocaleClass);
+  CFMutexInitialize (&_kCFLocaleLock);
 }
 
 static inline CFLocaleLanguageDirection
@@ -215,18 +212,18 @@ CFLocaleCopyCurrent (void)
 {
   CFLocaleRef result;
   
-  pthread_mutex_lock (&_kCFLocaleLock);
+  CFMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleCurrent)
     {
       result = (CFLocaleRef)CFRetain (_kCFLocaleCurrent);
-      pthread_mutex_unlock (&_kCFLocaleLock);
+      CFMutexUnlock (&_kCFLocaleLock);
       return result;
     }
   
   result = CFLocaleCreate (kCFAllocatorSystemDefault, NULL);
   
   _kCFLocaleCurrent = (CFLocaleRef)CFRetain (result);
-  pthread_mutex_unlock (&_kCFLocaleLock);
+  CFMutexUnlock (&_kCFLocaleLock);
   return result;
 }
 
@@ -262,18 +259,18 @@ CFLocaleRef
 CFLocaleGetSystem (void)
 {
   CFLocaleRef result;
-  pthread_mutex_lock (&_kCFLocaleLock);
+  CFMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleSystem)
     {
       result = (CFLocaleRef)CFRetain (_kCFLocaleSystem);
-      pthread_mutex_unlock (&_kCFLocaleLock);
+      CFMutexUnlock (&_kCFLocaleLock);
       return result;
     }
   
   result = CFLocaleCreate (kCFAllocatorSystemDefault, CFSTR(""));
   
   _kCFLocaleSystem = (CFLocaleRef)CFRetain (result);
-  pthread_mutex_unlock (&_kCFLocaleLock);
+  CFMutexUnlock (&_kCFLocaleLock);
   return result;
 }
 
@@ -284,10 +281,10 @@ CFLocaleCopyAvailableLocaleIdentifiers (void)
   int32_t idx;
   CFMutableArrayRef mArray;
   
-  pthread_mutex_lock (&_kCFLocaleLock);
+  CFMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleAvailableLocaleIdentifiers)
     {
-      pthread_mutex_unlock (&_kCFLocaleLock);
+      CFMutexUnlock (&_kCFLocaleLock);
       return (CFArrayRef)CFRetain (_kCFLocaleAvailableLocaleIdentifiers);
     }
   
@@ -308,7 +305,7 @@ CFLocaleCopyAvailableLocaleIdentifiers (void)
   
   _kCFLocaleAvailableLocaleIdentifiers =
     CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
-  pthread_mutex_unlock (&_kCFLocaleLock);
+  CFMutexUnlock (&_kCFLocaleLock);
   CFRelease (mArray);
   return (CFArrayRef)CFRetain (_kCFLocaleAvailableLocaleIdentifiers);
 }
@@ -320,10 +317,10 @@ CFLocaleCopyISOCountryCodes (void)
   CFMutableArrayRef mArray;
   int idx;
   
-  pthread_mutex_lock (&_kCFLocaleLock);
+  CFMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleISOCountryCodes)
     {
-      pthread_mutex_unlock (&_kCFLocaleLock);
+      CFMutexUnlock (&_kCFLocaleLock);
       return (CFArrayRef)CFRetain (_kCFLocaleISOCountryCodes);
     }
   
@@ -341,7 +338,7 @@ CFLocaleCopyISOCountryCodes (void)
   
   _kCFLocaleISOCountryCodes =
     CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
-  pthread_mutex_unlock (&_kCFLocaleLock);
+  CFMutexUnlock (&_kCFLocaleLock);
   
   CFRelease (mArray);
   
@@ -355,10 +352,10 @@ CFLocaleCopyISOLanguageCodes (void)
   CFMutableArrayRef mArray;
   int idx;
   
-  pthread_mutex_lock (&_kCFLocaleLock);
+  CFMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleISOLanguageCodes)
     {
-      pthread_mutex_unlock (&_kCFLocaleLock);
+      CFMutexUnlock (&_kCFLocaleLock);
       return (CFArrayRef)CFRetain (_kCFLocaleISOLanguageCodes);
     }
   
@@ -376,7 +373,7 @@ CFLocaleCopyISOLanguageCodes (void)
   
   _kCFLocaleISOLanguageCodes =
     CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
-  pthread_mutex_unlock (&_kCFLocaleLock);
+  CFMutexUnlock (&_kCFLocaleLock);
   
   CFRelease (mArray);
   

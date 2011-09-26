@@ -24,15 +24,15 @@
    Boston, MA 02110-1301, USA.
 */
 
+#include <unicode/ucal.h>
+
+#include "threading.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFDate.h"
 #include "CoreFoundation/CFLocale.h"
 #include "CoreFoundation/CFCalendar.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
-
-#include <pthread.h>
-#include <unicode/ucal.h>
 
 struct __CFCalendar
 {
@@ -45,7 +45,7 @@ struct __CFCalendar
 
 static CFTypeID _kCFCalendarTypeID;
 static CFCalendarRef _kCFCalendarCurrent = NULL;
-static pthread_mutex_t _kCFCalendarLock = PTHREAD_MUTEX_INITIALIZER;
+static CFMutex _kCFCalendarLock;
 
 #define UDATE_TO_ABSOLUTETIME(d) \
   (((d) / 1000.0) - kCFAbsoluteTimeIntervalSince1970)
@@ -146,6 +146,7 @@ static const CFRuntimeClass CFCalendarClass =
 void CFCalendarInitialize (void)
 {
   _kCFCalendarTypeID = _CFRuntimeRegisterClass (&CFCalendarClass);
+  CFMutexInitialize (&_kCFCalendarLock);
 }
 
 static inline UCalendarDateFields
@@ -243,7 +244,7 @@ CFCalendarCopyCurrent (void)
 {
   if (_kCFCalendarCurrent == NULL)
     {
-      pthread_mutex_lock (&_kCFCalendarLock);
+      CFMutexLock (&_kCFCalendarLock);
       if (_kCFCalendarCurrent == NULL)
         {
           CFLocaleRef locale;
@@ -259,7 +260,7 @@ CFCalendarCopyCurrent (void)
           CFRelease (locale);
           _kCFCalendarCurrent = cal;
         }
-      pthread_mutex_unlock (&_kCFCalendarLock);
+      CFMutexUnlock (&_kCFCalendarLock);
     }
   
   return _kCFCalendarCurrent;

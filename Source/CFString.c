@@ -26,12 +26,12 @@
 
 #include <stdarg.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
 #include <unicode/ustring.h>
 #include <unicode/utrans.h>
 
+#include "threading.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFArray.h"
@@ -242,10 +242,56 @@ static const CFRuntimeClass CFStringClass =
   NULL
 };
 
+static CFMutex static_strings_lock;
+static CFMutableDictionaryRef static_strings;
+/**
+ * Hack to allocated CFStrings uniquely without compiler support.
+ */
+CFStringRef __CFStringMakeConstantString (const char *str)
+{
+  /* FIXME: Use CFMutableSet as David originally did whenever that type
+     gets implemented. */
+  CFStringRef new =
+    CFStringCreateWithCString (NULL, str, kCFStringEncodingASCII);
+  CFStringRef old =
+    (CFStringRef)CFDictionaryGetValue (static_strings, (const void *)new);
+  // Return the existing string pointer if we have one.
+  if (NULL != old)
+    {
+      CFRelease (new);
+      return old;
+    }
+  CFMutexLock(&static_strings_lock);
+  if (NULL == static_strings)
+    {
+      static_strings = CFDictionaryCreateMutable (NULL, 0,
+        &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    }
+  // Check again in case another thread added this string to the table while
+  // we were waiting on the mutex.
+  old = (CFStringRef)CFDictionaryGetValue (static_strings, (const void *)new);
+  if (NULL == old)
+    {
+      // Note: In theory, for proper retain count tracking, we should release
+      // new here.  We're not going to, because it is expected to persist for
+      // the lifetime of the program
+      CFDictionaryAddValue (static_strings, (const void *)new,
+        (const void *)new);
+      old = new;
+    }
+  else
+    {
+      CFRelease (new);
+    }
+  CFMutexUnlock(&static_strings_lock);
+  return old;
+}
+
 void CFStringInitialize (void)
 {
   _kCFStringTypeID = _CFRuntimeRegisterClass (&CFStringClass);
   CFRuntimeBridgeClass (_kCFStringTypeID, "NSCFString");
+  CFMutexInitialize (&static_strings_lock);
 }
 
 
@@ -1412,51 +1458,4 @@ CFStringAppendPascalString (CFMutableStringRef str,
   ConstStr255Param pStr, CFStringEncoding encoding)
 {
   return;
-}
-
-
-
-static pthread_mutex_t static_strings_lock = PTHREAD_MUTEX_INITIALIZER;
-static CFMutableDictionaryRef static_strings;
-/**
- * Hack to allocated CFStrings uniquely without compiler support.
- */
-CFStringRef __CFStringMakeConstantString (const char *str)
-{
-  /* FIXME: Use CFMutableSet as David originally did whenever that type
-     gets implemented. */
-  CFStringRef new =
-    CFStringCreateWithCString (NULL, str, kCFStringEncodingASCII);
-  CFStringRef old =
-    (CFStringRef)CFDictionaryGetValue (static_strings, (const void *)new);
-  // Return the existing string pointer if we have one.
-  if (NULL != old)
-    {
-      CFRelease (new);
-      return old;
-    }
-  pthread_mutex_lock(&static_strings_lock);
-  if (NULL == static_strings)
-    {
-      static_strings = CFDictionaryCreateMutable (NULL, 0,
-        &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-    }
-  // Check again in case another thread added this string to the table while
-  // we were waiting on the mutex.
-  old = (CFStringRef)CFDictionaryGetValue (static_strings, (const void *)new);
-  if (NULL == old)
-    {
-      // Note: In theory, for proper retain count tracking, we should release
-      // new here.  We're not going to, because it is expected to persist for
-      // the lifetime of the program
-      CFDictionaryAddValue (static_strings, (const void *)new,
-        (const void *)new);
-      old = new;
-    }
-  else
-    {
-      CFRelease (new);
-    }
-  pthread_mutex_unlock(&static_strings_lock);
-  return old;
 }

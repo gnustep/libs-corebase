@@ -26,10 +26,10 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <unicode/ucnv.h>
 #include <unicode/ustring.h>
 
+#include "threading.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFByteOrder.h"
 #include "CoreFoundation/CFString.h"
@@ -37,9 +37,14 @@
 
 #include "CoreFoundation/ForFoundationOnly.h"
 
-pthread_mutex_t _kCFStringEncodingLock = PTHREAD_MUTEX_INITIALIZER;
-CFStringEncoding *_kCFStringEncodingList = NULL;
-CFStringEncoding _kCFStringSystemEncoding = kCFStringEncodingInvalidId;
+static CFMutex _kCFStringEncodingLock;
+static CFStringEncoding *_kCFStringEncodingList = NULL;
+static CFStringEncoding _kCFStringSystemEncoding = kCFStringEncodingInvalidId;
+
+void CFStringEncodingInitialize (void)
+{
+  CFMutexInitialize (&_kCFStringEncodingLock);
+}
 
 typedef struct
 {
@@ -524,7 +529,7 @@ CFStringGetListOfAvailableEncodings (void)
 {
   if (_kCFStringEncodingList == NULL)
     {
-      pthread_mutex_lock (&_kCFStringEncodingLock);
+      CFMutexLock (&_kCFStringEncodingLock);
       if (_kCFStringEncodingList == NULL)
         {
           int32_t count;
@@ -549,7 +554,7 @@ CFStringGetListOfAvailableEncodings (void)
             }
           _kCFStringEncodingList[idx] = kCFStringEncodingInvalidId;
         }
-      pthread_mutex_unlock (&_kCFStringEncodingLock);
+      CFMutexUnlock (&_kCFStringEncodingLock);
     }
   
   return _kCFStringEncodingList;
@@ -578,7 +583,7 @@ CFStringGetSystemEncoding (void)
 {
   if (_kCFStringSystemEncoding == kCFStringEncodingInvalidId)
     {
-      pthread_mutex_lock (&_kCFStringEncodingLock);
+      CFMutexLock (&_kCFStringEncodingLock);
       if (_kCFStringSystemEncoding == kCFStringEncodingInvalidId)
         {
           const char *name;
@@ -588,7 +593,7 @@ CFStringGetSystemEncoding (void)
             _kCFStringSystemEncoding =
               CFStringConvertStandardNameToEncoding (name, -1);
         }
-      pthread_mutex_unlock (&_kCFStringEncodingLock);
+      CFMutexUnlock (&_kCFStringEncodingLock);
     }
   return _kCFStringSystemEncoding;
 }

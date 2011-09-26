@@ -26,12 +26,12 @@
 
 #include <assert.h>
 #include <string.h>
-#include <pthread.h>
 
-#include "CoreFoundation/CFRuntime.h"
-#include "CoreFoundation/CFString.h"
 #include "atomic_ops.h"
 #include "objc_interface.h"
+#include "threading.h"
+#include "CoreFoundation/CFRuntime.h"
+#include "CoreFoundation/CFString.h"
 
 
 
@@ -41,7 +41,7 @@ Class *__CFRuntimeObjCClassTable = NULL;
 UInt32 __CFRuntimeClassTableCount = 0;
 UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
 
-static pthread_mutex_t _kCFRuntimeTableLock = PTHREAD_MUTEX_INITIALIZER;
+static CFMutex _kCFRuntimeTableLock;
 
 static Class NSCFTypeClass = Nil;
 
@@ -96,7 +96,7 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
 {
   CFTypeID ret;
   
-  pthread_mutex_lock (&_kCFRuntimeTableLock);
+  CFMutexLock (&_kCFRuntimeTableLock);
   if(__CFRuntimeClassTableCount >= __CFRuntimeClassTableSize)
     {
       /* FIXME NSLog (@"CoreBase class table is full, cannot register class %s",
@@ -107,7 +107,7 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
   __CFRuntimeClassTable[__CFRuntimeClassTableCount] = (CFRuntimeClass *)cls;
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   ret = __CFRuntimeClassTableCount++;
-  pthread_mutex_unlock (&_kCFRuntimeTableLock);
+  CFMutexUnlock (&_kCFRuntimeTableLock);
   
   return ret;
 }
@@ -387,6 +387,7 @@ extern void CFBundleInitialize (void);
 extern void CFNullInitialize (void);
 extern void CFNumberFormatterInitialize (void);
 extern void CFStringInitialize (void);
+extern void CFStringEncodingInitialize (void)
 extern void CFTimeZoneInitialize (void);
 extern void CFUUIDInitialize (void);
 
@@ -399,6 +400,7 @@ void CFInitialize (void)
                       	        sizeof(Class));
   
   NSCFTypeClass = objc_getClass ("NSCFType");
+  CFMutexInitialize (&_kCFRuntimeTableLock);
   
   // CFNotATypeClass should be at index = 0
   _CFRuntimeRegisterClass (&CFNotATypeClass);
@@ -412,6 +414,7 @@ void CFInitialize (void)
   CFNullInitialize ();
   CFNumberFormatterInitialize ();
   CFStringInitialize ();
+  CFStringEncodingInitialize ();
   CFTimeZoneInitialize ();
   CFUUIDInitialize ();
 }

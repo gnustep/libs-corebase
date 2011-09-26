@@ -26,9 +26,9 @@
 
 #include <stddef.h>
 #include <stdlib.h>
-#include <pthread.h>
 
 #include "objc_interface.h"
+#include "threading.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFRuntime.h"
 
@@ -94,7 +94,7 @@ CFAllocatorRef kCFAllocatorUseContext = (CFAllocatorRef)0x01;
 
 // this will hold the default zone if set with CFAllocatorSetDefault ()
 //static CFAllocatorRef _kCFDefaultAllocator = NULL;
-//static pthread_mutex_t _kCFDefaultAllocatorLock = PTHREAD_MUTEX_INITIALIZER;
+//static CFMutex _kCFDefaultAllocatorLock;
 
 
 
