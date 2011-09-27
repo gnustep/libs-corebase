@@ -87,78 +87,78 @@ enum
   _kCFStringHasNullByte = (1<<5)
 };
 
-static inline Boolean
+CF_INLINE Boolean
 CFStringIsMutable (CFStringRef str)
 {
   return
     ((CFRuntimeBase *)str)->_flags.info & _kCFStringIsMutable ? true : false;
 }
 
-static inline Boolean
+CF_INLINE Boolean
 CFStringIsWide (CFStringRef str)
 {
   return ((CFRuntimeBase *)str)->_flags.info & _kCFStringIsWide ? true : false;
 }
 
-static inline Boolean
+CF_INLINE Boolean
 CFStringIsOwned (CFStringRef str)
 {
   return
     ((CFRuntimeBase *)str)->_flags.info & _kCFStringIsOwned ? true : false;
 }
 
-static inline Boolean
+CF_INLINE Boolean
 CFStringIsInline (CFStringRef str)
 {
   return
     ((CFRuntimeBase *)str)->_flags.info & _kCFStringIsInline ? true : false;
 }
 
-static inline Boolean
+CF_INLINE Boolean
 CFStringHasLengthByte (CFStringRef str)
 {
   return ((CFRuntimeBase *)str)->_flags.info & _kCFStringHasLengthByte ?
     true : false;
 }
 
-static inline Boolean
+CF_INLINE Boolean
 CFStringHasNullByte (CFStringRef str)
 {
   return
     ((CFRuntimeBase *)str)->_flags.info & _kCFStringHasNullByte ? true : false;
 }
 
-static inline void
+CF_INLINE void
 CFStringSetMutable (CFStringRef str)
 {
   ((CFRuntimeBase *)str)->_flags.info |= _kCFStringIsMutable;
 }
 
-static inline void
+CF_INLINE void
 CFStringSetWide (CFStringRef str)
 {
   ((CFRuntimeBase *)str)->_flags.info |= _kCFStringIsWide;
 }
 
-static inline void
+CF_INLINE void
 CFStringSetOwned (CFStringRef str)
 {
   ((CFRuntimeBase *)str)->_flags.info |= _kCFStringIsOwned;
 }
 
-static inline void
+CF_INLINE void
 CFStringSetInline (CFStringRef str)
 {
   ((CFRuntimeBase *)str)->_flags.info |= _kCFStringIsInline;
 }
 
-static inline void
+CF_INLINE void
 CFStringSetHasLengthByte (CFStringRef str)
 {
   ((CFRuntimeBase *)str)->_flags.info |= _kCFStringHasLengthByte;
 }
 
-static inline void
+CF_INLINE void
 CFStringSetHasNullByte (CFStringRef str)
 {
   ((CFRuntimeBase *)str)->_flags.info |= _kCFStringHasNullByte;
@@ -1306,7 +1306,7 @@ CFStringFold (CFMutableStringRef str, CFOptionFlags flags, CFLocaleRef locale)
   CFStringCaseMap (str, locale, flags, _kCFStringFold);
 }
 
-static inline UNormalizationMode
+CF_INLINE UNormalizationMode
 CFToICUNormalization (CFStringNormalizationForm form)
 {
   switch (form)

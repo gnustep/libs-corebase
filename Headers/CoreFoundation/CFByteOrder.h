@@ -42,7 +42,7 @@ typedef enum
 typedef uint32_t CFSwappedFloat32;  /* Same as GNUstep NSSwappedFloat */
 typedef uint64_t CFSwappedFloat64;  /* Same as GNUstep NSSwappedDouble */
 
-static inline CFByteOrder
+CF_INLINE CFByteOrder
 CFByteOrderGetCurrent()
 {
 #if GS_WORDS_BIGENDIAN
@@ -52,7 +52,7 @@ CFByteOrderGetCurrent()
 #endif
 }
 
-static inline uint16_t
+CF_INLINE uint16_t
 CFSwapInt16(uint16_t in)
 {
   union swap
@@ -66,7 +66,7 @@ CFSwapInt16(uint16_t in)
   return dst.num;
 }
 
-static inline uint32_t
+CF_INLINE uint32_t
 CFSwapInt32(uint32_t in)
 {
   union swap
@@ -82,7 +82,7 @@ CFSwapInt32(uint32_t in)
   return dst.num;
 }
 
-static inline uint64_t
+CF_INLINE uint64_t
 CFSwapInt64(uint64_t in)
 {
   union swap
@@ -106,72 +106,72 @@ CFSwapInt64(uint64_t in)
 
 #if GS_WORDS_BIGENDIAN
 
-static inline uint16_t
+CF_INLINE uint16_t
 CFSwapInt16BigToHost(uint16_t in)
 {
   return in;
 }
 
-static inline uint16_t
+CF_INLINE uint16_t
 CFSwapInt16HostToBig(uint16_t in)
 {
   return in;
 }
-static inline uint16_t
+CF_INLINE uint16_t
 CFSwapInt16HostToLittle(uint16_t in)
 {
   return CFSwapInt16(in);
 }
 
-static inline uint16_t
+CF_INLINE uint16_t
 CFSwapInt16LittleToHost(uint16_t in)
 {
   return CFSwapInt16(in);
 }
 
-static inline uint32_t
+CF_INLINE uint32_t
 CFSwapInt32BigToHost(uint32_t in)
 {
   return in;
 }
 
-static inline uint32_t
+CF_INLINE uint32_t
 CFSwapInt32HostToBig(uint32_t in)
 {
   return in;
 }
 
-static inline uint32_t
+CF_INLINE uint32_t
 CFSwapInt32HostToLittle(uint32_t in)
 {
   return CFSwapInt32(in);
 }
 
-static inline uint32_t
+CF_INLINE uint32_t
 CFSwapInt32LittleToHost(uint32_t in)
 {
   return CFSwapInt32(in);
 }
 
-static inline uint64_t
+CF_INLINE uint64_t
 CFSwapInt64BigToHost(uint64_t in)
 {
   return in;
 }
 
-static inline uint64_t
+CF_INLINE uint64_t
 CFSwapInt64HostToBig(uint64_t in)
 {
   return in;
 }
 
-static inline uint64_t
+CF_INLINE uint64_t
 CFSwapInt64HostToLittle(uint64_t in)
 {
   return CFSwapInt64(in);
 }
 
-static inline uint64_t
+CF_INLINE uint64_t
 CFSwapInt64LittleToHost(uint64_t in)
 {
   return CFSwapInt64(in);
@@ -179,72 +179,72 @@ CFSwapInt64LittleToHost(uint64_t in)
 
 #else
 
-static inline uint16_t
+CF_INLINE uint16_t
 CFSwapInt16BigToHost(uint16_t in)
 {
   return CFSwapInt16(in);
 }
 
-static inline uint16_t
+CF_INLINE uint16_t
 CFSwapInt16HostToBig(uint16_t in)
 {
   return CFSwapInt16(in);
 }
-static inline uint16_t
+CF_INLINE uint16_t
 CFSwapInt16HostToLittle(uint16_t in)
 {
   return in;
 }
 
-static inline uint16_t
+CF_INLINE uint16_t
 CFSwapInt16LittleToHost(uint16_t in)
 {
   return in;
 }
 
-static inline uint32_t
+CF_INLINE uint32_t
 CFSwapInt32BigToHost(uint32_t in)
 {
   return CFSwapInt32(in);
 }
 
-static inline uint32_t
+CF_INLINE uint32_t
 CFSwapInt32HostToBig(uint32_t in)
 {
   return CFSwapInt32(in);
 }
 
-static inline uint32_t
+CF_INLINE uint32_t
 CFSwapInt32HostToLittle(uint32_t in)
 {
   return in;
 }
 
-static inline uint32_t
+CF_INLINE uint32_t
 CFSwapInt32LittleToHost(uint32_t in)
 {
   return in;
 }
 
-static inline uint64_t
+CF_INLINE uint64_t
 CFSwapInt64BigToHost(uint64_t in)
 {
   return CFSwapInt64(in);
 }
 
-static inline uint64_t
+CF_INLINE uint64_t
 CFSwapInt64HostToBig(uint64_t in)
 {
   return CFSwapInt64(in);
 }
 
-static inline uint64_t
+CF_INLINE uint64_t
 CFSwapInt64HostToLittle(uint64_t in)
 {
   return in;
 }
 
-static inline uint64_t
+CF_INLINE uint64_t
 CFSwapInt64LittleToHost(uint64_t in)
 {
   return in;
@@ -268,7 +268,7 @@ union fconv
   CFSwappedFloat32 sf;
 };
 
-static inline CFSwappedFloat64
+CF_INLINE CFSwappedFloat64
 CFConvertFloat64HostToSwapped (Float64 in)
 {
   union dconv conv;
@@ -276,7 +276,7 @@ CFConvertFloat64HostToSwapped (Float64 in)
   return CFSwapInt64 (conv.sf);
 }
 
-static inline Float64
+CF_INLINE Float64
 CFConvertFloat64SwappedToHost (CFSwappedFloat64 in)
 {
   union dconv conv;
@@ -284,7 +284,7 @@ CFConvertFloat64SwappedToHost (CFSwappedFloat64 in)
   return conv.num;
 }
 
-static inline CFSwappedFloat64
+CF_INLINE CFSwappedFloat64
 CFConvertDoubleHostToSwapped (double in)
 {
   union dconv conv;
@@ -292,7 +292,7 @@ CFConvertDoubleHostToSwapped (double in)
   return CFSwapInt64 (conv.sf);
 }
 
-static inline double
+CF_INLINE double
 CFConvertDoubleSwappedToHost(CFSwappedFloat64 in)
 {
   union dconv conv;
@@ -300,7 +300,7 @@ CFConvertDoubleSwappedToHost(CFSwappedFloat64 in)
   return conv.d;
 }
 
-static inline CFSwappedFloat32
+CF_INLINE CFSwappedFloat32
 CFConvertFloat32HostToSwapped(Float32 in)
 {
   union fconv conv;
@@ -308,7 +308,7 @@ CFConvertFloat32HostToSwapped(Float32 in)
   return CFSwapInt32 (conv.sf);
 }
 
-static inline Float32
+CF_INLINE Float32
 CFConvertFloat32SwappedToHost(CFSwappedFloat32 in)
 {
   union fconv conv;
@@ -316,7 +316,7 @@ CFConvertFloat32SwappedToHost(CFSwappedFloat32 in)
   return conv.num;
 }
 
-static inline CFSwappedFloat32
+CF_INLINE CFSwappedFloat32
 CFConvertFloatHostToSwapped(float in)
 {
   union fconv conv;
@@ -324,7 +324,7 @@ CFConvertFloatHostToSwapped(float in)
   return CFSwapInt32 (conv.sf);
 }
 
-static inline float
+CF_INLINE float
 CFConvertFloatSwappedToHost(CFSwappedFloat32 in)
 {
   union fconv conv;

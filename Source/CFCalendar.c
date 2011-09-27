@@ -82,7 +82,7 @@ CFCalendarSetupUCalendar (CFCalendarRef cal)
   return true;
 }
 
-static inline Boolean
+CF_INLINE Boolean
 CFCalendarOpenUCalendar (CFCalendarRef cal)
 {
   if (cal->_ucal == NULL)
@@ -92,7 +92,7 @@ CFCalendarOpenUCalendar (CFCalendarRef cal)
   return true; // Already open
 }
 
-static inline void
+CF_INLINE void
 CFCalendarCloseUCalendar (CFCalendarRef cal)
 {
   ucal_close (cal->_ucal);
@@ -149,7 +149,7 @@ void CFCalendarInitialize (void)
   CFMutexInitialize (&_kCFCalendarLock);
 }
 
-static inline UCalendarDateFields
+CF_INLINE UCalendarDateFields
 CFCalendarUnitToUCalendarDateFields (CFCalendarUnit unit)
 {
   UCalendarDateFields ret;
@@ -195,7 +195,7 @@ CFCalendarUnitToUCalendarDateFields (CFCalendarUnit unit)
 }
 
 /* This function returns true is there is still characters to be consumed. */
-static inline Boolean
+CF_INLINE Boolean
 CFCalendarGetCalendarUnitFromDescription (const char **description,
   CFCalendarUnit *unit)
 {

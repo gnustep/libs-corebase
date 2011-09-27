@@ -227,7 +227,7 @@ CF_EXPORT const double kCFCoreFoundationVersionNumber;
     @param length The length.
     @return A CFRange structure.
  */
-static inline CFRange
+CF_INLINE CFRange
 CFRangeMake(CFIndex location, CFIndex length)
 {
   CFRange range;

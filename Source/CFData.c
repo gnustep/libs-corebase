@@ -60,13 +60,13 @@ enum
   _kCFDataIsMutable = (1<<0)
 };
 
-static inline Boolean
+CF_INLINE Boolean
 CFDataIsMutable (CFDataRef d)
 {
   return ((CFRuntimeBase *)d)->_flags.info & _kCFDataIsMutable ? true : false;
 }
 
-static inline void
+CF_INLINE void
 CFDataSetMutable (CFDataRef d)
 {
   ((CFRuntimeBase *)d)->_flags.info |= _kCFDataIsMutable;

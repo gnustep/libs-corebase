@@ -103,7 +103,7 @@ void CFNumberFormatterInitialize (void)
 
 
 
-static inline void
+CF_INLINE void
 CFNumberFormatterSetAttribute (CFNumberFormatterRef fmt,
   UNumberFormatAttribute attrib, CFTypeRef num)
 {
@@ -129,7 +129,7 @@ CFNumberFormatterSetAttribute (CFNumberFormatterRef fmt,
     }
 }
 
-static inline void
+CF_INLINE void
 CFNumberFormatterSetTextAttribute (CFNumberFormatterRef fmt,
   UNumberFormatTextAttribute attrib, CFStringRef str)
 {
@@ -145,7 +145,7 @@ CFNumberFormatterSetTextAttribute (CFNumberFormatterRef fmt,
   unum_setTextAttribute (fmt->_fmt, attrib, ubuffer, len, &err);
 }
 
-static inline void
+CF_INLINE void
 CFNumberFormatterSetSymbol (CFNumberFormatterRef fmt,
   UNumberFormatSymbol symbol, CFStringRef str)
 {
@@ -161,7 +161,7 @@ CFNumberFormatterSetSymbol (CFNumberFormatterRef fmt,
   unum_setSymbol (fmt->_fmt, symbol, ubuffer, len, &err);
 }
 
-static inline CFTypeRef
+CF_INLINE CFTypeRef
 CFNumberFormatterCopyAttribute (CFNumberFormatterRef fmt,
   UNumberFormatAttribute attrib)
 {
@@ -190,7 +190,7 @@ CFNumberFormatterCopyAttribute (CFNumberFormatterRef fmt,
     }
 }
 
-static inline CFStringRef
+CF_INLINE CFStringRef
 CFNumberFormatterCopyTextAttribute (CFNumberFormatterRef fmt,
   UNumberFormatTextAttribute attrib)
 {
@@ -203,7 +203,7 @@ CFNumberFormatterCopyTextAttribute (CFNumberFormatterRef fmt,
   return CFStringCreateWithCharacters (NULL, ubuffer, len);
 }
 
-static inline CFStringRef
+CF_INLINE CFStringRef
 CFNumberFormatterCopySymbol (CFNumberFormatterRef fmt,
   UNumberFormatSymbol symbol)
 {

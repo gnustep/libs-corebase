@@ -40,14 +40,14 @@ extern UInt32 __CFRuntimeClassTableCount;
 
 /* These functions are declared in CFInternal.h, but since corebase
    doesn't have this file, they'll be done in here. */
-static inline void *
+CF_INLINE void *
 __CFISAForTypeID (CFTypeID typeID)
 {
   return (void *)(typeID < __CFRuntimeClassTableCount ?
     __CFRuntimeObjCClassTable[typeID] : NULL);
 }
 
-static inline Boolean
+CF_INLINE Boolean
 CF_IS_OBJC (CFTypeID typeID, const void *obj)
 {
   return (typeID >= __CFRuntimeClassTableCount

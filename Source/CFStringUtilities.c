@@ -37,7 +37,7 @@
 
 
 
-static inline UCollator *
+CF_INLINE UCollator *
 CFStringICUCollatorOpen (CFStringCompareFlags options, CFLocaleRef locale)
 {
   char *localeID;
@@ -78,7 +78,7 @@ CFStringICUCollatorOpen (CFStringCompareFlags options, CFLocaleRef locale)
   return ret;
 }
 
-static inline void
+CF_INLINE void
 CFStringICUCollatorClose (UCollator *collator)
 {
   ucol_close (collator);

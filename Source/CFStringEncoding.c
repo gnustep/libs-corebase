@@ -239,7 +239,7 @@ CFStringEncodingTableIndex (CFStringEncoding encoding)
   return idx;
 }
 
-static inline const char *
+CF_INLINE const char *
 CFStringICUConverterName (CFStringEncoding encoding)
 {
   const char *name;
