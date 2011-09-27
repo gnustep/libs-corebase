@@ -28,6 +28,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 
+#include "NSCFType.h"
 #include "CoreFoundation/CFString.h"
 
 /* NSCFString inherits from NSMutableString and doesn't have any ivars
@@ -36,6 +37,11 @@
 @end
 
 @implementation NSCFString
++ (void) load
+{
+  CFRuntimeBridgeClass (CFStringGetTypeID(), "NSCFString");
+}
+
 - (id) initWithBytes: (const void*) bytes
               length: (NSUInteger) length
             encoding: (NSStringEncoding) encoding

@@ -1,3 +1,15 @@
+2011-09-28 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/objc_interface.h: Move CFRuntimeBridgeClass() to NSCFType.h.
+	* Source/CFBase.c: 
+	* Source/CFData.c:
+	* Source/CFString.c: Delay bridging until ObjC classes are initialized.
+	* Source/NSCFData.m: Bridge to CFData.
+	* Source/NSCFError.m: Bridge to CFError.
+	* Source/NSCFString.m: Bridge to CFString.
+	* Source/NSCFType.m:
+	* Source/NSCFType.h: Move NSCFType interface and some extras to NSCFType.h.
+
 2011-09-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFData.c: Bridge CFData to NSCFData.

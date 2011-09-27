@@ -28,18 +28,15 @@
 #define __OBJC_INTERFACE_H__ 1
 
 #include "CoreFoundation/CFBase.h"
+
+#define BOOL OBJC_BOOL
 #include <objc/runtime.h>
+#undef BOOL
 
 
 
 extern Class *__CFRuntimeObjCClassTable;
 extern UInt32 __CFRuntimeClassTableCount;
-
-static inline void
-CFRuntimeBridgeClass (CFTypeID typeID, const char *cls)
-{
-  __CFRuntimeObjCClassTable[typeID] = (Class)objc_getClass (cls);
-}
 
 /* These functions are declared in CFInternal.h, but since corebase
    doesn't have this file, they'll be done in here. */
@@ -47,7 +44,7 @@ static inline void *
 __CFISAForTypeID (CFTypeID typeID)
 {
   return (void *)(typeID < __CFRuntimeClassTableCount ?
-    __CFRuntimeObjCClassTable[typeID] : 0);
+    __CFRuntimeObjCClassTable[typeID] : NULL);
 }
 
 static inline Boolean

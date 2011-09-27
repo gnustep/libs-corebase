@@ -27,6 +27,7 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSData.h>
 
+#include "NSCFType.h"
 #include "CoreFoundation/CFData.h"
 
 /* NSCFData inherits from NSMutableData and doesn't have any ivars
@@ -35,6 +36,11 @@
 @end
 
 @implementation NSCFData
++ (void) load
+{
+  CFRuntimeBridgeClass (CFDataGetTypeID(), "NSCFData");
+}
+
 - (const void *) bytes
 {
   return CFDataGetBytePtr (self);

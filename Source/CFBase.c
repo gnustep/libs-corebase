@@ -204,8 +204,7 @@ CFNullRef kCFNull = &_kCFNull;
 void CFNullInitialize (void)
 {
   _kCFNullTypeID = _CFRuntimeRegisterClass (&CFNullClass);
-  CFRuntimeBridgeClass (_kCFNullTypeID, "NSNull");
-  _CFRuntimeInitStaticInstance (&_kCFNull, _kCFNullTypeID);
+  _CFRuntimeSetInstanceTypeID (&_kCFNull, _kCFNullTypeID);
 }
 
 CFTypeID

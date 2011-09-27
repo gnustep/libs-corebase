@@ -290,7 +290,6 @@ CFStringRef __CFStringMakeConstantString (const char *str)
 void CFStringInitialize (void)
 {
   _kCFStringTypeID = _CFRuntimeRegisterClass (&CFStringClass);
-  CFRuntimeBridgeClass (_kCFStringTypeID, "NSCFString");
   CFMutexInitialize (&static_strings_lock);
 }
 

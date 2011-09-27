@@ -27,12 +27,18 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSError.h>
 
+#include "NSCFType.h"
 #include "CoreFoundation/CFError.h"
 
 @interface NSCFError : NSError
 @end
 
 @implementation NSCFError
++ (void) load
+{
+  CFRuntimeBridgeClass (CFErrorGetTypeID(), "NSCFError");
+}
+
 - (id) initWithDomain: (NSString*) domain
                  code: (NSInteger) code
              userInfo: (NSDictionary*) userInfo
