@@ -1,5 +1,9 @@
 2011-09-28 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFUUID.c: Add random number generation on Windows.
+
+2011-09-28 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/objc_interface.h: Move CFRuntimeBridgeClass() to NSCFType.h.
 	* Source/CFBase.c: 
 	* Source/CFData.c:

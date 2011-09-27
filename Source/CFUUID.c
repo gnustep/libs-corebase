@@ -43,12 +43,44 @@
     || defined(__DragonFly__) \
     || defined(__APPLE__)
   #define INITRANDOM() srandomdev()
+#elif defined(_WIN32)
+  #define UNICODE
+  #include <windows.h>
+  #include <stdlib.h>
+BOOLEAN (APIENTRY *RtlGenRandom)(PVOID, ULONG) = NULL;
+
+BOOLEAN _random_fallback (PVOID bytes, ULONG length)
+{
+  while (length > 0)
+    ((UInt8*)bytes)[--length] = (UInt8)(rand () >> 16);
+}
+
+static void CFsrandomdev (void)
+{
+  HMODULE lib = LoadLibrary (L"advapi32.dll");
+  if (lib)
+    {
+      RtlGenRandom = (BOOLEAN(APIENTRY*)(PVOID,ULONG))GetProcAddress (lib,
+        "SystemFunction036");
+    }
+  else
+    {
+      struct timeval tv;
+      unsigned int seed = 0;
+      
+      gettimeofday(&tv, NULL);
+      seed = ((getpid() << 16) ^ tv.tv_sec ^ tv.tv_usec ^ time(NULL));
+      
+      srand(seed);
+      RtlGenRandom = _random_fallback;
+    }
+}
 #else
   #include <sys/time.h>
   #include <sys/types.h>
   #include <sys/stat.h>
   #define INITRANDOM() CFsrandomdev()
-    #if defined(__linux__)
+  #if defined(__linux__)
     #include <fcntl.h>
     #include <errno.h>
 static void CFsrandomdev(void)
@@ -85,10 +117,6 @@ static void CFsrandomdev(void)
 	struct timeval tv;
 	unsigned int seed = 0;
   
-	/* Within a process, junk is always initialized to the same value (on Linux),
-	   gettimeofday is microsecond-based and pid is fixed. This leads to many
-	   collisions if you call ETSRandomDev() in a loop, as -testString does
-	   in TestUUID.m. */
 	gettimeofday(&tv, NULL);
 	seed = ((getpid() << 16) ^ tv.tv_sec ^ tv.tv_usec ^ time(NULL));
   
@@ -165,11 +193,15 @@ CFUUIDCreate (CFAllocatorRef alloc)
   CFIndex i;
   CFUUIDBytes bytes;
   
+#if defined(_WIN32)
+  RtlGenRandom ((void*)&bytes, sizeof(bytes));
+#else
   for (i = 0 ; i < 16 ; ++i)
     {
       long r = random ();
       ((UInt8*)&bytes)[i] = (UInt8)r;
     }
+#endif
   // Set version
   bytes.byte6 &= 0x0F;
   bytes.byte6 |= 0x40;
