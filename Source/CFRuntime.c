@@ -345,7 +345,7 @@ CFRelease (CFTypeRef cf)
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
-      CFIndex result = CF_ATOMIC_DEC (&(((obj)cf)[-1].retained));
+      CFIndex result = CFAtomicDecrement (&(((obj)cf)[-1].retained));
       if (result < 0)
         {
           assert (result == -1);
@@ -369,7 +369,7 @@ CFRetain (CFTypeRef cf)
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
-      CFIndex result = CF_ATOMIC_INC (&(((obj)cf)[-1].retained));
+      CFIndex result = CFAtomicIncrement (&(((obj)cf)[-1].retained));
       assert (result < INT_MAX);
     }
   
@@ -378,6 +378,7 @@ CFRetain (CFTypeRef cf)
 
 
 
+extern void CFAllocatorInitialize (void);
 extern void CFBooleanInitialize (void);
 extern void CFCalendarInitialize (void);
 extern void CFDataInitialize (void);
@@ -405,6 +406,7 @@ void CFInitialize (void)
   // CFNotATypeClass should be at index = 0
   _CFRuntimeRegisterClass (&CFNotATypeClass);
   
+  CFAllocatorInitialize ();
   CFBooleanInitialize ();
   CFCalendarInitialize ();
   CFDataInitialize ();

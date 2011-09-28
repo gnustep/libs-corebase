@@ -36,19 +36,19 @@ LONG WINAPI InterlockedIncrement(LONG volatile *);
 LONG WINAPI InterlockedDecrement(LONG volatile *);
 #endif
 
-#define	CF_ATOMIC_INC(X) InterlockedIncrement((LONG volatile*)X)
-#define	CF_ATOMIC_DEC(X) InterlockedDecrement((LONG volatile*)X)
+#define	CFAtomicIncrement(ptr) InterlockedIncrement((LONG volatile*)X)
+#define	CFAtomicDecrement(ptr) InterlockedDecrement((LONG volatile*)X)
 
 #elif defined(__FreeBSD__)
 #include <sys/types.h>
 #include <machine/atomic.h>
-#define CF_ATOMIC_INC(X) atomic_fetchadd_long (X, 1)
-#define CF_ATOMIC_DEC(X) atomic_fetchadd_long (X, -1)
+#define CFAtomicIncrement(ptr) atomic_fetchadd_long (ptr, 1)
+#define CFAtomicDecrement(ptr) atomic_fetchadd_long (ptr, -1)
 
 #elif defined(__llvm__) \
       || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
-#define CF_ATOMIC_INC(X) __sync_add_and_fetch(X, 1)
-#define CF_ATOMIC_DEC(X) __sync_sub_and_fetch(X, 1)
+#define CFAtomicIncrement(ptr) __sync_add_and_fetch(ptr, 1)
+#define CFAtomicDecrement(ptr) __sync_sub_and_fetch(ptr, 1)
 
 #endif
 

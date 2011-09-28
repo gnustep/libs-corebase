@@ -42,6 +42,29 @@ struct __CFAllocator
   CFAllocatorContext _context;
 };
 
+// this will hold the default zone if set with CFAllocatorSetDefault ()
+static CFTypeID _kCFAllocatorTypeID = 0;
+static CFAllocatorRef _kCFDefaultAllocator = NULL;
+
+static CFRuntimeClass CFAllocatorClass =
+{
+  0,
+  "CFAllocator",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+void CFAllocatorInitialize (void)
+{
+  _kCFAllocatorTypeID = _CFRuntimeRegisterClass (&CFAllocatorClass);
+  _kCFDefaultAllocator = kCFAllocatorSystemDefault;
+}
+
 static void *
 malloc_alloc (CFIndex allocSize, CFOptionFlags hint, void *info)
 {
@@ -92,17 +115,28 @@ CFAllocatorRef kCFAllocatorMallocZone = &_kCFAllocatorSystemDefault;
 CFAllocatorRef kCFAllocatorNull = &_kCFAllocatorNull;
 CFAllocatorRef kCFAllocatorUseContext = (CFAllocatorRef)0x01;
 
-// this will hold the default zone if set with CFAllocatorSetDefault ()
-//static CFAllocatorRef _kCFDefaultAllocator = NULL;
-//static CFMutex _kCFDefaultAllocatorLock;
-
 
 
 CFAllocatorRef
 CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorContext *context)
 {
-  /* FIXME: Creating Allocators in CF is completely different from ObjC */
-  return NULL;
+  struct __CFAllocator *new;
+  
+  if (allocator == kCFAllocatorUseContext)
+    {
+      /* Check and egg problem... */
+      return NULL; // FIXME
+    }
+  else
+    {
+      new = (struct __CFAllocator*)_CFRuntimeCreateInstance (allocator,
+        _kCFAllocatorTypeID,
+        sizeof(struct __CFAllocator) - sizeof(CFRuntimeBase),
+        0);
+      memcpy (&(new->_context), context, sizeof(CFAllocatorContext));
+    }
+  
+  return (CFAllocatorRef)new;
 }
 
 void *
@@ -128,9 +162,17 @@ CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr)
 }
 
 CFIndex
-CFAllocatorGetPreferredSizeForSize(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
+CFAllocatorGetPreferredSizeForSize(CFAllocatorRef allocator, CFIndex size,
+  CFOptionFlags hint)
 {
-  return 0;  // FIXME
+  if (allocator == NULL)
+    allocator = _kCFDefaultAllocator;
+  
+  if (allocator->_context.preferredSize)
+    return allocator->_context.preferredSize (size, hint,
+      allocator->_context.info);
+  
+  return size;
 }
 
 void *
@@ -146,27 +188,32 @@ CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize, CFOp
 CFAllocatorRef
 CFAllocatorGetDefault(void)
 {
-  // FIXME
-  return kCFAllocatorSystemDefault;
+  return _kCFDefaultAllocator;
 }
 
 void
 CFAllocatorSetDefault(CFAllocatorRef allocator)
 {
-  // FIXME
+  CFAllocatorRef current = _kCFDefaultAllocator;
+  
+  if (allocator == NULL)
+    return;
+  
+  CFRetain (allocator);
+  _kCFDefaultAllocator = allocator;
+  CFRelease (current);
 }
 
 void
 CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context)
 {
-  context = NULL;
+  context = (CFAllocatorContext*)&(allocator->_context);
 }
 
 CFTypeID
 CFAllocatorGetTypeID(void)
 {
-  // FIXME
-  return 0;
+  return _kCFAllocatorTypeID;
 }
 
 
