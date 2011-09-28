@@ -44,6 +44,7 @@
     || defined(__APPLE__)
   #define INITRANDOM() srandomdev()
 #elif defined(_WIN32)
+  #define INITRANDOM() CFsrandomdev()
   #define UNICODE
   #include <windows.h>
   #include <stdlib.h>

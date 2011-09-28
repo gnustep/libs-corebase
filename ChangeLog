@@ -1,5 +1,11 @@
 2011-09-28 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFBundle.m: Do not try to use dlfcn.h on Windows.
+	* Source/CFUUID.c: Define INITRANDOM() on Windows.
+	* Source/GNUmakefile: Add -L/mingw/bin to LDFLAGS on mingw.
+
+2011-09-28 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFUUID.c: Add random number generation on Windows.
 
 2011-09-28 Stefan Bidigaray <stefanbidi@gmail.com>

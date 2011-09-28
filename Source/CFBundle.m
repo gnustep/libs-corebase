@@ -29,9 +29,11 @@
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSURL.h>
 
+#if !defined(_WIN32)
 #include <dlfcn.h>
 #ifndef RTLD_DEFAULT
 # define RTLD_DEFAULT   ((void *) 0)
+#endif
 #endif
 
 struct __CFBundle
@@ -111,14 +113,22 @@ CFBundleRef CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL)
 void* CFBundleGetFunctionPointerForName(CFBundleRef bundle,
                                         CFStringRef functionName)
 {
+#if !defined(_WIN32)
   [bundle->bundle load];
   return dlsym(RTLD_DEFAULT, [functionName UTF8String]);
+#else
+  return NULL;
+#endif
 }
 
 void* CFBundleGetDataPointerForName(CFBundleRef bundle,
                                     CFStringRef functionName)
 {
+#if !defined(_WIN32)
   [bundle->bundle load];
   return dlsym(RTLD_DEFAULT, [functionName UTF8String]);
+#else
+  return NULL;
+#endif
 }
 
