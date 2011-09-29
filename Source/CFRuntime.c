@@ -106,7 +106,8 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
   
   __CFRuntimeClassTable[__CFRuntimeClassTableCount] = (CFRuntimeClass *)cls;
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
-  ret = CFAtomicIncrement (&__CFRuntimeClassTableCount);
+  ret = __CFRuntimeClassTableCount;
+  CFAtomicIncrement (&__CFRuntimeClassTableCount);
   CFMutexUnlock (&_kCFRuntimeTableLock);
   
   return ret;
@@ -138,7 +139,7 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
   
   // Return NULL if typeID is unknown.
   if (_kCFRuntimeNotATypeID == typeID
-      || typeID >= __CFRuntimeClassTableCount)
+      || typeID > __CFRuntimeClassTableCount)
     {
       return NULL;
     }
