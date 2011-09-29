@@ -1,5 +1,9 @@
 2011-09-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFBase.c: Initialize allocators.
+
+2011-09-29 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFBase.c: Continued work on CFAllocators.
 
 2011-09-28 Stefan Bidigaray <stefanbidi@gmail.com>

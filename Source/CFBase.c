@@ -63,6 +63,12 @@ void CFAllocatorInitialize (void)
 {
   _kCFAllocatorTypeID = _CFRuntimeRegisterClass (&CFAllocatorClass);
   _kCFDefaultAllocator = kCFAllocatorSystemDefault;
+  
+  /* These are already semi-initialized by INIT_CFRUNTIME_BASE() */
+  _CFRuntimeSetInstanceTypeID (kCFAllocatorSystemDefault, _kCFAllocatorTypeID);
+  _CFRuntimeSetInstanceTypeID (kCFAllocatorMalloc, _kCFAllocatorTypeID);
+  _CFRuntimeSetInstanceTypeID (kCFAllocatorMallocZone, _kCFAllocatorTypeID);
+  _CFRuntimeSetInstanceTypeID (kCFAllocatorNull, _kCFAllocatorTypeID);
 }
 
 static void *
@@ -124,7 +130,7 @@ CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorContext *context)
   
   if (allocator == kCFAllocatorUseContext)
     {
-      /* Check and egg problem... */
+      /* Chicken and egg problem... */
       return NULL; // FIXME
     }
   else

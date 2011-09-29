@@ -406,7 +406,7 @@ CFGetTypeID (CFTypeRef cf);
 CF_EXPORT CFHashCode
 CFHash (CFTypeRef cf);
 
-#if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT CFTypeRef
 CFMakeCollectable (CFTypeRef cf);
 #endif
