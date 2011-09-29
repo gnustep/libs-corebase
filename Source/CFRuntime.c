@@ -106,7 +106,7 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
   
   __CFRuntimeClassTable[__CFRuntimeClassTableCount] = (CFRuntimeClass *)cls;
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
-  ret = CFAtomicIncrement (__CFRuntimeClassTableCount);
+  ret = CFAtomicIncrement (&__CFRuntimeClassTableCount);
   CFMutexUnlock (&_kCFRuntimeTableLock);
   
   return ret;
