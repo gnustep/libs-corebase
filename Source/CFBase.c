@@ -65,10 +65,14 @@ void CFAllocatorInitialize (void)
   _kCFDefaultAllocator = kCFAllocatorSystemDefault;
   
   /* These are already semi-initialized by INIT_CFRUNTIME_BASE() */
-  _CFRuntimeSetInstanceTypeID (kCFAllocatorSystemDefault, _kCFAllocatorTypeID);
-  _CFRuntimeSetInstanceTypeID (kCFAllocatorMalloc, _kCFAllocatorTypeID);
-  _CFRuntimeSetInstanceTypeID (kCFAllocatorMallocZone, _kCFAllocatorTypeID);
-  _CFRuntimeSetInstanceTypeID (kCFAllocatorNull, _kCFAllocatorTypeID);
+  _CFRuntimeInitStaticInstance ((void*)kCFAllocatorSystemDefault,
+    _kCFAllocatorTypeID);
+  _CFRuntimeInitStaticInstance ((void*)kCFAllocatorMalloc,
+    _kCFAllocatorTypeID);
+  _CFRuntimeInitStaticInstance ((void*)kCFAllocatorMallocZone,
+    _kCFAllocatorTypeID);
+  _CFRuntimeInitStaticInstance ((void*)kCFAllocatorNull,
+    _kCFAllocatorTypeID);
 }
 
 static void *
@@ -148,12 +152,8 @@ CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorContext *context)
 void *
 CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags hint)
 {
-  /* A similar check is done in NSZoneMalloc() but our default allocator
-   * may be set to something other than what is returned by
-   * NSDefaultMallocZone(), even though we still don't have that ability.
-   */
   if (NULL == allocator)
-    allocator = CFAllocatorGetDefault ();
+    allocator = _kCFDefaultAllocator;
   
   return allocator->_context.allocate(size, hint, allocator->_context.info);
 }
@@ -162,7 +162,7 @@ void
 CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr)
 {
   if (NULL == allocator)
-    allocator = CFAllocatorGetDefault ();
+    allocator = _kCFDefaultAllocator;
   
   allocator->_context.deallocate(ptr, allocator->_context.info);
 }
@@ -185,7 +185,7 @@ void *
 CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize, CFOptionFlags hint)
 {
   if (NULL == allocator)
-    allocator = CFAllocatorGetDefault ();
+    allocator = _kCFDefaultAllocator;
   
   return allocator->_context.reallocate(ptr, newsize, hint,
     allocator->_context.info);
