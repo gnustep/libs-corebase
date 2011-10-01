@@ -36,15 +36,15 @@ typedef const struct __CFBoolean * CFBooleanRef;
 CF_EXPORT const CFBooleanRef kCFBooleanTrue;
 CF_EXPORT const CFBooleanRef kCFBooleanFalse;
 
-CFTypeID
+CF_EXPORT CFTypeID
 CFBooleanGetTypeID (void);
 
-Boolean
+CF_EXPORT Boolean
 CFBooleanGetValue (CFBooleanRef boolean);
 
 
 
-typedef const struct CFNumber *CFNumberRef;
+typedef const struct __CFNumber * CFNumberRef;
 
 CF_EXPORT const CFNumberRef kCFNumberNaN;
 CF_EXPORT const CFNumberRef kCFNumberNegativeInfinity;
@@ -81,35 +81,35 @@ typedef enum CFNumberType CFNumberType;
 //
 // Creating a Number
 //
-CFNumberRef
+CF_EXPORT CFNumberRef
 CFNumberCreate (CFAllocatorRef allocator, CFNumberType theType,
   const void *valuePtr);
 
 //
 // Getting Information About Numbers
 //
-CFIndex
+CF_EXPORT CFIndex
 CFNumberGetByteSize (CFNumberRef number);
 
-CFNumberType
+CF_EXPORT CFNumberType
 CFNumberGetType (CFNumberRef number);
 
-Boolean
+CF_EXPORT Boolean
 CFNumberGetValue (CFNumberRef number, CFNumberType theType, void *valuePtr);
 
-Boolean
+CF_EXPORT Boolean
 CFNumberIsFloatType (CFNumberRef number);
 
 //
 // Comparing Numbers
 //
-CFComparisonResult
+CF_EXPORT CFComparisonResult
 CFNumberCompare (CFNumberRef number, CFNumberRef otherNumber, void *context);
 
 //
 // Getting the CFNumber Type ID
 //
-CFTypeID
+CF_EXPORT CFTypeID
 CFNumberGetTypeID (void);
 
 CF_EXTERN_C_END

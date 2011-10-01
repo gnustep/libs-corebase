@@ -387,6 +387,7 @@ extern void CFErrorInitialize (void);
 extern void CFLocaleInitialize (void);
 extern void CFBundleInitialize (void);
 extern void CFNullInitialize (void);
+extern void CFNumberInitialize (void);
 extern void CFNumberFormatterInitialize (void);
 extern void CFStringInitialize (void);
 extern void CFStringEncodingInitialize (void);
@@ -415,6 +416,7 @@ void CFInitialize (void)
   CFLocaleInitialize ();
   CFBundleInitialize();
   CFNullInitialize ();
+  CFNumberInitialize ();
   CFNumberFormatterInitialize ();
   CFStringInitialize ();
   CFStringEncodingInitialize ();

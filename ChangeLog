@@ -1,3 +1,11 @@
+2011-10-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GNUmakefile:
+	* Source/CFRuntime.c:
+	* Source/CFNumber.m:
+	* Source/CFNumber.c: Started writing a C-only implementation of CFNumber.
+	* Tests/CFNumber: Added some basic tests for CFNumber.
+
 2011-09-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFBase.c: Initialize allocators.
