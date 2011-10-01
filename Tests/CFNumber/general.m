@@ -3,7 +3,7 @@
 
 int main (void)
 {
-  int i32 = 5;
+  int i32 = -5;
   short i16 = 6;
   char i8 = 7;
   float f = 3.4;
@@ -21,7 +21,7 @@ int main (void)
   
   PASS(CFNumberGetValue(num1, kCFNumberSInt8Type, &i8),
     "Integer converted to SInt8.");
-  PASS(i8 == 5, "SInt32 converted to SInt8 correctly.");
+  PASS(i8 == -5, "SInt32 converted to SInt8 correctly.");
   
   PASS(CFNumberGetValue(num2, kCFNumberSInt32Type, &i32),
     "Char converted to SInt32.");
@@ -47,6 +47,9 @@ int main (void)
     "Float converted to short.");
   PASS(i16 == 3, "Float converted to short correctly.");
   printf ("%d\n", i16);
+  
+  CFRelease (num1);
+  CFRelease (num2);
   
   return 0;
 }

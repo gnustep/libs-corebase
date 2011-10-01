@@ -1,5 +1,9 @@
 2011-10-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFNumber.c: Removed branch that never existed in the first place.
+
+2011-10-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/GNUmakefile:
 	* Source/CFRuntime.c:
 	* Source/CFNumber.m:

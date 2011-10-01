@@ -382,8 +382,6 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
           CFNumberConvert (SInt32, &(num[1]), SInt8, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), SInt8, valuePtr, success);
-        else if (numType == kCFNumberFloat32Type)
-          CFNumberConvert (Float32, &(num[1]), SInt8, valuePtr, success);
         else
           CFNumberConvert (Float64, &(num[1]), SInt8, valuePtr, success);
         return success;
@@ -393,8 +391,6 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
           CFNumberConvert (SInt32, &(num[1]), SInt16, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), SInt16, valuePtr, success);
-        else if (numType == kCFNumberFloat32Type)
-          CFNumberConvert (Float32, &(num[1]), SInt16, valuePtr, success);
         else
           CFNumberConvert (Float64, &(num[1]), SInt16, valuePtr, success);
         return success;
@@ -411,8 +407,6 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
           CFNumberConvert (SInt32, &(num[1]), SInt32, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), SInt32, valuePtr, success);
-        else if (numType == kCFNumberFloat32Type)
-          CFNumberConvert (Float32, &(num[1]), SInt32, valuePtr, success);
         else
           CFNumberConvert (Float64, &(num[1]), SInt32, valuePtr, success);
         return success;
@@ -428,8 +422,6 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
           CFNumberConvert (SInt32, &(num[1]), SInt64, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), SInt64, valuePtr, success);
-        else if (numType == kCFNumberFloat32Type)
-          CFNumberConvert (Float32, &(num[1]), SInt64, valuePtr, success);
         else
           CFNumberConvert (Float64, &(num[1]), SInt64, valuePtr, success);
         return success;
@@ -442,8 +434,6 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
           CFNumberConvert (SInt32, &(num[1]), Float32, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), Float32, valuePtr, success);
-        else if (numType == kCFNumberFloat32Type)
-          CFNumberConvert (Float32, &(num[1]), Float32, valuePtr, success);
         else
           CFNumberConvert (Float64, &(num[1]), Float32, valuePtr, success);
         return success;
@@ -456,8 +446,6 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
           CFNumberConvert (SInt32, &(num[1]), Float64, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), Float64, valuePtr, success);
-        else if (numType == kCFNumberFloat32Type)
-          CFNumberConvert (Float32, &(num[1]), Float64, valuePtr, success);
         else
           CFNumberConvert (Float64, &(num[1]), Float64, valuePtr, success);
         return success;
