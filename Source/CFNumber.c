@@ -389,9 +389,24 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
         return success;
       case kCFNumberSInt16Type:
       case kCFNumberShortType:
-        
+        if (numType == kCFNumberSInt32Type)
+          CFNumberConvert (SInt32, &(num[1]), SInt16, valuePtr, success);
+        else if (numType == kCFNumberSInt64Type)
+          CFNumberConvert (SInt64, &(num[1]), SInt16, valuePtr, success);
+        else if (numType == kCFNumberFloat32Type)
+          CFNumberConvert (Float32, &(num[1]), SInt16, valuePtr, success);
+        else
+          CFNumberConvert (Float64, &(num[1]), SInt16, valuePtr, success);
+        return success;
       case kCFNumberSInt32Type:
       case kCFNumberIntType:
+#if !defined(__LP64__)
+      case kCFNumberLongType:
+      case kCFNumberCFIndexType:
+  #if !defined(_WIN64)
+      case kCFNumberNSIntegerType:
+  #endif
+#endif
         if (numType == kCFNumberSInt32Type)
           CFNumberConvert (SInt32, &(num[1]), SInt32, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
@@ -402,31 +417,50 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
           CFNumberConvert (Float64, &(num[1]), SInt32, valuePtr, success);
         return success;
       case kCFNumberSInt64Type:
-        
-      case kCFNumberFloat32Type:
-        
-      case kCFNumberFloat64Type:
-      
-        
-      case kCFNumberLongType:
-        
-      case kCFNumberCFIndexType:
-        
-      case kCFNumberNSIntegerType:
-        
       case kCFNumberLongLongType:
-        
-      case kCFNumberFloatType:
-        
-      case kCFNumberDoubleType:
-        
-      case kCFNumberCGFloatType:
 #if defined(__LP64__)
-        
-#else
-        
+      case kCFNumberLongType:
+      case kCFNumberCFIndexType:
+#elif defined(_WIN64)
+      case kCFNumberNSIntegerType:
 #endif
-        break;
+        if (numType == kCFNumberSInt32Type)
+          CFNumberConvert (SInt32, &(num[1]), SInt64, valuePtr, success);
+        else if (numType == kCFNumberSInt64Type)
+          CFNumberConvert (SInt64, &(num[1]), SInt64, valuePtr, success);
+        else if (numType == kCFNumberFloat32Type)
+          CFNumberConvert (Float32, &(num[1]), SInt64, valuePtr, success);
+        else
+          CFNumberConvert (Float64, &(num[1]), SInt64, valuePtr, success);
+        return success;
+      case kCFNumberFloat32Type:
+      case kCFNumberFloatType:
+#if !defined(__LP64__) && !defined(_WIN64)
+      case kCFNumberCGFloatType:
+#endif
+        if (numType == kCFNumberSInt32Type)
+          CFNumberConvert (SInt32, &(num[1]), Float32, valuePtr, success);
+        else if (numType == kCFNumberSInt64Type)
+          CFNumberConvert (SInt64, &(num[1]), Float32, valuePtr, success);
+        else if (numType == kCFNumberFloat32Type)
+          CFNumberConvert (Float32, &(num[1]), Float32, valuePtr, success);
+        else
+          CFNumberConvert (Float64, &(num[1]), Float32, valuePtr, success);
+        return success;
+      case kCFNumberFloat64Type:
+      case kCFNumberDoubleType:
+#if defined(__LP64__) || defined(_WIN64)
+      case kCFNumberCGFloatType:
+#endif
+        if (numType == kCFNumberSInt32Type)
+          CFNumberConvert (SInt32, &(num[1]), Float64, valuePtr, success);
+        else if (numType == kCFNumberSInt64Type)
+          CFNumberConvert (SInt64, &(num[1]), Float64, valuePtr, success);
+        else if (numType == kCFNumberFloat32Type)
+          CFNumberConvert (Float32, &(num[1]), Float64, valuePtr, success);
+        else
+          CFNumberConvert (Float64, &(num[1]), Float64, valuePtr, success);
+        return success;
     }
   
   return false;
