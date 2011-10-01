@@ -36,8 +36,8 @@ LONG WINAPI InterlockedIncrement(LONG volatile *);
 LONG WINAPI InterlockedDecrement(LONG volatile *);
 #endif
 
-#define	CFAtomicIncrement(ptr) InterlockedIncrement((LONG volatile*)X)
-#define	CFAtomicDecrement(ptr) InterlockedDecrement((LONG volatile*)X)
+#define	CFAtomicIncrement(ptr) InterlockedIncrement((LONG volatile*)ptr)
+#define	CFAtomicDecrement(ptr) InterlockedDecrement((LONG volatile*)ptr)
 
 #elif defined(__FreeBSD__)
 #include <sys/types.h>
