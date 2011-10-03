@@ -1,3 +1,7 @@
+2011-10-03 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFArray.c: Start work on C-only implementation of CFArray.
+
 2011-10-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFNumber.c: Removed branch that never existed in the first place.

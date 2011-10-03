@@ -38,8 +38,8 @@ CF_EXTERN_C_BEGIN
 typedef NSArray* CFArrayRef;
 typedef NSMutableArray* CFMutableArrayRef;
 #else
-typedef struct CFArray *CFArrayRef;
-typedef struct CFArray *CFMutableArrayRef;
+typedef const struct __CFArray * CFArrayRef;
+typedef struct __CFArray * CFMutableArrayRef;
 #endif
 
 typedef void (*CFArrayApplierFunction) (const void *value, void *context);
