@@ -24,6 +24,7 @@
    Boston, MA 02110-1301, USA.
 */
 
+#include "objc_interface.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFArray.h"
 
@@ -46,11 +47,23 @@ struct __CFMutableArray
 
 static CFTypeID _kCFArrayTypeID = 0;
 
+static const void *
+CFTypeRetain (CFAllocatorRef alloc, const void *value)
+{
+  return CFRetain (value);
+}
+
+static void
+CFTypeRelease (CFAllocatorRef alloc, const void *value)
+{
+  CFRelease (value);
+}
+
 const CFArrayCallBacks kCFTypeArrayCallBacks =
 {
   0,
-  NULL,
-  NULL,
+  CFTypeRetain,
+  CFTypeRelease,
   CFCopyDescription,
   CFEqual
 };
@@ -152,19 +165,22 @@ CFArrayCreate (CFAllocatorRef allocator, const void **values,
   new = (struct __CFArray*) _CFRuntimeCreateInstance (allocator,
     _kCFArrayTypeID, size, 0);
   
-  if (callBacks == NULL)
-    callBacks = &_kCFNullArrayCallBacks;
-  
-  new->_callbacks = callBacks;
-  new->_contents = (const void**)&new[1];
-  new->_count = numValues;
-  
-  memcpy (new->_contents, values, numValues);
-  
-  retain = callBacks->retain;
-  if (retain)
-    for (idx = 0 ; idx < numValues ; ++idx)
-      retain (allocator, values[idx]);
+  if (new)
+    {
+      if (callBacks == NULL)
+        callBacks = &_kCFNullArrayCallBacks;
+      
+      new->_callbacks = callBacks;
+      new->_contents = (const void**)&new[1];
+      new->_count = numValues;
+      
+      memcpy (new->_contents, values, numValues * sizeof(void *));
+      
+      retain = callBacks->retain;
+      if (retain)
+        for (idx = 0 ; idx < numValues ; ++idx)
+          retain (allocator, values[idx]);
+    }
   
   return (CFArrayRef)new;
 }
@@ -179,6 +195,8 @@ CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef array)
 CFIndex
 CFArrayGetCount (CFArrayRef array)
 {
+  CF_OBJC_FUNCDISPATCH0(_kCFArrayTypeID, CFIndex, array, "count");
+  
   return array->_count;
 }
 
@@ -282,13 +300,19 @@ CFArrayGetTypeID (void)
 const void *
 CFArrayGetValueAtIndex (CFArrayRef array, CFIndex idx)
 {
+  CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, const void *, array,
+    "objectAtIndex:", idx);
+  
   assert (idx < array->_count);
-  return array->_contents[idx];
+  return (array->_contents)[idx];
 }
 
 void
 CFArrayGetValues (CFArrayRef array, CFRange range, const void **values)
 {
+  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+    "getObjects:range:", values, range);
+  
   assert (range.location + range.length < array->_count);
   memcpy (values, (array->_contents + range.location), range.length);
 }
@@ -298,17 +322,6 @@ CFArrayGetValues (CFArrayRef array, CFRange range, const void **values)
 //
 // CFMutableArray
 //
-void
-CFArrayAppendArray (CFMutableArrayRef array, CFArrayRef otherArray,
-                    CFRange otherRange)
-{
-}
-
-void
-CFArrayAppendValue (CFMutableArrayRef array, const void *value)
-{
-}
-
 CFMutableArrayRef
 CFArrayCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
                       const CFArrayCallBacks *callBacks)
@@ -324,25 +337,46 @@ CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
 }
 
 void
+CFArrayAppendArray (CFMutableArrayRef array, CFArrayRef otherArray,
+                    CFRange otherRange)
+{
+}
+
+void
+CFArrayAppendValue (CFMutableArrayRef array, const void *value)
+{
+  CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, void, array,
+    "addObject:", value);
+}
+
+void
 CFArrayExchangeValuesAtIndices (CFMutableArrayRef array, CFIndex idx1,
                                 CFIndex idx2)
 {
+  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+    "exchangeObjectAtIndex:withObjectAtIndex:", idx1, idx2);
 }
 
 void
 CFArrayInsertValueAtIndex (CFMutableArrayRef array, CFIndex idx,
                            const void *value)
 {
+  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+    "insertObject:AtIndex:", value, idx);
 }
 
 void
 CFArrayRemoveAllValues (CFMutableArrayRef array)
 {
+  CF_OBJC_FUNCDISPATCH0(_kCFArrayTypeID, void, array,
+    "removeAllObjects");
 }
 
 void
 CFArrayRemoveValueAtIndex (CFMutableArrayRef array, CFIndex idx)
 {
+  CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, void, array,
+    "removeObjectAtIndex:", idx);
 }
 
 void
@@ -362,10 +396,15 @@ void
 CFArraySetValueAtIndex (CFMutableArrayRef array, CFIndex idx,
                         const void *value)
 {
+  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+    "replaceObjectAtIndex:withObject:", idx, value);
+  
+  
 }
 
 void
 CFArraySortValues (CFMutableArrayRef array, CFRange range,
                    CFComparatorFunction comparator, void *context)
 {
+  
 }
