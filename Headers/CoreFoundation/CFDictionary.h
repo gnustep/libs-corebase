@@ -37,8 +37,8 @@ CF_EXTERN_C_BEGIN
 typedef NSDictionary* CFDictionaryRef;
 typedef NSMutableDictionary* CFMutableDictionaryRef;
 #else
-typedef struct CFDictionary * CFDictionaryRef;
-typedef struct CFDictionary * CFMutableDictionaryRef;
+typedef const struct __CFDictionary * CFDictionaryRef;
+typedef struct __CFDictionary * CFMutableDictionaryRef;
 #endif
 
 /* FIXME: callback are NOT supported */
