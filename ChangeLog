@@ -1,3 +1,12 @@
+2011-10-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GNUmakefile:
+	* Source/CFArray.c:
+	* Source/CFArray.m:
+	* Source/CFRuntime.c: Completely replace CFArray with a pure C
+	implementation.
+	* Headers/CoreFoundation/CFArray.h: Export functions for C++ compatibility.
+
 2011-10-03 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFArray.c: Start work on C-only implementation of CFArray.

@@ -68,97 +68,97 @@ CF_EXPORT const CFArrayCallBacks kCFTypeArrayCallBacks;
 //
 // Creating an Array
 //
-CFArrayRef
+CF_EXPORT CFArrayRef
 CFArrayCreate (CFAllocatorRef allocator, const void **values,
   CFIndex numValues, const CFArrayCallBacks *callBacks);
 
-CFArrayRef
+CF_EXPORT CFArrayRef
 CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef theArray);
 
 //
 // Examining an Array
 //
-CFIndex
+CF_EXPORT CFIndex
 CFArrayBSearchValues (CFArrayRef theArray, CFRange range, const void *value,
   CFComparatorFunction comparator, void *context);
 
-Boolean
+CF_EXPORT Boolean
 CFArrayContainsValue (CFArrayRef theArray, CFRange range, const void *value);
 
-CFIndex
+CF_EXPORT CFIndex
 CFArrayGetCount (CFArrayRef theArray);
 
-CFIndex
+CF_EXPORT CFIndex
 CFArrayGetCountOfValue (CFArrayRef theArray, CFRange range, const void *value);
 
-CFIndex
+CF_EXPORT CFIndex
 CFArrayGetFirstIndexOfValue (CFArrayRef theArray, CFRange range,
   const void *value);
 
-CFIndex
+CF_EXPORT CFIndex
 CFArrayGetLastIndexOfValue (CFArrayRef theArray, CFRange range,
   const void *value);
 
-void
+CF_EXPORT void
 CFArrayGetValues (CFArrayRef theArray, CFRange range, const void **values);
 
-const void *
+CF_EXPORT const void *
 CFArrayGetValueAtIndex (CFArrayRef theArray, CFIndex idx);
 
 //
 // Applying a Function to Elements
 //
-void
+CF_EXPORT void
 CFArrayApplyFunction (CFArrayRef theArray, CFRange range,
   CFArrayApplierFunction applier, void *context);
 
 //
 // Getting the CFArray Type ID
 //
-CFTypeID
+CF_EXPORT CFTypeID
 CFArrayGetTypeID (void);
 
 //
 // CFMutableArray
 //
-void
+CF_EXPORT void
 CFArrayAppendArray (CFMutableArrayRef theArray, CFArrayRef otherArray,
   CFRange otherRange);
 
-void
+CF_EXPORT void
 CFArrayAppendValue (CFMutableArrayRef theArray, const void *value);
 
-CFMutableArrayRef
+CF_EXPORT CFMutableArrayRef
 CFArrayCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
   const CFArrayCallBacks *callBacks);
 
-CFMutableArrayRef
+CF_EXPORT CFMutableArrayRef
 CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
   CFArrayRef theArray);
 
-void
+CF_EXPORT void
 CFArrayExchangeValuesAtIndices (CFMutableArrayRef theArray, CFIndex idx1,
   CFIndex idx2);
 
-void
+CF_EXPORT void
 CFArrayInsertValueAtIndex (CFMutableArrayRef theArray, CFIndex idx,
   const void *value);
 
-void
+CF_EXPORT void
 CFArrayRemoveAllValues (CFMutableArrayRef theArray);
 
-void
+CF_EXPORT void
 CFArrayRemoveValueAtIndex (CFMutableArrayRef theArray, CFIndex idx);
 
-void
+CF_EXPORT void
 CFArrayReplaceValues (CFMutableArrayRef theArray, CFRange range,
   const void **newValues, CFIndex newCount);
 
-void
+CF_EXPORT void
 CFArraySetValueAtIndex (CFMutableArrayRef theArray, CFIndex idx,
   const void *value);
 
-void
+CF_EXPORT void
 CFArraySortValues (CFMutableArrayRef theArray, CFRange range,
   CFComparatorFunction comparator, void *context);
 

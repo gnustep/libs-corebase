@@ -380,6 +380,7 @@ CFRetain (CFTypeRef cf)
 
 
 extern void CFAllocatorInitialize (void);
+extern void CFArrayInitialize (void);
 extern void CFBooleanInitialize (void);
 extern void CFCalendarInitialize (void);
 extern void CFDataInitialize (void);
@@ -409,6 +410,7 @@ void CFInitialize (void)
   _CFRuntimeRegisterClass (&CFNotATypeClass);
   
   CFAllocatorInitialize ();
+  CFArrayInitialize ();
   CFBooleanInitialize ();
   CFCalendarInitialize ();
   CFDataInitialize ();
