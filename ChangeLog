@@ -1,3 +1,7 @@
+2011-10-29 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFArray.c: Finished up CFArray for now.
+
 2011-10-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GNUmakefile:

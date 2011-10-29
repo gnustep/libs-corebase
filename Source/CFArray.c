@@ -28,6 +28,8 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFArray.h"
 
+#include <string.h>
+
 struct __CFArray
 {
   CFRuntimeBase           _parent;
@@ -325,6 +327,34 @@ CFArrayGetValues (CFArrayRef array, CFRange range, const void **values)
 
 #define DEFAULT_ARRAY_CAPACITY 16
 
+static Boolean
+CFArrayCheckCapacityAndGrow (CFMutableArrayRef array, CFIndex newCapacity)
+{
+  void *currentContents;
+  void *newContents;
+  struct __CFMutableArray *mArray = (struct __CFMutableArray *)array;
+  
+  if (mArray->_capacity >= newCapacity)
+    return true;
+  
+  currentContents = mArray->_contents;
+  newCapacity =
+    ((newCapacity / DEFAULT_ARRAY_CAPACITY) + 1) * DEFAULT_ARRAY_CAPACITY;
+  
+  newContents = CFAllocatorAllocate (CFGetAllocator(mArray),
+    (newCapacity * sizeof(const void *)), 0);
+  if (newContents == NULL)
+    return false;
+  
+  memcpy (newContents, currentContents, sizeof(const void *) * mArray->_count);
+  mArray->_capacity = newCapacity;
+  mArray->_contents = newContents;
+  
+  CFAllocatorDeallocate (CFGetAllocator(mArray), currentContents);
+  
+  return true;
+}
+
 CFMutableArrayRef
 CFArrayCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
                       const CFArrayCallBacks *callBacks)
@@ -360,6 +390,9 @@ CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
   CFMutableArrayRef new;
   const CFArrayCallBacks *callbacks;
   
+  if (!array)
+    return NULL;
+  
   if (CF_IS_OBJC(_kCFArrayTypeID, array))
 	  callbacks = &kCFTypeArrayCallBacks;
 	else
@@ -372,8 +405,11 @@ CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
       CFIndex count;
       
       for (idx = 0, count = CFArrayGetCount(array) ; idx < count ; ++idx)
-        array->_contents[idx] =
-          callbacks->retain(CFArrayGetValueAtIndex(array, idx), 0);
+        {
+          array->_contents[idx] = callbacks->retain
+            ? callbacks->retain(NULL, CFArrayGetValueAtIndex(array, idx))
+            : CFArrayGetValueAtIndex(array, idx);
+        }
     }
   
   return new;
@@ -383,14 +419,49 @@ void
 CFArrayAppendArray (CFMutableArrayRef array, CFArrayRef otherArray,
                     CFRange otherRange)
 {
+  CFIndex count;
+  CFIndex idx;
+  CFIndex otherIdx;
+  const CFArrayCallBacks *callbacks;
   
+  assert (otherRange.location + otherRange.length < CFArrayGetCount (otherArray));
+  
+  if (!otherArray)
+    return;
+  
+  count = CFArrayGetCount (array);
+  if (CFArrayCheckCapacityAndGrow (array, count + otherRange.length))
+    {
+      callbacks = array->_callbacks;
+      for (idx = count, otherIdx = otherRange.location
+          ; idx < count + otherRange.length
+          ; ++idx, ++otherIdx)
+        {
+          array->_contents[idx] = callbacks->retain
+            ? callbacks->retain(NULL, CFArrayGetValueAtIndex (otherArray, otherIdx))
+            : CFArrayGetValueAtIndex (otherArray, otherIdx);
+        }
+      array->_count = count + otherRange.length;
+    }
 }
 
 void
 CFArrayAppendValue (CFMutableArrayRef array, const void *value)
 {
+  CFIndex newCount;
+  const CFArrayCallBacks *callbacks;
+  
   CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, void, array,
     "addObject:", value);
+  
+  newCount = CFArrayGetCount (array) + 1;
+  if (value && CFArrayCheckCapacityAndGrow (array, newCount))
+    {
+      newCount = CFArrayGetCount (array) + 1;
+      callbacks = array->_callbacks;
+      array->_contents[newCount - 1] = callbacks->retain
+        ? callbacks->retain (NULL, value) : value;
+    }
 }
 
 void
@@ -413,6 +484,26 @@ CFArrayInsertValueAtIndex (CFMutableArrayRef array, CFIndex idx,
 {
   CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
     "insertObject:AtIndex:", value, idx);
+  
+  if (value && CFArrayCheckCapacityAndGrow (array, array->_count + 1))
+    {
+      const CFArrayCallBacks *callbacks;
+      const void *moveFrom;
+      void *moveTo;
+      CFIndex moveLength;
+      
+      moveFrom = array->_contents + idx;
+      moveTo = array->_contents + idx + 1;
+      moveLength = array->_count - idx;
+      
+      memmove (moveTo, moveFrom, moveLength);
+      
+      callbacks = array->_callbacks;
+      array->_contents[idx] = callbacks->retain
+        ? callbacks->retain (NULL, value) : value;
+      
+      array->_count++;
+    }
 }
 
 void
