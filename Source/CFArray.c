@@ -211,8 +211,8 @@ CFArrayGetCountOfValue (CFArrayRef array, CFRange range, const void *value)
   while (( i = CFArrayGetFirstIndexOfValue(array, range, value)) != -1)
     {
       count++;
-      range.length -= range.location - i - 1;
       range.location = i + 1;
+      range.length = range.length - range.location;
     }
   return count;
 }
@@ -226,7 +226,7 @@ CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range,
   CFIndex end;
   CFArrayEqualCallBack equal;
   
-  assert (range.location + range.length < array->_count);
+  assert (range.location + range.length <= array->_count);
   
   contents = array->_contents;
   idx = range.location;
@@ -234,7 +234,7 @@ CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range,
   equal = array->_callbacks->equal;
   if (equal)
     {
-      while (idx <= end)
+      while (idx < end)
         {
           if (equal (value, contents[idx++]))
             break;
@@ -242,13 +242,13 @@ CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range,
     }
   else
     {
-      while (idx <= end)
+      while (idx < end)
         {
           if (value == contents[idx++])
             break;
         }
     }
-  if (idx > end)
+  if (idx >= end)
     idx = -1;
   
   return idx;
@@ -263,7 +263,7 @@ CFArrayGetLastIndexOfValue (CFArrayRef array, CFRange range,
   CFIndex start;
   CFArrayEqualCallBack equal;
   
-  assert (range.location + range.length < array->_count);
+  assert (range.location + range.length <= array->_count);
   
   contents = array->_contents;
   start = range.location;
@@ -316,7 +316,8 @@ CFArrayGetValues (CFArrayRef array, CFRange range, const void **values)
     "getObjects:range:", values, range);
   
   assert (range.location + range.length < array->_count);
-  memcpy (values, (array->_contents + range.location), range.length);
+  memcpy (values, (array->_contents + range.location),
+    range.length * sizeof(const void*));
 }
 
 
@@ -406,10 +407,11 @@ CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
       
       for (idx = 0, count = CFArrayGetCount(array) ; idx < count ; ++idx)
         {
-          array->_contents[idx] = callbacks->retain
+          new->_contents[idx] = callbacks->retain
             ? callbacks->retain(NULL, CFArrayGetValueAtIndex(array, idx))
             : CFArrayGetValueAtIndex(array, idx);
         }
+      new->_count = count;
     }
   
   return new;
@@ -457,10 +459,10 @@ CFArrayAppendValue (CFMutableArrayRef array, const void *value)
   newCount = CFArrayGetCount (array) + 1;
   if (value && CFArrayCheckCapacityAndGrow (array, newCount))
     {
-      newCount = CFArrayGetCount (array) + 1;
       callbacks = array->_callbacks;
       array->_contents[newCount - 1] = callbacks->retain
         ? callbacks->retain (NULL, value) : value;
+      array->_count++;
     }
 }
 
@@ -581,9 +583,9 @@ CFArraySortValuesPartition (CFMutableArrayRef array, CFIndex left,
   const void *pivotValue;
   
   pivotValue = array->_contents[pivot];
-  CFArrayExchangeValuesAtIndices (array, pivot, right);
+  CFArrayExchangeValuesAtIndices (array, pivot, right - 1);
   storeIdx = left;
-  for (idx = left ; left < right ; ++idx)
+  for (idx = left ; idx < right ; ++idx)
     {
       result = (*comp)(array->_contents[idx], pivotValue, ctxt);
       if (result == kCFCompareLessThan)
@@ -592,7 +594,7 @@ CFArraySortValuesPartition (CFMutableArrayRef array, CFIndex left,
           storeIdx += 1;
         }
     }
-  CFArrayExchangeValuesAtIndices (array, storeIdx, right);
+  CFArrayExchangeValuesAtIndices (array, storeIdx, right - 1);
   
   return storeIdx;
 }

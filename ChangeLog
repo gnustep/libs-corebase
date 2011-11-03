@@ -1,3 +1,8 @@
+2011-11-04 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFArray.c: Fix bugs.
+	* Tests/CFArray: Added tests.
+
 2011-10-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFArray.c: Finished up CFArray for now.
