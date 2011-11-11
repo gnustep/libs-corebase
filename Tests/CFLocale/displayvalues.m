@@ -12,7 +12,8 @@ int main (void)
   str = CFLocaleCopyDisplayNameForPropertyValue (locale,
     kCFLocaleIdentifier,
     CFSTR("pt_BR@calendar=gregorian;collation=traditional;currency=BRL"));
-  PASS_CFEQ(str, CFSTR("Portuguese (Brazil, calendar=Gregorian Calendar, collation=Traditional Sort Order, currency=Brazilian Real)"),
+  PASS_CFEQ(str, CFSTR("Portuguese (Brazil, Calendar=Gregorian Calendar, \
+Collation=Traditional Sort Order, Currency=Brazilian Real)"),
     "Display identifier is correct");
   str = CFLocaleCopyDisplayNameForPropertyValue (locale,
     kCFLocaleLanguageCode,

@@ -44,7 +44,6 @@ int main (void)
   PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt64Type, &int_64) == true, "Got SInt64 value");
   PASS(int_64 == 315000000, "SInt64 value is '315000000'");
-  printf ("%d\n", int_64);
   CFRelease (nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterPercentStyle);

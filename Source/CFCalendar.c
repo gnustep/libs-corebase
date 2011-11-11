@@ -1,4 +1,4 @@
-/* CFCalendar.h
+/* CFCalendar.c
    
    Copyright (C) 2011 Free Software Foundation, Inc.
    
@@ -85,11 +85,15 @@ CFCalendarSetupUCalendar (CFCalendarRef cal)
 CF_INLINE Boolean
 CFCalendarOpenUCalendar (CFCalendarRef cal)
 {
-  if (cal->_ucal == NULL)
-    return CFCalendarSetupUCalendar (cal);
+  Boolean ret = true;
   
-  ucal_clear (cal->_ucal);
-  return true; // Already open
+  if (cal->_ucal == NULL)
+    ret = CFCalendarSetupUCalendar (cal);
+  
+  if (ret)
+    ucal_clear (cal->_ucal);
+  
+  return ret;
 }
 
 CF_INLINE void
@@ -491,7 +495,6 @@ CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
     }
   va_end(arg);
   
-  ucal_clear (cal->_ucal);
   ucal_setDateTime (cal->_ucal, year, month, date, hour, minute, second, &err);
   if (U_FAILURE(err))
     return false;
@@ -729,7 +732,7 @@ CFCalendarGetTimeRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit,
   
   ucal = cal->_ucal;
   
-  ucal_setMillis (cal->_ucal, ABSOLUTETIME_TO_UDATE(at), &err);
+  ucal_setMillis (ucal, ABSOLUTETIME_TO_UDATE(at), &err);
   if (U_FAILURE(err))
     return false;
   
