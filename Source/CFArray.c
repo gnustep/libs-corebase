@@ -27,6 +27,8 @@
 #include "objc_interface.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFArray.h"
+#include "CoreFoundation/CFBase.h"
+#include "CoreFoundation/CFString.h"
 
 #include <string.h>
 
@@ -48,6 +50,24 @@ struct __CFMutableArray
 };
 
 static CFTypeID _kCFArrayTypeID = 0;
+
+enum
+{
+  _kCFArrayIsMutable = (1<<0)
+};
+
+CF_INLINE Boolean
+CFArrayIsMutable (CFArrayRef array)
+{
+  return ((CFRuntimeBase *)array)->_flags.info & _kCFArrayIsMutable ?
+    true : false;
+}
+
+CF_INLINE void
+CFArraySetMutable (CFArrayRef array)
+{
+  ((CFRuntimeBase *)array)->_flags.info |= _kCFArrayIsMutable;
+}
 
 static const void *
 CFTypeRetain (CFAllocatorRef alloc, const void *value)
@@ -80,16 +100,104 @@ static CFArrayCallBacks _kCFNullArrayCallBacks =
   NULL
 };
 
+static void
+CFArrayDealloc (CFTypeRef cf)
+{
+  CFIndex idx;
+  CFArrayRef array = (CFArrayRef)cf;
+  CFArrayReleaseCallBack release = array->_callbacks->release;
+  CFAllocatorRef alloc = CFGetAllocator(array);
+  
+  if (release)
+    {
+      for (idx = 0 ; idx < array->_count ; ++idx)
+        release (alloc, array->_contents[idx]);
+    }
+  
+  if (CFArrayIsMutable(array))
+    CFAllocatorDeallocate (CFGetAllocator(array), array->_contents);
+}
+
+static Boolean
+CFArrayEqual (CFTypeRef cf1, CFTypeRef cf2)
+{
+  CFArrayRef a1 = (CFArrayRef)cf1;
+  CFArrayRef a2 = (CFArrayRef)cf2;
+  
+  if (a1->_count != a2->_count)
+    return false;
+  
+  if (a1->_count > 0)
+    {
+      Boolean result;
+      CFIndex idx;
+      CFArrayEqualCallBack equal = a1->_callbacks->equal;
+      
+      for (idx = 0 ; idx < a1->_count ; ++idx)
+        {
+          result = equal ? equal(a1->_contents[idx], a2->_contents[idx]) :
+            a1->_contents[idx] == a2->_contents[idx];
+          if (result == false)
+            return false;
+        }
+    }
+  
+  return true;
+}
+
+static CFHashCode
+CFArrayHash (CFTypeRef cf)
+{
+  return CFArrayGetCount(cf);
+}
+
+static CFStringRef
+CFArrayCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
+{
+  CFIndex idx;
+  CFStringRef ret;
+  CFMutableStringRef str;
+  CFArrayRef array = (CFArrayRef)cf;
+  CFArrayCopyDescriptionCallBack copyDesc = array->_callbacks->copyDescription;
+  
+  str = CFStringCreateMutable (NULL, 0);
+  CFStringAppend (str, CFSTR("{"));
+  
+  if (copyDesc)
+    {
+      for (idx = 0 ; idx < array->_count ; ++idx)
+        {
+          CFStringRef desc = copyDesc(array->_contents[idx]);
+          CFStringAppendFormat (str, formatOptions, CFSTR("%@, "), desc);
+          CFRelease (desc);
+        }
+    }
+  else
+    {
+      for (idx = 0 ; idx < array->_count ; ++idx)
+        CFStringAppendFormat (str, formatOptions, CFSTR("%p, "),
+          array->_contents[idx]);
+    }
+  
+  CFStringDelete (str, CFRangeMake(CFStringGetLength(str), 2));
+  CFStringAppend (str, CFSTR("}"));
+  
+  ret = CFStringCreateCopy (NULL, str);
+  CFRelease (str);
+  
+  return ret;
+}
+
 static CFRuntimeClass CFArrayClass =
 {
   0,
   "CFArray",
   NULL,
   (CFTypeRef (*)(CFAllocatorRef, CFTypeRef))CFArrayCreateCopy,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
+  CFArrayDealloc,
+  CFArrayEqual,
+  CFArrayHash,
+  CFArrayCopyFormattingDesc,
   NULL
 };
 
@@ -379,6 +487,8 @@ CFArrayCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
         CFAllocatorAllocate (allocator, capacity * sizeof(void*), 0);
       new->_count = 0;
       new->_capacity = capacity;
+      
+      CFArraySetMutable ((CFArrayRef)new);
     }
   
   return (CFMutableArrayRef)new;
@@ -582,12 +692,12 @@ CFArraySortValuesPartition (CFMutableArrayRef array, CFIndex left,
   CFComparisonResult result;
   const void *pivotValue;
   
-  pivotValue = array->_contents[pivot];
+  pivotValue = CFArrayGetValueAtIndex (array, pivot);
   CFArrayExchangeValuesAtIndices (array, pivot, right - 1);
   storeIdx = left;
   for (idx = left ; idx < right ; ++idx)
     {
-      result = (*comp)(array->_contents[idx], pivotValue, ctxt);
+      result = (*comp)(CFArrayGetValueAtIndex(array, idx), pivotValue, ctxt);
       if (result == kCFCompareLessThan)
         {
           CFArrayExchangeValuesAtIndices (array, idx, storeIdx);
