@@ -156,7 +156,7 @@ enum
   kCFStringEncodingEBCDIC_CP037 = 0x0C02,
   kCFStringEncodingUTF7 = 0x04000100,
   kCFStringEncodingUTF7_IMAP = 0x0A10,
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_MIN_ALLOWED <= MAC_OS_X_VERSION_10_2
   kCFStringEncodingShiftJIS_X0213_00 = 0x0628 /* Deprecated */
 #endif
 };

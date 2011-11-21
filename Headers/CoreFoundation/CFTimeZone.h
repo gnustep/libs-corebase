@@ -38,7 +38,7 @@ CF_EXTERN_C_BEGIN
 
 CF_EXPORT const CFStringRef kCFTimeZoneSystemTimeZoneDidChangeNotification;
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 typedef CFIndex CFTimeZoneNameStyle;
 enum
 {
@@ -100,7 +100,7 @@ CFTimeZoneIsDaylightSavingTime (CFTimeZoneRef tz, CFAbsoluteTime at);
 CF_EXPORT CFTypeID
 CFTimeZoneGetTypeID (void);
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT CFStringRef
 CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
   CFLocaleRef locale);

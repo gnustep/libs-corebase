@@ -31,7 +31,7 @@
 #include <CoreFoundation/CFDictionary.h>
 
 // CFError implementation didn't show up until OS X 10.5
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 
 #if __OBJC__
 @class NSError;

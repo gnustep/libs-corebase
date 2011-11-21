@@ -39,7 +39,7 @@ enum CFPropertyListFormat
    kCFPropertyListBinaryFormat_v1_0 = 200
 };
 
-#if GS_API_VERSION (MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 typedef enum CFPropertyListMutabilityOptions CFPropertyListMutabilityOptions;
 enum CFPropertyListMutabilityOptions
 {
@@ -49,7 +49,7 @@ enum CFPropertyListMutabilityOptions
 };
 #endif
 
-#if GS_API_VERSION (MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 enum
 {
    kCFPropertyListReadCorruptError = 3840,
@@ -77,7 +77,7 @@ CFDataRef
 CFPropertyListCreateXMLData (CFAllocatorRef allocator,
                              CFPropertyListRef propertyList);
 
-#if GS_API_VERSION (MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 // Function is marked as obsolete as of 10.6
 CFPropertyListRef
 CFPropertyListCreateFromStream (CFAllocatorRef allocator,
@@ -98,7 +98,7 @@ CFPropertyListWriteToStream (CFPropertyListRef propertyList,
                              CFStringRef *errorString);
 #endif
 
-#if GS_API_VERSION (MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFDataRef
 CFPropertyListCreateData (CFAllocatorRef allocator,
                           CFPropertyListRef propertyList,

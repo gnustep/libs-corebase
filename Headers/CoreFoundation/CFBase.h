@@ -31,7 +31,24 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <GNUstepBase/GSVersionMacros.h>
+/* FIXME: These macros are defined here to work around an issue with including
+ * GNUstepBase/GSVersionMacros.h when compiling with clang or on Windows.
+ */
+#ifndef MAC_OS_X_VERSION_10_0
+#define MAC_OS_X_VERSION_10_0 100000
+#define MAC_OS_X_VERSION_10_1 100100
+#define MAC_OS_X_VERSION_10_2 100200
+#define MAC_OS_X_VERSION_10_3 100300
+#define MAC_OS_X_VERSION_10_4 100400
+#define MAC_OS_X_VERSION_10_5 100500
+#define MAC_OS_X_VERSION_10_6 100600
+#define MAC_OS_X_VERSION_10_7 100700
+#endif /* MAC_OS_X_VERSION_10_0 */
+
+#ifndef MAC_OS_X_VERSION_MAX_ALLOWED
+#define MAC_OS_X_VERSION_MAX_ALLOWED 999999
+#define MAC_OS_X_VERSION_MIN_ALLOWED 100000
+#endif /* MAC_OS_X_VERSION_MAX_ALLOWED */
 
 // FIXME: Define CFRunLoopRef here for now...
 typedef struct CFRunLoop *CFRunLoopRef;
@@ -306,7 +323,7 @@ CF_EXPORT CFAllocatorRef kCFAllocatorSystemDefault;
 /** An allocator that uses the system's malloc, realloc and free functions.
  */
 CF_EXPORT CFAllocatorRef kCFAllocatorMalloc;
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 /** Equivalent to kCFAllocatorSystemDefault
     @since Mac OS X 10.4
     does not exist on systems other than Darwin.
@@ -406,7 +423,7 @@ CFGetTypeID (CFTypeRef cf);
 CF_EXPORT CFHashCode
 CFHash (CFTypeRef cf);
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT CFTypeRef
 CFMakeCollectable (CFTypeRef cf);
 #endif
@@ -424,7 +441,7 @@ CFRetain (CFTypeRef cf);
 //
 // CFNull
 //
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 typedef struct __CFNull *CFNullRef;
 
 CF_EXPORT CFNullRef kCFNull;

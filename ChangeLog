@@ -1,5 +1,29 @@
 2011-11-20 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFString.c:
+	* Source/CFBase.c:
+	* Source/CFStringFormat.c:
+	* Source/CFLocale.c:
+	* Source/CFUUID.c:
+	* Source/CFArray.c:
+	* Source/CFRuntime.c:
+	* Headers/CoreFoundation/CFPropertyList.h:
+	* Headers/CoreFoundation/CFRuntime.h:
+	* Headers/CoreFoundation/CFNumber.h:
+	* Headers/CoreFoundation/CFError.h:
+	* Headers/CoreFoundation/CFTimeZone.h:
+	* Headers/CoreFoundation/CFStream.h:
+	* Headers/CoreFoundation/CFStringEncodingExt.h:
+	* Headers/CoreFoundation/CFLocale.h:
+	* Headers/CoreFoundation/CFString.h:
+	* Headers/CoreFoundation/CFCalendar.h:
+	* Headers/CoreFoundation/CFBase.h:
+	* Headers/CoreFoundation/CFNumberFormatter.h: Do not include
+	GSVersionMacros.h as this file was causing problems due objc
+	extensions in it.
+
+2011-11-20 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFArray.c: Finish runtime function for CFArray type.
 
 2011-11-04 Stefan Bidigaray <stefanbidi@gmail.com>

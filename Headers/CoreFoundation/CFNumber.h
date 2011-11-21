@@ -66,7 +66,7 @@ enum CFNumberType
   kCFNumberFloatType = 12,
   kCFNumberDoubleType = 13,
   kCFNumberCFIndexType = 14,
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
   kCFNumberNSIntegerType = 15,
   kCFNumberCGFloatType = 16,
   kCFNumberMaxType = 16

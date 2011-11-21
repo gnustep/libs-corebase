@@ -32,7 +32,9 @@
 /* Some of the code in CFUUID is based on Etoile's ETUUID class.
    Copyright (C) 2007 Yen-Ju Check <yjchenx AT gmail DOT com> */
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 // On *BSD and Linux we have a srandomdev() function which seeds the random 
 // number generator with entropy collected from a variety of sources. On other

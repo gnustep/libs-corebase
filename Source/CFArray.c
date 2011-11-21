@@ -31,6 +31,7 @@
 #include "CoreFoundation/CFString.h"
 
 #include <string.h>
+#include <assert.h>
 
 struct __CFArray
 {

@@ -32,7 +32,7 @@
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFDictionary.h>
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
 
 CF_EXTERN_C_BEGIN
 
@@ -70,7 +70,7 @@ CF_EXPORT const CFStringRef kCFLocaleDecimalSeparator; // CFString
 CF_EXPORT const CFStringRef kCFLocaleGroupingSeparator; // CFString
 CF_EXPORT const CFStringRef kCFLocaleCurrencySymbol; // CFString
 CF_EXPORT const CFStringRef kCFLocaleCurrencyCode; // CFString
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFLocaleIdentifier; // CFString
 CF_EXPORT const CFStringRef kCFLocaleLanguageCode; // CFString
 CF_EXPORT const CFStringRef kCFLocaleCountryCode; // CFString
@@ -82,7 +82,7 @@ CF_EXPORT const CFStringRef kCFLocaleCalendar; // CFCalendar
 CF_EXPORT const CFStringRef kCFLocaleCollationIdentifier; // CFString
 CF_EXPORT const CFStringRef kCFLocaleUsesMetricSystem; // CFBoolean
 #endif
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFLocaleCollatorIdentifier; // CFString
 CF_EXPORT const CFStringRef kCFLocaleQuotationBeginDelimiterKey; // CFString
 CF_EXPORT const CFStringRef kCFLocaleQuotationEndDelimiterKey; // CFString
@@ -96,7 +96,7 @@ CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey; //CFStri
     @{
  */
 CF_EXPORT const CFStringRef kCFGregorianCalendar;
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFBuddhistCalendar;
 CF_EXPORT const CFStringRef kCFChineseCalendar;
 CF_EXPORT const CFStringRef kCFHebrewCalendar;
@@ -104,7 +104,7 @@ CF_EXPORT const CFStringRef kCFIslamicCalendar;
 CF_EXPORT const CFStringRef kCFIslamicCivilCalendar;
 CF_EXPORT const CFStringRef kCFJapaneseCalendar;
 #endif
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFRepublicOfChinaCalendar;
 CF_EXPORT const CFStringRef kCFPersianCalendar;
 CF_EXPORT const CFStringRef kCFIndianCalendar;
@@ -139,7 +139,7 @@ CFLocaleGetSystem (void);
 //
 // Getting System Locale Information
 //
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFArrayRef
 CFLocaleCopyAvailableLocaleIdentifiers (void);
 #endif
@@ -147,7 +147,7 @@ CFLocaleCopyAvailableLocaleIdentifiers (void);
 //
 // Getting ISO Information
 //
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFArrayRef
 CFLocaleCopyISOCountryCodes (void);
 
@@ -158,7 +158,7 @@ CFArrayRef
 CFLocaleCopyISOCurrencyCodes (void);
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFArrayRef
 CFLocaleCopyCommonISOCurrencyCodes (void);
 #endif
@@ -166,7 +166,7 @@ CFLocaleCopyCommonISOCurrencyCodes (void);
 //
 // Language Preferences
 //
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFArrayRef
 CFLocaleCopyPreferredLanguages (void);
 #endif
@@ -193,7 +193,7 @@ CFStringRef
 CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
                                                    CFStringRef localeIdent);
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFStringRef
 CFLocaleCreateCanonicalLanguageIdentifierFromString (CFAllocatorRef allocator,
                                                      CFStringRef localeIdent);
@@ -216,7 +216,7 @@ CFLocaleGetTypeID (void);
 //
 // New Functions
 //
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFStringRef
 CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode (CFAllocatorRef allocator,
                                                      uint32_t lcid);

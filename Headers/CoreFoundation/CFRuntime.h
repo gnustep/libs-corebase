@@ -50,7 +50,7 @@ struct __CFRuntimeClass
   const char *className;
   void (*init)(CFTypeRef cf);
   CFTypeRef (*copy)(CFAllocatorRef allocator, CFTypeRef cf);
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
   void (*finalize)(CFTypeRef cf);
 #else
   void (*dealloc)(CFTypeRef cf);
@@ -59,7 +59,7 @@ struct __CFRuntimeClass
   CFHashCode (*hash)(CFTypeRef cf);
   CFStringRef (*copyFormattingDesc)(CFTypeRef cf, CFDictionaryRef formatOptions);
   CFStringRef (*copyDebugDesc)(CFTypeRef cf);
-#if 0 // FIXME: OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if 0 // FIXME: MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 #define CF_RECLAIM_AVAILABLE 1
   void (*reclaim)(CFTypeRef cf);
 #endif

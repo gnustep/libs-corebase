@@ -24,6 +24,8 @@
    Boston, MA 02110-1301, USA.
 */
 
+#include <stdio.h>
+#include <string.h>
 #include <unicode/uloc.h>
 #include <unicode/ulocdata.h>
 #include <unicode/ucurr.h>

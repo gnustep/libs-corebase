@@ -61,7 +61,7 @@ enum CFStringCompareFlags
   kCFCompareNonliteral = 16,
   kCFCompareLocalized = 32,
   kCFCompareNumerically = 64,
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
   kCFCompareDiacriticInsensitive = 128,
   kCFCompareWidthInsensitive = 256,
   kCFCompareForcedOrdering = 512
@@ -79,7 +79,7 @@ enum CFStringBuiltInEncodings
   kCFStringEncodingUnicode = 0x0100,
   kCFStringEncodingUTF8 = 0x08000100,
   kCFStringEncodingNonLossyASCII = 0x0BFF,
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
   kCFStringEncodingUTF16 = 0x0100,
   kCFStringEncodingUTF16BE = 0x10000100,
   kCFStringEncodingUTF16LE = 0x14000100,
@@ -89,7 +89,7 @@ enum CFStringBuiltInEncodings
 #endif
 };
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 # define kCFStringEncodingInvalidId (0xffffffffU)
 #endif
 
@@ -177,13 +177,13 @@ CFStringRef
 CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
   CFRange range);
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFStringRef
 CFStringCreateWithFileSystemRepresentation (CFAllocatorRef alloc,
   const char *buffer);
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFStringRef
 CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
   CFIndex numBytes, CFStringEncoding encoding, Boolean isExternalReprentation,
@@ -220,13 +220,13 @@ void
 CFStringGetLineBounds (CFStringRef theString, CFRange range,
   CFIndex *lineBeginIndex, CFIndex *lineEndIndex, CFIndex *contentsEndIndex);
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 Boolean
 CFStringFindCharacterFromSet (CFStringRef theString, CFCharacterSetRef theSet,
   CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result);
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 void
 CFStringGetParagraphBounds (CFStringRef string, CFRange range,
   CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex);
@@ -254,7 +254,7 @@ CFStringHasPrefix (CFStringRef theString, CFStringRef prefix);
 Boolean
 CFStringHasSuffix (CFStringRef theString, CFStringRef suffix);
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFComparisonResult
 CFStringCompareWithOptionsAndLocale (CFStringRef theString1,
   CFStringRef theString2, CFRange rangeToCOmpare,
@@ -301,7 +301,7 @@ CFRange
 CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef theString,
   CFIndex theIndex);
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 UTF32Char
 CFStringGetLongCharacterForSurrogatePair (UniChar surrogateHigh,
   UniChar surrogateLow);
@@ -367,7 +367,7 @@ CFStringGetSystemEncoding (void);
 Boolean
 CFStringIsEncodingAvailable (CFStringEncoding encoding);
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 Boolean
 CFStringGetFileSystemRepresentation (CFStringRef string, char *buffer,
   CFIndex maxBufLen);
@@ -439,7 +439,7 @@ CFStringGetPascalStringPtr (CFStringRef theString, CFStringEncoding encoding);
 /** @defgroup CFMutableString
  *  @{
  */
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 enum CFStringNormalizationForm
 {
   kCFStringNormalizationFormD = 0,
@@ -450,7 +450,7 @@ enum CFStringNormalizationForm
 typedef enum CFStringNormalizationForm CFStringNormalizationForm;
 #endif
 
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFStringTransformStripCombiningMarks;
 CF_EXPORT const CFStringRef kCFStringTransformToLatin;
 CF_EXPORT const CFStringRef kCFStringTransformFullwidthHalfwidth;
@@ -467,7 +467,7 @@ CF_EXPORT const CFStringRef kCFStringTransformLatinGreek;
 CF_EXPORT const CFStringRef kCFStringTransformToXMLHex;
 CF_EXPORT const CFStringRef kCFStringTransformToUnicodeName;
 #endif
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFStringTransformStripDiacritics;
 #endif
 //
@@ -544,7 +544,7 @@ CFStringTrimWhitespace (CFMutableStringRef theString);
 void
 CFStringUppercase (CFMutableStringRef theString, CFLocaleRef locale);
 
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CFIndex
 CFStringFindAndReplace (CFMutableStringRef theString,
   CFStringRef stringToFind, CFStringRef replacementString,
@@ -555,13 +555,13 @@ CFStringNormalize (CFMutableStringRef theString,
   CFStringNormalizationForm theForm);
 #endif
 
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 Boolean
 CFStringTransform (CFMutableStringRef string, CFRange *range,
   CFStringRef transform, Boolean reverse);
 #endif
 
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 void
 CFStringFold (CFMutableStringRef theString, CFOptionFlags theFlags,
   CFLocaleRef theLocale);

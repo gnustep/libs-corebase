@@ -29,6 +29,7 @@
 #include "CoreFoundation/CFNumberFormatter.h"
 
 #include <math.h>
+#include <string.h>
 #include <unicode/unum.h>
 
 #define CF_FMT_FLAG_SIGN       (1<<0)

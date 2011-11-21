@@ -36,16 +36,16 @@ typedef struct CFReadStream *CFReadStreamRef;
 
 
 
-#if GS_API_VERSION (MAC_OS_X_VERSION_10_1, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_1 <= MAC_OS_X_VERSION_MAX_ALLOWED
 
 const CFStringRef kCFStreamPropertyDataWritten;
 const CFStringRef kCFStreamPropertySocketNativeHandle;
 const CFStringRef kCFStreamPropertySocketRemoteHostName;
 const CFStringRef kCFStreamPropertySocketRemotePortNumber;
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 const CFStringRef kCFStreamPropertyAppendToFile;
 #endif
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
 const CFStringRef kCFStreamPropertyFileCurrentOffset;
 #endif
 
@@ -268,7 +268,7 @@ CFReadStreamGetTypeID (void);
 
 
 
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 /* FIXME: need CFSocket stuff
 void
 CFStreamCreatePairWithPeerSocketSignature (CFAllocatorRef alloc,
@@ -285,7 +285,7 @@ CFReadStreamSetProperty (CFReadStreamRef stream, CFStringRef propertyName,
                          CFTypeRef propertyValue);
 #endif
 
-#if GS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 void
 CFStreamCreateBoundPair (CFAllocatorRef alloc, CFReadStreamRef *readStream,
                          CFWriteStreamRef *writeStream, CFIndex transferBufferSize);

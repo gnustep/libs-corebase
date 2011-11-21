@@ -26,6 +26,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
 #include <unicode/ustring.h>

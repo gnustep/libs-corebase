@@ -32,7 +32,7 @@
 #include <CoreFoundation/CFLocale.h>
 #include <CoreFoundation/CFNumber.h>
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
 
 CF_EXTERN_C_BEGIN
 
@@ -137,7 +137,7 @@ CF_EXPORT const CFStringRef
 kCFNumberFormatterPaddingCharacter; // CFString
 CF_EXPORT const CFStringRef
 kCFNumberFormatterDefaultFormat; // CFString
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef
 kCFNumberFormatterMultiplier; // CFNumber
 CF_EXPORT const CFStringRef
@@ -153,7 +153,7 @@ kCFNumberFormatterPerMillSymbol; // CFString
 CF_EXPORT const CFStringRef
 kCFNumberFormatterInternationalCurrencySymbol; // CFString
 #endif
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST) 
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED 
 CF_EXPORT const CFStringRef
 kCFNumberFormatterCurrencyGroupingSeparator; // CFString
 CF_EXPORT const CFStringRef
