@@ -1,4 +1,4 @@
 
 # Link tests with corebase library
 ADDITIONAL_OBJC_LIBS += -lgnustep-corebase
-
+ADDITIONAL_OBJCFLAGS = -DMAC_OS_X_VERSION_MAX_ALLOWED=100700

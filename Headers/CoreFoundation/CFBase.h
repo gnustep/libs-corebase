@@ -45,11 +45,6 @@
 #define MAC_OS_X_VERSION_10_7 100700
 #endif /* MAC_OS_X_VERSION_10_0 */
 
-#ifndef MAC_OS_X_VERSION_MAX_ALLOWED
-#define MAC_OS_X_VERSION_MAX_ALLOWED 999999
-#define MAC_OS_X_VERSION_MIN_ALLOWED 100000
-#endif /* MAC_OS_X_VERSION_MAX_ALLOWED */
-
 // FIXME: Define CFRunLoopRef here for now...
 typedef struct CFRunLoop *CFRunLoopRef;
 
