@@ -236,13 +236,7 @@ CFNumberBestType (CFNumberType type)
       case kCFNumberFloatType:
       case kCFNumberFloat64Type:
       case kCFNumberDoubleType:
-#if !defined(__LP64__) && !defined(_WIN64)
       case kCFNumberCGFloatType:
-#elif defined(__LP64__) || defined(_WIN64)
-      case kCFNumberCGFloatType:
-#else
-#error Platform not recognized!
-#endif
         return kCFNumberFloat64Type;
         break;
     }

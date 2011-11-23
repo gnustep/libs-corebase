@@ -1,4 +1,10 @@
-2011-11-20 Stefan Bidigaray <stefanbidi@gmail.com>
+2011-11-23 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFNumber.c: Remove unneeded #if statement.
+	* Source/CFNumberFormatter.c: Simplify SetProperty and 
+	CopyProperty functions.
+
+2011-11-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/Foundation/CFBase.h:
 	* Source/GNUmakefile: Do not define MAC_OS_X_VERSION_MIN_ALLOWED.
