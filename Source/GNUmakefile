@@ -10,6 +10,7 @@ libgnustep-corebase_OBJC_FILES = \
   CFPropertyList.m \
   CFStream.m \
   CFURL.m \
+  NSCFArray.m \
   NSCFData.m \
   NSCFError.m \
   NSCFString.m \

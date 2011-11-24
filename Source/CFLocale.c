@@ -148,8 +148,8 @@ CFLocaleCopyNumberFormatterCurrencyProperty (CFLocaleRef loc, CFStringRef key)
   return result;
 }
 
-static inline CFArrayRef
-_createArrayWithUEnumeration (CFAllocatorRef allocator, UEnumeration *en)
+static CFArrayRef
+CFArrayCreateArrayWithUEnumeration (UEnumeration *en)
 {
   CFMutableArrayRef mArray;
   CFArrayRef result;
@@ -167,14 +167,14 @@ _createArrayWithUEnumeration (CFAllocatorRef allocator, UEnumeration *en)
       if (U_FAILURE(err))
         continue;
       CFStringRef string =
-        CFStringCreateWithCharacters (allocator, current, (CFIndex)len);
+        CFStringCreateWithCharacters (NULL, current, (CFIndex)len);
       CFArrayAppendValue (mArray, string);
     }
   
   // Close it UEnumeration here so it doesn't get leaked.
   uenum_close (en);
   
-  result = CFArrayCreateCopy (allocator, mArray);
+  result = CFArrayCreateCopy (NULL, mArray);
   CFRelease (mArray);
   return result;
 }
@@ -391,7 +391,7 @@ CFLocaleCopyISOCurrencyCodes (void)
   en = ucurr_openISOCurrencies (UCURR_ALL, &err);
   if (U_FAILURE(err))
     return NULL;
-  return _createArrayWithUEnumeration (NULL, en);
+  return CFArrayCreateArrayWithUEnumeration ( en);
 }
 
 CFArrayRef
@@ -403,7 +403,7 @@ CFLocaleCopyCommonISOCurrencyCodes (void)
   en = ucurr_openISOCurrencies (UCURR_COMMON, &err);
   if (U_FAILURE(err))
     return NULL;
-  return _createArrayWithUEnumeration (NULL, en);
+  return CFArrayCreateArrayWithUEnumeration (en);
 }
 
 CFArrayRef
