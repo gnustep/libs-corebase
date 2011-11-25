@@ -24,8 +24,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSError.h>
+#import <Foundation/NSObject.h>
+#import <Foundation/NSError.h>
 
 #include "NSCFType.h"
 #include "CoreFoundation/CFError.h"

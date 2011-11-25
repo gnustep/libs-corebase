@@ -24,7 +24,7 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <Foundation/NSObject.h>
+#import <Foundation/NSObject.h>
 #include "CoreFoundation/CFRuntime.h"
 
 #include "NSCFType.h"
@@ -46,8 +46,6 @@ extern void CFInitialize (void);
 
 + (void) load
 {
-  CFInitialize();
-  
   /* This would need to be done in NSNull, but will be here for now. */
   CFRuntimeBridgeClass (CFNullGetTypeID(), "NSNull");
   CFRuntimeSetInstanceISA (kCFNull, objc_getClass("NSNull"));
@@ -58,7 +56,7 @@ extern void CFInitialize (void);
   return (id)CFRetain(self);
 }
 
-- (void) release
+- (oneway void) release
 {
   CFRelease(self);
 }

@@ -289,6 +289,7 @@ CFStringICUConverterClose (UConverter *cnv)
 static CFStringEncoding
 CFStringConvertStandardNameToEncoding (const char *name, CFIndex length)
 {
+#define US_ASCII "US-ASCII"
 #define UTF_PREFIX "utf-"
 #define ISO_PREFIX "iso-"
 #define WIN_PREFIX "windows-"
@@ -301,7 +302,11 @@ CFStringConvertStandardNameToEncoding (const char *name, CFIndex length)
   if (length == -1)
     length = strlen (name);
   
-  if (strncasecmp(name, UTF_PREFIX, UTF_LEN) == 0)
+  if (strncmp(name, US_ASCII, length) == 0)
+    {
+      return kCFStringEncodingASCII;
+    }
+  else if (strncasecmp(name, UTF_PREFIX, UTF_LEN) == 0)
     {
       CFStringEncoding encoding = 0x100;
       if (strncasecmp(name + UTF_LEN, "8", 1) == 0)
@@ -546,7 +551,7 @@ CFStringGetListOfAvailableEncodings (void)
           while (idx < count)
             {
               name = ucnv_getStandardName(ucnv_getAvailableName (idx),
-                "IANA", &err);
+                "MIME", &err);
               if (U_SUCCESS(err))
                 _kCFStringEncodingList[idx] =
                   CFStringConvertStandardNameToEncoding (name, -1);
@@ -588,7 +593,7 @@ CFStringGetSystemEncoding (void)
         {
           const char *name;
           UErrorCode err = U_ZERO_ERROR;
-          name = ucnv_getStandardName (ucnv_getDefaultName (), "IANA", &err);
+          name = ucnv_getStandardName (ucnv_getDefaultName (), "MIME", &err);
           if (name != NULL)
             _kCFStringSystemEncoding =
               CFStringConvertStandardNameToEncoding (name, -1);

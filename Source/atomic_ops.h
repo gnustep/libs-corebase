@@ -42,13 +42,13 @@ LONG WINAPI InterlockedDecrement(LONG volatile *);
 #elif defined(__FreeBSD__)
 #include <sys/types.h>
 #include <machine/atomic.h>
-#define CFAtomicIncrement(ptr) atomic_fetchadd_long (ptr, 1)
-#define CFAtomicDecrement(ptr) atomic_fetchadd_long (ptr, -1)
+#define CFAtomicIncrement(ptr) atomic_fetchadd_long ((u_long*)(ptr), 1)
+#define CFAtomicDecrement(ptr) atomic_fetchadd_long ((u_long*)(ptr), -1)
 
 #elif defined(__llvm__) \
       || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
-#define CFAtomicIncrement(ptr) __sync_add_and_fetch(ptr, 1)
-#define CFAtomicDecrement(ptr) __sync_sub_and_fetch(ptr, 1)
+#define CFAtomicIncrement(ptr) __sync_add_and_fetch((ptr), 1)
+#define CFAtomicDecrement(ptr) __sync_sub_and_fetch((ptr), 1)
 
 #endif
 

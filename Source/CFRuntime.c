@@ -103,13 +103,13 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
     {
       /* FIXME NSLog (@"CoreBase class table is full, cannot register class %s",
         cls->className); */
+      CFMutexUnlock (&_kCFRuntimeTableLock);
       return _kCFRuntimeNotATypeID;
     }
   
   __CFRuntimeClassTable[__CFRuntimeClassTableCount] = (CFRuntimeClass *)cls;
   __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
-  ret = __CFRuntimeClassTableCount;
-  CFAtomicIncrement (&__CFRuntimeClassTableCount);
+  ret = __CFRuntimeClassTableCount++;
   CFMutexUnlock (&_kCFRuntimeTableLock);
   
   return ret;
@@ -118,15 +118,19 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
 const CFRuntimeClass *
 _CFRuntimeGetClassWithTypeID (CFTypeID typeID)
 {
+  CFMutexLock (&_kCFRuntimeTableLock);
   if (typeID > __CFRuntimeClassTableCount)
     typeID = 0;
   return __CFRuntimeClassTable[typeID];
+  CFMutexUnlock (&_kCFRuntimeTableLock);
 }
 
 void
 _CFRuntimeUnregisterClassWithTypeID (CFTypeID typeID)
 {
+  CFMutexLock (&_kCFRuntimeTableLock);
   __CFRuntimeClassTable[typeID] = NULL;
+  CFMutexUnlock (&_kCFRuntimeTableLock);
 }
 
 
@@ -309,7 +313,7 @@ CFGetTypeID (CFTypeRef cf)
 {
   /* This is unsafe, but I don't see any other way of getting the typeID
      for this call. */
-  CF_OBJC_FUNCDISPATCH0(0, CFTypeID, cf, "_cfTypeID");
+  CF_OBJC_FUNCDISPATCH0(((CFRuntimeBase*)cf)->_typeID, CFTypeID, cf, "_cfTypeID");
   
   return ((CFRuntimeBase*)cf)->_typeID;
 }
@@ -397,6 +401,7 @@ extern void CFStringEncodingInitialize (void);
 extern void CFTimeZoneInitialize (void);
 extern void CFUUIDInitialize (void);
 
+void CFInitialize (void) __attribute__((constructor));
 void CFInitialize (void)
 {
   // Initialize CFRuntimeClassTable
@@ -405,7 +410,7 @@ void CFInitialize (void)
   __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
                       	        sizeof(Class));
   
-  NSCFTypeClass = objc_getClass ("NSCFType");
+  NSCFTypeClass = (Class)objc_getClass ("NSCFType");
   CFMutexInitialize (&_kCFRuntimeTableLock);
   
   // CFNotATypeClass should be at index = 0
@@ -427,4 +432,3 @@ void CFInitialize (void)
   CFTimeZoneInitialize ();
   CFUUIDInitialize ();
 }
-

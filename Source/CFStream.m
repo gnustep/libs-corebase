@@ -123,10 +123,10 @@ CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
                                     UInt32 port, CFReadStreamRef *readStream,
                                     CFWriteStreamRef *writeStream)
 {
-  [[NSStream alloc] getStreamsToHost: [NSHost hostWithName: (NSString *)host]
-                                port: (NSUInteger)port
-                         inputStream: (NSInputStream **)readStream
-                        outputStream: (NSOutputStream **)writeStream];
+  [NSStream getStreamsToHost: [NSHost hostWithName: (NSString *)host]
+                        port: (NSUInteger)port
+                 inputStream: (NSInputStream **)readStream
+                outputStream: (NSOutputStream **)writeStream];
 }
 
 

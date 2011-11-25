@@ -1,3 +1,12 @@
+2011-11-25 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSCFType.m:
+	* Source/NSCFString.m:
+	* Source/atomic_ops.h: Avoid warnings on FreeBSD.
+	* Source/CFRuntime.c: Improve thread safety.
+	* Source/CFStream.m: Fix bug.
+	* Source/CFStringEncoding.c: Use "MIME" instead of "IANA" standard.
+
 2011-11-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GNUmakefile: 
