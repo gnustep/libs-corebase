@@ -1,5 +1,9 @@
 2011-11-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFArray.c: Fixed quicksort algorithm.
+
+2011-11-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFRuntime.c:
   * Source/NSCFType.h:
   * Source/NSCFType.m:

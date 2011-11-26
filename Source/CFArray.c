@@ -694,7 +694,7 @@ CFArraySortValuesPartition (CFMutableArrayRef array, CFIndex left,
   const void *pivotValue;
   
   pivotValue = CFArrayGetValueAtIndex (array, pivot);
-  CFArrayExchangeValuesAtIndices (array, pivot, right - 1);
+  CFArrayExchangeValuesAtIndices (array, pivot, right);
   storeIdx = left;
   for (idx = left ; idx < right ; ++idx)
     {
@@ -702,10 +702,10 @@ CFArraySortValuesPartition (CFMutableArrayRef array, CFIndex left,
       if (result == kCFCompareLessThan)
         {
           CFArrayExchangeValuesAtIndices (array, idx, storeIdx);
-          storeIdx += 1;
+          ++storeIdx;
         }
     }
-  CFArrayExchangeValuesAtIndices (array, storeIdx, right - 1);
+  CFArrayExchangeValuesAtIndices (array, storeIdx, right);
   
   return storeIdx;
 }
@@ -719,7 +719,7 @@ CFArraySortValuesQuickSort (CFMutableArrayRef array, CFIndex left,
       CFIndex pivotIdx;
       CFIndex pivotNewIdx;
       
-      pivotIdx = (right - left) / 2;
+      pivotIdx = (right + left) / 2;
       pivotNewIdx = CFArraySortValuesPartition (array, left, right, pivotIdx,
         comp, ctxt);
       
@@ -733,6 +733,6 @@ CFArraySortValues (CFMutableArrayRef array, CFRange range,
                    CFComparatorFunction comparator, void *context)
 {
   CFArraySortValuesQuickSort (array, range.location,
-    range.location + range.length, comparator, context);
+    range.location + range.length - 1, comparator, context);
 }
 
