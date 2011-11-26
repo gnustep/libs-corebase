@@ -410,7 +410,6 @@ void CFInitialize (void)
   __CFRuntimeClassTable = (CFRuntimeClass **) calloc (__CFRuntimeClassTableSize,
                             sizeof(CFRuntimeClass *));
   
-  NSCFTypeClass = (Class)objc_getClass ("NSCFType");
   CFMutexInitialize (&_kCFRuntimeTableLock);
   
   // CFNotATypeClass should be at index = 0

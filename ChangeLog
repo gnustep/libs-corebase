@@ -1,5 +1,9 @@
 2011-11-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFRuntime.c: Do not set NSCFTypeClass in CFInitialize().
+
+2011-11-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFArray.c: Fixed quicksort algorithm.
 
 2011-11-26 Stefan Bidigaray <stefanbidi@gmail.com>
