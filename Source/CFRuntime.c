@@ -45,7 +45,7 @@ UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
 
 static CFMutex _kCFRuntimeTableLock;
 
-static Class NSCFTypeClass = Nil;
+Class NSCFTypeClass = Nil;
 
 
 
@@ -108,7 +108,8 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
     }
   
   __CFRuntimeClassTable[__CFRuntimeClassTableCount] = (CFRuntimeClass *)cls;
-  __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
+  if (__CFRuntimeObjCClassTable)
+    __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   ret = __CFRuntimeClassTableCount++;
   CFMutexUnlock (&_kCFRuntimeTableLock);
   
@@ -159,7 +160,8 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
       new = memset (new, 0, instSize);
       ((obj)new)->allocator = allocator;
       new = (CFRuntimeBase*)&((obj)new)[1];
-      new->_isa = __CFRuntimeObjCClassTable[typeID];
+      new->_isa =
+        __CFRuntimeObjCClassTable ? __CFRuntimeObjCClassTable[typeID] : NULL;
       new->_typeID = typeID;
       
       cls = __CFRuntimeClassTable[typeID];
@@ -401,14 +403,12 @@ extern void CFStringEncodingInitialize (void);
 extern void CFTimeZoneInitialize (void);
 extern void CFUUIDInitialize (void);
 
-void CFInitialize (void) __attribute__((constructor));
+//void CFInitialize (void) __attribute__((constructor));
 void CFInitialize (void)
 {
   // Initialize CFRuntimeClassTable
   __CFRuntimeClassTable = (CFRuntimeClass **) calloc (__CFRuntimeClassTableSize,
                             sizeof(CFRuntimeClass *));
-  __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
-                      	        sizeof(Class));
   
   NSCFTypeClass = (Class)objc_getClass ("NSCFType");
   CFMutexInitialize (&_kCFRuntimeTableLock);

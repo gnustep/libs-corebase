@@ -35,7 +35,7 @@
 @implementation NSCFArray
 + (void) load
 {
-  CFRuntimeBridgeClass (CFArrayGetTypeID(), "NSCFArray");
+  NSCFInitialize ();
 }
 
 - (NSUInteger) count

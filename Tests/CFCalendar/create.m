@@ -10,7 +10,7 @@ int main (void)
   
   cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
   PASS(cal != NULL, "Calendar created.");
-  PASS_EQUAL(CFCalendarGetIdentifier(cal), kCFGregorianCalendar,
+  PASS_CFEQ(CFCalendarGetIdentifier(cal), kCFGregorianCalendar,
     "Correct calendar identifier.");
   CFRelease (cal);
   
@@ -18,7 +18,7 @@ int main (void)
   PASS(cal != NULL, "CFCalendarCopyCurrent returns a calendar");
   locale1 = CFCalendarCopyLocale (cal);
   locale2 = CFLocaleCopyCurrent ();
-  PASS_EQUAL(locale1, locale2,
+  PASS_CFEQ(locale1, locale2,
     "Current calendar locale matches current locale.");
   CFRelease (locale1);
   CFRelease (locale2);

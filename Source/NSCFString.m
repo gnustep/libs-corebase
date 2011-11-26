@@ -41,7 +41,7 @@
 @implementation NSCFString
 + (void) load
 {
-  CFRuntimeBridgeClass (CFStringGetTypeID(), "NSCFString");
+  NSCFInitialize ();
 }
 
 - (id) initWithBytes: (const void*) bytes

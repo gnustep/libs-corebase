@@ -38,7 +38,7 @@
 @implementation NSCFData
 + (void) load
 {
-  CFRuntimeBridgeClass (CFDataGetTypeID(), "NSCFData");
+  NSCFInitialize ();
 }
 
 - (const void *) bytes

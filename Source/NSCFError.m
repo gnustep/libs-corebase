@@ -36,7 +36,7 @@
 @implementation NSCFError
 + (void) load
 {
-  CFRuntimeBridgeClass (CFErrorGetTypeID(), "NSCFError");
+  NSCFInitialize ();
 }
 
 - (id) initWithDomain: (NSString*) domain

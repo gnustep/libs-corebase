@@ -197,7 +197,7 @@ int main (void)
   // Test the toll-free bridge mechanism
   bpt = [[GSPoint alloc] initWithX: 0 Y: 0];
   PASS(bpt != nil, "-initWithX:Y: returns non-nil");
-  PASS_EQUAL(pt, bpt, "CF object and ObjC object are the same");
+  PASS_CFEQ(pt, bpt, "CF object and ObjC object are the same");
   PASS_CFEQ(CFCopyDescription((CFTypeRef)bpt), CFSTR("(0, 0)"),
             "ObjC returns same description as CF object");
   

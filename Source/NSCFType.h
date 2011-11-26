@@ -24,12 +24,17 @@
    Boston, MA 02110-1301, USA.
 */
 
+#ifndef __NSCFTYPE_H__
+#define __NSCFTYPE_H__
+
 #import <Foundation/NSObject.h>
 
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFRuntime.h"
 
 extern Class *__CFRuntimeObjCClassTable;
+
+void NSCFInitialize (void);
 
 CF_INLINE void
 CFRuntimeBridgeClass (CFTypeID typeID, const char *cls)
@@ -60,3 +65,5 @@ CFRuntimeSetInstanceISA (CFTypeRef cf, Class cls)
 
 - (CFTypeID) _cfTypeID;
 @end
+
+#endif /* __NSCFTYPE_H__ */

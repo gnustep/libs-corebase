@@ -25,11 +25,36 @@
 */
 
 #import <Foundation/NSObject.h>
-#include "CoreFoundation/CFRuntime.h"
 
+#include "CoreFoundation/CoreFoundation.h"
 #include "NSCFType.h"
 
 extern void CFInitialize (void);
+extern UInt32 __CFRuntimeClassTableSize;
+extern UInt32 __CFRuntimeClassTableCount;
+extern Class NSCFTypeClass;
+
+void NSCFInitialize (void)
+{
+  static int requiredClasses = 5;
+  --requiredClasses;
+  
+  if (requiredClasses == 0)
+    {
+      __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
+                                    sizeof(Class));
+      
+      CFInitialize ();
+      
+      /* This would need to be done in NSNull, but will be here for now. */
+      CFRuntimeBridgeClass (CFNullGetTypeID(), "NSNull");
+      CFRuntimeSetInstanceISA (kCFNull, objc_getClass("NSNull"));
+      CFRuntimeBridgeClass (CFArrayGetTypeID(), "NSCFArray");
+      CFRuntimeBridgeClass (CFDataGetTypeID(), "NSCFData");
+      CFRuntimeBridgeClass (CFErrorGetTypeID(), "NSCFError");
+      CFRuntimeBridgeClass (CFStringGetTypeID(), "NSCFString");
+    }
+}
 
 @interface NSObject (CoreBaseAdditions)
 - (CFTypeID) _cfTypeID;
@@ -46,9 +71,8 @@ extern void CFInitialize (void);
 
 + (void) load
 {
-  /* This would need to be done in NSNull, but will be here for now. */
-  CFRuntimeBridgeClass (CFNullGetTypeID(), "NSNull");
-  CFRuntimeSetInstanceISA (kCFNull, objc_getClass("NSNull"));
+  NSCFTypeClass = self;
+  NSCFInitialize ();
 }
 
 - (id) retain

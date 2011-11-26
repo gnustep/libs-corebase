@@ -1,3 +1,18 @@
+2011-11-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.c:
+  * Source/NSCFType.h:
+  * Source/NSCFType.m:
+  * Source/NSCFArray.m:
+  * Source/NSCFData.m:
+  * Source/NSCFError.m:
+  * Source/NSCFString.m: Make sure runtime is initialized before trying
+  briding classes.
+  * Source/CFStringEncoding.c: Check both MIME and IANA standard encoding
+  names.
+  * Headers/CoreFoundation/CFString.h: Always define CFSTR() to be
+  __CFStringMakeConstantString().
+
 2011-11-25 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSCFType.m:

@@ -98,10 +98,12 @@ enum CFStringBuiltInEncodings
     
     @warning This macro will create the constant string at runtime.
  */
-//#ifdef __OBJC__
-// If we're in Objective-C mode, just make this an ObjC string.
-//#define CFSTR(x) ((CFStringRef)(@ x))
-//#else
+/* FIXME: Unfortunately, NSConstantString does not get completely initialized.
+   We cannot use @"" or __builtin___NSStringMakeConstantString().
+#ifdef __OBJC__
+ If we're in Objective-C mode, just make this an ObjC string.
+#define CFSTR(x) ((CFStringRef)(@ x))
+#else
   // If this compiler doesn't have __has_builtin(), it probably doesn't have
   // any useful builtins  either
 # ifndef __has_builtin
@@ -112,7 +114,7 @@ enum CFStringBuiltInEncodings
 # if __has_builtin(__builtin___NSStringMakeConstantString)
 #   define CFSTR(x) \
       ((CFStringRef)__builtin___NSStringMakeConstantString("" x ""))
-# else
+# else */
   // If nothing else works, fall back to the really slow path.  The 'pure'
   // attribute tells the compiler that this function will always return the
   // same result with the same input.  If it has any skill, then constant
@@ -121,8 +123,8 @@ enum CFStringBuiltInEncodings
     CFStringRef __CFStringMakeConstantString (const char *str)
       __attribute__ ((pure));
 #   define CFSTR(x) __CFStringMakeConstantString("" x "")
-# endif
-//#endif
+/*# endif
+#endif */
 
 //
 // Creating a CFString
