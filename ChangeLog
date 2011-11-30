@@ -1,3 +1,13 @@
+2011-12-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFBase.c: Move standard includes from here...
+	* Headers/CoreFoundation/CFBase.h: ...to here.  Also define CFHashCode,
+	CFTypeID and CFOptionFlags to be a 64-bit integer, even on Windows.
+	* Source/callbacks.h:
+	* Source/CFArray.c:
+	* Source/CFRuntime.c: Moved callback functions for retain/release 
+	of CFTypeRef in collection objects.
+
 2011-11-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.c: Do not set NSCFTypeClass in CFInitialize().
@@ -9,17 +19,17 @@
 2011-11-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.c:
-  * Source/NSCFType.h:
-  * Source/NSCFType.m:
-  * Source/NSCFArray.m:
-  * Source/NSCFData.m:
-  * Source/NSCFError.m:
-  * Source/NSCFString.m: Make sure runtime is initialized before trying
-  briding classes.
-  * Source/CFStringEncoding.c: Check both MIME and IANA standard encoding
-  names.
-  * Headers/CoreFoundation/CFString.h: Always define CFSTR() to be
-  __CFStringMakeConstantString().
+        * Source/NSCFType.h:
+        * Source/NSCFType.m:
+        * Source/NSCFArray.m:
+        * Source/NSCFData.m:
+        * Source/NSCFError.m:
+        * Source/NSCFString.m: Make sure runtime is initialized before trying
+        briding classes.
+        * Source/CFStringEncoding.c: Check both MIME and IANA standard encoding
+        names.
+        * Headers/CoreFoundation/CFString.h: Always define CFSTR() to be
+        __CFStringMakeConstantString().
 
 2011-11-25 Stefan Bidigaray <stefanbidi@gmail.com>
 
