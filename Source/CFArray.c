@@ -24,11 +24,12 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include "objc_interface.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFArray.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFString.h"
+#include "objc_interface.h"
+#include "callbacks.h"
 
 #include <string.h>
 #include <assert.h>
@@ -70,23 +71,11 @@ CFArraySetMutable (CFArrayRef array)
   ((CFRuntimeBase *)array)->_flags.info |= _kCFArrayIsMutable;
 }
 
-static const void *
-CFTypeRetain (CFAllocatorRef alloc, const void *value)
-{
-  return CFRetain (value);
-}
-
-static void
-CFTypeRelease (CFAllocatorRef alloc, const void *value)
-{
-  CFRelease (value);
-}
-
 const CFArrayCallBacks kCFTypeArrayCallBacks =
 {
   0,
-  CFTypeRetain,
-  CFTypeRelease,
+  CFTypeRetainCallBack,
+  CFTypeReleaseCallBack,
   CFCopyDescription,
   CFEqual
 };

@@ -24,10 +24,6 @@
    Boston, MA 02110-1301, USA.
 */ 
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "objc_interface.h"
 #include "threading.h"
 #include "CoreFoundation/CFBase.h"

@@ -28,8 +28,11 @@
 #ifndef __COREFOUNDATION_CFBASE_H__
 #define __COREFOUNDATION_CFBASE_H__
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* FIXME: These macros are defined here to work around an issue with including
  * GNUstepBase/GSVersionMacros.h when compiling with clang or on Windows.
@@ -141,12 +144,21 @@ CF_EXTERN_C_BEGIN
 //
 // CFType types
 //
+#if defined(_WIN64)
+/* CFHashCode should be 64-bits on 64-bit machines, including Windows x64. */
+typedef unsigned long long CFHashCode;
+#else
 typedef unsigned long CFHashCode;
+#endif
 /** @defgroup CFType
     @{
     @class CFType
  */
+#if defined(_WIN64)
+typedef unsigned long long CFTypeID;
+#else
 typedef unsigned long CFTypeID;
+#endif
 typedef const void *CFTypeRef;
 /** @}
  */
@@ -154,8 +166,13 @@ typedef const void *CFTypeRef;
 //
 // Base Utilities
 //
+#if defined(_WIN64)
+typedef unsigned long long CFOptionFlags;
+typedef signed long long CFIndex;
+#else
 typedef unsigned long CFOptionFlags;
 typedef signed long CFIndex;
+#endif
 
 struct CFRange
 {

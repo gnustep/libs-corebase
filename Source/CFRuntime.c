@@ -385,6 +385,18 @@ CFRetain (CFTypeRef cf)
   return cf;
 }
 
+const void *
+CFTypeRetainCallBack (CFAllocatorRef allocator, const void *value)
+{
+  return CFRetain (value);
+}
+
+void
+CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value)
+{
+  CFRelease (value);
+}
+
 
 
 extern void CFAllocatorInitialize (void);
