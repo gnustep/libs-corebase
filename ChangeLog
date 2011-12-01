@@ -1,6 +1,12 @@
 2011-12-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GSHashTable.c:
+	* Source/GSHashTable.h: Added new function to help iterate through
+	hash table.
+
+2011-12-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GSHashTable.c:
 	* Source/GSHashTable.h: A hash table implementation to be used in
 	CFDictionary, CFBag and CFSet.
 

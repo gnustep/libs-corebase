@@ -34,7 +34,7 @@
 CF_INLINE CFHashCode
 GSHashInt64 (UInt64 value)
 {
-  CFHashCode hash = (CFHashCode)value;
+  register CFHashCode hash = (CFHashCode)value;
   hash = (~hash) + (hash << 21);
   hash = hash ^ (hash >> 24);
   hash = (hash + (hash << 3)) + (hash << 8);
@@ -48,7 +48,7 @@ GSHashInt64 (UInt64 value)
 CF_INLINE CFHashCode
 GSHashInt32 (UInt32 value)
 {
-  CFHashCode hash = (CFHashCode)value;
+  register CFHashCode hash = (CFHashCode)value;
   hash = ~hash + (hash << 15);
   hash = hash ^ (hash >> 12);
   hash = hash + (hash << 2);
@@ -90,14 +90,18 @@ GSHashTableFind (struct GSHashTable *ht, const void *value,
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*))
 {
+  const void **array;
+  CFIndex size;
   CFIndex idx;
   CFHashCode hash;
   Boolean matched;
   
+  array = ht->array;
+  size = ht->size;
   hash = fHash ? fHash (value) : GSHashTableHash (value);
-  idx = hash % ht->size;
-  matched = ht->array[idx] == NULL || (fEqual ?
-    fEqual (value, ht->array[idx]) : value == ht->array[idx]);
+  idx = hash % size;
+  matched = array[idx] == NULL || (fEqual ?
+    fEqual (value, array[idx]) : value == array[idx]);
   
   if (!matched)
     {
@@ -105,23 +109,40 @@ GSHashTableFind (struct GSHashTable *ht, const void *value,
       
       if (fEqual)
         {
-          while (ht->array[idx] == NULL
-                || fEqual (value, ht->array[idx]))
+          do
             {
               hash += hash2;
-              idx = hash % ht->size;
-            }
+              idx = hash % size;
+            } while (array[idx] != NULL || fEqual (value, array[idx]));
         }
       else
         {
-          while (ht->array[idx] == NULL
-                || value == ht->array[idx])
+          do
             {
               hash += hash2;
-              idx = hash % ht->size;
-            }
+              idx = hash % size;
+            } while (array[idx] != NULL || value == array[idx]);
         }
     }
   
   return idx;
+}
+
+Boolean
+CFHashTableNext (struct GSHashTable *ht, CFIndex *index)
+{
+  register const void **array;
+  register CFIndex idx;
+  register CFIndex size;
+  
+  for (array = ht->array, idx = *index, size = ht->size ; idx < size ; ++idx)
+    {
+      if (array[idx])
+        {
+          *index = idx;
+          return true;
+        }
+    }
+  
+  return false;
 }

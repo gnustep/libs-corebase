@@ -41,19 +41,17 @@ typedef const struct __CFDictionary * CFDictionaryRef;
 typedef struct __CFDictionary * CFMutableDictionaryRef;
 #endif
 
-/* FIXME: callback are NOT supported */
 typedef void (*CFDictionaryApplierFunction) (const void *key,
   const void *value, void *context);
+
 typedef CFStringRef (*CFDictionaryCopyDescriptionCallBack)(const void *value);
 typedef Boolean  (*CFDictionaryEqualCallBack) (const void *value1,
   const void *value2);
 typedef CFHashCode    (*CFDictionaryHashCallBack) (const void *value);
 typedef void (*CFDictionaryReleaseCallBack) (CFAllocatorRef allocator,
   const void *value);
-typedef const void *(*CFDictionaryRetainCallBack) (
-   CFAllocatorRef allocator,
-   const void *value
-);
+typedef const void *(*CFDictionaryRetainCallBack) (CFAllocatorRef allocator,
+  const void *value);
 
 typedef struct _CFDictionaryKeyCallBacks CFDictionaryKeyCallBacks;
 struct _CFDictionaryKeyCallBacks

@@ -67,3 +67,10 @@ CFIndex
 GSHashTableFind (struct GSHashTable *ht, const void *value,
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*));
+
+/* This function iterates through the array stopping at every slot where
+ * a value exists.  Initially, *index should be set to zero (0) and cannot be
+ * NULL.  Returns false whenever there aren't any more slots.
+ */
+Boolean
+CFHashTableNext (struct GSHashTable *ht, CFIndex *index);
