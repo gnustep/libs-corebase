@@ -354,7 +354,7 @@ CFRelease (CFTypeRef cf)
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
-      CFIndex result = CFAtomicDecrement (&(((obj)cf)[-1].retained));
+      CFIndex result = CFAtomicDecrementCFIndex (&(((obj)cf)[-1].retained));
       if (result < 0)
         {
           assert (result == -1);
@@ -378,7 +378,7 @@ CFRetain (CFTypeRef cf)
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
-      CFIndex result = CFAtomicIncrement (&(((obj)cf)[-1].retained));
+      CFIndex result = CFAtomicIncrementCFIndex (&(((obj)cf)[-1].retained));
       assert (result < INT_MAX);
     }
   

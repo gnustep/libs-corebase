@@ -27,28 +27,29 @@
 #ifndef __ATOMIC_OPS_H__
 #define __ATOMIC_OPS_H__ 1
 
-#if	_WIN32
+#if defined(_WIN32)
 #include <windows.h>
-#ifndef _WIN64
-#undef InterlockedIncrement
-#undef InterlockedDecrement
-LONG WINAPI InterlockedIncrement(LONG volatile *);
-LONG WINAPI InterlockedDecrement(LONG volatile *);
-#endif
 
-#define	CFAtomicIncrement(ptr) InterlockedIncrement((LONG volatile*)ptr)
-#define	CFAtomicDecrement(ptr) InterlockedDecrement((LONG volatile*)ptr)
+#if defined(_WIN64)
+#define CFAtomicIncrementCFIndex(ptr) \
+  InterlockedIncrement64((LONGLONG volatile*)ptr)
+#define CFAtomicDecrementCFIndex(ptr) \
+  InterlockedDecrement64((LONGLONG volatile*)ptr)
+#else
+#define CFAtomicIncrementCFIndex(ptr) InterlockedIncrement((LONG volatile*)ptr)
+#define CFAtomicDecrementCFIndex(ptr) InterlockedDecrement((LONG volatile*)ptr)
+#endif
 
 #elif defined(__FreeBSD__)
 #include <sys/types.h>
 #include <machine/atomic.h>
-#define CFAtomicIncrement(ptr) atomic_fetchadd_long ((u_long*)(ptr), 1)
-#define CFAtomicDecrement(ptr) atomic_fetchadd_long ((u_long*)(ptr), -1)
+#define CFAtomicIncrementCFIndex(ptr) atomic_fetchadd_long ((u_long*)(ptr), 1)
+#define CFAtomicDecrementCFIndex(ptr) atomic_fetchadd_long ((u_long*)(ptr), -1)
 
 #elif defined(__llvm__) \
       || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
-#define CFAtomicIncrement(ptr) __sync_add_and_fetch((ptr), 1)
-#define CFAtomicDecrement(ptr) __sync_sub_and_fetch((ptr), 1)
+#define CFAtomicIncrementCFIndex(ptr) __sync_add_and_fetch((long*)(ptr), 1)
+#define CFAtomicDecrementCFIndex(ptr) __sync_sub_and_fetch((long*)(ptr), 1)
 
 #endif
 

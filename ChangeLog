@@ -1,3 +1,9 @@
+2011-12-02 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.c:
+	* Source/atomic_ops.h: Specify type for atomic operations.
+	* Source/CFDiciontary.c: New CFDictionary implementation in C.
+
 2011-12-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GSHashTable.c:
