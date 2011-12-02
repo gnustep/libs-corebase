@@ -139,18 +139,29 @@ CFDictionaryMoveAllKeysAndValues (CFDictionaryRef d, struct GSHashTable *ht)
   CFIndex idx;
   CFIndex newIdx;
   CFIndex newSize;
+  CFIndex oldSize;
   const void **newArray;
   const void **oldArray;
+  CFDictionaryRetainCallBack keyRetain;
+  CFDictionaryRetainCallBack valueRetain;
+  CFAllocatorRef alloc = CFGetAllocator (d);
   
+  idx = 0;
   newSize = ht->size;
+  oldSize = d->_ht.size;
   newArray = ht->array;
   oldArray = d->_ht.array;
-  for (idx = 0 ; idx < ht->count ; ++idx)
+  keyRetain = d->_keyCallBacks->retain;
+  valueRetain = d->_valueCallBacks->retain;
+  while (CFHashTableNext ((struct GSHashTable*)&d->_ht, &idx))
     {
-      newIdx = GSHashTableFind ((struct GSHashTable*)&ht, oldArray[idx],
-        d->_keyCallBacks->hash, NULL);
-      newArray[newIdx] = oldArray[idx];
-      newArray[newIdx + newSize] = oldArray[idx + newSize];
+      newIdx = GSHashTableFind (ht, oldArray[idx], d->_keyCallBacks->hash,
+        NULL);
+      newArray[newIdx] =
+        keyRetain ? keyRetain(alloc, oldArray[idx]) : oldArray[idx];
+      newArray[newIdx + newSize] = valueRetain ?
+        valueRetain(alloc, oldArray[idx + oldSize]) : oldArray[idx + oldSize];
+      ++idx;
     }
 }
 
@@ -166,8 +177,10 @@ CFDictionaryInit (CFAllocatorRef alloc, struct __CFDictionary *dict,
   CFDictionaryRetainCallBack keyRetain;
   CFDictionaryRetainCallBack valueRetain;
   
-  dict->_keyCallBacks = keyCallBacks;
-  dict->_valueCallBacks = valueCallBacks;
+  dict->_keyCallBacks =
+    keyCallBacks ? keyCallBacks : &_kCFNullDictionaryKeyCallBacks;
+  dict->_valueCallBacks =
+    valueCallBacks ? valueCallBacks : &_kCFNullDictionaryValueCallBacks;
   dict->_ht.size = arraySize;
   dict->_ht.array = array;
   
@@ -250,11 +263,6 @@ CFDictionaryCreate (CFAllocatorRef allocator, const void **keys,
   CFIndex arraySize;
   struct __CFDictionary *new;
   
-  if (keyCallBacks == NULL)
-    keyCallBacks = &_kCFNullDictionaryKeyCallBacks;
-  if (valueCallBacks == NULL)
-    valueCallBacks = &_kCFNullDictionaryValueCallBacks;
-  
   CF_DICTIONARY_ADJUST_SIZE (tableSize, _kGSHashTableDefaultSize, numValues);
   
   /* Multiply the size by two because we need space for the values, too. */
@@ -275,6 +283,7 @@ CFDictionaryRef
 CFDictionaryCreateCopy (CFAllocatorRef allocator, CFDictionaryRef dict)
 {
   CFIndex size;
+  CFIndex arraySize;
   struct __CFDictionary *new;
   
   CF_OBJC_FUNCDISPATCH0(_kCFDictionaryTypeID, CFDictionaryRef, dict, "copy");
@@ -283,10 +292,11 @@ CFDictionaryCreateCopy (CFAllocatorRef allocator, CFDictionaryRef dict)
     return CFRetain (dict);
   
   size = dict->_ht.size;
+  arraySize = size * 2 * sizeof(void*);
   
   new = (struct __CFDictionary *)_CFRuntimeCreateInstance (allocator,
     _kCFDictionaryTypeID,
-    sizeof(struct __CFDictionary) - sizeof(CFRuntimeBase) + size, NULL);
+    sizeof(struct __CFDictionary) - sizeof(CFRuntimeBase) + arraySize, NULL);
   if (new)
     {
       CFDictionaryInit (allocator, new, (const void**)&new[1], size, NULL,
@@ -312,7 +322,9 @@ CFDictionaryApplyFunction (CFDictionaryRef dict,
   size = dict->_ht.size;
   array = dict->_ht.array;
   while (CFHashTableNext ((struct GSHashTable*)&dict->_ht, &idx))
-    applier (array[idx], array[idx + size], context);
+    {
+      applier (array[idx], array[idx + size], context);
+    }
 }
 
 Boolean
@@ -376,6 +388,9 @@ CFDictionaryGetValue (CFDictionaryRef dict, const void *key)
 {
   CFIndex idx;
   
+  if (dict == NULL)
+    return NULL;
+  
   CF_OBJC_FUNCDISPATCH1(_kCFDictionaryTypeID, const void *, dict,
     "objectForKey:", key);
   
@@ -426,7 +441,7 @@ CFDictionaryCheckCapacityAndGrow (CFMutableDictionaryRef d)
   CFIndex oldSize;
   
   oldSize = d->_ht.size;
-  if (!GSHashTableIsAppropriateSize (oldSize, oldSize + 1))
+  if (!GSHashTableIsAppropriateSize (oldSize, d->_ht.count + 1))
     {
       CFIndex actualSize;
       CFIndex newSize;
@@ -520,18 +535,21 @@ CFDictionaryAddValue (CFMutableDictionaryRef dict, const void *key,
 {
   CFIndex idx;
   CFDictionaryRetainCallBack keyRetain;
+  CFDictionaryRetainCallBack valueRetain;
   
   if (key == NULL || !CFDictionaryIsMutable(dict))
     return;
   
   keyRetain = dict->_keyCallBacks->retain;
+  valueRetain = dict->_valueCallBacks->retain;
   CFDictionaryCheckCapacityAndGrow (dict);
   
   idx = GSHashTableFind ((struct GSHashTable*)&dict->_ht, key,
     dict->_keyCallBacks->hash, dict->_keyCallBacks->equal);
   dict->_ht.array[idx] =
     keyRetain ? keyRetain(CFGetAllocator(dict), key) : key;
-  dict->_ht.array[idx + dict->_ht.size] = value;
+  dict->_ht.array[idx + dict->_ht.size] = 
+    valueRetain ? valueRetain(CFGetAllocator(dict), value) : value;
   ++(dict->_ht.count);
 }
 

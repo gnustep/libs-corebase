@@ -1,5 +1,16 @@
 2011-12-02 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFRuntime.c: Added CFDictionary to build and fixed bug 
+	in _CFRuntimeInitStaticInstance().
+	* Source/GNUmakefile: Added CFDictionary.c.
+	* Source/CFDictionary.m: Removed.
+	* Source/GSHashTable.c:
+	* Source/CFDictionary.c: Fixed bugs.
+	* Source/CFString.c: Modified __CFStringMakeConstantString() to 
+	use the new CFDictionary functionality.
+
+2011-12-02 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFRuntime.c:
 	* Source/atomic_ops.h: Specify type for atomic operations.
 	* Source/CFDiciontary.c: New CFDictionary implementation in C.

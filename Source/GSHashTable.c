@@ -113,7 +113,7 @@ GSHashTableFind (struct GSHashTable *ht, const void *value,
             {
               hash += hash2;
               idx = hash % size;
-            } while (array[idx] != NULL || fEqual (value, array[idx]));
+            } while (array[idx] != NULL && !fEqual (value, array[idx]));
         }
       else
         {
@@ -121,7 +121,7 @@ GSHashTableFind (struct GSHashTable *ht, const void *value,
             {
               hash += hash2;
               idx = hash % size;
-            } while (array[idx] != NULL || value == array[idx]);
+            } while (array[idx] != NULL && value != array[idx]);
         }
     }
   

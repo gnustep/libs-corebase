@@ -196,6 +196,9 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
   
   cls = __CFRuntimeClassTable[typeID];
   obj->_isa = __CFISAForTypeID (typeID);
+  obj->_flags.ro = 1;
+  obj->_flags.reserved = 0;
+  obj->_flags.info = 0;
   obj->_typeID = typeID;
   if (cls->init != NULL)
     {
@@ -404,6 +407,7 @@ extern void CFArrayInitialize (void);
 extern void CFBooleanInitialize (void);
 extern void CFCalendarInitialize (void);
 extern void CFDataInitialize (void);
+extern void CFDictionaryInitialize (void);
 extern void CFErrorInitialize (void);
 extern void CFLocaleInitialize (void);
 extern void CFBundleInitialize (void);
@@ -432,6 +436,7 @@ void CFInitialize (void)
   CFBooleanInitialize ();
   CFCalendarInitialize ();
   CFDataInitialize ();
+  CFDictionaryInitialize ();
   CFErrorInitialize ();
   CFLocaleInitialize ();
   CFBundleInitialize();

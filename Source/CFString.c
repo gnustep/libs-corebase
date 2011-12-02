@@ -24,6 +24,7 @@
    Boston, MA 02110-1301, USA.
 */
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -227,7 +228,7 @@ static CFHashCode CFStringHash (CFTypeRef cf)
 static CFStringRef
 CFStringCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
 {
-  return CFStringCreateCopy(CFGetAllocator(cf), cf);
+  return CFStringCreateCopy(kCFAllocatorSystemDefault, cf);
 }
 
 static const CFRuntimeClass CFStringClass =
@@ -248,42 +249,59 @@ static CFMutableDictionaryRef static_strings;
 /**
  * Hack to allocated CFStrings uniquely without compiler support.
  */
+CF_INLINE CFStringRef
+CFStringCreateStaticString (const char *str)
+{
+  struct __CFString *new_constant_string;
+  
+  new_constant_string =
+    CFAllocatorAllocate (NULL, sizeof(struct __CFString), 0);
+  assert (new_constant_string);
+  
+  /* Using _CFRuntimeInitStaticInstance() guarantees that any CFRetain or
+   * CFRelease calls on object will be a no-op.
+   */
+  _CFRuntimeInitStaticInstance (new_constant_string, _kCFStringTypeID);
+  new_constant_string->_contents = (void*)str;
+  new_constant_string->_count = strlen (str);
+  new_constant_string->_hash = 0;
+  new_constant_string->_deallocator = NULL;
+  
+  return (CFStringRef)new_constant_string;
+}
+
 CFStringRef __CFStringMakeConstantString (const char *str)
 {
-  /* FIXME: Use CFMutableSet as David originally did whenever that type
-     gets implemented. */
-  CFStringRef new =
-    CFStringCreateWithCString (NULL, str, kCFStringEncodingASCII);
-  CFStringRef old =
-    (CFStringRef)CFDictionaryGetValue (static_strings, (const void *)new);
+  CFStringRef new;
+  CFStringRef old = (CFStringRef)CFDictionaryGetValue (static_strings, str);
+  
   // Return the existing string pointer if we have one.
   if (NULL != old)
-    {
-      CFRelease (new);
-      return old;
-    }
+    return old;
+  
   CFMutexLock(&static_strings_lock);
   if (NULL == static_strings)
     {
-      static_strings = CFDictionaryCreateMutable (NULL, 0,
-        &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+      /* The 170 capacity is really arbitrary.  I just wanted to make the
+       * number large enough so that the hash table size comes out to 257,
+       * a table large enough to fit most needs before needing to expand.
+       */
+      static_strings = CFDictionaryCreateMutable (NULL, 170, NULL, NULL);
     }
+  
   // Check again in case another thread added this string to the table while
   // we were waiting on the mutex.
-  old = (CFStringRef)CFDictionaryGetValue (static_strings, (const void *)new);
+  old = (CFStringRef)CFDictionaryGetValue (static_strings, str);
   if (NULL == old)
     {
       // Note: In theory, for proper retain count tracking, we should release
       // new here.  We're not going to, because it is expected to persist for
       // the lifetime of the program
-      CFDictionaryAddValue (static_strings, (const void *)new,
-        (const void *)new);
+      new = CFStringCreateStaticString (str);
+      CFDictionaryAddValue (static_strings, str, (const void *)new);
       old = new;
     }
-  else
-    {
-      CFRelease (new);
-    }
+  
   CFMutexUnlock(&static_strings_lock);
   return old;
 }

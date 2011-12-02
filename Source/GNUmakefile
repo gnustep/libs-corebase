@@ -6,7 +6,6 @@ LIBRARY_NAME = libgnustep-corebase
 
 libgnustep-corebase_OBJC_FILES = \
   CFBundle.m \
-  CFDictionary.m \
   CFPropertyList.m \
   CFStream.m \
   CFURL.m \
@@ -23,6 +22,7 @@ libgnustep-corebase_C_FILES = \
   CFCalendar.c \
   CFData.c \
   CFDate.c \
+  CFDictionary.c \
   CFError.c \
   CFLocale.c \
   CFNumber.c \
@@ -33,7 +33,8 @@ libgnustep-corebase_C_FILES = \
   CFStringFormat.c \
   CFStringUtilities.c \
   CFTimeZone.c \
-  CFUUID.c
+  CFUUID.c \
+  GSHashTable.c
 
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += `icu-config --ldflags-libsonly`
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
