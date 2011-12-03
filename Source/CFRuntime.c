@@ -122,8 +122,8 @@ _CFRuntimeGetClassWithTypeID (CFTypeID typeID)
   CFMutexLock (&_kCFRuntimeTableLock);
   if (typeID > __CFRuntimeClassTableCount)
     typeID = 0;
-  return __CFRuntimeClassTable[typeID];
   CFMutexUnlock (&_kCFRuntimeTableLock);
+  return __CFRuntimeClassTable[typeID];
 }
 
 void

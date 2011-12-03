@@ -1,5 +1,12 @@
 2011-12-03 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/GSHashTable.c:
+	* Source/GSHashTable.h: Add new function to copy hash tables.
+	* Source/CFDictionary.c: Use new GSHashTable functions.
+	* Source/CFRuntime.c: Fix bug in _CFRuntimeGetClassWithTypeID().
+
+2011-12-03 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFDictionary.c: Worked on CFMutableDictionary functions.
 	* Source/GSHashTable.c:
 	* Source/GSHashTable.h: Cleaned up.

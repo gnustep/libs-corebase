@@ -129,6 +129,32 @@ GSHashTableFind (struct GSHashTable *ht, const void *value,
 }
 
 void
+GSHashTableCopyValues (struct GSHashTable *ht1, struct GSHashTable *ht2,
+  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
+  CFHashCode (*fHash)(const void *),
+  Boolean (*fEqual)(const void*, const void*),
+  void (*fAction)(struct GSHashTable*, CFIndex,
+    struct GSHashTable*, CFIndex, void*),
+  void *context)
+{
+  CFIndex idx1;
+  CFIndex idx2;
+  const void *value;
+  
+  idx1 = 0;
+  while ((value = GSHashTableNext(ht1, &idx1)))
+    {
+      idx2 = GSHashTableFind (ht1, value, fHash, fEqual);
+      ht2->array[idx2] = fRetain ? fRetain(alloc, value) : value;
+      ht2->count += 1;
+      
+      if (fAction)
+        fAction (ht1, idx1, ht2, idx2, context);
+      ++idx1;
+    }
+}
+
+void
 GSHashTableAddValue (struct GSHashTable *ht, const void *value,
   CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
@@ -218,7 +244,7 @@ GSHashTableRemoveValue (struct GSHashTable *ht, const void *value,
 }
 
 const void *
-CFHashTableNext (struct GSHashTable *ht, CFIndex *index)
+GSHashTableNext (struct GSHashTable *ht, CFIndex *index)
 {
   register const void **array;
   register CFIndex idx;
