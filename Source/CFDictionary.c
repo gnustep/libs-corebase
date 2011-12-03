@@ -35,6 +35,8 @@
 
 
 
+static CFTypeID _kCFDictionaryTypeID = 0;
+
 struct __CFDictionary
 {
   CFRuntimeBase _parent;
@@ -42,26 +44,6 @@ struct __CFDictionary
   const CFDictionaryValueCallBacks *_valueCallBacks;
   struct GSHashTable _ht;
 };
-
-static CFTypeID _kCFDictionaryTypeID = 0;
-
-static CFRuntimeClass CFDictionaryClass =
-{
-  0,
-  "CFDictionary",
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL
-};
-
-void CFDictionaryInitialize (void)
-{
-  _kCFDictionaryTypeID = _CFRuntimeRegisterClass (&CFDictionaryClass);
-}
 
 enum
 {
@@ -79,6 +61,80 @@ CF_INLINE void
 CFDictionarySetMutable (CFDictionaryRef dict)
 {
   ((CFRuntimeBase *)dict)->_flags.info |= _kCFDictionaryIsMutable;
+}
+
+static void
+CFDictionaryFinalize (CFTypeRef cf)
+{
+  struct __CFDictionary *d = (struct __CFDictionary*)cf;
+  
+  CFDictionaryRemoveAllValues (d);
+  if (CFDictionaryIsMutable(d))
+    CFAllocatorDeallocate (CFGetAllocator(d), d->_ht.array);
+}
+
+static Boolean
+CFDictionaryEqual (CFTypeRef cf1, CFTypeRef cf2)
+{
+  struct __CFDictionary *d1 = (struct __CFDictionary*)cf1;
+  struct __CFDictionary *d2 = (struct __CFDictionary*)cf2;
+  
+  if (d1->_ht.count == d2->_ht.count
+      && d1->_keyCallBacks == d2->_keyCallBacks
+      && d1->_valueCallBacks == d2->_valueCallBacks)
+    {
+      CFIndex idx;
+      const void *key;
+      const void *value1;
+      const void *value2;
+      CFDictionaryEqualCallBack equal;
+      
+      idx = 0;
+      equal = d1->_valueCallBacks->equal;
+      while ((key = CFHashTableNext ((struct GSHashTable*)&d1->_ht, &idx)))
+        {
+          value1 = d1->_ht.array[idx + d1->_ht.size];
+          value2 = CFDictionaryGetValue (d2, key);
+          
+          if (!(equal ? equal (value1, value2) : value1 == value2))
+            return false;
+          
+          ++idx;
+        }
+      return true;
+    }
+  
+  return false;
+}
+
+static CFHashCode
+CFDictionaryHash (CFTypeRef cf)
+{
+  return ((CFDictionaryRef)cf)->_ht.count;
+}
+
+static CFStringRef
+CFDictionaryCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
+{
+  return CFSTR("");
+}
+
+static CFRuntimeClass CFDictionaryClass =
+{
+  0,
+  "CFDictionary",
+  NULL,
+  (CFTypeRef(*)(CFAllocatorRef, CFTypeRef))CFDictionaryCreateCopy,
+  CFDictionaryFinalize,
+  CFDictionaryEqual,
+  CFDictionaryHash,
+  CFDictionaryCopyFormattingDesc,
+  NULL
+};
+
+void CFDictionaryInitialize (void)
+{
+  _kCFDictionaryTypeID = _CFRuntimeRegisterClass (&CFDictionaryClass);
 }
 
 

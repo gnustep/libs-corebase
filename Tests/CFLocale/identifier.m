@@ -21,7 +21,7 @@ int main (void)
   str2 = CFLocaleCreateLocaleIdentifierFromComponents (NULL, dict);
   dict2 = CFLocaleCreateComponentsFromLocaleIdentifier (NULL, str2);
   PASS_CFEQ(dict, dict2, "Locale components are the same");
-  NSLog (@"%d\n%@\n%@\n%d\n%d\n", [dict isEqual: dict2], dict, dict2, [dict hash], [dict2 hash]);
+  
   CFRelease (str2);
   CFRelease (dict);
   CFRelease (dict2);

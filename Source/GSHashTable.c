@@ -128,7 +128,90 @@ GSHashTableFind (struct GSHashTable *ht, const void *value,
   return idx;
 }
 
-Boolean
+void
+GSHashTableAddValue (struct GSHashTable *ht, const void *value,
+  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
+  CFHashCode (*fHash)(const void *),
+  Boolean (*fEqual)(const void*, const void*),
+  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  void *context)
+{
+  CFIndex idx;
+  
+  idx = GSHashTableFind (ht, value, fHash, fEqual);
+  if (ht->array[idx] == NULL)
+    {
+      ht->array[idx] = fRetain ? fRetain(alloc, value) : value;
+      ht->count += 1;
+    }
+  
+  if (fAction)
+    fAction (ht, idx, false, context);
+}
+
+void
+GSHashTableReplaceValue (struct GSHashTable *ht, const void *value,
+  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
+  CFHashCode (*fHash)(const void *),
+  Boolean (*fEqual)(const void*, const void*),
+  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  void *context)
+{
+  CFIndex idx;
+  
+  idx = GSHashTableFind (ht, value, fHash, fEqual);
+  if (ht->array[idx] != NULL)
+    {
+      if (fAction)
+        fAction (ht, idx, true, context);
+    }
+}
+
+void
+GSHashTableSetValue (struct GSHashTable *ht, const void *value,
+  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
+  CFHashCode (*fHash)(const void *),
+  Boolean (*fEqual)(const void*, const void*),
+  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  void *context)
+{
+  CFIndex idx;
+  Boolean replace;
+  
+  idx = GSHashTableFind (ht, value, fHash, fEqual);
+  if (ht->array[idx] == NULL)
+    {
+      ht->array[idx] = fRetain ? fRetain(alloc, value) : value;
+      ht->count += 1;
+      replace = false;
+    }
+  else
+    {
+      replace = true;
+    }
+  
+  if (fAction)
+    fAction (ht, idx, replace, context);
+}
+
+void
+GSHashTableRemoveValue (struct GSHashTable *ht, const void *value,
+  CFAllocatorRef alloc, CFTypeRef (*fRelease)(CFAllocatorRef, const void*),
+  CFHashCode (*fHash)(const void *),
+  Boolean (*fEqual)(const void*, const void*),
+  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  void *context)
+{
+  CFIndex idx;
+  
+  idx = GSHashTableFind (ht, value, fHash, fEqual);
+  if (ht->array[idx] != NULL)
+    {
+      
+    }
+}
+
+const void *
 CFHashTableNext (struct GSHashTable *ht, CFIndex *index)
 {
   register const void **array;
@@ -140,9 +223,9 @@ CFHashTableNext (struct GSHashTable *ht, CFIndex *index)
       if (array[idx])
         {
           *index = idx;
-          return true;
+          return array[idx];
         }
     }
   
-  return false;
+  return NULL;
 }

@@ -68,9 +68,41 @@ GSHashTableFind (struct GSHashTable *ht, const void *value,
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*));
 
+void
+GSHashTableAddValue (struct GSHashTable *ht, const void *value,
+  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
+  CFHashCode (*fHash)(const void *),
+  Boolean (*fEqual)(const void*, const void*),
+  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  void *context);
+
+void
+GSHashTableReplaceValue (struct GSHashTable *ht, const void *value,
+  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
+  CFHashCode (*fHash)(const void *),
+  Boolean (*fEqual)(const void*, const void*),
+  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  void *context);
+
+void
+GSHashTableSetValue (struct GSHashTable *ht, const void *value,
+  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
+  CFHashCode (*fHash)(const void *),
+  Boolean (*fEqual)(const void*, const void*),
+  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  void *context);
+
+void
+GSHashTableRemoveValue (struct GSHashTable *ht, const void *value,
+  CFAllocatorRef alloc, CFTypeRef (*fRelease)(CFAllocatorRef, const void*),
+  CFHashCode (*fHash)(const void *),
+  Boolean (*fEqual)(const void*, const void*),
+  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  void *context);
+
 /* This function iterates through the array stopping at every slot where
  * a value exists.  Initially, *index should be set to zero (0) and cannot be
  * NULL.  Returns false whenever there aren't any more slots.
  */
-Boolean
+const void *
 CFHashTableNext (struct GSHashTable *ht, CFIndex *index);
