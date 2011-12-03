@@ -1,5 +1,11 @@
 2011-12-03 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFDictionary.c: Worked on CFMutableDictionary functions.
+	* Source/GSHashTable.c:
+	* Source/GSHashTable.h: Cleaned up.
+
+2011-12-03 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFDictionary.c: Added class functions.
 	* Source/GSHashTable.c:
 	* Source/GSHashTable.h: Added add, set, replace, and remove functions.

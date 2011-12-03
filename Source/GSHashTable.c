@@ -133,7 +133,7 @@ GSHashTableAddValue (struct GSHashTable *ht, const void *value,
   CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*),
-  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
   void *context)
 {
   CFIndex idx;
@@ -154,7 +154,7 @@ GSHashTableReplaceValue (struct GSHashTable *ht, const void *value,
   CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*),
-  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
   void *context)
 {
   CFIndex idx;
@@ -172,26 +172,26 @@ GSHashTableSetValue (struct GSHashTable *ht, const void *value,
   CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*),
-  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
   void *context)
 {
   CFIndex idx;
-  Boolean replace;
+  Boolean matched;
   
   idx = GSHashTableFind (ht, value, fHash, fEqual);
   if (ht->array[idx] == NULL)
     {
       ht->array[idx] = fRetain ? fRetain(alloc, value) : value;
       ht->count += 1;
-      replace = false;
+      matched = false;
     }
   else
     {
-      replace = true;
+      matched = true;
     }
   
   if (fAction)
-    fAction (ht, idx, replace, context);
+    fAction (ht, idx, matched, context);
 }
 
 void
@@ -199,15 +199,21 @@ GSHashTableRemoveValue (struct GSHashTable *ht, const void *value,
   CFAllocatorRef alloc, CFTypeRef (*fRelease)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*),
-  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
   void *context)
 {
   CFIndex idx;
   
   idx = GSHashTableFind (ht, value, fHash, fEqual);
-  if (ht->array[idx] != NULL)
+  if (ht->array[idx] != NULL && fAction)
     {
-      
+      if (fAction(ht, idx, false, context))
+        {
+          if (fRelease)
+            fRelease(alloc, value);
+          ht->array[idx] = NULL;
+          ht->count -= 1;
+        }
     }
 }
 

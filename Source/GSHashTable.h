@@ -53,9 +53,18 @@ GSHashTableNextSize (CFIndex num)
 }
 
 CF_INLINE Boolean
-GSHashTableIsAppropriateSize (CFIndex num, CFIndex max)
+GSHashTableIsSuitableSize (CFIndex num, CFIndex max)
 {
   return (((3 * num) / 4) >= max);
+}
+
+CF_INLINE CFIndex
+GSHashTableGetSuitableSize (CFIndex start, CFIndex min)
+{
+  CFIndex size = start;
+  while (!GSHashTableIsSuitableSize (size, min))
+    size = GSHashTableNextSize (size);
+  return size;
 }
 
 /* Returns the index of a slot matching value.  If value is not found,
@@ -73,7 +82,7 @@ GSHashTableAddValue (struct GSHashTable *ht, const void *value,
   CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*),
-  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
   void *context);
 
 void
@@ -81,7 +90,7 @@ GSHashTableReplaceValue (struct GSHashTable *ht, const void *value,
   CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*),
-  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
   void *context);
 
 void
@@ -89,7 +98,7 @@ GSHashTableSetValue (struct GSHashTable *ht, const void *value,
   CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*),
-  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
   void *context);
 
 void
@@ -97,7 +106,7 @@ GSHashTableRemoveValue (struct GSHashTable *ht, const void *value,
   CFAllocatorRef alloc, CFTypeRef (*fRelease)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*),
-  void (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
+  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
   void *context);
 
 /* This function iterates through the array stopping at every slot where
