@@ -815,17 +815,17 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
     Keep in mind, however, that ICU's key separator is ";".  This shouldn't
     be a problem as long as we use ULOC_KEYWORD_ITEM_SEPARATOR (and friends).
   */
-  char locale[ULOC_FULLNAME_CAPACITY];
-  char lang[ULOC_LANG_CAPACITY];
-  char country[ULOC_COUNTRY_CAPACITY];
-  char script[ULOC_SCRIPT_CAPACITY];
-  char variant[ULOC_KEYWORDS_CAPACITY]; // use this for lack of a better one
-  char keyword[ULOC_KEYWORD_AND_VALUES_CAPACITY];
+  CFMutableStringRef locale;
+  CFStringRef ret;
+  CFStringRef lang;
+  CFStringRef country;
+  CFStringRef script;
+  CFStringRef variant;
+  CFStringRef keyword;
   Boolean hasCountry;
   Boolean hasScript;
   Boolean hasVariant;
-  UErrorCode err = U_ZERO_ERROR;
-  CFStringRef value;
+  Boolean separated = false;
   
   if (dictionary == NULL)
     return NULL;
@@ -833,66 +833,55 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
   /* We'll return NULL if kCFLocaleLanguageCode doesn't exist.  This is the
      only key that is absolutely necessary.
   */
-  if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleLanguageCode,
-      (const void **)&value))
-    CFStringGetCString (value, lang, ULOC_LANG_CAPACITY, kCFStringEncodingUTF8);
-  else
+  if (!CFDictionaryGetValueIfPresent(dictionary, kCFLocaleLanguageCode,
+      (const void **)&lang))
     return NULL;
   
   hasCountry = CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCountryCode,
-    (const void **)&value);
-  if (hasCountry)
-    {
-      CFStringGetCString (value, country, ULOC_COUNTRY_CAPACITY,
-        kCFStringEncodingUTF8);
-    }
+    (const void **)&country);
   hasScript = CFDictionaryGetValueIfPresent(dictionary, kCFLocaleScriptCode,
-    (const void **)&value);
-  if (hasScript)
-    {
-      CFStringGetCString (value, script, ULOC_SCRIPT_CAPACITY,
-        kCFStringEncodingUTF8);
-    }
+    (const void **)&script);
   hasVariant = CFDictionaryGetValueIfPresent(dictionary, kCFLocaleVariantCode,
-    (const void **)&value);
-  if (hasVariant)
-    {
-      CFStringGetCString (value, variant, ULOC_KEYWORDS_CAPACITY,
-        kCFStringEncodingUTF8);
-    }
+    (const void **)&variant);
   
-#define TEST_CODE(x, y) (x ? "_" : ""), (x ? y : "")
-  snprintf (locale, ULOC_FULLNAME_CAPACITY, "%s%s%s%s%s%s%s",
-    lang, TEST_CODE(hasScript, script), TEST_CODE(hasCountry, country),
+#define TEST_CODE(x, y) (x ? "_" : ""), (x ? y : CFSTR(""))
+  locale = CFStringCreateMutable (NULL, ULOC_FULLNAME_CAPACITY);
+  CFStringAppendFormat (locale, NULL, CFSTR("%@%s%@%s%@%s%@"), lang,
+    TEST_CODE(hasScript, script), TEST_CODE(hasCountry, country),
     TEST_CODE(hasVariant, variant));
 #undef TEST_CODE
   // Use uloc_setKeywordValue() here since libicu is a required library.
   if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCalendarIdentifier,
-      (const void **)&value))
+      (const void **)&keyword))
     {
-      CFStringGetCString (value, keyword, ULOC_KEYWORDS_CAPACITY,
-        kCFStringEncodingUTF8);
-      uloc_setKeywordValue (ICU_CALENDAR_KEY, keyword, locale,
-        ULOC_FULLNAME_CAPACITY, &err);
+      CFStringAppend (locale, CFSTR("@"));
+      CFStringAppendFormat (locale, NULL, CFSTR("calendar=%@"), keyword);
+      separated = true;
     }
   if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCollationIdentifier,
-      (const void **)&value))
+      (const void **)&keyword))
     {
-      CFStringGetCString (value, keyword, ULOC_KEYWORDS_CAPACITY,
-        kCFStringEncodingUTF8);
-      uloc_setKeywordValue (ICU_COLLATION_KEY, keyword, locale,
-        ULOC_FULLNAME_CAPACITY, &err);
+      if (separated == false)
+        CFStringAppend (locale, CFSTR("@"));
+      else
+        CFStringAppend (locale, CFSTR(";"));
+      CFStringAppendFormat (locale, NULL, CFSTR("collation=%@"), keyword);
+      separated = true;
     }
   if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCurrencyCode,
-      (const void **)&value))
+      (const void **)&keyword))
     {
-      CFStringGetCString (value, keyword, ULOC_KEYWORDS_CAPACITY,
-        kCFStringEncodingUTF8);
-      uloc_setKeywordValue (ICU_CURRENCY_KEY, keyword, locale,
-        ULOC_FULLNAME_CAPACITY, &err);
+      if (separated == false)
+        CFStringAppend (locale, CFSTR("@"));
+      else
+        CFStringAppend (locale, CFSTR(";"));
+      CFStringAppendFormat (locale, NULL, CFSTR("currency=%@"), keyword);
+      separated = true;
     }
   
-  return CFStringCreateWithCString (allocator, locale, kCFStringEncodingUTF8);
+  ret = CFStringCreateCopy (allocator, locale);
+  CFRelease (locale);
+  return ret;
 }
 
 CFTypeID

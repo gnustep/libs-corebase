@@ -1,5 +1,9 @@
 2011-12-04 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFLocale.c: Don't use libicu to create locale identifier.
+
+2011-12-04 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFLocale.c: Clean up.
 
 2011-12-03 Stefan Bidigaray <stefanbidi@gmail.com>
