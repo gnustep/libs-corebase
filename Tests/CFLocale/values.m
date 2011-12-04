@@ -30,9 +30,9 @@ int main (void)
   obj = CFLocaleGetValue (locale, kCFLocaleCountryCode);
   PASS_CFEQ(obj, CFSTR("BR"), "Country code is 'BR'");
   obj = CFLocaleGetValue (locale, kCFLocaleScriptCode);
-  PASS_CFEQ(obj, kCFNull, "No script code for locale");
+  PASS(obj == NULL, "No script code for locale");
   obj = CFLocaleGetValue (locale, kCFLocaleVariantCode);
-  PASS_CFEQ(obj, kCFNull, "No variant code for locale");
+  PASS(obj == NULL, "No variant code for locale");
   obj = CFLocaleGetValue (locale, kCFLocaleCalendarIdentifier);
   PASS_CFEQ(obj, CFSTR("gregorian"), "Calendar is 'gregorian'");
   obj = CFLocaleGetValue (locale, kCFLocaleCalendar);
@@ -42,7 +42,7 @@ int main (void)
   obj = CFLocaleGetValue (locale, kCFLocaleUsesMetricSystem);
   PASS_CFEQ(obj, kCFBooleanTrue, "Uses metric system"); // FIXME: needs CFBoolean
   obj = CFLocaleGetValue (locale, kCFLocaleCollatorIdentifier);
-  PASS_CFEQ(obj, kCFNull, "Collator identifier is NULL");
+  PASS(obj == NULL, "Collator identifier is NULL");
   
   exp = CFStringCreateWithCString (NULL, "“",
     kCFStringEncodingUTF8);
