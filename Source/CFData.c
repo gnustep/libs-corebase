@@ -30,7 +30,7 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFData.h"
-#include "objc_interface.h"
+#include "GSPrivate.h"
 
 struct __CFData
 {
@@ -57,7 +57,8 @@ static CFTypeID _kCFDataTypeID = 0;
    field. */
 enum
 {
-  _kCFDataIsMutable = (1<<0)
+  _kCFDataIsMutable = (1<<0),
+  _kCFDataFreeBytes = (1<<1)
 };
 
 CF_INLINE Boolean
@@ -66,10 +67,22 @@ CFDataIsMutable (CFDataRef d)
   return ((CFRuntimeBase *)d)->_flags.info & _kCFDataIsMutable ? true : false;
 }
 
+CF_INLINE Boolean
+CFDataFreeBytes (CFDataRef d)
+{
+  return ((CFRuntimeBase *)d)->_flags.info & _kCFDataFreeBytes ? true : false;
+}
+
 CF_INLINE void
 CFDataSetMutable (CFDataRef d)
 {
   ((CFRuntimeBase *)d)->_flags.info |= _kCFDataIsMutable;
+}
+
+CF_INLINE void
+CFDataSetFreeBytes (CFDataRef d)
+{
+  ((CFRuntimeBase *)d)->_flags.info |= _kCFDataFreeBytes;
 }
 
 static void
@@ -77,7 +90,11 @@ CFDataFinalize (CFTypeRef cf)
 {
   CFDataRef d = (CFDataRef)cf;
   
-  CFRelease (d->_deallocator);
+  if (CFDataFreeBytes(d))
+    {
+      CFAllocatorDeallocate (d->_deallocator, (void*)d->_contents);
+      CFRelease (d->_deallocator);
+    }
 }
 
 static Boolean
@@ -145,6 +162,8 @@ void CFDataInitialize (void)
 
 
 
+#define CFDATA_SIZE sizeof(struct __CFData) - sizeof(CFRuntimeBase)
+
 CFTypeID
 CFDataGetTypeID (void)
 {
@@ -158,25 +177,31 @@ CFDataCreate_internal (CFAllocatorRef allocator, const UInt8 *bytes,
   struct __CFData *newData;
   CFIndex size;
   
-  size = sizeof(struct __CFData) - sizeof(CFRuntimeBase);
-  size += copy == true ? length : 0;
+  size = CFDATA_SIZE + (copy == true ? length : 0);
   
-  if (bytesDealloc == NULL)
-    bytesDealloc = CFAllocatorGetDefault ();
+  if (allocator == NULL)
+    allocator = CFAllocatorGetDefault ();
   
   newData = (struct __CFData*)_CFRuntimeCreateInstance (allocator,
     _kCFDataTypeID, size, NULL);
-  
-  newData->_length = length;
-  
-  if (copy)
+  if (newData)
     {
-      newData->_deallocator = CFRetain(bytesDealloc);
+      newData->_length = length;
       
-      memcpy (&(newData[1]), bytes, length);
-      bytes = (const UInt8*)&(newData[1]);
+      if (copy)
+        {
+          memcpy (&(newData[1]), bytes, length);
+          bytes = (const UInt8*)&(newData[1]);
+        }
+      else
+        {
+          if (bytesDealloc == NULL)
+            bytesDealloc = allocator;
+          newData->_deallocator = CFRetain(bytesDealloc);
+          CFDataSetFreeBytes (newData);
+        }
+      newData->_contents = bytes;
     }
-  newData->_contents = bytes;
   
   return (CFDataRef)newData;
 }
@@ -229,20 +254,45 @@ CFDataGetLength (CFDataRef d)
 
 
 
+#define DEFAULT_CAPACITY 16
+#define CFMUTABLEDATA_SIZE \
+  sizeof(struct __CFMutableData) - sizeof(CFRuntimeBase)
+
+static void
+CFDataCheckCapacityAndGrow (CFMutableDataRef data, CFIndex capacity)
+{
+  struct __CFMutableData *d = (struct __CFMutableData*)data;
+  
+  if (capacity > d->_capacity)
+    {
+      d->_contents = CFAllocatorReallocate (d->_allocator, d->_contents,
+        capacity, 0);
+      d->_capacity = capacity;
+    }
+}
+
 CFMutableDataRef
 CFDataCreateMutable (CFAllocatorRef allocator, CFIndex capacity)
 {
   struct __CFMutableData *newData;
-  CFIndex size;
   
-  size = sizeof(struct __CFMutableData) - sizeof(CFRuntimeBase);
+  if (allocator == NULL)
+    allocator = CFAllocatorGetDefault ();
   
   newData = (struct __CFMutableData*)_CFRuntimeCreateInstance (allocator,
-    _kCFDataTypeID, size, NULL);
+    _kCFDataTypeID, CFMUTABLEDATA_SIZE, NULL);
   
-  newData->_capacity = capacity;
-  newData->_allocator = CFRetain(allocator);
-  newData->_contents = CFAllocatorAllocate (allocator, capacity, 0);
+  if (newData)
+    {
+      if (capacity < DEFAULT_CAPACITY)
+        capacity = DEFAULT_CAPACITY;
+      newData->_capacity = capacity;
+      newData->_allocator = CFRetain(allocator);
+      newData->_contents = CFAllocatorAllocate (allocator, capacity, 0);
+      
+      CFDataSetMutable ((CFDataRef)newData);
+      CFDataSetFreeBytes((CFDataRef)newData);
+    }
   
   return (CFMutableDataRef)newData;
 }
@@ -254,15 +304,14 @@ CFDataCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
   CFMutableDataRef newData;
   CFIndex length;
   
-  assert (capacity > CFDataGetLength(d));
-  
-  newData = CFDataCreateMutable (allocator, capacity);
-  
   length = CFDataGetLength (d);
+  newData =
+    CFDataCreateMutable (allocator, capacity > length ? capacity : length);
+  
   memcpy ((UInt8*)newData->_contents, CFDataGetBytePtr(d), length);
   newData->_length = length;
   
-  return (CFMutableDataRef)newData;
+  return newData;
 }
 
 void
@@ -271,7 +320,7 @@ CFDataAppendBytes (CFMutableDataRef d, const UInt8 *bytes, CFIndex length)
   CF_OBJC_FUNCDISPATCH2(_kCFDataTypeID, void, d, "appendBytes:length:", bytes,
     length);
   
-  CFDataReplaceBytes (d, CFRangeMake(CFDataGetLength(d), 0), bytes, length);
+  CFDataReplaceBytes (d, CFRangeMake(d->_length, 0), bytes, length);
 }
 
 void
@@ -285,6 +334,9 @@ CFDataGetMutableBytePtr (CFMutableDataRef d)
 {
   CF_OBJC_FUNCDISPATCH0(_kCFDataTypeID, UInt8 *, d, "mutableBytes");
   
+  if (!CFDataIsMutable(d))
+    return NULL;
+  
   return ((struct __CFMutableData*)d)->_contents;
 }
 
@@ -293,10 +345,7 @@ CFDataIncreaseLength (CFMutableDataRef d, CFIndex length)
 {
   CF_OBJC_FUNCDISPATCH1(_kCFDataTypeID, void, d, "increaseLengthBy:", length);
   
-  if (!CFDataIsMutable(d))
-    return;
-  
-  CFDataSetLength (d, CFDataGetLength(d) + length);
+  CFDataSetLength (d, d->_length + length);
 }
 
 void
@@ -307,22 +356,16 @@ CFDataReplaceBytes (CFMutableDataRef d, CFRange range,
   CFIndex newBufLen;
   
   CF_OBJC_FUNCDISPATCH3(_kCFDataTypeID, void, d,
-    "replaceBytesInRange:withBytes:length:", range, NULL, 0);
-  
-  assert (range.location + range.length <= CFDataGetLength(d));
+    "replaceBytesInRange:withBytes:length:", range, newBytes, newLength);
   
   if (!CFDataIsMutable(d))
     return;
   
   md = (struct __CFMutableData*)d;
+  assert (range.location + range.length <= md->_capacity);
   
   newBufLen = range.location + newLength;
-  if (newBufLen > md->_capacity)
-    {
-      md->_contents = CFAllocatorReallocate (md->_allocator, md->_contents,
-        newBufLen, 0);
-      md->_capacity = newBufLen;
-    }
+  CFDataCheckCapacityAndGrow (d, newBufLen);
   
   if (newLength != range.length && range.location + range.length < newBufLen)
     {
@@ -348,21 +391,11 @@ CFDataSetLength (CFMutableDataRef d, CFIndex length)
   if (!CFDataIsMutable(d))
     return;
   
+  CFDataCheckCapacityAndGrow (d, length);
+  
   md = (struct __CFMutableData*)d;
-  if (md->_capacity < length)
-    {
-      md->_contents = CFAllocatorReallocate (md->_allocator, md->_contents,
-        length, 0);
-      md->_capacity = length;
-      md->_length = length;
-    }
-  else
-    {
-      CFIndex oldLength = md->_length;
-      if (oldLength != length)
-        {
-          memset (md->_contents + oldLength, 0, length - oldLength);
-          md->_length = length;
-        }
-    }
+  if (md->_length < length)
+    memset (md->_contents + md->_length, 0, length - md->_length);
+  
+  md->_length = length;
 }

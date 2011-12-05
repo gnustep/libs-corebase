@@ -30,13 +30,13 @@
 #include <unicode/ulocdata.h>
 #include <unicode/ucurr.h>
 
-#include "threading.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFCalendar.h"
 #include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFLocale.h"
+#include "GSPrivate.h"
 
 #define BUFFER_SIZE 256
 
@@ -52,8 +52,8 @@ struct __CFLocale
   CFMutableDictionaryRef _components;
 };
 
-static CFMutex _kCFLocaleLock;
-static CFTypeID _kCFLocaleTypeID;
+static GSMutex _kCFLocaleLock;
+static CFTypeID _kCFLocaleTypeID = 0;
 static CFLocaleRef _kCFLocaleCurrent = NULL;
 static CFLocaleRef _kCFLocaleSystem = NULL;
 static CFArrayRef _kCFLocaleAvailableLocaleIdentifiers = NULL;
@@ -100,7 +100,7 @@ static const CFRuntimeClass CFLocaleClass =
 void CFLocaleInitialize (void)
 {
   _kCFLocaleTypeID = _CFRuntimeRegisterClass(&CFLocaleClass);
-  CFMutexInitialize (&_kCFLocaleLock);
+  GSMutexInitialize (&_kCFLocaleLock);
 }
 
 static inline CFLocaleLanguageDirection
@@ -389,18 +389,18 @@ CFLocaleCopyCurrent (void)
 {
   CFLocaleRef result;
   
-  CFMutexLock (&_kCFLocaleLock);
+  GSMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleCurrent)
     {
       result = (CFLocaleRef)CFRetain (_kCFLocaleCurrent);
-      CFMutexUnlock (&_kCFLocaleLock);
+      GSMutexUnlock (&_kCFLocaleLock);
       return result;
     }
   
   result = CFLocaleCreate (kCFAllocatorSystemDefault, NULL);
   
   _kCFLocaleCurrent = (CFLocaleRef)CFRetain (result);
-  CFMutexUnlock (&_kCFLocaleLock);
+  GSMutexUnlock (&_kCFLocaleLock);
   return result;
 }
 
@@ -436,18 +436,18 @@ CFLocaleRef
 CFLocaleGetSystem (void)
 {
   CFLocaleRef result;
-  CFMutexLock (&_kCFLocaleLock);
+  GSMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleSystem)
     {
       result = (CFLocaleRef)CFRetain (_kCFLocaleSystem);
-      CFMutexUnlock (&_kCFLocaleLock);
+      GSMutexUnlock (&_kCFLocaleLock);
       return result;
     }
   
   result = CFLocaleCreate (kCFAllocatorSystemDefault, CFSTR(""));
   
   _kCFLocaleSystem = (CFLocaleRef)CFRetain (result);
-  CFMutexUnlock (&_kCFLocaleLock);
+  GSMutexUnlock (&_kCFLocaleLock);
   return result;
 }
 
@@ -458,10 +458,10 @@ CFLocaleCopyAvailableLocaleIdentifiers (void)
   int32_t idx;
   CFMutableArrayRef mArray;
   
-  CFMutexLock (&_kCFLocaleLock);
+  GSMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleAvailableLocaleIdentifiers)
     {
-      CFMutexUnlock (&_kCFLocaleLock);
+      GSMutexUnlock (&_kCFLocaleLock);
       return (CFArrayRef)CFRetain (_kCFLocaleAvailableLocaleIdentifiers);
     }
   
@@ -480,7 +480,7 @@ CFLocaleCopyAvailableLocaleIdentifiers (void)
   
   _kCFLocaleAvailableLocaleIdentifiers =
     CFArrayCreateCopy (kCFAllocatorSystemDefault, mArray);
-  CFMutexUnlock (&_kCFLocaleLock);
+  GSMutexUnlock (&_kCFLocaleLock);
   CFRelease (mArray);
   return (CFArrayRef)CFRetain (_kCFLocaleAvailableLocaleIdentifiers);
 }
@@ -514,16 +514,16 @@ CFLocaleCopyISOCountryCodes (void)
 {
   const char *const *cCodes;
   
-  CFMutexLock (&_kCFLocaleLock);
+  GSMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleISOCountryCodes)
     {
-      CFMutexUnlock (&_kCFLocaleLock);
+      GSMutexUnlock (&_kCFLocaleLock);
       return (CFArrayRef)CFRetain (_kCFLocaleISOCountryCodes);
     }
   
   cCodes = uloc_getISOCountries ();
   _kCFLocaleISOCountryCodes = CFLocaleCreateArrayWithCodes (cCodes);
-  CFMutexUnlock (&_kCFLocaleLock);
+  GSMutexUnlock (&_kCFLocaleLock);
   
   return (CFArrayRef)CFRetain (_kCFLocaleISOCountryCodes);
 }
@@ -533,16 +533,16 @@ CFLocaleCopyISOLanguageCodes (void)
 {
   const char *const *cCodes;
   
-  CFMutexLock (&_kCFLocaleLock);
+  GSMutexLock (&_kCFLocaleLock);
   if (_kCFLocaleISOLanguageCodes)
     {
-      CFMutexUnlock (&_kCFLocaleLock);
+      GSMutexUnlock (&_kCFLocaleLock);
       return (CFArrayRef)CFRetain (_kCFLocaleISOLanguageCodes);
     }
   
   cCodes = uloc_getISOLanguages ();
   _kCFLocaleISOLanguageCodes = CFLocaleCreateArrayWithCodes (cCodes);
-  CFMutexUnlock (&_kCFLocaleLock);
+  GSMutexUnlock (&_kCFLocaleLock);
   
   return (CFArrayRef)CFRetain (_kCFLocaleISOLanguageCodes);
 }

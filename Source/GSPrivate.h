@@ -1,9 +1,9 @@
-/* objc_interface.h
+/* GSPrivate.h
    
    Copyright (C) 2011 Free Software Foundation, Inc.
    
    Written by: Stefan Bidigaray
-   Date: July, 2011
+   Date: December, 2011
    
    This file is part of GNUstep CoreBase library.
    
@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -24,22 +24,76 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef __OBJC_INTERFACE_H__
-#define __OBJC_INTERFACE_H__ 1
+#ifndef __GSPRIVATE_H__
+#define __GSPRIVATE_H__
 
 #include "CoreFoundation/CFBase.h"
-
 #define BOOL OBJC_BOOL
 #include <objc/runtime.h>
 #undef BOOL
 
 
 
+#if defined(_WIN32)
+
+#include <windows.h>
+
+#define GSMutex CRITICAL_SECTION
+#define GSMutexInitialize(x) InitializeCriticalSection(x)
+#define GSMutexLock(x) EnterCriticalSection(x)
+#define GSMutexUnlock(x) LeaveCriticalSection(x)
+#define GSMutexDestroy(x) DeleteCriticalSection(x)
+
+#if defined(_WIN64)
+
+#define GSAtomicIncrementCFIndex(ptr) \
+  InterlockedIncrement64((LONGLONG volatile*)ptr)
+#define GSAtomicDecrementCFIndex(ptr) \
+  InterlockedDecrement64((LONGLONG volatile*)ptr)
+  
+#else /* _WIN64 */
+
+#define GSAtomicIncrementCFIndex(ptr) InterlockedIncrement((LONG volatile*)ptr)
+#define GSAtomicDecrementCFIndex(ptr) InterlockedDecrement((LONG volatile*)ptr)
+
+#endif
+
+#else /* _WIN32 */
+
+#include <pthread.h>
+
+#define GSMutex pthread_mutex_t
+#define GSMutexInitialize(x) pthread_mutex_init(x, NULL)
+#define GSMutexLock(x) pthread_mutex_lock(x)
+#define GSMutexUnlock(x) pthread_mutex_unlock(x)
+#define GSMutexDestroy(x) pthraed_mutex_destroy(x)
+
+#if defined(__FreeBSD__)
+#include <sys/types.h>
+#include <machine/atomic.h>
+#define GSAtomicIncrementCFIndex(ptr) atomic_fetchadd_long ((u_long*)(ptr), 1)
+#define GSAtomicDecrementCFIndex(ptr) atomic_fetchadd_long ((u_long*)(ptr), -1)
+#elif defined(__llvm__) \
+      || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#define GSAtomicIncrementCFIndex(ptr) __sync_add_and_fetch((long*)(ptr), 1)
+#define GSAtomicDecrementCFIndex(ptr) __sync_sub_and_fetch((long*)(ptr), 1)
+#endif
+
+#endif /* _WIN32 */
+
+
+
+const void *
+CFTypeRetainCallBack (CFAllocatorRef allocator, const void *value);
+
+void
+CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
+
+
+
 extern Class *__CFRuntimeObjCClassTable;
 extern UInt32 __CFRuntimeClassTableCount;
 
-/* These functions are declared in CFInternal.h, but since corebase
-   doesn't have this file, they'll be done in here. */
 CF_INLINE void *
 __CFISAForTypeID (CFTypeID typeID)
 {
@@ -50,8 +104,8 @@ __CFISAForTypeID (CFTypeID typeID)
 CF_INLINE Boolean
 CF_IS_OBJC (CFTypeID typeID, const void *obj)
 {
-  return (typeID >= __CFRuntimeClassTableCount
-          || object_getClass((id)obj) != __CFISAForTypeID (typeID));
+  return (obj && (typeID >= __CFRuntimeClassTableCount
+          || object_getClass((id)obj) != __CFISAForTypeID (typeID)));
 }
 
 #define CF_OBJC_FUNCDISPATCH0(typeID, rettype, obj, sel) do { \
@@ -133,4 +187,4 @@ do { \
     } \
   } while(0)
 
-#endif /* __OBJC_INTERFACE_H__ */
+#endif /* __GSPRIVATE_H__ */

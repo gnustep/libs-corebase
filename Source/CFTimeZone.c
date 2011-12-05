@@ -24,8 +24,6 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include "threading.h"
-
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFArray.h"
 #include "CoreFoundation/CFDictionary.h"
@@ -34,6 +32,7 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFTimeZone.h"
 #include "CoreFoundation/CFRuntime.h"
+#include "GSPrivate.h"
 
 /*************************/
 /* Time Zone Information */
@@ -75,7 +74,7 @@ struct __CFTimeZone
 
 static CFTypeID _kCFTimeZoneTypeID;
 
-static CFMutex _kCFTimeZoneLock;
+static GSMutex _kCFTimeZoneLock;
 static CFTimeZoneRef _kCFTimeZoneDefault = NULL;
 static CFTimeZoneRef _kCFTimeZoneSystem = NULL;
 static CFDictionaryRef _kCFTimeZoneAbbreviations = NULL;
@@ -96,7 +95,7 @@ static CFRuntimeClass CFTimeZoneClass =
 void CFTimeZoneInitialize (void)
 {
   _kCFTimeZoneTypeID = _CFRuntimeRegisterClass (&CFTimeZoneClass);
-  CFMutexInitialize (&_kCFTimeZoneLock);
+  GSMutexInitialize (&_kCFTimeZoneLock);
 }
 
 
@@ -149,11 +148,11 @@ CFTimeZoneCopySystem (void)
 void
 CFTimeZoneSetDefault (CFTimeZoneRef tz)
 {
-  CFMutexLock (&_kCFTimeZoneLock);
+  GSMutexLock (&_kCFTimeZoneLock);
   if (_kCFTimeZoneDefault != NULL)
     CFRelease (_kCFTimeZoneDefault);
   _kCFTimeZoneDefault = CFRetain (tz);
-  CFMutexUnlock (&_kCFTimeZoneLock);
+  GSMutexUnlock (&_kCFTimeZoneLock);
 }
 
 CFArrayRef
@@ -165,23 +164,23 @@ CFTimeZoneCopyKnownNames (void)
 void
 CFTimeZoneResetSystem (void)
 {
-  CFMutexLock (&_kCFTimeZoneLock);
+  GSMutexLock (&_kCFTimeZoneLock);
   if (_kCFTimeZoneSystem != NULL)
     {
       CFRelease (_kCFTimeZoneSystem);
       _kCFTimeZoneSystem = NULL;
     }
-  CFMutexUnlock (&_kCFTimeZoneLock);
+  GSMutexUnlock (&_kCFTimeZoneLock);
 }
 
 void
 CFTimeZoneSetAbbreviationDictionary (CFDictionaryRef dict)
 {
-  CFMutexLock (&_kCFTimeZoneLock);
+  GSMutexLock (&_kCFTimeZoneLock);
   if (_kCFTimeZoneAbbreviations != NULL)
     CFRelease (_kCFTimeZoneAbbreviations);
   _kCFTimeZoneAbbreviations = (CFDictionaryRef)CFRetain (dict);
-  CFMutexUnlock (&_kCFTimeZoneLock);
+  GSMutexUnlock (&_kCFTimeZoneLock);
 }
 
 CFStringRef

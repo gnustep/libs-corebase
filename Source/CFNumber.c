@@ -26,10 +26,10 @@
 
 #include <string.h>
 
-#include "objc_interface.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFNumber.h"
+#include "GSPrivate.h"
 
 struct __CFBoolean
 {

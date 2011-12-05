@@ -24,10 +24,9 @@
    Boston, MA 02110-1301, USA.
 */ 
 
-#include "objc_interface.h"
-#include "threading.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFRuntime.h"
+#include "GSPrivate.h"
 
 const double kCFCoreFoundationVersionNumber = 550.13;
 

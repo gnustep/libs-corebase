@@ -29,10 +29,7 @@
 #include "CoreFoundation/CFDictionary.h"
 #include "CoreFoundation/CFString.h"
 #include "GSHashTable.h"
-#include "callbacks.h"
-#include "objc_interface.h"
-#include "atomic_ops.h"
-
+#include "GSPrivate.h"
 
 
 static CFTypeID _kCFDictionaryTypeID = 0;
@@ -479,9 +476,6 @@ const void *
 CFDictionaryGetValue (CFDictionaryRef dict, const void *key)
 {
   CFIndex idx;
-  
-  if (dict == NULL)
-    return NULL;
   
   CF_OBJC_FUNCDISPATCH1(_kCFDictionaryTypeID, const void *, dict,
     "objectForKey:", key);

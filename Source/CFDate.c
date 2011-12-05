@@ -28,6 +28,7 @@
 #include "CoreFoundation/CFCalendar.h"
 #include "CoreFoundation/CFTimeZone.h"
 #include "CoreFoundation/CFRuntime.h"
+#include "GSPrivate.h"
 
 #include <math.h>
 #include <unicode/ucal.h>
@@ -108,10 +109,10 @@ CFDateGetAbsoluteTime (CFDateRef theDate)
 CFTimeInterval
 CFDateGetTimeIntervalSinceDate (CFDateRef theDate, CFDateRef otherDate)
 {
-  CFAbsoluteTime first = CFDateGetAbsoluteTime (theDate);
-  CFAbsoluteTime second = CFDateGetAbsoluteTime (otherDate);
+  CF_OBJC_FUNCDISPATCH1(_kCFDateTypeID, CFTimeInterval, theDate,
+    "timeIntervalSinceDate:", otherDate);
   
-  return first - second;
+  return CFDateGetAbsoluteTime (theDate) - CFDateGetAbsoluteTime (otherDate);
 }
 
 CFTypeID

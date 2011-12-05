@@ -699,7 +699,7 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
   current = start;
   for(;;)
     {
-      while (*current != CF_FMT_PERCENT && current < end)
+      while (current < end && *current != CF_FMT_PERCENT)
         ++current;
       if (current == end)
         break;
@@ -726,7 +726,7 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
   count = 0;
   for (;;)
     {
-      while (*current != CF_FMT_PERCENT && current < end)
+      while (current < end && *current != CF_FMT_PERCENT)
         ++current;
       if (current == end)
         break;
@@ -1067,7 +1067,7 @@ _CFStringAppendFormatAndArgumentsAux (CFMutableStringRef outputString,
   for (;;)
     {
       start = current;
-      while (*current != CF_FMT_PERCENT && current < end)
+      while (current < end && *current != CF_FMT_PERCENT)
         ++current;
       
       if (current != start)

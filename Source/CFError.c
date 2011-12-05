@@ -28,7 +28,7 @@
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFError.h"
 #include "CoreFoundation/CFDictionary.h"
-#include "objc_interface.h"
+#include "GSPrivate.h"
 
 
 

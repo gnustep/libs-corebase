@@ -33,7 +33,6 @@
 #include <unicode/ustring.h>
 #include <unicode/utrans.h>
 
-#include "threading.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFArray.h"
@@ -44,7 +43,7 @@
 #include "CoreFoundation/CFStringEncodingExt.h"
 
 #include "CoreFoundation/ForFoundationOnly.h"
-#include "objc_interface.h"
+#include "GSPrivate.h"
 
 #define CFRANGE_CHECK(len, range) \
   ((range.location + range.length) <= len)
@@ -244,7 +243,7 @@ static const CFRuntimeClass CFStringClass =
   NULL
 };
 
-static CFMutex static_strings_lock;
+static GSMutex static_strings_lock;
 static CFMutableDictionaryRef static_strings;
 /**
  * Hack to allocated CFStrings uniquely without compiler support.
@@ -266,6 +265,7 @@ CFStringCreateStaticString (const char *str)
   new_constant_string->_count = strlen (str);
   new_constant_string->_hash = 0;
   new_constant_string->_deallocator = NULL;
+  CFStringSetHasNullByte (new_constant_string);
   
   return (CFStringRef)new_constant_string;
 }
@@ -273,22 +273,27 @@ CFStringCreateStaticString (const char *str)
 CFStringRef __CFStringMakeConstantString (const char *str)
 {
   CFStringRef new;
-  CFStringRef old = (CFStringRef)CFDictionaryGetValue (static_strings, str);
+  CFStringRef old;
   
-  // Return the existing string pointer if we have one.
-  if (NULL != old)
-    return old;
-  
-  CFMutexLock(&static_strings_lock);
-  if (NULL == static_strings)
+  if (static_strings == NULL)
     {
       /* The 170 capacity is really arbitrary.  I just wanted to make the
        * number large enough so that the hash table size comes out to 257,
        * a table large enough to fit most needs before needing to expand.
        */
-      static_strings = CFDictionaryCreateMutable (NULL, 170, NULL, NULL);
+      GSMutexLock(&static_strings_lock);
+      if (static_strings == NULL)
+        static_strings = CFDictionaryCreateMutable (NULL, 170, NULL, NULL);
+      GSMutexUnlock(&static_strings_lock);
     }
   
+  old = (CFStringRef)CFDictionaryGetValue (static_strings, str);
+  
+  // Return the existing string pointer if we have one.
+  if (NULL != old)
+    return old;
+  
+  GSMutexLock(&static_strings_lock);
   // Check again in case another thread added this string to the table while
   // we were waiting on the mutex.
   old = (CFStringRef)CFDictionaryGetValue (static_strings, str);
@@ -302,14 +307,14 @@ CFStringRef __CFStringMakeConstantString (const char *str)
       old = new;
     }
   
-  CFMutexUnlock(&static_strings_lock);
+  GSMutexUnlock(&static_strings_lock);
   return old;
 }
 
 void CFStringInitialize (void)
 {
   _kCFStringTypeID = _CFRuntimeRegisterClass (&CFStringClass);
-  CFMutexInitialize (&static_strings_lock);
+  GSMutexInitialize (&static_strings_lock);
 }
 
 
@@ -319,16 +324,16 @@ CFShow (CFTypeRef obj)
 {
   CFStringRef str = CFCopyDescription (obj);
   const char *out;
-  char buffer[1024];
+  char buffer[256];
   
   out = CFStringGetCStringPtr (str, kCFStringEncodingASCII);
   if (out == NULL)
     {
-      CFStringGetCString (str, buffer, 1024, kCFStringEncodingASCII);
+      CFStringGetCString (str, buffer, 256, kCFStringEncodingASCII);
       out = buffer;
     }
   
-  fprintf (stdout, "%s\n", out);
+  fprintf (stderr, "%s\n", out);
 }
 
 void
@@ -360,52 +365,68 @@ CFStringGetTypeID (void)
    have inlined content if, and only if, the input bytes are in one of the
    internal encodings. */
 
-CFStringRef
-CFStringCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes,
-  CFIndex numBytes, CFStringEncoding encoding,
-  Boolean isExternalRepresentation)
+#define CFSTRING_SIZE \
+  sizeof(struct __CFString) - sizeof(struct __CFRuntimeBase)
+
+static CFStringRef
+CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 *bytes,
+  CFIndex numBytes, CFStringEncoding encoding, Boolean isExtRep,
+  CFAllocatorRef contentsDealloc, Boolean copy)
 {
   struct __CFString *new;
-  CFIndex strSize;
+  Boolean useClientsMemory;
   CFIndex size;
   CFVarWidthCharBuffer buffer;
   
+  if (alloc == NULL)
+    alloc = CFAllocatorGetDefault ();
+  
   buffer.allocator = alloc;
   if (!__CFStringDecodeByteStream3 (bytes, numBytes, encoding, false, &buffer,
-      NULL, 0))
+      &useClientsMemory, 0))
     return NULL;
   
   /* We'll inline the string buffer if __CFStringDecodeByteStream3() has not
      already allocated a buffer for us. */
-  if (buffer.shouldFreeChars)
-    strSize = 0;
+  copy = copy && (!buffer.shouldFreeChars || useClientsMemory);
+  if (copy)
+    size = (buffer.numChars + 1) *
+      (buffer.isASCII ? sizeof(char) : sizeof(UniChar));
   else
-    strSize =
-      (buffer.numChars + 1) * (buffer.isASCII ? sizeof(char) : sizeof(UniChar));
+    size = 0;
   
-  size = sizeof(struct __CFString) + strSize - sizeof(struct __CFRuntimeBase);
+  size += CFSTRING_SIZE;
   new = (struct __CFString *)
     _CFRuntimeCreateInstance (alloc, _kCFStringTypeID, size, NULL);
   
   if (buffer.isASCII)
     {
-      memcpy (&(new[1]), buffer.chars.c, buffer.numChars);
-      new->_contents = &(new[1]);
-      CFStringSetInline((CFStringRef)new);
-      
-      if (buffer.shouldFreeChars)
-        CFAllocatorDeallocate (buffer.allocator, buffer.chars.c);
+      if (copy)
+        {
+          memcpy (&(new[1]), buffer.chars.c, buffer.numChars);
+          new->_contents = &(new[1]);
+          CFStringSetInline((CFStringRef)new);
+        }
+      else
+        {
+          new->_contents = &(new[1]);
+        }
     }
   else
     {
-      memcpy ((UChar*)&(new[1]), buffer.chars.u,
-        buffer.numChars * sizeof(UniChar));
-      new->_contents = &(new[1]);
-      CFStringSetInline((CFStringRef)new);
-      CFStringSetWide((CFStringRef)new);
+      if (copy)
+        {
+          memcpy ((UChar*)&(new[1]), buffer.chars.u,
+            buffer.numChars * sizeof(UniChar));
+          new->_contents = &(new[1]);
+          CFStringSetInline((CFStringRef)new);
+        }
+      else
+        {
+          new->_contents = &(new[1]);
+        }
       
-      if (buffer.shouldFreeChars)
-        CFAllocatorDeallocate (buffer.allocator, buffer.chars.u);
+      CFStringSetWide((CFStringRef)new);
     }
   
   CFStringSetHasNullByte((CFStringRef)new);
@@ -416,74 +437,21 @@ CFStringCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes,
 }
 
 CFStringRef
+CFStringCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes,
+  CFIndex numBytes, CFStringEncoding encoding,
+  Boolean isExternalRepresentation)
+{
+  return CFStringCreateImmutable (alloc, bytes, numBytes, encoding,
+    isExternalRepresentation, NULL, true);
+}
+
+CFStringRef
 CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
   CFIndex numBytes, CFStringEncoding encoding,
   Boolean isExternalRepresentation, CFAllocatorRef contentsDeallocator)
 {
-  struct __CFString *new;
-  Boolean useClientMemory;
-  CFIndex strSize;
-  CFIndex size;
-  CFVarWidthCharBuffer buffer;
-  
-  buffer.allocator = alloc;
-  if (!__CFStringDecodeByteStream3 (bytes, numBytes, encoding, false, &buffer,
-      &useClientMemory, 0))
-    return NULL;
-  
-  /* We'll inline the string buffer if __CFStringDecodeByteStream3() has not
-     already allocated a buffer for us. */
-  if (useClientMemory)
-    strSize = 0;
-  else
-    strSize =
-      (buffer.numChars + 1) * (buffer.isASCII ? sizeof(char) : sizeof(UniChar));
-  
-  size = sizeof(struct __CFString) + strSize - sizeof(struct __CFRuntimeBase);
-  new = (struct __CFString *)
-    _CFRuntimeCreateInstance (alloc, _kCFStringTypeID, size, NULL);
-  
-  if (buffer.isASCII)
-    {
-      if (useClientMemory)
-        {
-          new->_contents = (void *)bytes;
-        }
-      else
-        {
-          memcpy (&(new[1]), buffer.chars.c, buffer.numChars);
-          new->_contents = &(new[1]);
-          CFStringSetInline((CFStringRef)new);
-          
-          if (buffer.shouldFreeChars)
-            CFAllocatorDeallocate (buffer.allocator, buffer.chars.c);
-        }
-    }
-  else
-    {
-      if (useClientMemory)
-        {
-          new->_contents = (void *)bytes;
-          CFStringSetWide((CFStringRef)new);
-        }
-      else
-        {
-          memcpy ((UChar*)&(new[1]), buffer.chars.u,
-            buffer.numChars * sizeof(UniChar));
-          new->_contents = &(new[1]);
-          CFStringSetInline((CFStringRef)new);
-          CFStringSetWide((CFStringRef)new);
-          
-          if (buffer.shouldFreeChars)
-            CFAllocatorDeallocate (buffer.allocator, buffer.chars.u);
-        }
-    }
-  
-  CFStringSetHasNullByte((CFStringRef)new);
-  new->_count = buffer.numChars;
-  new->_deallocator = contentsDeallocator;
-  
-  return (CFStringRef)new;
+  return CFStringCreateImmutable (alloc, bytes, numBytes, encoding,
+    isExternalRepresentation, NULL, false);
 }
 
 CFStringRef
@@ -895,7 +863,8 @@ CFStringCheckCapacityAndGrow (CFMutableStringRef str, CFIndex newCapacity,
 #define CFSTRING_INIT_MUTABLE(str) do \
 { \
   ((CFRuntimeBase *)str)->_flags.info = \
-    0xFF & (_kCFStringIsMutable | _kCFStringIsWide | _kCFStringHasNullByte); \
+    0xFF & (_kCFStringIsMutable | _kCFStringIsWide | _kCFStringIsOwned \
+    | _kCFStringHasNullByte); \
 } while(0)
 
 CFMutableStringRef

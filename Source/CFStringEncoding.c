@@ -29,21 +29,21 @@
 #include <unicode/ucnv.h>
 #include <unicode/ustring.h>
 
-#include "threading.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFByteOrder.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
+#include "GSPrivate.h"
 
 #include "CoreFoundation/ForFoundationOnly.h"
 
-static CFMutex _kCFStringEncodingLock;
+static GSMutex _kCFStringEncodingLock;
 static CFStringEncoding *_kCFStringEncodingList = NULL;
 static CFStringEncoding _kCFStringSystemEncoding = kCFStringEncodingInvalidId;
 
 void CFStringEncodingInitialize (void)
 {
-  CFMutexInitialize (&_kCFStringEncodingLock);
+  GSMutexInitialize (&_kCFStringEncodingLock);
 }
 
 typedef struct
@@ -534,7 +534,7 @@ CFStringGetListOfAvailableEncodings (void)
 {
   if (_kCFStringEncodingList == NULL)
     {
-      CFMutexLock (&_kCFStringEncodingLock);
+      GSMutexLock (&_kCFStringEncodingLock);
       if (_kCFStringEncodingList == NULL)
         {
           int32_t count;
@@ -559,7 +559,7 @@ CFStringGetListOfAvailableEncodings (void)
             }
           _kCFStringEncodingList[idx] = kCFStringEncodingInvalidId;
         }
-      CFMutexUnlock (&_kCFStringEncodingLock);
+      GSMutexUnlock (&_kCFStringEncodingLock);
     }
   
   return _kCFStringEncodingList;
@@ -588,7 +588,7 @@ CFStringGetSystemEncoding (void)
 {
   if (_kCFStringSystemEncoding == kCFStringEncodingInvalidId)
     {
-      CFMutexLock (&_kCFStringEncodingLock);
+      GSMutexLock (&_kCFStringEncodingLock);
       if (_kCFStringSystemEncoding == kCFStringEncodingInvalidId)
         {
           const char *name;
@@ -612,7 +612,7 @@ CFStringGetSystemEncoding (void)
                 _kCFStringSystemEncoding = kCFStringEncodingInvalidId;
             }
         }
-      CFMutexUnlock (&_kCFStringEncodingLock);
+      GSMutexUnlock (&_kCFStringEncodingLock);
     }
   return _kCFStringSystemEncoding;
 }

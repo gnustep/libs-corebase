@@ -29,11 +29,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "atomic_ops.h"
-#include "objc_interface.h"
-#include "threading.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
+#include "GSPrivate.h"
 
 
 
@@ -43,7 +41,7 @@ Class *__CFRuntimeObjCClassTable = NULL;
 UInt32 __CFRuntimeClassTableCount = 0;
 UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
 
-static CFMutex _kCFRuntimeTableLock;
+static GSMutex _kCFRuntimeTableLock;
 
 Class NSCFTypeClass = Nil;
 
@@ -98,12 +96,12 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
 {
   CFTypeID ret;
   
-  CFMutexLock (&_kCFRuntimeTableLock);
+  GSMutexLock (&_kCFRuntimeTableLock);
   if(__CFRuntimeClassTableCount >= __CFRuntimeClassTableSize)
     {
       /* FIXME NSLog (@"CoreBase class table is full, cannot register class %s",
         cls->className); */
-      CFMutexUnlock (&_kCFRuntimeTableLock);
+      GSMutexUnlock (&_kCFRuntimeTableLock);
       return _kCFRuntimeNotATypeID;
     }
   
@@ -111,7 +109,7 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
   if (__CFRuntimeObjCClassTable)
     __CFRuntimeObjCClassTable[__CFRuntimeClassTableCount] = NSCFTypeClass;
   ret = __CFRuntimeClassTableCount++;
-  CFMutexUnlock (&_kCFRuntimeTableLock);
+  GSMutexUnlock (&_kCFRuntimeTableLock);
   
   return ret;
 }
@@ -119,19 +117,19 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
 const CFRuntimeClass *
 _CFRuntimeGetClassWithTypeID (CFTypeID typeID)
 {
-  CFMutexLock (&_kCFRuntimeTableLock);
+  GSMutexLock (&_kCFRuntimeTableLock);
   if (typeID > __CFRuntimeClassTableCount)
     typeID = 0;
-  CFMutexUnlock (&_kCFRuntimeTableLock);
+  GSMutexUnlock (&_kCFRuntimeTableLock);
   return __CFRuntimeClassTable[typeID];
 }
 
 void
 _CFRuntimeUnregisterClassWithTypeID (CFTypeID typeID)
 {
-  CFMutexLock (&_kCFRuntimeTableLock);
+  GSMutexLock (&_kCFRuntimeTableLock);
   __CFRuntimeClassTable[typeID] = NULL;
-  CFMutexUnlock (&_kCFRuntimeTableLock);
+  GSMutexUnlock (&_kCFRuntimeTableLock);
 }
 
 
@@ -357,7 +355,7 @@ CFRelease (CFTypeRef cf)
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
-      CFIndex result = CFAtomicDecrementCFIndex (&(((obj)cf)[-1].retained));
+      CFIndex result = GSAtomicDecrementCFIndex (&(((obj)cf)[-1].retained));
       if (result < 0)
         {
           assert (result == -1);
@@ -381,7 +379,7 @@ CFRetain (CFTypeRef cf)
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     {
-      CFIndex result = CFAtomicIncrementCFIndex (&(((obj)cf)[-1].retained));
+      CFIndex result = GSAtomicIncrementCFIndex (&(((obj)cf)[-1].retained));
       assert (result < INT_MAX);
     }
   
@@ -426,7 +424,7 @@ void CFInitialize (void)
   __CFRuntimeClassTable = (CFRuntimeClass **) calloc (__CFRuntimeClassTableSize,
                             sizeof(CFRuntimeClass *));
   
-  CFMutexInitialize (&_kCFRuntimeTableLock);
+  GSMutexInitialize (&_kCFRuntimeTableLock);
   
   // CFNotATypeClass should be at index = 0
   _CFRuntimeRegisterClass (&CFNotATypeClass);

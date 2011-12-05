@@ -28,8 +28,7 @@
 #include "CoreFoundation/CFArray.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFString.h"
-#include "objc_interface.h"
-#include "callbacks.h"
+#include "GSPrivate.h"
 
 #include <string.h>
 #include <assert.h>

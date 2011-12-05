@@ -1,3 +1,26 @@
+2011-12-06 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/objc_interface.h:
+	* Source/atomic_ops.h:
+	* Source/callbacks.h:
+	* Source/threading.h:
+	* Source/GSPrivate.h:
+	* Source/CFError.c:
+	* Source/CFArray.c:
+	* Source/CFTimeZone.c:
+	* Source/CFDictionary.c:
+	* Source/CFCalendar.c:
+	* Source/CFBase.c:
+	* Source/CFStringEncoding.c:
+	* Source/CFStringFormat.c:
+	* Source/CFNumber.c:
+	* Source/CFLocale.c:
+	* Source/CFData.c:
+	* Source/CFDate.c:
+	* Source/CFRuntime.c: Replaced four different header files with 
+	GSPrivate.h.
+	* Source/CFString.c: Cleaned up.
+
 2011-12-04 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFCalendar.c: Clean up.

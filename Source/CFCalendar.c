@@ -26,13 +26,13 @@
 
 #include <unicode/ucal.h>
 
-#include "threading.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFDate.h"
 #include "CoreFoundation/CFLocale.h"
 #include "CoreFoundation/CFCalendar.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
+#include "GSPrivate.h"
 
 struct __CFCalendar
 {
@@ -45,7 +45,7 @@ struct __CFCalendar
 
 static CFTypeID _kCFCalendarTypeID = 0;
 static CFCalendarRef _kCFCalendarCurrent = NULL;
-static CFMutex _kCFCalendarLock;
+static GSMutex _kCFCalendarLock;
 
 #define UDATE_TO_ABSOLUTETIME(d) \
   (((d) / 1000.0) - kCFAbsoluteTimeIntervalSince1970)
@@ -138,7 +138,7 @@ static const CFRuntimeClass CFCalendarClass =
 void CFCalendarInitialize (void)
 {
   _kCFCalendarTypeID = _CFRuntimeRegisterClass (&CFCalendarClass);
-  CFMutexInitialize (&_kCFCalendarLock);
+  GSMutexInitialize (&_kCFCalendarLock);
 }
 
 CF_INLINE UCalendarDateFields
@@ -236,7 +236,7 @@ CFCalendarCopyCurrent (void)
 {
   if (_kCFCalendarCurrent == NULL)
     {
-      CFMutexLock (&_kCFCalendarLock);
+      GSMutexLock (&_kCFCalendarLock);
       if (_kCFCalendarCurrent == NULL)
         {
           CFLocaleRef locale;
@@ -252,7 +252,7 @@ CFCalendarCopyCurrent (void)
           CFRelease (locale);
           _kCFCalendarCurrent = cal;
         }
-      CFMutexUnlock (&_kCFCalendarLock);
+      GSMutexUnlock (&_kCFCalendarLock);
     }
   
   return _kCFCalendarCurrent;
