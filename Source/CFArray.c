@@ -36,7 +36,7 @@
 struct __CFArray
 {
   CFRuntimeBase           _parent;
-  const CFArrayCallBacks *_callbacks;
+  const CFArrayCallBacks *_callBacks;
   const void            **_contents;
   CFIndex                 _count;
 };
@@ -44,7 +44,7 @@ struct __CFArray
 struct __CFMutableArray
 {
   CFRuntimeBase           _parent;
-  const CFArrayCallBacks *_callbacks;
+  const CFArrayCallBacks *_callBacks;
   const void            **_contents;
   CFIndex                 _count;
   CFIndex                 _capacity;
@@ -90,11 +90,11 @@ static CFArrayCallBacks _kCFNullArrayCallBacks =
 };
 
 static void
-CFArrayDealloc (CFTypeRef cf)
+CFArrayFinalize (CFTypeRef cf)
 {
   CFIndex idx;
   CFArrayRef array = (CFArrayRef)cf;
-  CFArrayReleaseCallBack release = array->_callbacks->release;
+  CFArrayReleaseCallBack release = array->_callBacks->release;
   CFAllocatorRef alloc = CFGetAllocator(array);
   
   if (release)
@@ -104,7 +104,7 @@ CFArrayDealloc (CFTypeRef cf)
     }
   
   if (CFArrayIsMutable(array))
-    CFAllocatorDeallocate (CFGetAllocator(array), array->_contents);
+    CFAllocatorDeallocate (alloc, array->_contents);
 }
 
 static Boolean
@@ -120,7 +120,7 @@ CFArrayEqual (CFTypeRef cf1, CFTypeRef cf2)
     {
       Boolean result;
       CFIndex idx;
-      CFArrayEqualCallBack equal = a1->_callbacks->equal;
+      CFArrayEqualCallBack equal = a1->_callBacks->equal;
       
       for (idx = 0 ; idx < a1->_count ; ++idx)
         {
@@ -147,7 +147,7 @@ CFArrayCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
   CFStringRef ret;
   CFMutableStringRef str;
   CFArrayRef array = (CFArrayRef)cf;
-  CFArrayCopyDescriptionCallBack copyDesc = array->_callbacks->copyDescription;
+  CFArrayCopyDescriptionCallBack copyDesc = array->_callBacks->copyDescription;
   
   str = CFStringCreateMutable (NULL, 0);
   CFStringAppend (str, CFSTR("{"));
@@ -183,7 +183,7 @@ static CFRuntimeClass CFArrayClass =
   "CFArray",
   NULL,
   (CFTypeRef (*)(CFAllocatorRef, CFTypeRef))CFArrayCreateCopy,
-  CFArrayDealloc,
+  CFArrayFinalize,
   CFArrayEqual,
   CFArrayHash,
   CFArrayCopyFormattingDesc,
@@ -200,6 +200,50 @@ void CFArrayInitialize (void)
 //
 // CFArray
 //
+#define CFARRAY_SIZE sizeof(struct __CFArray) - sizeof(CFRuntimeBase)
+
+CFArrayRef
+CFArrayCreate (CFAllocatorRef allocator, const void **values,
+               CFIndex numValues, const CFArrayCallBacks *callBacks)
+{
+  struct __CFArray *new;
+  CFIndex size;
+  CFIndex idx;
+  CFArrayRetainCallBack retain;
+  
+  size = CFARRAY_SIZE + (sizeof(void*) * numValues);
+  new = (struct __CFArray*) _CFRuntimeCreateInstance (allocator,
+    _kCFArrayTypeID, size, 0);
+  
+  if (new)
+    {
+      if (callBacks == NULL)
+        callBacks = &_kCFNullArrayCallBacks;
+      
+      new->_callBacks = callBacks;
+      new->_contents = (const void**)&new[1];
+      new->_count = numValues;
+      
+      memcpy (new->_contents, values, numValues * sizeof(void *));
+      
+      retain = callBacks->retain;
+      if (retain)
+        for (idx = 0 ; idx < numValues ; ++idx)
+          retain (allocator, values[idx]);
+    }
+  
+  return (CFArrayRef)new;
+}
+
+CFArrayRef
+CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef array)
+{
+  CF_OBJC_FUNCDISPATCH0(_kCFArrayTypeID, CFArrayRef, array, "copy");
+  
+  return CFArrayCreate (allocator, array->_contents, array->_count,
+    array->_callBacks);
+}
+
 void
 CFArrayApplyFunction (CFArrayRef array, CFRange range,
                       CFArrayApplierFunction applier, void *context)
@@ -250,47 +294,6 @@ CFArrayContainsValue (CFArrayRef array, CFRange range, const void *value)
   return (CFArrayGetFirstIndexOfValue(array, range, value) != -1);
 }
 
-CFArrayRef
-CFArrayCreate (CFAllocatorRef allocator, const void **values,
-               CFIndex numValues, const CFArrayCallBacks *callBacks)
-{
-  struct __CFArray *new;
-  CFIndex size;
-  CFIndex idx;
-  CFArrayRetainCallBack retain;
-  
-  size = sizeof(struct __CFArray) - sizeof(CFRuntimeBase) +
-    (sizeof(void*) * numValues);
-  new = (struct __CFArray*) _CFRuntimeCreateInstance (allocator,
-    _kCFArrayTypeID, size, 0);
-  
-  if (new)
-    {
-      if (callBacks == NULL)
-        callBacks = &_kCFNullArrayCallBacks;
-      
-      new->_callbacks = callBacks;
-      new->_contents = (const void**)&new[1];
-      new->_count = numValues;
-      
-      memcpy (new->_contents, values, numValues * sizeof(void *));
-      
-      retain = callBacks->retain;
-      if (retain)
-        for (idx = 0 ; idx < numValues ; ++idx)
-          retain (allocator, values[idx]);
-    }
-  
-  return (CFArrayRef)new;
-}
-
-CFArrayRef
-CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef array)
-{
-  return CFArrayCreate (allocator, array->_contents, array->_count,
-    array->_callbacks);
-}
-
 CFIndex
 CFArrayGetCount (CFArrayRef array)
 {
@@ -328,7 +331,7 @@ CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range,
   contents = array->_contents;
   idx = range.location;
   end = idx + range.length;
-  equal = array->_callbacks->equal;
+  equal = array->_callBacks->equal;
   if (equal)
     {
       while (idx < end)
@@ -365,7 +368,7 @@ CFArrayGetLastIndexOfValue (CFArrayRef array, CFRange range,
   contents = array->_contents;
   start = range.location;
   idx = start + range.length;
-  equal = array->_callbacks->equal;
+  equal = array->_callBacks->equal;
   if (equal)
     {
       while (idx >= start)
@@ -422,35 +425,22 @@ CFArrayGetValues (CFArrayRef array, CFRange range, const void **values)
 //
 // CFMutableArray
 //
-
 #define DEFAULT_ARRAY_CAPACITY 16
+#define CFMUTABLEARRAY_SIZE sizeof(struct __CFArray) - sizeof(CFRuntimeBase)
 
-static Boolean
+CF_INLINE void
 CFArrayCheckCapacityAndGrow (CFMutableArrayRef array, CFIndex newCapacity)
 {
-  void *currentContents;
-  void *newContents;
   struct __CFMutableArray *mArray = (struct __CFMutableArray *)array;
   
-  if (mArray->_capacity >= newCapacity)
-    return true;
-  
-  currentContents = mArray->_contents;
-  newCapacity =
-    ((newCapacity / DEFAULT_ARRAY_CAPACITY) + 1) * DEFAULT_ARRAY_CAPACITY;
-  
-  newContents = CFAllocatorAllocate (CFGetAllocator(mArray),
-    (newCapacity * sizeof(const void *)), 0);
-  if (newContents == NULL)
-    return false;
-  
-  memcpy (newContents, currentContents, sizeof(const void *) * mArray->_count);
-  mArray->_capacity = newCapacity;
-  mArray->_contents = newContents;
-  
-  CFAllocatorDeallocate (CFGetAllocator(mArray), currentContents);
-  
-  return true;
+  if (mArray->_capacity < newCapacity)
+    {
+      newCapacity = mArray->_capacity + DEFAULT_ARRAY_CAPACITY;
+      
+      mArray->_contents = CFAllocatorReallocate (CFGetAllocator(mArray),
+        mArray->_contents, (newCapacity * sizeof(const void *)), 0);
+      mArray->_capacity = newCapacity;
+    }
 }
 
 CFMutableArrayRef
@@ -460,14 +450,14 @@ CFArrayCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
   struct __CFMutableArray *new;
   
   new = (struct __CFMutableArray*) _CFRuntimeCreateInstance (allocator,
-    _kCFArrayTypeID, sizeof(struct __CFArray) - sizeof(CFRuntimeBase), 0);
+    _kCFArrayTypeID, CFMUTABLEARRAY_SIZE, 0);
   
   if (new)
     {
       if (callBacks == NULL)
         callBacks = &_kCFNullArrayCallBacks;
       
-      new->_callbacks = callBacks;
+      new->_callBacks = callBacks;
       
       if (capacity < DEFAULT_ARRAY_CAPACITY)
         capacity = DEFAULT_ARRAY_CAPACITY;
@@ -496,7 +486,7 @@ CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
   if (CF_IS_OBJC(_kCFArrayTypeID, array))
 	  callbacks = &kCFTypeArrayCallBacks;
 	else
-	  callbacks = array->_callbacks;
+	  callbacks = array->_callBacks;
   
   new = CFArrayCreateMutable (allocator, capacity, callbacks);
   if (new)
@@ -517,52 +507,31 @@ CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
 }
 
 void
-CFArrayAppendArray (CFMutableArrayRef array, CFArrayRef otherArray,
-                    CFRange otherRange)
+CFArrayAppendArray (CFMutableArrayRef array, CFArrayRef oArray, CFRange oRange)
 {
-  CFIndex count;
-  CFIndex idx;
-  CFIndex otherIdx;
-  const CFArrayCallBacks *callbacks;
+  CFIndex oLen;
+  const void **values;
   
-  assert (otherRange.location + otherRange.length < CFArrayGetCount (otherArray));
+  CF_OBJC_FUNCDISPATCH3(_kCFArrayTypeID, void, array,
+    "replaceObjectsInRange:withObjectsFromArray:range:",
+    CFRangeMake(CFArrayGetCount(array), 0), oArray, oRange);
   
-  if (!otherArray)
-    return;
+  oLen = oRange.length;
+  values = CFAllocatorAllocate (NULL, oLen * sizeof(void*), 0);
+  CFArrayGetValues (oArray, oRange, values);
   
-  count = CFArrayGetCount (array);
-  if (CFArrayCheckCapacityAndGrow (array, count + otherRange.length))
-    {
-      callbacks = array->_callbacks;
-      for (idx = count, otherIdx = otherRange.location
-          ; idx < count + otherRange.length
-          ; ++idx, ++otherIdx)
-        {
-          array->_contents[idx] = callbacks->retain
-            ? callbacks->retain(NULL, CFArrayGetValueAtIndex (otherArray, otherIdx))
-            : CFArrayGetValueAtIndex (otherArray, otherIdx);
-        }
-      array->_count = count + otherRange.length;
-    }
+  CFArrayReplaceValues (array, CFRangeMake(array->_count, 0), values, oLen);
+  
+  CFAllocatorDeallocate (NULL, values);
 }
 
 void
 CFArrayAppendValue (CFMutableArrayRef array, const void *value)
 {
-  CFIndex newCount;
-  const CFArrayCallBacks *callbacks;
-  
   CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, void, array,
     "addObject:", value);
   
-  newCount = CFArrayGetCount (array) + 1;
-  if (value && CFArrayCheckCapacityAndGrow (array, newCount))
-    {
-      callbacks = array->_callbacks;
-      array->_contents[newCount - 1] = callbacks->retain
-        ? callbacks->retain (NULL, value) : value;
-      array->_count++;
-    }
+  CFArrayReplaceValues (array, CFRangeMake(array->_count, 0), &value, 1);
 }
 
 void
@@ -586,93 +555,97 @@ CFArrayInsertValueAtIndex (CFMutableArrayRef array, CFIndex idx,
   CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
     "insertObject:AtIndex:", value, idx);
   
-  if (value && CFArrayCheckCapacityAndGrow (array, array->_count + 1))
-    {
-      const CFArrayCallBacks *callbacks;
-      const void *moveFrom;
-      void *moveTo;
-      CFIndex moveLength;
-      
-      moveFrom = array->_contents + idx;
-      moveTo = array->_contents + idx + 1;
-      moveLength = array->_count - idx;
-      
-      memmove (moveTo, moveFrom, moveLength);
-      
-      callbacks = array->_callbacks;
-      array->_contents[idx] = callbacks->retain
-        ? callbacks->retain (NULL, value) : value;
-      
-      array->_count++;
-    }
+  CFArrayReplaceValues (array, CFRangeMake(idx, 0), &value, 1);
 }
 
 void
 CFArrayRemoveAllValues (CFMutableArrayRef array)
 {
-  CFArrayReleaseCallBack release;
-  CFIndex idx;
-  CFIndex count;
-  
   CF_OBJC_FUNCDISPATCH0(_kCFArrayTypeID, void, array,
     "removeAllObjects");
   
-  release = array->_callbacks->release;
-  for (idx = 0, count = array->_count ; idx < count ; ++idx)
-    release (NULL, array->_contents[idx]);
-  
-  array->_count = 0;
+  CFArrayReplaceValues (array, CFRangeMake(0, array->_count), NULL, 0);
+  memset (array->_contents, 0, array->_count * sizeof(void*));
 }
 
 void
 CFArrayRemoveValueAtIndex (CFMutableArrayRef array, CFIndex idx)
 {
-  CFArrayReleaseCallBack release;
-  CFIndex count;
-  
   CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, void, array,
     "removeObjectAtIndex:", idx);
   
-  release = array->_callbacks->release;
-  release (NULL, array->_contents[idx]);
-  
-  --(array->_count);
-  for (count = array->_count ; idx < count ; ++idx)
-    array->_contents[idx] = array->_contents[idx+1];
+  CFArrayReplaceValues (array, CFRangeMake(idx, 1), NULL, 0);
 }
 
 void
 CFArrayReplaceValues (CFMutableArrayRef array, CFRange range,
                       const void **newValues, CFIndex newCount)
 {
-  CFIndex i;
-
-  for (i = 0 ; i < range.length ; i++)
-    CFArrayRemoveValueAtIndex(array, range.location);
-
-  for (i = newCount - 1 ; i >= 0 ; i--)
-    CFArrayInsertValueAtIndex(array, range.location, newValues[i]);
+  const void **start;
+  const void **end;
+  CFAllocatorRef alloc;
+  
+  start = array->_contents + range.location;
+  end = start + range.length;
+  alloc = CFGetAllocator (array);
+  
+  /* Release values if needed */
+  if (range.length > 0)
+    {
+      CFArrayReleaseCallBack release = array->_callBacks->release;
+      if (release)
+        {
+          const void **current = start;
+          while (current < end)
+            release(alloc, *(current++));
+        }
+      array->_count -= range.length;
+    }
+  
+  /* Move remaining values if required */
+  if (range.length != newCount)
+    {
+      CFIndex newSize;
+      
+      newSize = array->_count - range.length + newCount;
+      CFArrayCheckCapacityAndGrow (array, newSize);
+      
+      memmove (start + newCount, end,
+        (array->_count - range.location + range.length) * sizeof(void*));
+    }
+  
+  /* Insert new values */
+  if (newCount > 0)
+    {
+      CFArrayRetainCallBack retain = array->_callBacks->retain;
+      const void **current = start;
+      end = current + newCount; // New end...
+      if (retain)
+        {
+          while (current < end)
+            *(current++) = retain(alloc, *(newValues++));
+        }
+      else
+        {
+          while (current < end)
+            *(current++) = *(newValues++);
+        }
+      array->_count += newCount;
+    }
 }
 
 void
 CFArraySetValueAtIndex (CFMutableArrayRef array, CFIndex idx,
                         const void *value)
 {
-  CFArrayReleaseCallBack release;
-  CFArrayRetainCallBack retain;
-  
   CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
     "replaceObjectAtIndex:withObject:", idx, value);
   
-  release = array->_callbacks->release;
-  retain = array->_callbacks->retain;
-  
-  release (NULL, array->_contents[idx]);
-  array->_contents[idx] = retain (NULL, value);
+  CFArrayReplaceValues (array, CFRangeMake(idx, 1), &value, 1);
 }
 
 /* Using the quick-sort algorithm to sort CFArrays. */
-CFIndex
+static CFIndex
 CFArraySortValuesPartition (CFMutableArrayRef array, CFIndex left,
   CFIndex right, CFIndex pivot, CFComparatorFunction comp, void *ctxt)
 {
@@ -698,7 +671,7 @@ CFArraySortValuesPartition (CFMutableArrayRef array, CFIndex left,
   return storeIdx;
 }
 
-void
+static void
 CFArraySortValuesQuickSort (CFMutableArrayRef array, CFIndex left,
   CFIndex right, CFComparatorFunction comp, void *ctxt)
 {
@@ -720,7 +693,9 @@ void
 CFArraySortValues (CFMutableArrayRef array, CFRange range,
                    CFComparatorFunction comparator, void *context)
 {
+  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+    "sortUsingFunction:context:", comparator, context);
+  
   CFArraySortValuesQuickSort (array, range.location,
     range.location + range.length - 1, comparator, context);
 }
-

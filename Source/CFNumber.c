@@ -28,6 +28,8 @@
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
+#include "CoreFoundation/CFString.h"
+#include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFNumber.h"
 #include "GSPrivate.h"
 
@@ -49,7 +51,13 @@ static struct __CFBoolean _kCFBooleanFalse =
 const CFBooleanRef kCFBooleanTrue = &_kCFBooleanTrue;
 const CFBooleanRef kCFBooleanFalse = &_kCFBooleanFalse;
 
-static CFTypeID _kCFBooleanTypeID;
+static CFTypeID _kCFBooleanTypeID = 0;
+
+static CFStringRef
+CFBooleanCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
+{
+  return cf == kCFBooleanTrue ? CFSTR("true") : CFSTR("false");
+}
 
 static const CFRuntimeClass CFBooleanClass =
 {
@@ -60,7 +68,7 @@ static const CFRuntimeClass CFBooleanClass =
   NULL,
   NULL,
   NULL,
-  NULL,
+  CFBooleanCopyFormattingDesc,
   NULL
 };
 
@@ -125,6 +133,19 @@ const CFNumberRef kCFNumberPositiveInfinity = (CFNumberRef)&_kCFNumberPosInf;
 
 static CFTypeID _kCFNumberTypeID = 0;
 
+static CFStringRef
+CFNumberCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
+{
+  CFNumberFormatterRef fmt;
+  CFStringRef str;
+  
+  fmt = CFNumberFormatterCreate (NULL, NULL, kCFNumberFormatterNoStyle);
+  str = CFNumberFormatterCreateStringWithNumber (NULL, NULL, cf);
+  
+  CFRelease (fmt);
+  return str;
+}
+
 static CFRuntimeClass CFNumberClass =
 {
   0,
@@ -134,7 +155,7 @@ static CFRuntimeClass CFNumberClass =
   NULL,
   NULL,
   NULL,
-  NULL,
+  CFNumberCopyFormattingDesc,
   NULL
 };
 
@@ -142,11 +163,11 @@ void CFNumberInitialize (void)
 {
   _kCFNumberTypeID = _CFRuntimeRegisterClass (&CFNumberClass);
   
-  _CFRuntimeInitStaticInstance (&_kCFNumberNaN, _kCFNumberTypeID);
+  _CFRuntimeSetInstanceTypeID ((CFTypeRef)&_kCFNumberNaN, _kCFNumberTypeID);
   _kCFNumberNaN._cfnum._parent._flags.info = kCFNumberDoubleType;
-  _CFRuntimeInitStaticInstance (&_kCFNumberNegInf, _kCFNumberTypeID);
+  _CFRuntimeSetInstanceTypeID ((CFTypeRef)&_kCFNumberNegInf, _kCFNumberTypeID);
   _kCFNumberNegInf._cfnum._parent._flags.info = kCFNumberDoubleType;
-  _CFRuntimeInitStaticInstance (&_kCFNumberPosInf, _kCFNumberTypeID);
+  _CFRuntimeSetInstanceTypeID ((CFTypeRef)&_kCFNumberPosInf, _kCFNumberTypeID);
   _kCFNumberPosInf._cfnum._parent._flags.info = kCFNumberDoubleType;
 }
 
