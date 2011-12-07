@@ -122,6 +122,68 @@ const NSString *kCFISO8601Calendar = @"iso8601"; // Introduced on UTS #35 v2.0
 
 
 //
+// CFDateFormatter keys
+//
+const NSString *kCFDateFormatterIsLenient =
+  @"kCFDateFormatterIsLenient";
+const NSString *kCFDateFormatterTimeZone =
+  @"kCFDateFormatterTimeZone";
+const NSString *kCFDateFormatterCalendarName =
+  @"kCFDateFormatterCalendarName";
+const NSString *kCFDateFormatterDefaultFormat =
+  @"kCFDateFormatterDefaultFormat";
+const NSString *kCFDateFormatterTwoDigitStartDate =
+  @"kCFDateFormatterTwoDigitStartDate";
+const NSString *kCFDateFormatterDefaultDate =
+  @"kCFDateFormatterDefaultDate";
+const NSString *kCFDateFormatterCalendar =
+  @"kCFDateFormatterCalendar";
+const NSString *kCFDateFormatterEraSymbols =
+  @"kCFDateFormatterEraSymbols";
+const NSString *kCFDateFormatterMonthSymbols =
+  @"kCFDateFormatterMonthSymbols";
+const NSString *kCFDateFormatterShortMonthSymbols =
+  @"kCFDateFormatterShortMonthSymbols";
+const NSString *kCFDateFormatterWeekdaySymbols =
+  @"kCFDateFormatterWeekdaySymbols";
+const NSString *kCFDateFormatterShortWeekdaySymbols =
+  @"kCFDateFormatterShortWeekdaySymbols";
+const NSString *kCFDateFormatterAMSymbol =
+  @"kCFDateFormatterAMSymbol";
+const NSString *kCFDateFormatterPMSymbol =
+  @"kCFDateFormatterPMSymbol";
+const NSString *kCFDateFormatterLongEraSymbols =
+  @"kCFDateFormatterLongEraSymbols";
+const NSString *kCFDateFormatterVeryShortMonthSymbols =
+  @"kCFDateFormatterVeryShortMonthSymbols";
+const NSString *kCFDateFormatterStandaloneMonthSymbols =
+  @"kCFDateFormatterStandaloneMonthSymbols";
+const NSString *kCFDateFormatterShortStandaloneMonthSymbols =
+  @"kCFDateFormatterShortStandaloneMonthSymbols";
+const NSString *kCFDateFormatterVeryShortStandaloneMonthSymbols =
+  @"kCFDateFormatterVeryShortStandaloneMonthSymbols";
+const NSString *kCFDateFormatterVeryShortWeekdaySymbols =
+  @"kCFDateFormatterVeryShortWeekdaySymbols";
+const NSString *kCFDateFormatterStandaloneWeekdaySymbols =
+  @"kCFDateFormatterStandaloneWeekdaySymbols";
+const NSString *kCFDateFormatterShortStandaloneWeekdaySymbols =
+  @"kCFDateFormatterShortStandaloneWeekdaySymbols";
+const NSString *kCFDateFormatterVeryShortStandaloneWeekdaySymbols =
+  @"kCFDateFormatterVeryShortStandaloneWeekdaySymbols";
+const NSString *kCFDateFormatterQuarterSymbols =
+  @"kCFDateFormatterQuarterSymbols";
+const NSString *kCFDateFormatterShortQuarterSymbols =
+  @"kCFDateFormatterShortQuarterSymbols";
+const NSString *kCFDateFormatterStandaloneQuarterSymbols =
+  @"kCFDateFormatterStandaloneQuarterSymbols";
+const NSString *kCFDateFormatterShortStandaloneQuarterSymbols =
+  @"kCFDateFormatterShortStandaloneQuarterSymbols";
+const NSString *kCFDateFormatterGregorianStartDate =
+  @"kCFDateFormatterGregorianStartDate";
+
+
+
+//
 // CFNumberFormatter keys
 //
 const NSString *kCFNumberFormatterCurrencyCode = 

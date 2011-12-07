@@ -22,6 +22,7 @@ libgnustep-corebase_C_FILES = \
   CFCalendar.c \
   CFData.c \
   CFDate.c \
+  CFDateFormatter.c \
   CFDictionary.c \
   CFError.c \
   CFLocale.c \
@@ -50,6 +51,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFCharacterSet.h \
   CFData.h \
   CFDate.h \
+  CFDateFormatter.h \
   CFDictionary.h \
   CFError.h \
   CFLocale.h \

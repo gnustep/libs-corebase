@@ -1,5 +1,13 @@
 2011-12-07 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/Identifiers.m:
+	* Source/GNUmakefile:
+	* Source/CFDateFormatter.c:
+	* Headers/CoreFoundation/CFDateFormatter.h: Added CFDateFormatter
+	skeleton.
+
+2011-12-07 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFArray.c: Cleaned up CFArrayReplaceValue() and had 
 	other functions call it to insert, remove, etc.
 	* Source/CFNumber.c: Added description function.
