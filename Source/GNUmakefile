@@ -18,6 +18,7 @@ libgnustep-corebase_OBJC_FILES = \
 
 libgnustep-corebase_C_FILES = \
   CFArray.c \
+  CFBag.c \
   CFBase.c \
   CFCalendar.c \
   CFData.c \
@@ -43,6 +44,7 @@ libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
 
 libgnustep-corebase_HEADER_FILES = \
   CoreFoundation.h \
+  CFBag.h \
   CFBase.h \
   CFBundle.h \
   CFArray.h \

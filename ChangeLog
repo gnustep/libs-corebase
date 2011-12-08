@@ -1,3 +1,9 @@
+2011-12-08 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFBag.c:
+	* Headers/CoreFoundation/CFBag.h: Added CFBag.  Code is based on
+	CFDicitonary implementation.
+
 2011-12-07 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/Identifiers.m:
