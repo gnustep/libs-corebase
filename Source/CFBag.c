@@ -153,7 +153,7 @@ const CFBagCallBacks kCFTypeBagCallBacks =
   CFHash
 };
 
-const CFBagCallBacks _kCFNullBagCallBacks =
+static const CFBagCallBacks _kCFNullBagCallBacks =
 {
   0,
   NULL,
@@ -303,15 +303,14 @@ void
 CFBagApplyFunction (CFBagRef bag, CFBagApplierFunction applier, void *context)
 {
   CFIndex idx;
-  const void **array;
+  const void *value;
   
   if (applier == NULL)
     return;
   
   idx = 0;
-  array = bag->_ht.array;
-  while (GSHashTableNext ((struct GSHashTable*)&bag->_ht, &idx))
-    applier (array[idx++], context);
+  while ((value = GSHashTableNext ((struct GSHashTable*)&bag->_ht, &idx)))
+    applier (value, context);
 }
 
 Boolean
@@ -518,7 +517,7 @@ CFBagRemoveValue (CFMutableBagRef bag, const void *value)
   CFBagCheckCapacityAndGrow (bag);
   
   GSHashTableRemoveValue (&bag->_ht, value, CFGetAllocator(bag),
-    bag->_callBacks->retain, bag->_callBacks->hash,
+    bag->_callBacks->release, bag->_callBacks->hash,
     bag->_callBacks->equal, CFBagRemoveValueAction, NULL);
 }
 

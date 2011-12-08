@@ -165,7 +165,7 @@ const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks =
   CFEqual
 };
 
-const CFDictionaryKeyCallBacks _kCFNullDictionaryKeyCallBacks =
+static const CFDictionaryKeyCallBacks _kCFNullDictionaryKeyCallBacks =
 {
   0,
   NULL,
@@ -666,7 +666,7 @@ CFDictionaryRemoveValue (CFMutableDictionaryRef dict, const void *key)
   context.d = dict;
   
   GSHashTableRemoveValue (&dict->_ht, key, context.a,
-    dict->_keyCallBacks->retain, dict->_keyCallBacks->hash,
+    dict->_keyCallBacks->release, dict->_keyCallBacks->hash,
     dict->_keyCallBacks->equal, CFDictionaryRemoveValueAction, &context);
 }
 

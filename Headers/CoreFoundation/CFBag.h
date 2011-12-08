@@ -62,8 +62,8 @@ struct CFBagCallBacks
   CFBagHashCallBack hash;
 };
 
-CF_EXPORT const CFBagCallBacks kCFCopyStringBagKeyCallBacks;
-CF_EXPORT const CFBagCallBacks kCFTypeBagKeyCallBacks;
+CF_EXPORT const CFBagCallBacks kCFCopyStringBagCallBacks;
+CF_EXPORT const CFBagCallBacks kCFTypeBagCallBacks;
 
 
 

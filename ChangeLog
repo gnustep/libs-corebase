@@ -1,3 +1,13 @@
+2011-12-0 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFSet.c:
+	* Headers/CoreFoundation/CFSet.h:
+	* Source/GNUmakefile: New CFSet based on CFBag.
+	* Source/CFBag.c:
+	* Headers/CoreFoundation/CFBag.h: Fixed copy-and-paste error.
+	* Source/GSHashTable.h:
+	* Source/GSHashTable.c: Fixed definition of GSHashTableRemoveValue().
+
 2011-12-08 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFBag.c:

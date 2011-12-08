@@ -119,7 +119,7 @@ GSHashTableSetValue (struct GSHashTable *ht, const void *value,
 
 void
 GSHashTableRemoveValue (struct GSHashTable *ht, const void *value,
-  CFAllocatorRef alloc, CFTypeRef (*fRelease)(CFAllocatorRef, const void*),
+  CFAllocatorRef alloc, void (*fRelease)(CFAllocatorRef, const void*),
   CFHashCode (*fHash)(const void *),
   Boolean (*fEqual)(const void*, const void*),
   Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
