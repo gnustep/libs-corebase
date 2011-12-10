@@ -47,11 +47,6 @@ static CFTypeID _kCFCalendarTypeID = 0;
 static CFCalendarRef _kCFCalendarCurrent = NULL;
 static GSMutex _kCFCalendarLock;
 
-#define UDATE_TO_ABSOLUTETIME(d) \
-  (((d) / 1000.0) - kCFAbsoluteTimeIntervalSince1970)
-#define ABSOLUTETIME_TO_UDATE(at) \
-  (((at) + kCFAbsoluteTimeIntervalSince1970) * 1000.0)
-
 static void
 CFCalendarOpenUCalendar (CFCalendarRef cal)
 {

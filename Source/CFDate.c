@@ -67,11 +67,6 @@ void CFDateInitialize (void)
 /* isleap() defined in tzfile.h */
 #define isleap(y) (((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
 
-#define UDATE_TO_ABSOLUTETIME(d) \
-  (((d) / 1000.0) - kCFAbsoluteTimeIntervalSince1970)
-#define ABSOLUTETIME_TO_UDATE(at) \
-  (((at) + kCFAbsoluteTimeIntervalSince1970) * 1000.0)
-
 CFComparisonResult
 CFDateCompare (CFDateRef theDate, CFDateRef otherDate, void *context)
 {

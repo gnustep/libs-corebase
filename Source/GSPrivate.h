@@ -34,6 +34,11 @@
 
 
 
+#define UDATE_TO_ABSOLUTETIME(d) \
+  (((d) / 1000.0) - kCFAbsoluteTimeIntervalSince1970)
+#define ABSOLUTETIME_TO_UDATE(at) \
+  (((at) + kCFAbsoluteTimeIntervalSince1970) * 1000.0)
+
 #if defined(_WIN32)
 
 #include <windows.h>
