@@ -1,11 +1,23 @@
-2011-12-0 Stefan Bidigaray <stefanbidi@gmail.com>
+2011-12-15 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFBag.c:
+	* Source/CFDictionary.c:
+	* Source/CFSet.c:
+	* Source/GSHashTable.c:
+	* Source/GSHashTable.h: Redesigned GSHashTable to reduce code 
+	duplication.
+	* Source/GSPrivate.h: Moved hash functions here.
+	* Headers/CoreFoundation/CFBase.h: Made CFIndex and CFTypeID
+	a long integer everywhere again, including Windows.
+
+2011-12-10 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFCalendar.c:
 	* Source/CFDate.c:
 	* Source/GSPrivate.h: Moved UDate to CFAbsoluteTime conversion macro.
 	* Source/CFDateFormatter.c: Added implementation to most functions.
 
-2011-12-0 Stefan Bidigaray <stefanbidi@gmail.com>
+2011-12-10 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFSet.c:
 	* Headers/CoreFoundation/CFSet.h:

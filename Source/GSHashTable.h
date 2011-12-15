@@ -26,101 +26,121 @@
 
 #include "CoreFoundation/CFBase.h"
 
-/* GSHashTable is used internally by CoreBase to implement CFDictionary,
- * CFSet and CFBag.  The CF-types are reponsible for allocating memory and
- * managing the hash table.
- * 
- * The table uses open addressing + double hashing to resolve collisions.
- */
+typedef CFStringRef (*GSHashTableCopyDescriptionCallBack)(const void *value);
+typedef Boolean  (*GSHashTableEqualCallBack) (const void *value1,
+  const void *value2);
+typedef CFHashCode    (*GSHashTableHashCallBack) (const void *value);
+typedef void (*GSHashTableReleaseCallBack) (CFAllocatorRef allocator,
+  const void *value);
+typedef const void *(*GSHashTableRetainCallBack) (CFAllocatorRef allocator,
+  const void *value);
 
-struct GSHashTable
+typedef struct GSHashTableKeyCallBacks GSHashTableKeyCallBacks;
+struct GSHashTableKeyCallBacks
 {
-  CFIndex       count;
-  CFIndex       size;
-  const void  **array;
+  CFIndex version;
+  GSHashTableRetainCallBack retain;
+  GSHashTableReleaseCallBack release;
+  GSHashTableRetainCallBack copyDescrition;
+  GSHashTableEqualCallBack equal;
+  GSHashTableHashCallBack hash;
 };
 
-/* This number is recommended by Thomas Wang if the expansion formula is
- * 2*n + 55 (http://www.cris.com/~ttwang/tech/mprime.htm).
- */
-#define _kGSHashTableDefaultSize 23
-
-CF_INLINE CFIndex
-GSHashTableNextSize (CFIndex num)
+typedef struct GSHashTableValueCallBacks GSHashTableValueCallBacks;
+struct GSHashTableValueCallBacks
 {
-  num += num + 55;
-  return num;
-}
+  CFIndex version;
+  GSHashTableRetainCallBack retain;
+  GSHashTableReleaseCallBack release;
+  GSHashTableRetainCallBack copyDescrition;
+  GSHashTableEqualCallBack equal;
+};
 
-CF_INLINE Boolean
-GSHashTableIsSuitableSize (CFIndex num, CFIndex max)
+typedef struct GSHashTableBucket GSHashTableBucket;
+struct GSHashTableBucket
 {
-  return (((3 * num) / 4) >= max);
-}
+  CFIndex count;
+  const void *key;
+  const void *value;
+};
 
-CF_INLINE CFIndex
-GSHashTableGetSuitableSize (CFIndex start, CFIndex min)
+typedef struct GSHashTable *GSHashTableRef;
+struct GSHashTable
 {
-  CFIndex size = start;
-  while (!GSHashTableIsSuitableSize (size, min))
-    size = GSHashTableNextSize (size);
-  return size;
-}
+  CFRuntimeBase  _parent;
+  CFAllocatorRef _allocator;
+  CFIndex        _capacity;
+  CFIndex        _count;
+  CFIndex        _total; // Used for CFBagGetCount()
+  const GSHashTableKeyCallBacks *_keyCallBacks;
+  const GSHashTableValueCallBacks *_valueCallBacks;
+  struct GSHashTableBucket *_buckets;
+};
 
-/* Returns the index of a slot matching value.  If value is not found,
- * returns the index of an empty slot.
- * Note: Table must not be full.
- * Warning: Do not try to find a NULL value.
- */
+void
+GSHashTableFinalize (GSHashTableRef table);
+
+Boolean
+GSHashTableEqual (GSHashTableRef table1, GSHashTableRef table2);
+
+CFHashCode
+GSHashTableHash (GSHashTableRef table);
+
+GSHashTableRef
+GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
+  const void **keys, const void **values, CFIndex count,
+  const GSHashTableKeyCallBacks *keyCallBacks,
+  const GSHashTableValueCallBacks *valueCallBacks);
+
+GSHashTableRef
+GSHashTableCreateCopy (CFAllocatorRef alloc, GSHashTableRef table);
+
+Boolean
+GSHashTableContainsKey (GSHashTableRef table, const void *key);
+
+Boolean
+GSHashTableContainsValue (GSHashTableRef table, const void *value);
+
 CFIndex
-GSHashTableFind (struct GSHashTable *ht, const void *value,
-  CFHashCode (*fHash)(const void *),
-  Boolean (*fEqual)(const void*, const void*));
+GSHashTableGetCount (GSHashTableRef table);
 
-/* This function iterates through the array stopping at every slot where
- * a value exists.  Initially, *index should be set to zero (0) and cannot be
- * NULL.  Returns false whenever there aren't any more slots.
- */
+CFIndex
+GSHashTableGetCountOfKey (GSHashTableRef table, const void *key);
+
+CFIndex
+GSHashTableGetCountOfValue (GSHashTableRef table, const void *value);
+
+void
+GSHashTableGetKeysAndValues (GSHashTableRef table, const void **keys,
+  const void **values);
+
 const void *
-GSHashTableNext (struct GSHashTable *ht, CFIndex *index);
+GSHashTableGetValue (GSHashTableRef table, const void *key);
+
+
+
+GSHashTableRef
+GSHashTableCreateMutable (CFAllocatorRef allocator,
+  CFTypeID typeID, CFIndex capacity,
+  const GSHashTableKeyCallBacks *keyCallBacks,
+  const GSHashTableValueCallBacks *valueCallBacks);
+
+GSHashTableRef
+GSHashTableCreateMutableCopy (CFAllocatorRef alloc, GSHashTableRef table,
+  CFIndex capacity);
 
 void
-GSHashTableCopyValues (struct GSHashTable *ht1, struct GSHashTable *ht2,
-  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
-  CFHashCode (*fHash)(const void *),
-  Boolean (*fEqual)(const void*, const void*),
-  void (*fAction)(struct GSHashTable*, CFIndex,
-    struct GSHashTable*, CFIndex, void*),
-  void *context);
+GSHashTableAddValue (GSHashTableRef table, const void *key, const void *value);
 
 void
-GSHashTableAddValue (struct GSHashTable *ht, const void *value,
-  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
-  CFHashCode (*fHash)(const void *),
-  Boolean (*fEqual)(const void*, const void*),
-  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
-  void *context);
+GSHashTableReplaceValue (GSHashTableRef table, const void *key,
+  const void *value);
 
 void
-GSHashTableReplaceValue (struct GSHashTable *ht, const void *value,
-  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
-  CFHashCode (*fHash)(const void *),
-  Boolean (*fEqual)(const void*, const void*),
-  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
-  void *context);
+GSHashTableSetValue (GSHashTableRef table, const void *key, const void *value);
 
 void
-GSHashTableSetValue (struct GSHashTable *ht, const void *value,
-  CFAllocatorRef alloc, CFTypeRef (*fRetain)(CFAllocatorRef, const void*),
-  CFHashCode (*fHash)(const void *),
-  Boolean (*fEqual)(const void*, const void*),
-  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
-  void *context);
+GSHashTableRemoveAll (GSHashTableRef table);
 
 void
-GSHashTableRemoveValue (struct GSHashTable *ht, const void *value,
-  CFAllocatorRef alloc, void (*fRelease)(CFAllocatorRef, const void*),
-  CFHashCode (*fHash)(const void *),
-  Boolean (*fEqual)(const void*, const void*),
-  Boolean (*fAction)(struct GSHashTable*, CFIndex, Boolean, void*),
-  void *context);
+GSHashTableRemoveValue (GSHashTableRef table, const void *key);

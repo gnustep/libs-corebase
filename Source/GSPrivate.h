@@ -49,19 +49,8 @@
 #define GSMutexUnlock(x) LeaveCriticalSection(x)
 #define GSMutexDestroy(x) DeleteCriticalSection(x)
 
-#if defined(_WIN64)
-
-#define GSAtomicIncrementCFIndex(ptr) \
-  InterlockedIncrement64((LONGLONG volatile*)ptr)
-#define GSAtomicDecrementCFIndex(ptr) \
-  InterlockedDecrement64((LONGLONG volatile*)ptr)
-  
-#else /* _WIN64 */
-
 #define GSAtomicIncrementCFIndex(ptr) InterlockedIncrement((LONG volatile*)ptr)
 #define GSAtomicDecrementCFIndex(ptr) InterlockedDecrement((LONG volatile*)ptr)
-
-#endif
 
 #else /* _WIN32 */
 
@@ -85,6 +74,67 @@
 #endif
 
 #endif /* _WIN32 */
+
+
+
+/* All three of these function are taken from Thomas Wang's website
+ * (http://www.concentric.net/~Ttwang/tech/inthash.htm).  As far as I know,
+ * these algorithm are in the public domain.
+ */
+CF_INLINE UInt64
+GSHashInt64 (UInt64 value)
+{
+  register UInt64 hash = value;
+  hash = (~hash) + (hash << 21);
+  hash = hash ^ (hash >> 24);
+  hash = (hash + (hash << 3)) + (hash << 8);
+  hash = hash ^ (hash >> 14);
+  hash = (hash + (hash << 2)) + (hash << 4);
+  hash = hash ^ (hash >> 28);
+  hash = hash + (hash << 31);
+  return hash;
+}
+
+CF_INLINE UInt32
+GSHashInt32 (UInt32 value)
+{
+  register UInt32 hash = value;
+  hash = ~hash + (hash << 15);
+  hash = hash ^ (hash >> 12);
+  hash = hash + (hash << 2);
+  hash = hash ^ (hash >> 4);
+  hash = (hash + (hash << 3)) + (hash << 11);
+  hash = hash ^ (hash >> 16);
+  return hash;
+}
+
+CF_INLINE UInt32
+GSHashInt64ToInt32 (UInt64 value)
+{
+  register UInt64 hash = value;
+  hash = (~hash) + (hash << 18);
+  hash = hash ^ (hash >> 31);
+  hash = (hash + (hash << 2)) + (hash << 4);
+  hash = hash ^ (hash >> 11);
+  hash = hash + (hash << 6);
+  hash = hash ^ (hash >> 22);
+  return (UInt32)hash;
+}
+
+CF_INLINE CFHashCode
+GSHashPointer (const void *value)
+{
+#if defined(__LP64__)
+/* 64-bit operating systems */
+  return (CFHashCode)GSHashInt64 ((UInt64)value);
+#elif defined(_WIN64)
+/* The 64-bit operating system with 32-bit longs */
+  return (CFHashCode)GSHashInt64ToInt32 ((UInt64)value);
+#else
+/* 32-bit operating systems */
+  return (CFHashCode)GSHashInt32 ((UInt32)value);
+#endif
+}
 
 
 
