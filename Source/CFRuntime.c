@@ -415,6 +415,7 @@ extern void CFNumberFormatterInitialize (void);
 extern void CFStringInitialize (void);
 extern void CFStringEncodingInitialize (void);
 extern void CFTimeZoneInitialize (void);
+extern void CFTreeInitialize (void);
 extern void CFUUIDInitialize (void);
 
 //void CFInitialize (void) __attribute__((constructor));
@@ -444,5 +445,6 @@ void CFInitialize (void)
   CFStringInitialize ();
   CFStringEncodingInitialize ();
   CFTimeZoneInitialize ();
+  CFTreeInitialize ();
   CFUUIDInitialize ();
 }

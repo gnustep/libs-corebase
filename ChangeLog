@@ -1,5 +1,11 @@
 2011-12-15 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFRuntime.c:
+	* Source/CFTree.c:
+	* Headers/CoreFoundation/CFTree.h: Add CFTree skeleton.
+
+2011-12-15 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFBag.c:
 	* Source/CFDictionary.c:
 	* Source/CFSet.c:

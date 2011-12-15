@@ -217,7 +217,7 @@ GSHashTableFindBucket (GSHashTableRef table, const void *key)
         }
     }
   
-  printf("\n");
+//  printf("\n");
   return &buckets[idx];
 }
 

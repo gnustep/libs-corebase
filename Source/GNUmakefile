@@ -36,6 +36,7 @@ libgnustep-corebase_C_FILES = \
   CFStringFormat.c \
   CFStringUtilities.c \
   CFTimeZone.c \
+  CFTree.c \
   CFUUID.c \
   GSHashTable.c
 
