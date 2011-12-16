@@ -53,7 +53,7 @@ struct CFTreeContext
 // Creating Trees
 //
 CF_EXPORT CFTreeRef
-CFTreeCreate (CFTreeRef tree, const CFTreeContext *context);
+CFTreeCreate (CFAllocatorRef allocator, const CFTreeContext *context);
 
 //
 // Modifying a Tree

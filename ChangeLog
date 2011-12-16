@@ -1,3 +1,7 @@
+2011-12-1 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFTree.c: Added code.
+
 2011-12-15 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.c:

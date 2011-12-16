@@ -28,25 +28,52 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFTree.h"
 
+#include <string.h>
+
 
 
 static CFTypeID _kCFTreeTypeID = 0;
 
 struct __CFTree
 {
-  CFRuntimeBase _parent;
+  CFRuntimeBase parent;
+  const CFTreeContext *_context;
+  CFTreeRef     _parent;
+  CFTreeRef     _nextSibling;
+  CFTreeRef     _firstChild;
+  CFTreeRef     _lastChild;
 };
+
+static CFTreeContext _kCFNullTreeContext =
+{
+  0,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+
 
 static void
 CFTreeFinalize (CFTypeRef cf)
 {
+  CFTreeRef tree = (CFTreeRef)cf;
+  CFTreeRef child;
+  CFTreeRef tmp;
+  CFTreeReleaseCallBack release;
   
-}
-
-static CFStringRef
-CFTreeCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
-{
-  return CFSTR("");
+  child = tree->_firstChild;
+  while (child)
+    {
+      tmp = child->_nextSibling;
+      CFTreeFinalize (child); // No need to go through CFRelease().
+      child = tmp;
+    }
+  
+  release = tree->_context->release;
+  if (release)
+    release (tree);
 }
 
 static CFRuntimeClass CFTreeClass =
@@ -58,7 +85,7 @@ static CFRuntimeClass CFTreeClass =
   CFTreeFinalize,
   NULL,
   NULL,
-  CFTreeCopyFormattingDesc,
+  NULL,
   NULL
 };
 
@@ -75,105 +102,216 @@ CFTreeGetTypeID (void)
   return _kCFTreeTypeID;
 }
 
+#define CFTREE_SIZE (sizeof(struct __CFTree) - sizeof(CFRuntimeBase))
+
 CFTreeRef
-CFTreeCreate (CFTreeRef tree, const CFTreeContext *context)
+CFTreeCreate (CFAllocatorRef allocator, const CFTreeContext *context)
 {
-  return NULL;
+  CFTreeRef new;
+  
+  new = (CFTreeRef)_CFRuntimeCreateInstance (allocator, _kCFTreeTypeID,
+    CFTREE_SIZE, 0);
+  if (new)
+    {
+      if (context == NULL)
+        context = &_kCFNullTreeContext;
+      new->_context = context;
+    }
+  
+  return new;
 }
 
 void
 CFTreeAppendChild (CFTreeRef tree, CFTreeRef newChild)
 {
+  CFTreeRetainCallBack retain = newChild->_context->retain;
   
+  newChild->_parent = tree;
+  if (retain)
+    retain (newChild);
+  
+  if (tree->_firstChild == NULL)
+    {
+      tree->_firstChild = newChild;
+      tree->_lastChild = newChild;
+    }
+  else
+    {
+      tree->_lastChild->_nextSibling = newChild;
+      tree->_lastChild = newChild;
+    }
 }
 
 void
 CFTreeInsertSibling (CFTreeRef tree, CFTreeRef newSibling)
 {
+  CFTreeRef parent = tree->_parent;
   
+  if (parent != NULL && newSibling->_parent == NULL)
+    {
+      CFTreeRetainCallBack retain = newSibling->_context->retain;
+      
+      newSibling->_parent = parent;
+      if (retain)
+        retain (newSibling);
+      
+      if (parent->_lastChild == tree)
+        parent->_lastChild = newSibling;
+      else
+        newSibling->_nextSibling = tree->_nextSibling;
+      
+      tree->_nextSibling = newSibling;
+    }
 }
 
 void
 CFTreeRemoveAllChildren (CFTreeRef tree)
 {
+  CFTreeRef child;
+  CFTreeRef tmp;
   
+  child = tree->_firstChild;
+  while (child)
+    {
+      tmp = child->_nextSibling;
+      CFTreeFinalize (child);
+      child = tmp;
+    }
+  
+  tree->_firstChild = NULL;
+  tree->_lastChild = NULL;
 }
 
 void
 CFTreePrependChild (CFTreeRef tree, CFTreeRef newChild)
 {
-  
+  newChild->_parent = tree;
+  newChild->_nextSibling = tree->_firstChild;
+  tree->_firstChild = newChild;
+  if (tree->_lastChild == NULL)
+    tree->_lastChild = NULL;
 }
 
 void
 CFTreeRemove (CFTreeRef tree)
 {
+  CFTreeRef child;
+  CFTreeRef previousSibling;
   
+  previousSibling = NULL;
+  child = tree->_firstChild;
+  while (child != previousSibling)
+    child = child->_nextSibling;
+  
+  if (previousSibling)
+    previousSibling->_nextSibling = tree->_nextSibling;
+  
+  CFTreeFinalize (tree);
 }
 
 void
 CFTreeSetContext (CFTreeRef tree, const CFTreeContext *context)
 {
-  
+  if (context == NULL)
+    context = &_kCFNullTreeContext;
+  tree->_context = context;
 }
 
 void
 CFTreeSortChildren (CFTreeRef tree, CFComparatorFunction comp, void *context)
 {
-  
+  // FIXME
 }
 
 CFTreeRef
 CFTreeFindRoot (CFTreeRef tree)
 {
-  return NULL;
+  while (tree->_parent != NULL)
+    tree = tree->_parent;
+  
+  return tree;
 }
 
 CFTreeRef
 CFTreeGetChildAtIndex (CFTreeRef tree, CFIndex idx)
 {
-  return NULL;
+  CFIndex j;
+  CFTreeRef child;
+  
+  j = 0;
+  child = tree->_firstChild;
+  while (j++ < idx)
+    child = child->_nextSibling;
+  
+  return child;
 }
 
 CFIndex
 CFTreeGetChildCount (CFTreeRef tree)
 {
-  return 0;
+  CFIndex count;
+  CFTreeRef child;
+  
+  count = 0;
+  child = tree->_firstChild;
+  while (child)
+    {
+      child = child->_nextSibling;
+      ++count;
+    }
+  
+  return count;
 }
 
 void
 CFTreeGetChildren (CFTreeRef tree, CFTreeRef *children)
 {
+  CFIndex idx;
+  CFTreeRef child;
   
+  idx = 0;
+  child = tree->_firstChild;
+  while (child)
+    {
+      children[idx++] = child;
+      child = child->_nextSibling;
+    }
 }
 
 void
 CFTreeGetContext (CFTreeRef tree, CFTreeContext *context)
 {
-  
+  memcpy (context, tree->_context, sizeof(CFTreeContext));
 }
 
 CFTreeRef
 CFTreeGetFirstChild (CFTreeRef tree)
 {
-  return NULL;
+  return tree->_firstChild;
 }
 
 CFTreeRef
 CFTreeGetNextSibling (CFTreeRef tree)
 {
-  return NULL;
+  return tree->_nextSibling;
 }
 
 CFTreeRef
 CFTreeGetParent (CFTreeRef tree)
 {
-  return NULL;
+  return tree->_parent;
 }
 
 void
 CFTreeApplyFunctionToChildren (CFTreeRef tree, CFTreeApplierFunction applier,
   void *context)
 {
+  CFTreeRef child;
   
+  child = tree->_firstChild;
+  while (child)
+    {
+      applier (child, context);
+      child = child->_nextSibling;
+    }
 }
