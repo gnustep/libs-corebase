@@ -68,6 +68,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFString.h \
   CFStringEncodingExt.h \
   CFTimeZone.h \
+  CFTree.h \
   CFURL.h \
   CFUUID.h
 
