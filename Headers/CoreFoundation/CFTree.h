@@ -3,7 +3,7 @@
    Copyright (C) 2010 Free Software Foundation, Inc.
    
    Written by: Stefan Bidigaray
-   Date: December, 2012
+   Date: December, 2011
    
    This file is part of the GNUstep CoreBase Library.
    

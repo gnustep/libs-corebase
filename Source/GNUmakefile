@@ -38,6 +38,8 @@ libgnustep-corebase_C_FILES = \
   CFTimeZone.c \
   CFTree.c \
   CFUUID.c \
+  CFXMLNode.c \
+  CFXMLParser.c \
   GSHashTable.c
 
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += `icu-config --ldflags-libsonly`
@@ -70,7 +72,9 @@ libgnustep-corebase_HEADER_FILES = \
   CFTimeZone.h \
   CFTree.h \
   CFURL.h \
-  CFUUID.h
+  CFUUID.h \
+  CFXMLNode.h \
+  CFXMLParser.h
 
 libgnustep-corebase_NEEDS_GUI = NO
 

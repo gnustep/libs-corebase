@@ -1,4 +1,12 @@
-2011-12-1 Stefan Bidigaray <stefanbidi@gmail.com>
+2011-12-16 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFXMLNode.h:
+	* Headers/CoreFoundation/CFXMLParser.h:
+	* Source/CFXMLNode.c:
+	* Source/CFXMLParser.c:
+	* Source/GNUmakefile: Added skeleton for XML types.
+
+2011-12-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFTree.c: Added code.
 
