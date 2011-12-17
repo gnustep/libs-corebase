@@ -33,7 +33,7 @@
 @class NSURL;
 typedef NSURL *CFURLRef;
 #else
-typedef struct CFURL *CFURLRef;
+typedef const struct __CFURL *CFURLRef;
 #endif
 
 //
