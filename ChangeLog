@@ -1,3 +1,7 @@
+2011-12-17 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFXMLNode.c: Started adding code.
+
 2011-12-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CFXMLNode.h:
