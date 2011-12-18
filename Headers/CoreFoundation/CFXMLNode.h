@@ -30,6 +30,7 @@
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFTree.h>
 #include <CoreFoundation/CFURL.h>
 
 CF_EXTERN_C_BEGIN
@@ -172,6 +173,17 @@ CF_EXPORT CFIndex
 CFXMLNodeGetVersion (CFXMLNodeRef node);
 
 
+
+//
+// CFXMLTree
+//
+typedef CFTreeRef CFXMLTreeRef;
+
+CF_EXPORT CFXMLTreeRef
+CFXMLTreeCreateWithNode (CFAllocatorRef allocator, CFXMLNodeRef node);
+
+CF_EXPORT CFXMLNodeRef
+CFXMLTreeGetNode (CFXMLTreeRef xmlTree);
 
 CF_EXTERN_C_END
 

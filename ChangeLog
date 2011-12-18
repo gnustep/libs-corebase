@@ -1,3 +1,12 @@
+2011-12-19 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFXMLParser.c: Added some code to CFXMLTree.
+	* Source/CFTree.c: Changes to support CFXMLTree.
+	* Source/Identifier.m: Added CFXMLTree error dictionary keys.
+	* Headers/CoreFoundation/CFXMLNode.h:
+	* Headers/CoreFoundation/CFXMLParser.h: Moved declarations to 
+	correct header.
+
 2011-12-18 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFXMLNode.c: Added rest of the code.

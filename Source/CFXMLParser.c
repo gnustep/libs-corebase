@@ -25,6 +25,8 @@
 */
 
 #include "CoreFoundation/CFRuntime.h"
+#include "CoreFoundation/CFDictionary.h"
+#include "CoreFoundation/CFNumber.h"
 #include "CoreFoundation/CFXMLParser.h"
 
 static CFTypeID _kCFXMLParserTypeID = 0;
@@ -117,34 +119,183 @@ CFXMLParserParse (CFXMLParserRef parser)
 
 
 
+static void *
+CFXMLTreeCreateXMLStructure (CFXMLParserRef parser,
+  CFXMLNodeRef nodeDesc, void *info)
+{
+  return CFXMLTreeCreateWithNode (info, nodeDesc);
+}
+
+void
+CFXMLTreeAddChild (CFXMLParserRef parser, void *parent, void *child,
+  void *info)
+{
+  CFTreeAppendChild (parent, child);
+}
+
+void
+CFXMLEndXMLStructure (CFXMLParserRef parser, void *xmlType, void *info)
+{
+  // xmlType is of type CFXMLTree
+  if (CFTreeGetParent(xmlType)) // Only release if not root
+    CFRelease ((CFTypeRef)xmlType);
+}
+
+CFXMLTreeRef
+CFXMLTreeCreateFromDataWithError (CFAllocatorRef allocator, CFDataRef xmlData,
+  CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes,
+  CFDictionaryRef *errorDict)
+{
+  CFXMLTreeRef new;
+  CFXMLParserRef parser;
+  CFXMLParserCallBacks callBacks;
+  CFXMLParserContext context;
+  
+  callBacks.version = 0;
+  callBacks.createXMLStructure = CFXMLTreeCreateXMLStructure;
+  callBacks.addChild = CFXMLTreeAddChild;
+  callBacks.endXMLStructure = CFXMLEndXMLStructure;
+  callBacks.resolveExternalEntity = NULL;
+  callBacks.handleError = NULL;
+  
+  context.version = 0;
+  context.info = (void*)allocator;
+  context.retain = NULL;
+  context.release = NULL;
+  context.copyDescription = NULL;
+  
+  parser = CFXMLParserCreate (allocator, xmlData, dataSource, parseOptions,
+    versionOfNodes, &callBacks, &context);
+  if (CFXMLParserParse(parser))
+    {
+      new = CFXMLParserGetDocument (parser);
+    }
+  else
+    {
+      if (errorDict)
+        {
+          // Handle error
+          CFIndex num;
+          CFTypeRef obj;
+          CFMutableDictionaryRef dict = CFDictionaryCreateMutable (allocator,
+            4, &kCFTypeDictionaryKeyCallBacks,
+            &kCFTypeDictionaryValueCallBacks);
+          
+          obj = CFXMLParserCopyErrorDescription (parser);
+          if (obj)
+            {
+              CFDictionaryAddValue (dict, kCFXMLTreeErrorDescription, obj);
+              CFRelease (obj);
+            }
+          
+          num =  CFXMLParserGetLineNumber (parser);
+          obj = CFNumberCreate (allocator, kCFNumberCFIndexType, &num);
+          if (obj)
+            {
+              CFDictionaryAddValue (dict, kCFXMLTreeErrorLineNumber, obj);
+              CFRelease (obj);
+            }
+          
+          num = CFXMLParserGetLocation (parser);
+          obj = CFNumberCreate (allocator, kCFNumberCFIndexType, &num);
+          if (obj)
+            {
+              CFDictionaryAddValue (dict, kCFXMLTreeErrorLocation, obj);
+              CFRelease (obj);
+            }
+          
+          num = CFXMLParserGetStatusCode (parser);
+          obj = CFNumberCreate (allocator, kCFNumberCFIndexType, &num);
+          if (obj)
+            {
+              CFDictionaryAddValue (dict, kCFXMLTreeErrorStatusCode, obj);
+              CFRelease (obj);
+            }
+          
+          *errorDict = dict;
+        }
+      
+      new = CFXMLParserGetDocument (parser);
+      if (new)
+        CFRelease (new);
+      new = NULL;
+    }
+  CFRelease (parser);
+  
+  return new;
+}
+
 CFXMLTreeRef
 CFXMLTreeCreateFromData (CFAllocatorRef allocator, CFDataRef xmlData,
   CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes)
 {
-  return NULL;
+  return CFXMLTreeCreateFromDataWithError (allocator, xmlData, dataSource,
+    parseOptions, versionOfNodes, NULL);
 }
 
 CFXMLTreeRef
 CFXMLTreeCreateWithDataFromURL (CFAllocatorRef allocator, CFURLRef dataSource,
   CFOptionFlags parseOptions, CFIndex versionOfNodes)
 {
-  return NULL;
+  CFXMLTreeRef new;
+  CFXMLParserRef parser;
+  CFXMLParserCallBacks callBacks;
+  CFXMLParserContext context;
+  
+  callBacks.version = 0;
+  callBacks.createXMLStructure = CFXMLTreeCreateXMLStructure;
+  callBacks.addChild = CFXMLTreeAddChild;
+  callBacks.endXMLStructure = CFXMLEndXMLStructure;
+  callBacks.resolveExternalEntity = NULL;
+  callBacks.handleError = NULL;
+  
+  context.version = 0;
+  context.info = (void*)allocator;
+  context.retain = NULL;
+  context.release = NULL;
+  context.copyDescription = NULL;
+  
+  parser = CFXMLParserCreateWithDataFromURL (allocator, dataSource,
+    parseOptions, versionOfNodes, &callBacks, &context);
+  if (CFXMLParserParse(parser))
+    {
+      new = CFXMLParserGetDocument (parser);
+    }
+  else
+    {
+      new = CFXMLParserGetDocument (parser);
+      if (new)
+        CFRelease (new);
+      new = NULL;
+    }
+  CFRelease (parser);
+  
+  return new;
 }
 
 CFXMLTreeRef
 CFXMLTreeCreateWithNode (CFAllocatorRef allocator, CFXMLNodeRef node)
 {
-  return NULL;
-}
-
-CFDataRef
-CFXMLTreeCreateXMLData (CFAllocatorRef allocator, CFXMLTreeRef xmlTree)
-{
-  return NULL;
+  CFTreeContext context;
+  context.version = 0;
+  context.info = (void*)node;
+  context.retain = CFRetain;
+  context.release = CFRelease;
+  context.copyDescription = CFCopyDescription;
+  
+  return CFTreeCreate (allocator, &context);
 }
 
 CFXMLNodeRef
 CFXMLTreeGetNode (CFXMLTreeRef xmlTree)
+{
+  CFTreeContext context;
+  CFTreeGetContext (xmlTree, &context);
+  return context.info;
+}
+
+CFDataRef
+CFXMLTreeCreateXMLData (CFAllocatorRef allocator, CFXMLTreeRef xmlTree)
 {
   return NULL;
 }
@@ -159,14 +310,6 @@ CFXMLCreateStringByEscapingEntities(CFAllocatorRef allocator,
 CFStringRef
 CFXMLCreateStringByUnescapingEntities(CFAllocatorRef allocator,
   CFStringRef string, CFDictionaryRef entitiesDictionary)
-{
-  return NULL;
-}
-
-CFXMLTreeRef
-CFXMLTreeCreateFromDataWithError (CFAllocatorRef allocator, CFDataRef xmlData,
-  CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes,
-  CFDictionaryRef *errorDict)
 {
   return NULL;
 }

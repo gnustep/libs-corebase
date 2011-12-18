@@ -262,3 +262,17 @@ const NSString *kCFNumberFormatterMinSignificantDigits =
   @"kCFNumberFormatterMinSignificantDigits";
 const NSString *kCFNumberFormatterMaxSignificantDigits =
   @"kCFNumberFormatterMaxSignificantDigits";
+
+
+
+//
+// CFXMLTree Error Dictionary Keys
+//
+const NSString *kCFXMLTreeErrorDescription =
+  @"kCFXMLTreeErrorDescription";
+const NSString *kCFXMLTreeErrorLineNumber =
+  @"kCFXMLTreeErrorLineNumber";
+const NSString *kCFXMLTreeErrorLocation =
+  @"kCFXMLTreeErrorLocation";
+const NSString *kCFXMLTreeErrorStatusCode =
+  @"kCFXMLTreeErrorStatusCode";

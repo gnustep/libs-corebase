@@ -165,10 +165,6 @@ CFXMLParserParse (CFXMLParserRef parser);
 //
 // CFXMLTree
 //
-typedef CFTreeRef CFXMLTreeRef;
-
-
-
 CF_EXPORT CFXMLTreeRef
 CFXMLTreeCreateFromData (CFAllocatorRef allocator, CFDataRef xmlData,
   CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes);
@@ -177,15 +173,8 @@ CF_EXPORT CFXMLTreeRef
 CFXMLTreeCreateWithDataFromURL (CFAllocatorRef allocator, CFURLRef dataSource,
   CFOptionFlags parseOptions, CFIndex versionOfNodes);
 
-CF_EXPORT CFXMLTreeRef
-CFXMLTreeCreateWithNode (CFAllocatorRef allocator, CFXMLNodeRef node);
-
 CF_EXPORT CFDataRef
 CFXMLTreeCreateXMLData (CFAllocatorRef allocator, CFXMLTreeRef xmlTree);
-
-CF_EXPORT CFXMLNodeRef
-CFXMLTreeGetNode (CFXMLTreeRef xmlTree);
-
 
 #if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFXMLTreeErrorDescription;

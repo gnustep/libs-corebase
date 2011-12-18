@@ -37,7 +37,7 @@ static CFTypeID _kCFTreeTypeID = 0;
 struct __CFTree
 {
   CFRuntimeBase parent;
-  const CFTreeContext *_context;
+  CFTreeContext _context;
   CFTreeRef     _parent;
   CFTreeRef     _nextSibling;
   CFTreeRef     _firstChild;
@@ -71,7 +71,7 @@ CFTreeFinalize (CFTypeRef cf)
       child = tmp;
     }
   
-  release = tree->_context->release;
+  release = tree->_context.release;
   if (release)
     release (tree);
 }
@@ -115,7 +115,7 @@ CFTreeCreate (CFAllocatorRef allocator, const CFTreeContext *context)
     {
       if (context == NULL)
         context = &_kCFNullTreeContext;
-      new->_context = context;
+      memcpy (&new->_context, context, sizeof(CFTreeContext));
     }
   
   return new;
@@ -124,7 +124,7 @@ CFTreeCreate (CFAllocatorRef allocator, const CFTreeContext *context)
 void
 CFTreeAppendChild (CFTreeRef tree, CFTreeRef newChild)
 {
-  CFTreeRetainCallBack retain = newChild->_context->retain;
+  CFTreeRetainCallBack retain = newChild->_context.retain;
   
   newChild->_parent = tree;
   if (retain)
@@ -149,7 +149,7 @@ CFTreeInsertSibling (CFTreeRef tree, CFTreeRef newSibling)
   
   if (parent != NULL && newSibling->_parent == NULL)
     {
-      CFTreeRetainCallBack retain = newSibling->_context->retain;
+      CFTreeRetainCallBack retain = newSibling->_context.retain;
       
       newSibling->_parent = parent;
       if (retain)
@@ -214,7 +214,7 @@ CFTreeSetContext (CFTreeRef tree, const CFTreeContext *context)
 {
   if (context == NULL)
     context = &_kCFNullTreeContext;
-  tree->_context = context;
+  memcpy (&tree->_context, context, sizeof(CFTreeContext));
 }
 
 void
@@ -281,7 +281,7 @@ CFTreeGetChildren (CFTreeRef tree, CFTreeRef *children)
 void
 CFTreeGetContext (CFTreeRef tree, CFTreeContext *context)
 {
-  memcpy (context, tree->_context, sizeof(CFTreeContext));
+  memcpy (context, &tree->_context, sizeof(CFTreeContext));
 }
 
 CFTreeRef
