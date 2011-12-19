@@ -1,5 +1,10 @@
 2011-12-19 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CFURL.h: Populate with definitions up 
+	to Mac OS X 10.7.
+
+2011-12-19 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFXMLParser.c: Added some code to CFXMLTree.
 	* Source/CFTree.c: Changes to support CFXMLTree.
 	* Source/Identifier.m: Added CFXMLTree error dictionary keys.
