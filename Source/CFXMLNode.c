@@ -222,7 +222,8 @@ static CFHashCode
 CFXMLNodeHash (CFTypeRef cf)
 {
   CFXMLNodeRef node = (CFXMLNodeRef)cf;
-  return node->_string ? CFHash(node->_string) : node->_type;
+  return (node->_string ? CFHash(node->_string) : 0) +
+    node->_type + node->_version;
 }
 
 static const CFRuntimeClass CFXMLNodeClass =
@@ -233,7 +234,7 @@ static const CFRuntimeClass CFXMLNodeClass =
   NULL,
   CFXMLNodeFinalize,
   CFXMLNodeEqual,
-  NULL,
+  CFXMLNodeHash,
   NULL,
   NULL
 };

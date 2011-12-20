@@ -20,6 +20,8 @@ libgnustep-corebase_C_FILES = \
   CFArray.c \
   CFBag.c \
   CFBase.c \
+  CFBinaryHeap.c \
+  CFBitVector.c \
   CFCalendar.c \
   CFData.c \
   CFDate.c \
@@ -50,6 +52,8 @@ libgnustep-corebase_HEADER_FILES = \
   CoreFoundation.h \
   CFBag.h \
   CFBase.h \
+  CFBinaryHeap.h \
+  CFBitVector.h \
   CFBundle.h \
   CFArray.h \
   CFByteOrder.h \
