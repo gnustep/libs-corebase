@@ -1,5 +1,9 @@
 2011-12-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFBitVector.c: Some work on CFBitVector.
+
+2011-12-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/GNUmakefile:
 	* Source/CFBitVector.c:
 	* Source/CFBinaryHeap.c:

@@ -24,11 +24,65 @@
    Boston, MA 02110-1301, USA.
 */
 
+#include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBitVector.h"
 
 static CFTypeID _kCFBitVectorTypeID = 0;
 
+struct __CFBitVector
+{
+  CFRuntimeBase _parent;
+  CFIndex       _count;
+  CFIndex       _byteCount;
+  UInt8        *_bytes;
+};
 
+enum
+{
+  _kCFBitVectorIsMutable = (1<<0)
+};
+
+CF_INLINE Boolean
+CFBitVectorIsMutable (CFBitVectorRef bv)
+{
+  return ((CFRuntimeBase *)bv)->_flags.info & _kCFBitVectorIsMutable ?
+    true : false;
+}
+
+CF_INLINE void
+CFBitVectorSetMutable (CFBitVectorRef bv)
+{
+  ((CFRuntimeBase *)bv)->_flags.info |= _kCFBitVectorIsMutable;
+}
+
+static CFRuntimeClass CFBitVectorClass =
+{
+  0,
+  "CFBitVector",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+void CFBitVectorInitialize (void)
+{
+  _kCFBitVectorTypeID = _CFRuntimeRegisterClass (&CFBitVectorClass);
+}
+
+
+
+
+#define _kCFBitVectorBitsPerByte 8
+
+CF_INLINE CFIndex
+CFBitVectorGetByteCount (CFIndex numBits)
+{
+  return (numBits + _kCFBitVectorBitsPerByte - 1) >> 3; // (numBits + 7) / 8
+}
 
 CFTypeID
 CFBitVectorGetTypeID (void)
@@ -36,28 +90,58 @@ CFBitVectorGetTypeID (void)
   return _kCFBitVectorTypeID;
 }
 
-CFBitVectorRef
-CFBitVectorCreate (CFAllocatorRef allocator, const UInt8 *bytes,
-  CFIndex numBits)
+#define CFBITVECTOR_SIZE sizeof(struct __CFBitVector) - sizeof(CFRuntimeBase)
+
+static struct __CFBitVector *
+CFBitVectorCreate_internal (CFAllocatorRef alloc, const UInt8 *bytes,
+  CFIndex numBits, CFIndex capacity)
 {
-  return NULL;
+  struct __CFBitVector *new;
+  CFIndex byteCount;
+  
+  if (capacity < numBits)
+    capacity = numBits;
+  byteCount = CFBitVectorGetByteCount (capacity);
+  new = (struct __CFBitVector*)_CFRuntimeCreateInstance (alloc,
+    _kCFBitVectorTypeID, CFBITVECTOR_SIZE + byteCount, 0);
+  if (new)
+    {
+      new->_count = numBits;
+      new->_byteCount = byteCount;
+      new->_bytes = (UInt8*)&new[1];
+      
+      memcpy (new->_bytes, bytes, byteCount);
+    }
+  
+  return new;
 }
 
 CFBitVectorRef
-CFBitVectorCreateCopy (CFAllocatorRef allocator, CFBitVectorRef bv)
+CFBitVectorCreate (CFAllocatorRef alloc, const UInt8 *bytes,
+  CFIndex numBits)
 {
-  return NULL;
+  return (CFBitVectorRef)CFBitVectorCreate_internal (alloc, bytes, numBits,
+    numBits);
+}
+
+CFBitVectorRef
+CFBitVectorCreateCopy (CFAllocatorRef alloc, CFBitVectorRef bv)
+{
+  return (CFBitVectorRef)CFBitVectorCreate_internal (alloc, bv->_bytes,
+    bv->_count, bv->_count);
 }
 Boolean
 CFBitVectorContainsBit (CFBitVectorRef bv, CFRange range, CFBit value)
 {
-  return false;
+  return (CFBitVectorGetCountOfBit (bv, range, value) > 0) ? true : false;
 }
 
 CFBit
 CFBitVectorGetBitAtIndex (CFBitVectorRef bv, CFIndex idx)
 {
-  return 0;
+  CFIndex byteIdx = idx >> 3;
+  CFIndex bitIdx = idx & (_kCFBitVectorBitsPerByte - 1);
+  return (bv->_bytes[byteIdx] >> (_kCFBitVectorBitsPerByte-1-bitIdx)) & 0x01;
 }
 
 void
@@ -69,7 +153,7 @@ CFBitVectorGetBits (CFBitVectorRef bv, CFRange range, UInt8 *bytes)
 CFIndex
 CFBitVectorGetCount (CFBitVectorRef bv)
 {
-  return -1;
+  return bv->_count;
 }
 
 CFIndex
@@ -81,34 +165,62 @@ CFBitVectorGetCountOfBit (CFBitVectorRef bv, CFRange range, CFBit value)
 CFIndex
 CFBitVectorGetFirstIndexOfBit (CFBitVectorRef bv, CFRange range, CFBit value)
 {
-  return 0;
+  CFIndex idx;
+
+  for (idx = range.location ; idx < range.length ; idx++)
+    {
+      if (value == CFBitVectorGetBitAtIndex (bv, idx))
+        return idx;
+    }
+  
+  return kCFNotFound;
 }
 
 CFIndex
 CFBitVectorGetLastIndexOfBit (CFBitVectorRef bv, CFRange range, CFBit value)
 {
-  return 0;
+  CFIndex idx;
+
+  for (idx = range.location + range.length ; idx < range.location ; idx--)
+    {
+      if (value == CFBitVectorGetBitAtIndex (bv, idx))
+        return idx;
+    }
+  
+  return kCFNotFound;
 }
 
 
 
 CFMutableBitVectorRef
-CFBitVectorCreateMutable (CFAllocatorRef allocator, CFIndex capacity)
+CFBitVectorCreateMutable (CFAllocatorRef alloc, CFIndex capacity)
 {
-  return NULL;
+  CFMutableBitVectorRef new;
+  
+  new = CFBitVectorCreate_internal (alloc, NULL, 0, capacity);
+  if (new)
+    CFBitVectorSetMutable (new);
+  
+  return new;
 }
 
 CFMutableBitVectorRef
-CFBitVectorCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
+CFBitVectorCreateMutableCopy (CFAllocatorRef alloc, CFIndex capacity,
   CFBitVectorRef bv)
 {
-  return NULL;
+  CFMutableBitVectorRef new;
+  
+  new = CFBitVectorCreate_internal (alloc, bv->_bytes, bv->_count, capacity);
+  if (new)
+    CFBitVectorSetMutable (new);
+  
+  return new;
 }
 
 void
 CFBitVectorFlipBitAtIndex (CFMutableBitVectorRef bv, CFIndex idx)
 {
-  
+  CFBitVectorFlipBits (bv, CFRangeMake(idx, 1));
 }
 
 void
@@ -120,13 +232,14 @@ CFBitVectorFlipBits (CFMutableBitVectorRef bv, CFRange range)
 void
 CFBitVectorSetAllBits (CFMutableBitVectorRef bv, CFBit value)
 {
-  
+  UInt8 bytes = value ? 0xFF : 0x00;
+  memset (bv->_bytes, bytes, bv->_byteCount);
 }
 
 void
 CFBitVectorSetBitAtIndex (CFMutableBitVectorRef bv, CFIndex idx, CFBit value)
 {
-  
+  CFBitVectorSetBits (bv, CFRangeMake(idx, 1), value);
 }
 
 void
