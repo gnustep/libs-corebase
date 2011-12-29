@@ -117,8 +117,8 @@ CF_INLINE void
 GSHashTableAddKeyValuePair (GSHashTableRef table,
   GSHashTableBucket *bucket, const void *key, const void *value)
 {
-  GSHashTableRetainCallBack keyRetain = table->_keyCallBacks->retain;
-  GSHashTableRetainCallBack valueRetain = table->_valueCallBacks->retain;
+  GSHashTableRetainCallBack keyRetain = table->_keyCallBacks.retain;
+  GSHashTableRetainCallBack valueRetain = table->_valueCallBacks.retain;
   
   bucket->count++;
   bucket->key = keyRetain ? keyRetain(table->_allocator, key) : key;
@@ -129,8 +129,8 @@ CF_INLINE void
 GSHashTableReplaceKeyValuePair (GSHashTableRef table,
   GSHashTableBucket *bucket, const void *key, const void *value)
 {
-  GSHashTableReleaseCallBack release = table->_valueCallBacks->release;
-  GSHashTableRetainCallBack retain = table->_valueCallBacks->retain;
+  GSHashTableReleaseCallBack release = table->_valueCallBacks.release;
+  GSHashTableRetainCallBack retain = table->_valueCallBacks.retain;
   
   if (release)
     release (table->_allocator, bucket->value);
@@ -141,8 +141,8 @@ CF_INLINE void
 GSHashTableRemoveKeyValuePair (GSHashTableRef table,
   GSHashTableBucket *bucket)
 {
-  GSHashTableReleaseCallBack keyRelease = table->_keyCallBacks->release;
-  GSHashTableReleaseCallBack valueRelease = table->_valueCallBacks->release;
+  GSHashTableReleaseCallBack keyRelease = table->_keyCallBacks.release;
+  GSHashTableReleaseCallBack valueRelease = table->_valueCallBacks.release;
   
   if (keyRelease)
     keyRelease (table->_allocator, bucket->key);
@@ -181,8 +181,8 @@ GSHashTableFindBucket (GSHashTableRef table, const void *key)
   CFIndex idx;
   CFHashCode hash;
   Boolean matched;
-  GSHashTableHashCallBack fHash = table->_keyCallBacks->hash;
-  GSHashTableEqualCallBack fEqual = table->_keyCallBacks->equal;
+  GSHashTableHashCallBack fHash = table->_keyCallBacks.hash;
+  GSHashTableEqualCallBack fEqual = table->_keyCallBacks.equal;
   
   buckets = table->_buckets;
   capacity = table->_capacity;
@@ -285,8 +285,10 @@ GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
       if (valueCallBacks == NULL)
         valueCallBacks = &_kGSNullHashTableValueCallBacks;
       
-      new->_keyCallBacks = keyCallBacks;
-      new->_valueCallBacks = valueCallBacks;
+      memcpy (&new->_keyCallBacks, keyCallBacks,
+        sizeof (GSHashTableKeyCallBacks));
+      memcpy (&new->_valueCallBacks, valueCallBacks,
+        sizeof (GSHashTableValueCallBacks));
       
       if (keys != NULL)
         {
@@ -310,7 +312,7 @@ GSHashTableCreateCopy (CFAllocatorRef alloc, GSHashTableRef table)
   
   count = GSHashTableGetCount(table);
   new = GSHashTableCreate (alloc, CFGetTypeID(table), NULL, NULL,
-    count, table->_keyCallBacks, table->_valueCallBacks);
+    count, &table->_keyCallBacks, &table->_valueCallBacks);
   if (new)
     {
       CFIndex idx;
@@ -352,8 +354,8 @@ GSHashTableEqual (GSHashTableRef table1, GSHashTableRef table2)
       
       current = table1->_buckets;
       end = current + table1->_capacity;
-      keyEqual = table1->_keyCallBacks->equal;
-      valueEqual = table1->_valueCallBacks->equal;
+      keyEqual = table1->_keyCallBacks.equal;
+      valueEqual = table1->_valueCallBacks.equal;
       while (current < end)
         {
           if (current->count > 0)
@@ -395,7 +397,7 @@ GSHashTableContainsValue (GSHashTableRef table, const void *value)
 {
   CFIndex idx;
   GSHashTableBucket *buckets = table->_buckets;
-  GSHashTableEqualCallBack equal = table->_valueCallBacks->equal;
+  GSHashTableEqualCallBack equal = table->_valueCallBacks.equal;
   
   for (idx = 0 ; idx < table->_capacity ; ++idx)
     {
@@ -428,7 +430,7 @@ GSHashTableGetCountOfValue (GSHashTableRef table, const void *value)
   CFIndex idx;
   CFIndex count = 0;
   GSHashTableBucket *buckets = table->_buckets;
-  GSHashTableEqualCallBack equal = table->_valueCallBacks->equal;
+  GSHashTableEqualCallBack equal = table->_valueCallBacks.equal;
   
   for (idx = 0 ; idx < table->_capacity ; ++idx)
     {
@@ -547,8 +549,10 @@ GSHashTableCreateMutable (CFAllocatorRef allocator,
       if (valueCallBacks == NULL)
         valueCallBacks = &_kGSNullHashTableValueCallBacks;
       
-      new->_keyCallBacks = keyCallBacks;
-      new->_valueCallBacks = valueCallBacks;
+      memcpy (&new->_keyCallBacks, keyCallBacks,
+        sizeof (GSHashTableKeyCallBacks));
+      memcpy (&new->_valueCallBacks, valueCallBacks,
+        sizeof (GSHashTableValueCallBacks));
       
       GSHashTableSetMutable (new);
     }
@@ -565,7 +569,7 @@ GSHashTableCreateMutableCopy (CFAllocatorRef alloc, GSHashTableRef table,
   if (capacity < table->_count)
     capacity = table->_count;
   new = GSHashTableCreateMutable (alloc, CFGetTypeID(table), capacity,
-    table->_keyCallBacks, table->_valueCallBacks);
+    &table->_keyCallBacks, &table->_valueCallBacks);
   if (new)
     {
       CFIndex idx;

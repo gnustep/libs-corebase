@@ -1,3 +1,11 @@
+2011-12-28 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GSPrivate.h: Added GSHashBytes().
+	* Source/CFString.c: Use GSHashBytes() for hashing strings.
+	* Source/CFUUID.c: Some changes to the Windows code.
+	* Source/GSHashTable.c:
+	* Source/GSHashTable.h: Copy call backs.
+
 2011-12-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFBitVector.c: Some work on CFBitVector.

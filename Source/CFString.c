@@ -182,44 +182,14 @@ static Boolean CFStringEqual (CFTypeRef cf1, CFTypeRef cf2)
 
 static CFHashCode CFStringHash (CFTypeRef cf)
 {
-  CFHashCode ret;
   CFIndex len;
-  
   CFStringRef str = (CFStringRef)cf;
   if (str->_hash)
     return str->_hash;
   
-  /* This must match the NSString hash algorithm. */
-  ret = 0;
-  len = str->_count;
-  if (len > 0)
-    {
-      register CFIndex idx = 0;
-      
-      if (CFStringIsWide(str)) // UTF-16
-        {
-          register const UniChar *p = str->_contents;
-          while (idx < len)
-            ret = (ret << 5) + ret + p[idx++];
-        }
-      else // ASCII
-        {
-          register const char *p = str->_contents;
-          while (idx < len)
-            ret = (ret << 5) + ret + p[idx++];
-        }
-      
-      ret &= 0x0fffffff;
-      if (ret == 0)
-        {
-          ret = 0x0fffffff;
-        }
-    }
-  else
-    {
-      ret = 0x0ffffffe;
-    }
-  ((struct __CFString *)str)->_hash = ret;
+  len = CFStringGetLength (str) *
+    (CFStringIsWide(str) ? sizeof(UniChar) : sizeof(char));
+  ((struct __CFString *)str)->_hash = GSHashBytes (str->_contents, len);
 
   return str->_hash;
 }
