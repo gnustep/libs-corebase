@@ -48,6 +48,8 @@
 #define MAC_OS_X_VERSION_10_7 100700
 #endif /* MAC_OS_X_VERSION_10_0 */
 
+#define MAC_OS_X_VERSION_MAX_ALLOWED 100700
+
 // FIXME: Define CFRunLoopRef here for now...
 typedef struct CFRunLoop *CFRunLoopRef;
 
@@ -87,8 +89,6 @@ typedef SInt8            SignedByte;
 typedef UInt32 UTF32Char;
 typedef UInt16 UTF16Char;
 typedef UInt8  UTF8Char;
-
-
 
 #if !defined(CF_EXTERN_C_BEGIN)
 # if defined(__cplusplus)
@@ -160,12 +160,26 @@ typedef const void *CFTypeRef;
 typedef unsigned long CFOptionFlags;
 typedef signed long CFIndex;
 
-struct CFRange
-{
+typedef struct {
   CFIndex location;
   CFIndex length;
-};
-typedef struct CFRange CFRange;
+} CFRange;
+
+/** Creates new range.
+    
+    @param location The start location.
+    @param length The length.
+    @return A CFRange structure.
+ */
+CF_INLINE CFRange
+CFRangeMake(CFIndex location, CFIndex length)
+{
+  CFRange range;
+
+  range.location = location;
+  range.length   = length;
+  return range;
+}
 
 /* Returned by comparison functions */
 typedef CFIndex CFComparisonResult;
@@ -235,22 +249,6 @@ CF_EXPORT const double kCFCoreFoundationVersionNumber;
 #define kCFCoreFoundationVersionNumber10_5_4  476.14
 #define kCFCoreFoundationVersionNumber10_5_5  476.15
 #define kCFCoreFoundationVersionNumber10_5_6  476.17
-
-/** Creates new range.
-    
-    @param location The start location.
-    @param length The length.
-    @return A CFRange structure.
- */
-CF_INLINE CFRange
-CFRangeMake(CFIndex location, CFIndex length)
-{
-  CFRange range;
-
-  range.location = location;
-  range.length   = length;
-  return range;
-}
 
 //
 // CFPropertyList

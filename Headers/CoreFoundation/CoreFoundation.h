@@ -30,6 +30,7 @@
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFArray.h>
+#include <CoreFoundation/CFAttributedString.h>
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFCharacterSet.h>
@@ -40,6 +41,8 @@
 #include <CoreFoundation/CFLocale.h>
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPropertyList.h>
+#include <CoreFoundation/CFSet.h>
+#include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFStream.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStringEncodingExt.h>

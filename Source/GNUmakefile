@@ -50,6 +50,7 @@ libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
 
 libgnustep-corebase_HEADER_FILES = \
   CoreFoundation.h \
+  CFAttributedString.h \
   CFBag.h \
   CFBase.h \
   CFBinaryHeap.h \
@@ -68,6 +69,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFNumber.h \
   CFNumberFormatter.h \
   CFPropertyList.h \
+  CFRunLoop.h \
   CFRuntime.h \
   CFSet.h \
   CFStream.h \
