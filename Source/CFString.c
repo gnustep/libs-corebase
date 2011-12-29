@@ -182,14 +182,13 @@ static Boolean CFStringEqual (CFTypeRef cf1, CFTypeRef cf2)
 
 static CFHashCode CFStringHash (CFTypeRef cf)
 {
-  CFIndex len;
   CFStringRef str = (CFStringRef)cf;
-  if (str->_hash)
-    return str->_hash;
-  
-  len = CFStringGetLength (str) *
-    (CFStringIsWide(str) ? sizeof(UniChar) : sizeof(char));
-  ((struct __CFString *)str)->_hash = GSHashBytes (str->_contents, len);
+  if (str->_hash == 0)
+    {
+      CFIndex len = CFStringGetLength (str) *
+        (CFStringIsWide(str) ? sizeof(UniChar) : sizeof(char));
+      ((struct __CFString *)str)->_hash = GSHashBytes (str->_contents, len);
+    }
 
   return str->_hash;
 }

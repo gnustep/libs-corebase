@@ -113,33 +113,11 @@ CFDataEqual (CFTypeRef cf1, CFTypeRef cf2)
 static CFHashCode
 CFDataHash (CFTypeRef cf)
 {
-  CFHashCode ret;
-  CFIndex len;
+  struct __CFData *d = (struct __CFData*)cf;
+  if (d->_hash == 0)
+    d->_hash = GSHashBytes (d->_contents, d->_length);
   
-  CFDataRef d = (CFDataRef)cf;
-  if (d->_hash)
-    return d->_hash;
-  
-  ret = 0;
-  len = d->_length;
-  if (len > 0)
-    {
-      register CFIndex idx = 0;
-      register const UInt8 *p = d->_contents;
-      while (idx < len)
-        ret = (ret << 5) + ret + p[idx++];
-      
-      ret &= 0x0fffffff;
-      if (ret == 0)
-        ret = 0x0fffffff;
-    }
-  else
-    {
-      ret = 0x0ffffffe;
-    }
-  ((struct __CFData *)d)->_hash = ret;
-
-  return ret;
+  return d->_hash;
 }
 
 static const CFRuntimeClass CFDataClass =
