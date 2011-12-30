@@ -36,11 +36,28 @@ CF_EXTERN_C_BEGIN
  *  @{
  */
 
+CF_EXPORT bool kCFUseCollectableAllocator;
+CF_EXPORT bool (*__CFObjCIsCollectable)(void *);
+
+#define CF_USING_COLLECTABLE_MEMORY (kCFUseCollectableAllocator)
+#define CF_IS_COLLECTABLE_ALLOCATOR(allocator) \
+  (kCFUseCollectableAllocator \
+  && (NULL == (allocator) \
+      || kCFAllocatorSystemDefault == (allocator) \
+      || _CFAllocatorIsGCRefZero(allocator)))
+#define CF_IS_COLLECTABLE(obj) \
+  (__CFObjCIsCollectable ? __CFObjCIsCollectable((void*)obj) : false)
+
 enum
 {
-  _kCFRuntimeNotATypeID = 0,
-  _kCFRuntimeScannedObject = (1UL << 0),
-  _kCFRuntimeResourcefulObject = (1UL << 2)
+  _kCFRuntimeNotATypeID = 0
+};
+
+enum
+{
+  _kCFRuntimeScannedObject =     (1UL<<0),
+  _kCFRuntimeResourcefulObject = (1UL<<2),
+  _kCFRuntimeCustomRefCount =    (1UL<<3)
 };
 
 typedef struct __CFRuntimeClass CFRuntimeClass;
@@ -61,7 +78,9 @@ struct __CFRuntimeClass
   CFStringRef (*copyDebugDesc)(CFTypeRef cf);
 #if 0 // FIXME: MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 #define CF_RECLAIM_AVAILABLE 1
-  void (*reclaim)(CFTypeRef cf);
+  void (*reclaim)(CFTypeRef cf); // _kCFRuntimeResourcefulObject
+#define CF_REFCOUNT_AVAILABLE 1
+  uint32_t (*refcount)(intptr_t op, CFTypeRef cf); // _kCFRuntimeCustomRefCount
 #endif
 };
 

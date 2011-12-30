@@ -1,5 +1,11 @@
 2011-12-30 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CFRuntime.h:
+	* Source/CFRuntime.c: Added GC functions and variables.  Not
+	currently used in corebase.
+
+2011-12-30 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFBitVector.c: Added implementation to most functinos.
 	* Source/CFUUID.c: Fixed sscanf usage bug.
 

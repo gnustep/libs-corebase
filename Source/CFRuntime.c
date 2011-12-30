@@ -35,6 +35,10 @@
 
 
 
+// GC stuff...
+bool kCFUseCollectableAllocator = false;
+bool (*__CFObjCIsCollectable)(void *) = NULL;
+
 // CFRuntimeClass Table
 CFRuntimeClass **__CFRuntimeClassTable = NULL;
 Class *__CFRuntimeObjCClassTable = NULL;
