@@ -28,26 +28,34 @@
 #define __COREFOUNDATION_COREFOUNDATION_H__
 
 #include <CoreFoundation/CFBase.h>
-#include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFAttributedString.h>
+#include <CoreFoundation/CFBag.h>
+#include <CoreFoundation/CFBinaryHeap.h>
+#include <CoreFoundation/CFBitVector.h>
+#include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFCharacterSet.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDate.h>
+#include <CoreFoundation/CFDateFormatter.h>
 #include <CoreFoundation/CFDictionary.h>
 #include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFLocale.h>
 #include <CoreFoundation/CFNumber.h>
+#include <CoreFoundation/CFNumberFormatter.h>
 #include <CoreFoundation/CFPropertyList.h>
-#include <CoreFoundation/CFSet.h>
 #include <CoreFoundation/CFRunLoop.h>
+#include <CoreFoundation/CFSet.h>
 #include <CoreFoundation/CFStream.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStringEncodingExt.h>
 #include <CoreFoundation/CFTimeZone.h>
+#include <CoreFoundation/CFTree.h>
 #include <CoreFoundation/CFURL.h>
 #include <CoreFoundation/CFUUID.h>
+#include <CoreFoundation/CFXMLNode.h>
+#include <CoreFoundation/CFXMLParser.h>
 
 #endif /* __COREFOUNDATION_COREFOUNDATION_H__ */
