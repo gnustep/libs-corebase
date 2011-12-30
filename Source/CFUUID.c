@@ -227,7 +227,7 @@ CFUUIDCreateFromString (CFAllocatorRef alloc, CFStringRef uuidStr)
   if (!CFStringGetCString (uuidStr, data, 36, kCFStringEncodingASCII))
     return NULL;
   
-  sscanf (data, "%4hx%4hx-%4hx-%4hx-%4hx-4hx%4hx%4hx",
+  sscanf (data, "%4hx%4hx-%4hx-%4hx-%4hx-%4hx%4hx%4hx",
     (UInt16*)&bytes.byte1,(UInt16*)&bytes.byte3, (UInt16*)&bytes.byte5,
     (UInt16*)&bytes.byte7, (UInt16*)&bytes.byte9, (UInt16*)&bytes.byte11,
     (UInt16*)&bytes.byte13, (UInt16*)&bytes.byte15);
