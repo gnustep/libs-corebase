@@ -4,7 +4,7 @@
 	* Headers/CoreFoundation/CFCharacterSet.h:
 	* Source/CFCharacterSet.c: CFCharacterSet skeleton.
 
-	2012-01-01 Stefan Bidigaray <stefanbidi@gmail.com>
+2012-01-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GSPrivate.h: New CAS atomic function.
 	* Source/CFRuntime.c: Make sure corebase is only initialized once.
