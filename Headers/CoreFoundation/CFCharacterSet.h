@@ -1,11 +1,11 @@
 /* CFCharacterSet.h
    
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2012 Free Software Foundation, Inc.
    
    Written by: Stefan Bidigaray
-   Date: January, 2010
+   Date: January, 2012
    
-   This file is part of CoreBase.
+   This file is part of the GNUstep CoreBase Library.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,13 +22,143 @@
    If not, see <http://www.gnu.org/licenses/> or write to the 
    Free Software Foundation, 51 Franklin Street, Fifth Floor, 
    Boston, MA 02110-1301, USA.
-*/ 
+*/
 
 #ifndef __COREFOUNDATION_CFCHARACTERSET_H__
 #define __COREFOUNDATION_CFCHARACTERSET_H__
 
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFData.h>
 
-typedef struct CFCharacterSet *CFCharacterSetRef;
+CF_EXTERN_C_BEGIN
+
+typedef const struct __CFCharacterSet * CFCharacterSetRef;
+typedef struct __CFCharacterSet * CFMutableCharacterSetRef;
+
+typedef CFIndex CFCharacterSetPredefinedSet;
+enum
+{
+  kCFCharacterSetControl = 1,
+  kCFCharacterSetWhitespace,
+  kCFCharacterSetWhitespaceAndNewline,
+  kCFCharacterSetDecimalDigit,
+  kCFCharacterSetLetter,
+  kCFCharacterSetLowercaseLetter,
+  kCFCharacterSetUppercaseLetter,
+  kCFCharacterSetNonBase,
+  kCFCharacterSetDecomposable,
+  kCFCharacterSetAlphaNumeric,
+  kCFCharacterSetPunctuation,
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+  kCFCharacterSetCapitalizedLetter = 13,
+#endif
+#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+  kCFCharacterSetSymbol = 14,
+#endif
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
+  kCFCharacterSetNewline = 15,
+#endif
+  kCFCharacterSetIllegal = 12
+};
+
+
+
+//
+// Getting the Character Set Type Identifier
+//
+CF_EXPORT CFTypeID
+CFCharacterSetGetTypeID (void);
+
+//
+// Creating Character Sets
+//
+#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+CF_EXPORT CFCharacterSetRef
+CFCharacterSetCreateCopy (CFAllocatorRef alloc, CFCharacterSetRef set);
+#endif
+
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+CF_EXPORT CFCharacterSetRef
+CFCharacterSetCreateInvertedSet (CFAllocatorRef alloc, CFCharacterSetRef set);
+#endif
+
+CF_EXPORT CFCharacterSetRef
+CFCharacterSetCreateWithCharactersInRange (CFAllocatorRef alloc,
+  CFRange range);
+
+CF_EXPORT CFCharacterSetRef
+CFCharacterSetCreateWithCharactersInString (CFAllocatorRef alloc,
+  CFStringRef string);
+
+CF_EXPORT CFCharacterSetRef
+CFCharacterSetCreateWithBitmapRepresentation (CFAllocatorRef alloc,
+  CFDataRef data);
+
+//
+// Getting Predefined Character Sets
+//
+CF_EXPORT CFCharacterSetRef
+CFCharacterSetGetPredefined (CFCharacterSetPredefinedSet setIdentifier);
+
+//
+// Querying Character Sets
+//
+CF_EXPORT CFDataRef
+CFCharacterSetCreateBitmapRepresentation (CFAllocatorRef alloc,
+  CFCharacterSetRef set);
+
+CF_EXPORT Boolean
+CFCharacterSetIsCharacterMember (CFCharacterSetRef set, UniChar c);
+
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+CF_EXPORT Boolean
+CFCharacterSetHasMemberInPlane (CFCharacterSetRef set, CFIndex plane);
+
+CF_EXPORT Boolean
+CFCharacterSetIsLongCharacterMember (CFCharacterSetRef set, UTF32Char c);
+
+CF_EXPORT Boolean
+CFCharacterSetIsSupersetOfSet (CFCharacterSetRef set,
+  CFCharacterSetRef otherSet);
+#endif
+
+
+
+//
+// CFMutableCharacterSet
+//
+CF_EXPORT CFMutableCharacterSetRef
+CFCharacterSetCreateMutable (CFAllocatorRef alloc);
+
+CF_EXPORT CFMutableCharacterSetRef
+CFCharacterSetCreateMutableCopy (CFAllocatorRef alloc, CFCharacterSetRef set);
+
+CF_EXPORT void
+CFCharacterSetAddCharactersInRange (CFMutableCharacterSetRef set,
+  CFRange range);
+
+CF_EXPORT void
+CFCharacterSetAddCharactersInString (CFMutableCharacterSetRef set,
+  CFStringRef string);
+
+CF_EXPORT void
+CFCharacterSetRemoveCharactersInRange (CFMutableCharacterSetRef set,
+  CFRange range);
+
+CF_EXPORT void
+CFCharacterSetRemoveCharactersInString (CFMutableCharacterSetRef set,
+  CFStringRef string);
+
+CF_EXPORT void
+CFCharacterSetIntersect (CFMutableCharacterSetRef set,
+  CFCharacterSetRef otherSet);
+
+CF_EXPORT void
+CFCharacterSetInvert (CFMutableCharacterSetRef set);
+
+CF_EXPORT void
+CFCharacterSetUnion (CFMutableCharacterSetRef set, CFCharacterSetRef otherSet);
+
+CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFCHARACTERSET_H__ */

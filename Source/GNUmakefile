@@ -22,6 +22,7 @@ libgnustep-corebase_C_FILES = \
   CFBinaryHeap.c \
   CFBitVector.c \
   CFCalendar.c \
+  CFCharacterSet.c \
   CFData.c \
   CFDate.c \
   CFDateFormatter.c \
