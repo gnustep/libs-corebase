@@ -28,9 +28,6 @@
 #define __GSPRIVATE_H__
 
 #include "CoreFoundation/CFBase.h"
-#define BOOL OBJC_BOOL
-#include <objc/runtime.h>
-#undef BOOL
 
 
 
@@ -49,8 +46,12 @@
 #define GSMutexUnlock(x) LeaveCriticalSection(x)
 #define GSMutexDestroy(x) DeleteCriticalSection(x)
 
-#define GSAtomicIncrementCFIndex(ptr) InterlockedIncrement((LONG volatile*)ptr)
-#define GSAtomicDecrementCFIndex(ptr) InterlockedDecrement((LONG volatile*)ptr)
+#define GSAtomicIncrementCFIndex(ptr) \
+  InterlockedIncrement((LONG volatile*)(ptr))
+#define GSAtomicDecrementCFIndex(ptr) \
+  InterlockedDecrement((LONG volatile*)(ptr))
+#define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
+  InterlockedCompareExchange((ptr), (newv), (oldv))
 
 #else /* _WIN32 */
 
@@ -63,14 +64,22 @@
 #define GSMutexDestroy(x) pthraed_mutex_destroy(x)
 
 #if defined(__FreeBSD__)
+
 #include <sys/types.h>
 #include <machine/atomic.h>
 #define GSAtomicIncrementCFIndex(ptr) atomic_fetchadd_long ((u_long*)(ptr), 1)
 #define GSAtomicDecrementCFIndex(ptr) atomic_fetchadd_long ((u_long*)(ptr), -1)
+#define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
+  atomic_cmpset_long((ptr), (oldv), (newv))
+
 #elif defined(__llvm__) \
       || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+
 #define GSAtomicIncrementCFIndex(ptr) __sync_add_and_fetch((long*)(ptr), 1)
 #define GSAtomicDecrementCFIndex(ptr) __sync_sub_and_fetch((long*)(ptr), 1)
+#define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
+  __sync_val_compare_and_swap((long*)(ptr), (long)(oldv), (long)(newv))
+
 #endif
 
 #endif /* _WIN32 */
@@ -170,13 +179,17 @@ CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
 
 
 
+#define BOOL OBJC_BOOL
+#include <objc/runtime.h>
+#undef BOOL
+
 extern Class *__CFRuntimeObjCClassTable;
 extern UInt32 __CFRuntimeClassTableCount;
 
 CF_INLINE void *
 __CFISAForTypeID (CFTypeID typeID)
 {
-  return (void *)(typeID < __CFRuntimeClassTableCount ?
+  return (__CFRuntimeObjCClassTable && typeID < __CFRuntimeClassTableCount ?
     __CFRuntimeObjCClassTable[typeID] : NULL);
 }
 

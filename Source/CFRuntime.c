@@ -422,9 +422,15 @@ extern void CFTimeZoneInitialize (void);
 extern void CFTreeInitialize (void);
 extern void CFUUIDInitialize (void);
 
-//void CFInitialize (void) __attribute__((constructor));
+void CFInitialize (void) __attribute__((constructor));
+
+static CFIndex CFInitialized = 0;
 void CFInitialize (void)
 {
+  // Only initialize once.
+  if (GSAtomicCompareAndSwapCFIndex(&CFInitialized, 0, 1) == 1)
+    return;
+  
   // Initialize CFRuntimeClassTable
   __CFRuntimeClassTable = (CFRuntimeClass **) calloc (__CFRuntimeClassTableSize,
                             sizeof(CFRuntimeClass *));

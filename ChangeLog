@@ -1,3 +1,13 @@
+2012-01-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GSPrivate.h: New CAS atomic function.
+	* Source/CFRuntime.c: Make sure corebase is only initialized once.
+	* Source/GNUmakefile:
+	* Source/Identifers.m:
+	* Source/Keys+Identifiers.c: Make constant strings CFString types.
+	* Source/CFString.c:
+	* Source/NSCFType.m: Hack to support constant strings.
+
 2011-12-30 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CFRuntime.h:

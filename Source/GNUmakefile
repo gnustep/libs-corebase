@@ -13,8 +13,7 @@ libgnustep-corebase_OBJC_FILES = \
   NSCFData.m \
   NSCFError.m \
   NSCFString.m \
-  NSCFType.m \
-  Identifiers.m
+  NSCFType.m
 
 libgnustep-corebase_C_FILES = \
   CFArray.c \
@@ -42,7 +41,8 @@ libgnustep-corebase_C_FILES = \
   CFUUID.c \
   CFXMLNode.c \
   CFXMLParser.c \
-  GSHashTable.c
+  GSHashTable.c \
+  Keys+Identifiers.c
 
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += `icu-config --ldflags-libsonly`
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation

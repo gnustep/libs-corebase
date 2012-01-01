@@ -81,7 +81,7 @@ static CFTypeID _kCFStringTypeID;
 enum
 {
   _kCFStringIsMutable = (1<<0),
-  _kCFStringIsWide    = (1<<1),
+  _kCFStringIsUnicode = (1<<1),
   _kCFStringIsOwned   = (1<<2),
   _kCFStringIsInline  = (1<<3),
   _kCFStringHasLengthByte = (1<<4), // This is used for Pascal strings
@@ -96,9 +96,9 @@ CFStringIsMutable (CFStringRef str)
 }
 
 CF_INLINE Boolean
-CFStringIsWide (CFStringRef str)
+CFStringIsUnicode (CFStringRef str)
 {
-  return ((CFRuntimeBase *)str)->_flags.info & _kCFStringIsWide ? true : false;
+  return ((CFRuntimeBase *)str)->_flags.info & _kCFStringIsUnicode ? true : false;
 }
 
 CF_INLINE Boolean
@@ -115,20 +115,6 @@ CFStringIsInline (CFStringRef str)
     ((CFRuntimeBase *)str)->_flags.info & _kCFStringIsInline ? true : false;
 }
 
-CF_INLINE Boolean
-CFStringHasLengthByte (CFStringRef str)
-{
-  return ((CFRuntimeBase *)str)->_flags.info & _kCFStringHasLengthByte ?
-    true : false;
-}
-
-CF_INLINE Boolean
-CFStringHasNullByte (CFStringRef str)
-{
-  return
-    ((CFRuntimeBase *)str)->_flags.info & _kCFStringHasNullByte ? true : false;
-}
-
 CF_INLINE void
 CFStringSetMutable (CFStringRef str)
 {
@@ -136,9 +122,9 @@ CFStringSetMutable (CFStringRef str)
 }
 
 CF_INLINE void
-CFStringSetWide (CFStringRef str)
+CFStringSetUnicode (CFStringRef str)
 {
-  ((CFRuntimeBase *)str)->_flags.info |= _kCFStringIsWide;
+  ((CFRuntimeBase *)str)->_flags.info |= _kCFStringIsUnicode;
 }
 
 CF_INLINE void
@@ -151,18 +137,6 @@ CF_INLINE void
 CFStringSetInline (CFStringRef str)
 {
   ((CFRuntimeBase *)str)->_flags.info |= _kCFStringIsInline;
-}
-
-CF_INLINE void
-CFStringSetHasLengthByte (CFStringRef str)
-{
-  ((CFRuntimeBase *)str)->_flags.info |= _kCFStringHasLengthByte;
-}
-
-CF_INLINE void
-CFStringSetHasNullByte (CFStringRef str)
-{
-  ((CFRuntimeBase *)str)->_flags.info |= _kCFStringHasNullByte;
 }
 
 
@@ -186,7 +160,7 @@ static CFHashCode CFStringHash (CFTypeRef cf)
   if (str->_hash == 0)
     {
       CFIndex len = CFStringGetLength (str) *
-        (CFStringIsWide(str) ? sizeof(UniChar) : sizeof(char));
+        (CFStringIsUnicode(str) ? sizeof(UniChar) : sizeof(char));
       ((struct __CFString *)str)->_hash = GSHashBytes (str->_contents, len);
     }
 
@@ -234,7 +208,6 @@ CFStringCreateStaticString (const char *str)
   new_constant_string->_count = strlen (str);
   new_constant_string->_hash = 0;
   new_constant_string->_deallocator = NULL;
-  CFStringSetHasNullByte (new_constant_string);
   
   return (CFStringRef)new_constant_string;
 }
@@ -268,9 +241,6 @@ CFStringRef __CFStringMakeConstantString (const char *str)
   old = (CFStringRef)CFDictionaryGetValue (static_strings, str);
   if (NULL == old)
     {
-      // Note: In theory, for proper retain count tracking, we should release
-      // new here.  We're not going to, because it is expected to persist for
-      // the lifetime of the program
       new = CFStringCreateStaticString (str);
       CFDictionaryAddValue (static_strings, str, (const void *)new);
       old = new;
@@ -280,10 +250,17 @@ CFStringRef __CFStringMakeConstantString (const char *str)
   return old;
 }
 
+extern struct __CFString *keys_identifiers[];
+
 void CFStringInitialize (void)
 {
+  CFIndex i;
+  
   _kCFStringTypeID = _CFRuntimeRegisterClass (&CFStringClass);
   GSMutexInitialize (&static_strings_lock);
+  
+  for (i = 0 ; keys_identifiers[i] != NULL ; ++i)
+    _CFRuntimeInitStaticInstance (keys_identifiers[i], _kCFStringTypeID);
 }
 
 
@@ -309,9 +286,7 @@ void
 CFShowStr (CFStringRef s)
 {
   fprintf (stderr, "Length %d\n", (int)s->_count);
-  fprintf (stderr, "IsWide %d\n", CFStringIsWide(s));
-  fprintf (stderr, "HasLengthByte %d\n", CFStringHasLengthByte(s));
-  fprintf (stderr, "HasNullByte %d\n", CFStringHasNullByte(s));
+  fprintf (stderr, "IsWide %d\n", CFStringIsUnicode(s));
   fprintf (stderr, "InlineContents %d\n", CFStringIsInline(s));
   fprintf (stderr, "Allocator %p\n", CFGetAllocator(s));
   fprintf (stderr, "Mutable %d\n", CFStringIsMutable(s));
@@ -395,10 +370,9 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 *bytes,
           new->_contents = &(new[1]);
         }
       
-      CFStringSetWide((CFStringRef)new);
+      CFStringSetUnicode((CFStringRef)new);
     }
   
-  CFStringSetHasNullByte((CFStringRef)new);
   new->_count = buffer.numChars;
   new->_deallocator = alloc;
   
@@ -466,8 +440,8 @@ CFStringCreateCopy (CFAllocatorRef alloc, CFStringRef str)
   if (CFGetAllocator(str) == alloc && !CFStringIsMutable(str))
     return CFRetain (str);
   
-  length = CFStringIsWide(str) ? str->_count * sizeof(UniChar) : str->_count;
-  enc = CFStringIsWide(str) ? kCFStringEncodingUTF16 : kCFStringEncodingASCII;
+  length = CFStringIsUnicode(str) ? str->_count * sizeof(UniChar) : str->_count;
+  enc = CFStringIsUnicode(str) ? kCFStringEncodingUTF16 : kCFStringEncodingASCII;
   new = CFStringCreateWithBytes (alloc, str->_contents, length, enc, false);
   
   return new;
@@ -565,7 +539,7 @@ CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
   CFIndex len;
   CFStringEncoding enc;
   
-  if (CFStringIsWide(str))
+  if (CFStringIsUnicode(str))
     {
       enc = kCFStringEncodingUTF16;
       len = range.length * sizeof(UniChar);
@@ -618,13 +592,13 @@ CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
 const UniChar *
 CFStringGetCharactersPtr (CFStringRef str)
 {
-  return CFStringIsWide(str) ? str->_contents : NULL;
+  return CFStringIsUnicode(str) ? str->_contents : NULL;
 }
 
 const char *
 CFStringGetCStringPtr (CFStringRef str, CFStringEncoding enc)
 {
-  return (!CFStringIsWide(str) && __CFStringEncodingIsSupersetOfASCII(enc))
+  return (!CFStringIsUnicode(str) && __CFStringEncodingIsSupersetOfASCII(enc))
     ? str->_contents : NULL;
 }
 
@@ -684,7 +658,7 @@ CFStringGetCharacterAtIndex (CFStringRef str, CFIndex idx)
 {
   CF_OBJC_FUNCDISPATCH1(_kCFStringTypeID, UniChar, str,
     "characterAtIndex:", idx);
-  return CFStringIsWide(str) ? ((UniChar*)str->_contents)[idx] :
+  return CFStringIsUnicode(str) ? ((UniChar*)str->_contents)[idx] :
     ((char*)str->_contents)[idx];
 }
 
@@ -699,7 +673,7 @@ CFRange
 CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef str,
   CFIndex theIndex)
 {
-  if (CFStringIsWide(str))
+  if (CFStringIsUnicode(str))
     {
       CFIndex len = 1;
       UniChar *characters = ((UniChar*)str->_contents) + theIndex;
@@ -832,7 +806,7 @@ CFStringCheckCapacityAndGrow (CFMutableStringRef str, CFIndex newCapacity,
 #define CFSTRING_INIT_MUTABLE(str) do \
 { \
   ((CFRuntimeBase *)str)->_flags.info = \
-    0xFF & (_kCFStringIsMutable | _kCFStringIsWide | _kCFStringIsOwned \
+    0xFF & (_kCFStringIsMutable | _kCFStringIsUnicode | _kCFStringIsOwned \
     | _kCFStringHasNullByte); \
 } while(0)
 
@@ -1372,46 +1346,4 @@ CFStringTransform (CFMutableStringRef str, CFRange *range,
     range->length = limit;
   
   return true;
-}
-
-
-
-/* All the Pascal string functions will go here.  None of them are currently
-   implemented. */
-CFStringRef
-CFStringCreateWithPascalString (CFAllocatorRef alloc, ConstStr255Param pStr,
-  CFStringEncoding encoding)
-{
-  return NULL;
-}
-
-CFStringRef
-CFStringCreateWithPascalStringNoCopy (CFAllocatorRef alloc,
-  ConstStr255Param pStr, CFStringEncoding encoding,
-  CFAllocatorRef contentsDeallocate)
-{
-  return NULL;
-}
-
-Boolean
-CFStringGetPascalString (CFStringRef str, StringPtr buffer,
-  CFIndex bufferSize, CFStringEncoding encoding)
-{
-  return false;
-}
-
-ConstStringPtr
-CFStringGetPascalStringPtr (CFStringRef str, CFStringEncoding encoding)
-{
-  if (CFStringHasLengthByte(str))
-    return str->_contents;
-  
-  return NULL;
-}
-
-void
-CFStringAppendPascalString (CFMutableStringRef str,
-  ConstStr255Param pStr, CFStringEncoding encoding)
-{
-  return;
 }

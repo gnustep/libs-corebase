@@ -33,6 +33,7 @@ extern void CFInitialize (void);
 extern UInt32 __CFRuntimeClassTableSize;
 extern UInt32 __CFRuntimeClassTableCount;
 extern Class NSCFTypeClass;
+extern CFStringRef keys_identifiers[];
 
 void NSCFInitialize (void)
 {
@@ -41,10 +42,14 @@ void NSCFInitialize (void)
   
   if (requiredClasses == 0)
     {
+      CFIndex i = 0;
+      
       __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
                                     sizeof(Class));
-      
+      NSCFTypeClass = [NSCFType class];
       CFInitialize ();
+      while (i < __CFRuntimeClassTableCount)
+        __CFRuntimeObjCClassTable[i++] = NSCFTypeClass;
       
       /* This would need to be done in NSNull, but will be here for now. */
       CFRuntimeBridgeClass (CFNullGetTypeID(), "NSNull");
@@ -53,6 +58,10 @@ void NSCFInitialize (void)
       CFRuntimeBridgeClass (CFDataGetTypeID(), "NSCFData");
       CFRuntimeBridgeClass (CFErrorGetTypeID(), "NSCFError");
       CFRuntimeBridgeClass (CFStringGetTypeID(), "NSCFString");
+      
+      Class NSCFStringClass = objc_getClass ("NSCFString");
+      for (i = 0 ; keys_identifiers[i] != NULL ; ++i)
+        ((CFRuntimeBase*)keys_identifiers[i])->_isa = NSCFStringClass;
     }
 }
 
