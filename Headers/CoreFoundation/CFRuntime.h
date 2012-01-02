@@ -76,9 +76,11 @@ struct __CFRuntimeClass
   CFHashCode (*hash)(CFTypeRef cf);
   CFStringRef (*copyFormattingDesc)(CFTypeRef cf, CFDictionaryRef formatOptions);
   CFStringRef (*copyDebugDesc)(CFTypeRef cf);
-#if 0 // FIXME: MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 #define CF_RECLAIM_AVAILABLE 1
   void (*reclaim)(CFTypeRef cf); // _kCFRuntimeResourcefulObject
+#endif
+#if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
 #define CF_REFCOUNT_AVAILABLE 1
   uint32_t (*refcount)(intptr_t op, CFTypeRef cf); // _kCFRuntimeCustomRefCount
 #endif
