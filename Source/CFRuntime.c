@@ -406,9 +406,15 @@ CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value)
 
 extern void CFAllocatorInitialize (void);
 extern void CFArrayInitialize (void);
+extern void CFBagInitialize (void);
+//extern void CFBinaryHeapInitialize (void);
+extern void CFBitVectorInitialize (void);
 extern void CFBooleanInitialize (void);
 extern void CFCalendarInitialize (void);
+extern void CFCharacterSetInitialize (void);
 extern void CFDataInitialize (void);
+extern void CFDateInitialize (void);
+extern void CFDateFormatterInitialize (void);
 extern void CFDictionaryInitialize (void);
 extern void CFErrorInitialize (void);
 extern void CFLocaleInitialize (void);
@@ -416,11 +422,13 @@ extern void CFBundleInitialize (void);
 extern void CFNullInitialize (void);
 extern void CFNumberInitialize (void);
 extern void CFNumberFormatterInitialize (void);
+extern void CFSetInitialize (void);
 extern void CFStringInitialize (void);
 extern void CFStringEncodingInitialize (void);
 extern void CFTimeZoneInitialize (void);
 extern void CFTreeInitialize (void);
 extern void CFUUIDInitialize (void);
+extern void CFXMLNodeInitialize (void);
 
 void CFInitialize (void) __attribute__((constructor));
 
@@ -442,9 +450,15 @@ void CFInitialize (void)
   
   CFAllocatorInitialize ();
   CFArrayInitialize ();
+  CFBagInitialize ();
+//  CFBinaryHeapInitialize ();
+  CFBitVectorInitialize ();
   CFBooleanInitialize ();
   CFCalendarInitialize ();
+  CFCharacterSetInitialize ();
   CFDataInitialize ();
+  CFDateInitialize ();
+  CFDateFormatterInitialize ();
   CFDictionaryInitialize ();
   CFErrorInitialize ();
   CFLocaleInitialize ();
@@ -452,9 +466,11 @@ void CFInitialize (void)
   CFNullInitialize ();
   CFNumberInitialize ();
   CFNumberFormatterInitialize ();
+  CFSetInitialize ();
   CFStringInitialize ();
   CFStringEncodingInitialize ();
   CFTimeZoneInitialize ();
   CFTreeInitialize ();
   CFUUIDInitialize ();
+  CFXMLNodeInitialize ();
 }

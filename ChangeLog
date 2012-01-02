@@ -1,5 +1,9 @@
 2012-01-02 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFCharacterSet.c: Added predefined set support.
+
+2012-01-02 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFCharacterSet.c: Added most functions.
 
 2012-01-01 Stefan Bidigaray <stefanbidi@gmail.com>

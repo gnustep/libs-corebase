@@ -39,8 +39,8 @@ struct __CFCharacterSet
 };
 
 static CFTypeID _kCFCharacterSetTypeID = 0;
-static CFMutableDictionaryRef _kCFCharacterSetPredefinedSets = NULL;
-static GSMutex _kCFCharacterSetLock;
+static CFMutableDictionaryRef _kCFPredefinedCharacterSets = NULL;
+static GSMutex _kCFPredefinedCharacterSetLock;
 
 static void
 CFCharacterSetFinalize (CFTypeRef cf)
@@ -78,7 +78,7 @@ static const CFRuntimeClass CFCharacterSetClass =
 void CFCharacterSetInitialize (void)
 {
   _kCFCharacterSetTypeID = _CFRuntimeRegisterClass (&CFCharacterSetClass);
-  GSMutexInitialize (&_kCFCharacterSetLock);
+  GSMutexInitialize (&_kCFPredefinedCharacterSetLock);
 }
 
 
@@ -176,15 +176,108 @@ CFCharacterSetCreateWithCharactersInString (CFAllocatorRef alloc,
   return new;
 }
 
-CFCharacterSetRef
-CFCharacterSetCreateWithBitmapRepresentation (CFAllocatorRef alloc,
-  CFDataRef data)
+static const UniChar control[] =
+  { '[', '[', ':', 'C', 'c', ':', ']', '[', ':', 'C', 'f', ':', ']', ']'  };
+static const UniChar whitespace[] =
+  { '[', '[', ':', 'Z', 's', ':', ']', '[', '\\', 'u', '0', '0', '0', '9',
+    ']', ']'  };
+static const UniChar whitespace_newline[] =
+  { '[', '[', ':', 'Z', ':', ']', '[', '\\', 'u', '0', '0', '0', 'A', '-',
+    '\\', 'u', '0', '0', '0', 'D', ']',
+    '[', '\\', 'u', '0', '0', '8', '5', ']', ']' };
+static const UniChar decimal_digit[] =
+  { '[', ':', 'N', ':', ']'  };
+static const UniChar letter[] =
+  { '[', '[', ':', 'L', ':', ']', '[', ':', 'M', ':', ']', ']'  };
+static const UniChar lowercase_letter[] =
+  { '[', ':', 'L', 'l', ':', ']'  };
+static const UniChar uppercase_letter[] =
+  { '[', ':', 'L', 'u', ':', ']'  };
+static const UniChar non_base[] =
+  { '[', ':', 'M', ':', ']'  };
+static const UniChar decomposable[] = // FIXME
+  { ' '  };
+static const UniChar alpha_numeric[] =
+  { '[', '[', ':', 'L', ':', ']', '[', ':', 'M', ':', ']',
+    '[', ':', 'N', ':', ']', ']' };
+static const UniChar punctuation[] =
+  { '[', ':', 'P', ':', ']'  };
+static const UniChar illegal[] = // FIXME: Is this right?
+  { '[', '[', ':', '^', 'C', ':', ']', '[', ':', '^', 'L', ':', ']',
+    '[', ':', '^', 'M', ':', ']', '[', ':', '^', 'N', ':', ']',
+    '[', ':', '^', 'P', ':', ']', '[', ':', '^', 'S', ':', ']',
+    '[', ':', '^', 'Z', ':', ']', ']' };
+static const UniChar capitalized_letter[] =
+  { '[', ':', 'L', 't', ':', ']'  };
+static const UniChar symbol[] =
+  { '[', ':', 'S', ':', ']'  };
+static const UniChar newline[] =
+  { '[', '[', '\\', 'u', '0', '0', '0', 'A', '-',
+      '\\', 'u', '0', '0', '0', 'D', ']',
+    '[', '\\', 'u', '0', '0', '8', '5', ']',
+    '[', '\\', 'u', '2', '0', '2', '8', ']', 
+    '[', '\\', 'u', '2', '0', '2', '9', ']', ']'  };
+
+static const UniChar *predefinedSets[] =
 {
-  return NULL;
-}
+  control,
+  whitespace,
+  whitespace_newline,
+  decimal_digit,
+  letter,
+  lowercase_letter,
+  uppercase_letter,
+  non_base,
+  decomposable,
+  alpha_numeric,
+  punctuation,
+  illegal,
+  capitalized_letter,
+  symbol,
+  newline
+};
 
 CFCharacterSetRef
 CFCharacterSetGetPredefined (CFCharacterSetPredefinedSet setIdentifier)
+{
+  struct __CFCharacterSet *ret;
+  
+  if (_kCFPredefinedCharacterSets == NULL)
+    {
+      GSMutexLock (&_kCFPredefinedCharacterSetLock);
+      if (_kCFPredefinedCharacterSets == NULL)
+        {
+          // No need to set callbacks.
+          _kCFPredefinedCharacterSets =
+            CFDictionaryCreateMutable (NULL, 15, NULL, NULL);
+        }
+      GSMutexUnlock (&_kCFPredefinedCharacterSetLock);
+    }
+  
+  ret = (struct __CFCharacterSet*)
+    CFDictionaryGetValue (_kCFPredefinedCharacterSets,
+    (const void*)setIdentifier);
+  if (ret == NULL)
+    {
+      GSMutexLock (&_kCFPredefinedCharacterSetLock);
+      ret = (struct __CFCharacterSet*)_CFRuntimeCreateInstance (NULL,
+        _kCFCharacterSetTypeID, CFCHARACTERSET_SIZE, 0);
+      if (ret)
+        {
+          UErrorCode err = U_ZERO_ERROR;
+          ret->_uset = uset_openPattern (predefinedSets[setIdentifier - 1],
+            sizeof(predefinedSets[setIdentifier - 1]) / sizeof(UniChar), &err);
+          uset_freeze (ret->_uset);
+        }
+      GSMutexUnlock (&_kCFPredefinedCharacterSetLock);
+    }
+  
+  return ret;
+}
+
+CFCharacterSetRef
+CFCharacterSetCreateWithBitmapRepresentation (CFAllocatorRef alloc,
+  CFDataRef data)
 {
   return NULL;
 }
