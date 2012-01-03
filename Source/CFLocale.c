@@ -121,6 +121,20 @@ ICUToCFLocaleOrientation (ULayoutType layout)
     }
 }
 
+CF_INLINE const char *
+CFLocaleGetCStringIdentifier_inline (CFLocaleRef locale)
+{
+  // This works because CFLocaleCreateCanonicalIdentifierFromString()
+  // outputs ASCII characters.
+  return CFStringGetCStringPtr (locale->_identifier, kCFStringEncodingASCII);
+}
+
+const char *
+CFLocaleGetCStringIdentifier (CFLocaleRef locale)
+{
+  return CFLocaleGetCStringIdentifier_inline (locale);
+}
+
 static CFArrayRef
 CFArrayCreateArrayWithUEnumeration (UEnumeration *en)
 {
@@ -157,13 +171,10 @@ CFLocaleCopyMeasurementSystem (CFLocaleRef loc, const void *context)
 {
   CFTypeRef result;
   UMeasurementSystem ums;
-  char cLocale[ULOC_FULLNAME_CAPACITY];
+  const char *cLocale;
   UErrorCode err = U_ZERO_ERROR;
   
-  if (!CFStringGetCString (loc->_identifier, cLocale,
-      ULOC_FULLNAME_CAPACITY, kCFStringEncodingUTF8))
-    return NULL;
-  
+  cLocale = CFLocaleGetCStringIdentifier_inline (loc);
   ums = ulocdata_getMeasurementSystem (cLocale, &err);
   if (CFEqual(*((CFTypeRef*)context), kCFLocaleMeasurementSystem))
     {
@@ -217,16 +228,13 @@ static CFTypeRef
 CFLocaleCopyIdentifierProperty (CFLocaleRef loc, const void *context)
 {
   CFTypeRef result;
-  char cLocale[ULOC_FULLNAME_CAPACITY];
+  const char *cLocale;
   char buffer[ULOC_FULLNAME_CAPACITY];
   int32_t length;
   int32_t (*func)(const char*, char*, int32_t, UErrorCode*) = context;
   UErrorCode err = U_ZERO_ERROR;
   
-  if (!CFStringGetCString (loc->_identifier, cLocale,
-      ULOC_FULLNAME_CAPACITY, kCFStringEncodingUTF8))
-    return NULL;
-  
+  cLocale = CFLocaleGetCStringIdentifier_inline (loc);
   length = (*func)(cLocale, buffer, ULOC_FULLNAME_CAPACITY, &err);
   if (U_FAILURE(err) || length <= 0)
     result = NULL;
@@ -240,14 +248,11 @@ static CFTypeRef
 CFLocaleCopyKeyword (CFLocaleRef loc, const void *context)
 {
   CFTypeRef result = NULL;
-  char cLocale[ULOC_FULLNAME_CAPACITY];
+  const char *cLocale;
   char buffer[BUFFER_SIZE];
   UErrorCode err = U_ZERO_ERROR;
   
-  if (!CFStringGetCString (loc->_identifier, cLocale,
-      ULOC_FULLNAME_CAPACITY, kCFStringEncodingUTF8))
-    return NULL;
-  
+  cLocale = CFLocaleGetCStringIdentifier_inline (loc);
   if (uloc_getKeywordValue (cLocale, context, buffer,
       BUFFER_SIZE, &err) > 0 && U_SUCCESS(err))
     {
@@ -282,14 +287,11 @@ CFLocaleCopyCalendar (CFLocaleRef locale, const void *context)
   CFStringRef calId;
   CFAllocatorRef allocator = CFGetAllocator (locale);
   int len;
-  char cLocale[ULOC_FULLNAME_CAPACITY];
+  const char *cLocale;
   char buffer[ULOC_KEYWORDS_CAPACITY];
   UErrorCode err = U_ZERO_ERROR;
   
-  if (!CFStringGetCString (CFLocaleGetIdentifier(locale), cLocale,
-      ULOC_FULLNAME_CAPACITY, kCFStringEncodingUTF8))
-    return NULL;
-  
+  cLocale = CFLocaleGetCStringIdentifier_inline (locale);
   len = uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, buffer,
     ULOC_KEYWORDS_CAPACITY, &err);
   if (U_SUCCESS(err) && len > 0)
@@ -307,16 +309,14 @@ CFLocaleCopyCalendar (CFLocaleRef locale, const void *context)
 static CFTypeRef
 CFLocaleCopyDelimiter (CFLocaleRef loc, const void *context)
 {
-  char cLocale[ULOC_FULLNAME_CAPACITY];
+  const char *cLocale;
   UniChar ubuffer[BUFFER_SIZE];
   CFIndex length;
   CFTypeRef result;
   ULocaleData *uld;
   UErrorCode err = U_ZERO_ERROR;
   
-  if (!CFStringGetCString (loc->_identifier, cLocale,
-      ULOC_FULLNAME_CAPACITY, kCFStringEncodingUTF8))
-    return NULL;
+  cLocale = CFLocaleGetCStringIdentifier_inline (loc);
   uld = ulocdata_open (cLocale, &err);
   
   length = ulocdata_getDelimiter (uld, (ULocaleDataDelimiterType)context,

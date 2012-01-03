@@ -47,16 +47,9 @@ CFStringICUCollatorOpen (CFStringCompareFlags options, CFLocaleRef locale)
   UErrorCode err = U_ZERO_ERROR;
   
   if (locale != NULL && (options & kCFCompareLocalized))
-    {
-      loc = CFLocaleGetIdentifier (locale);
-      CFStringGetCString (loc, buffer, ULOC_FULLNAME_CAPACITY,
-        kCFStringEncodingASCII);
-      localeID = buffer;
-    }
+    localeID = CFLocaleGetCStringIdentifier (locale);
   else
-    {
-      localeID = NULL;
-    }
+    localeID = NULL;
   
   ret = ucol_open (localeID, &err);
   if (options)

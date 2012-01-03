@@ -1,3 +1,12 @@
+2012-01-03 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFLocale.c:
+	* Source/CFDateFormatter.c:
+	* Source/CFNumberFormatter.c:
+	* Source/CFStringUtilities.c:
+	* Source/GSPrivate.h: Introduce private function to get a C string
+	locale.
+
 2012-01-02 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFCharacterSet.c: Added predefined set support.

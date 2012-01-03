@@ -102,7 +102,7 @@ CFDateFormatterSetup (CFDateFormatterRef dfmt)
 {
   UDateFormatStyle utStyle;
   UDateFormatStyle udStyle;
-  char cLocale[BUFFER_SIZE];
+  const char *cLocale;
   UniChar uTzID[BUFFER_SIZE];
   CFIndex uTzIDLength;
   UErrorCode err = U_ZERO_ERROR;
@@ -113,8 +113,7 @@ CFDateFormatterSetup (CFDateFormatterRef dfmt)
   utStyle = CFDataFormatterStyleToUDateFormatStyle (dfmt->_timeStyle);
   udStyle = CFDataFormatterStyleToUDateFormatStyle (dfmt->_dateStyle);
   
-  CFStringGetCString (CFLocaleGetIdentifier(dfmt->_locale), cLocale,
-    BUFFER_SIZE, kCFStringEncodingASCII);
+  cLocale = CFLocaleGetCStringIdentifier (dfmt->_locale);
   
   uTzIDLength = CFStringGetLength (CFTimeZoneGetName(dfmt->_tz));
 #if 0 // FIXME
@@ -576,7 +575,7 @@ CFStringRef
 CFDateFormatterCreateDateFormatFromTemplate (CFAllocatorRef alloc,
   CFStringRef templ, CFOptionFlags options, CFLocaleRef locale)
 {
-  char cLocale[BUFFER_SIZE];
+  const char *cLocale;
   UniChar pat[BUFFER_SIZE];
   UniChar skel[BUFFER_SIZE];
   CFIndex patLen;
@@ -584,8 +583,7 @@ CFDateFormatterCreateDateFormatFromTemplate (CFAllocatorRef alloc,
   UDateTimePatternGenerator *datpg;
   UErrorCode err = U_ZERO_ERROR;
   
-  CFStringGetCString (CFLocaleGetIdentifier(locale), cLocale, BUFFER_SIZE,
-    kCFStringEncodingASCII);
+  cLocale = CFLocaleGetCStringIdentifier (locale);
   datpg = udatpg_open (cLocale, &err);
   if (U_FAILURE(err))
     return NULL;

@@ -28,10 +28,10 @@
 #include "CoreFoundation/CFNumber.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
+#include "GSPrivate.h"
 
 #include "CoreFoundation/CFNumberFormatter.h"
 
-#include <unicode/uloc.h> // for ULOC_FULLNAME_CAPACITY
 #include <unicode/ucurr.h>
 #include <unicode/unum.h>
 
@@ -318,18 +318,14 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
   CFNumberFormatterStyle style)
 {
   struct __CFNumberFormatter *new;
-  CFStringRef localeIdent;
-  char cLocale[ULOC_FULLNAME_CAPACITY];
+  const char *cLocale;
   int32_t len;
   UChar ubuffer[BUFFER_SIZE];
   UErrorCode err = U_ZERO_ERROR;
   
   if (locale == NULL)
     locale = CFLocaleGetSystem ();
-  localeIdent = CFLocaleGetIdentifier (locale);
-  if (!CFStringGetCString (localeIdent, cLocale, ULOC_FULLNAME_CAPACITY,
-      CFStringGetSystemEncoding()))
-    return NULL;
+  cLocale = CFLocaleGetCStringIdentifier (locale);
   
   new = (struct __CFNumberFormatter *)_CFRuntimeCreateInstance (allocator,
     CFNumberFormatterGetTypeID(),

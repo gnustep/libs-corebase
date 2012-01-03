@@ -28,6 +28,7 @@
 #define __GSPRIVATE_H__
 
 #include "CoreFoundation/CFBase.h"
+#include "CoreFoundation/CFLocale.h"
 
 
 
@@ -176,6 +177,9 @@ CFTypeRetainCallBack (CFAllocatorRef allocator, const void *value);
 
 void
 CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
+
+const char *
+CFLocaleGetCStringIdentifier (CFLocaleRef locale);
 
 
 
