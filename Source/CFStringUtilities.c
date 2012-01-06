@@ -34,15 +34,14 @@
 #include "CoreFoundation/CFCharacterSet.h"
 #include "CoreFoundation/CFLocale.h"
 #include "CoreFoundation/CFString.h"
+#include "GSPrivate.h"
 
 
 
 CF_INLINE UCollator *
 CFStringICUCollatorOpen (CFStringCompareFlags options, CFLocaleRef locale)
 {
-  char *localeID;
-  char buffer[ULOC_FULLNAME_CAPACITY];
-  CFStringRef loc;
+  const char *localeID;
   UCollator *ret;
   UErrorCode err = U_ZERO_ERROR;
   

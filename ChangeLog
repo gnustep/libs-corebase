@@ -1,3 +1,8 @@
+2012-01-05 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStringUtilities.c: Include GSPrivate.h.
+	* Source/CFURL.c: CFURL implementation. Not included as part of build.
+
 2012-01-03 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFLocale.c:
