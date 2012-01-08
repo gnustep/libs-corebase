@@ -36,8 +36,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
 // On *BSD and Linux we have a srandomdev() function which seeds the random 
 // number generator with entropy collected from a variety of sources. On other
 // platforms we don't, so we use some less random data based on the current 
@@ -64,10 +62,12 @@ static void CFsrandomdev (void)
   #include <sys/time.h>
   #include <sys/types.h>
   #include <sys/stat.h>
+  #include <time.h>
   #define INITRANDOM() CFsrandomdev()
   #if defined(__linux__)
     #include <fcntl.h>
     #include <errno.h>
+    #include <unistd.h>
 static void CFsrandomdev(void)
 {
   int fd;

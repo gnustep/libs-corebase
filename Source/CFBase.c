@@ -28,6 +28,9 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "GSPrivate.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 const double kCFCoreFoundationVersionNumber = 550.13;
 
 

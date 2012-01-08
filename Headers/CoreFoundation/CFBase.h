@@ -5,7 +5,7 @@
    Written by: Stefan Bidigaray
    Date: January, 2010
    
-   This file is part of CoreBase.
+   This file is part of the GNUstep CoreBase Library.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,12 +27,6 @@
 
 #ifndef __COREFOUNDATION_CFBASE_H__
 #define __COREFOUNDATION_CFBASE_H__
-
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
 /* FIXME: These macros are defined here to work around an issue with including
  * GNUstepBase/GSVersionMacros.h when compiling with clang or on Windows.
@@ -56,6 +50,19 @@ typedef struct CFRunLoop *CFRunLoopRef;
 //
 // CoreFoundation types
 //
+#if defined(_MSC_VER)
+#include <intsafe.h>
+typedef UINT8  Boolean;
+typedef UINT8  UInt8;
+typedef INT8   SInt8;
+typedef UINT16 UInt16;
+typedef INT16  SInt16;
+typedef UINT32 UInt32;
+typedef INT32  SInt32;
+typedef UINT64 UInt64;
+typedef INT64  SInt64;
+#else
+#include <stdint.h>
 typedef uint8_t  Boolean;
 typedef uint8_t  UInt8;
 typedef int8_t   SInt8;
@@ -65,14 +72,15 @@ typedef uint32_t UInt32;
 typedef int32_t  SInt32;
 typedef uint64_t UInt64;
 typedef int64_t  SInt64;
+#endif
 typedef SInt32   OSStatus;
 
 typedef float            Float32;
 typedef double           Float64;
-typedef uint16_t         UniChar;
-typedef uint8_t*         StringPtr;
+typedef UInt16           UniChar;
+typedef UInt8*           StringPtr;
 typedef const StringPtr* ConstStringPtr;
-typedef uint8_t          Str255[256];
+typedef UInt8            Str255[256];
 typedef const Str255*    ConstStr255Param;
 typedef SInt16           OSErr;
 typedef SInt16           RegionCode;
@@ -116,6 +124,11 @@ typedef UInt8  UTF8Char;
 # endif
 #else
 # define CF_EXPORT extern
+#endif
+
+#if !defined(__bool_true_false_are_defined)
+# define true 1
+# define false 0
 #endif
 
 #ifndef TRUE

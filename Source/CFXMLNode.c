@@ -30,6 +30,8 @@
 #include "CoreFoundation/CFURL.h"
 #include "CoreFoundation/CFXMLNode.h"
 
+#include <stdlib.h>
+
 struct __CFXMLNode
 {
   CFRuntimeBase _parent;

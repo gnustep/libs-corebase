@@ -24,30 +24,30 @@
    Boston, MA 02110-1301, USA.
 */
 
+#include "CoreFoundation/CFRuntime.h"
+#include "CoreFoundation/CFString.h"
+#include "GSPrivate.h"
+
 #include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "CoreFoundation/CFRuntime.h"
-#include "CoreFoundation/CFString.h"
-#include "GSPrivate.h"
-
 
 
 // GC stuff...
-bool kCFUseCollectableAllocator = false;
-bool (*__CFObjCIsCollectable)(void *) = NULL;
+Boolean kCFUseCollectableAllocator = false;
+Boolean (*__CFObjCIsCollectable)(void *) = NULL;
 
 // CFRuntimeClass Table
 CFRuntimeClass **__CFRuntimeClassTable = NULL;
-Class *__CFRuntimeObjCClassTable = NULL;
+void **__CFRuntimeObjCClassTable = NULL;
 UInt32 __CFRuntimeClassTableCount = 0;
 UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
 
 static GSMutex _kCFRuntimeTableLock;
 
-Class NSCFTypeClass = Nil;
+void *NSCFTypeClass = NULL;
 
 
 

@@ -29,6 +29,7 @@
 #include "CoreFoundation/CFNumberFormatter.h"
 
 #include <math.h>
+#include <stddef.h>
 #include <string.h>
 #include <unicode/unum.h>
 
@@ -209,7 +210,7 @@ CFFormatInteger (CFFormatSpec *spec,
                  CFFormatArgument *arg,
                  CFDictionaryRef formatOptions)
 {
-  int64_t i = 0;
+  SInt64 i = 0;
   CFIndex numChars;
   UniChar buffer[BUFFER_SIZE];
   CFStringRef ret;
@@ -234,28 +235,28 @@ CFFormatInteger (CFFormatSpec *spec,
       switch (spec->length)
         {
           case CFCharLength:
-            i = (int64_t)((char)arg->intValue);
+            i = (SInt64)((char)arg->intValue);
             break;
           case CFShortLength:
-            i = (int64_t)((short)arg->intValue);
+            i = (SInt64)((short)arg->intValue);
             break;
           case CFLongLength:
-            i = (int64_t)((long)arg->intValue);
+            i = (SInt64)((long)arg->intValue);
             break;
           case CFLongLongLength:
-            i = (int64_t)((long long)arg->intValue);
+            i = (SInt64)((long long)arg->intValue);
             break;
           case CFSizeTLength:
-            i = (int64_t)((size_t)arg->intValue);
+            i = (SInt64)((size_t)arg->intValue);
             break;
           case CFIntMaxTLength:
-            i = (int64_t)((intmax_t)arg->intValue);
+            i = (SInt64)((intmax_t)arg->intValue);
             break;
           case CFPtrDiffTLength:
-            i = (int64_t)((ptrdiff_t)arg->intValue);
+            i = (SInt64)((ptrdiff_t)arg->intValue);
             break;
           default:
-            i = (int64_t)((int)arg->intValue);
+            i = (SInt64)((int)arg->intValue);
         }
     }
   else if (spec->type == CFUnsignedType)
@@ -263,28 +264,28 @@ CFFormatInteger (CFFormatSpec *spec,
       switch (spec->length)
         {
           case CFCharLength:
-            i = (int64_t)((unsigned char)arg->intValue);
+            i = (SInt64)((unsigned char)arg->intValue);
             break;
           case CFShortLength:
-            i = (int64_t)((unsigned short)arg->intValue);
+            i = (SInt64)((unsigned short)arg->intValue);
             break;
           case CFLongLength:
-            i = (int64_t)((unsigned long)arg->intValue);
+            i = (SInt64)((unsigned long)arg->intValue);
             break;
           case CFLongLongLength:
-            i = (int64_t)((signed long long)arg->intValue);
+            i = (SInt64)((signed long long)arg->intValue);
             break;
           case CFSizeTLength:
-            i = (int64_t)((size_t)arg->intValue); // Already unsigned
+            i = (SInt64)((size_t)arg->intValue); // Already unsigned
             break;
           case CFIntMaxTLength:
-            i = (int64_t)((uintmax_t)arg->intValue);
+            i = (SInt64)((uintmax_t)arg->intValue);
             break;
           case CFPtrDiffTLength:
-            i = (int64_t)((ptrdiff_t)arg->intValue); // Unsigned version?
+            i = (SInt64)((ptrdiff_t)arg->intValue); // Unsigned version?
             break;
           default:
-            i = (int64_t)((unsigned int)arg->intValue);
+            i = (SInt64)((unsigned int)arg->intValue);
         }
     }
   numChars = unum_formatInt64 (fmt, i, (UChar*)buffer, BUFFER_SIZE,

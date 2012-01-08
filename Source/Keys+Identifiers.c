@@ -1,4 +1,5 @@
 #include "CoreFoundation/CFRuntime.h"
+#include <stdlib.h>
 
 struct __CFString
 {

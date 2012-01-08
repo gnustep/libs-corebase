@@ -24,14 +24,14 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <string.h>
-
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFNumber.h"
 #include "GSPrivate.h"
+
+#include <string.h>
 
 struct __CFBoolean
 {
@@ -103,6 +103,15 @@ struct __CFNumber
   CFRuntimeBase _parent;
 };
 
+#if defined(_MSC_VER)
+#include <float.h>
+#define INFINITY DBL_MAX + DBL_MAX
+#define NAN (INFINITY) - (INFINITY)
+#else
+#define INFINITY 1.0 / 0.0
+#define NAN 0.0 / 0.0
+#endif
+
 struct __CFNumber_static
 {
   struct __CFNumber _cfnum;
@@ -112,19 +121,19 @@ struct __CFNumber_static
 static struct __CFNumber_static _kCFNumberNaN =
 {
   { INIT_CFRUNTIME_BASE() },
-  (0.0 / 0.0)
+  ( NAN )
 };
 
 static struct __CFNumber_static _kCFNumberNegInf =
 {
   { INIT_CFRUNTIME_BASE() },
-  (-1.0 / 0.0)
+  ( -INFINITY )
 };
 
 static struct __CFNumber_static _kCFNumberPosInf =
 {
   { INIT_CFRUNTIME_BASE() },
-  (1.0 / 0.0)
+  ( INFINITY )
 };
 
 const CFNumberRef kCFNumberNaN = (CFNumberRef)&_kCFNumberNaN;

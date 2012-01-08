@@ -36,8 +36,8 @@ CF_EXTERN_C_BEGIN
  *  @{
  */
 
-CF_EXPORT bool kCFUseCollectableAllocator;
-CF_EXPORT bool (*__CFObjCIsCollectable)(void *);
+CF_EXPORT Boolean kCFUseCollectableAllocator;
+CF_EXPORT Boolean (*__CFObjCIsCollectable)(void *);
 
 #define CF_USING_COLLECTABLE_MEMORY (kCFUseCollectableAllocator)
 #define CF_IS_COLLECTABLE_ALLOCATOR(allocator) \

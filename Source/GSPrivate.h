@@ -187,7 +187,7 @@ CFLocaleGetCStringIdentifier (CFLocaleRef locale);
 #include <objc/runtime.h>
 #undef BOOL
 
-extern Class *__CFRuntimeObjCClassTable;
+extern void **__CFRuntimeObjCClassTable;
 extern UInt32 __CFRuntimeClassTableCount;
 
 CF_INLINE void *

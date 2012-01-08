@@ -24,10 +24,12 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <CoreFoundation/CFRuntime.h>
-#include <CoreFoundation/CFBase.h>
+#include "CoreFoundation/CFRuntime.h"
+#include "CoreFoundation/CFBase.h"
 #include "GSHashTable.h"
 #include "GSPrivate.h"
+
+#include <string.h>
 
 /* READ THIS FIRST
  * 

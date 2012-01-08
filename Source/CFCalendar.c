@@ -24,8 +24,6 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <unicode/ucal.h>
-
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFDate.h"
 #include "CoreFoundation/CFLocale.h"
@@ -33,6 +31,8 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "GSPrivate.h"
+
+#include <unicode/ucal.h>
 
 struct __CFCalendar
 {

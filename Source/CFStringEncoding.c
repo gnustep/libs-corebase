@@ -24,18 +24,17 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <string.h>
-#include <stdlib.h>
-#include <unicode/ucnv.h>
-#include <unicode/ustring.h>
-
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFByteOrder.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
 #include "GSPrivate.h"
-
 #include "CoreFoundation/ForFoundationOnly.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <unicode/ucnv.h>
+#include <unicode/ustring.h>
 
 static GSMutex _kCFStringEncodingLock;
 static CFStringEncoding *_kCFStringEncodingList = NULL;

@@ -1,3 +1,25 @@
+2012-01-08 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFTimeZone.c:
+	* Source/CFBitVector.c:
+	* Source/CFCalendar.c:
+	* Source/CFBase.c:
+	* Source/CFStringFormat.c:
+	* Source/CFNumber.c:
+	* Source/tzfile.h:
+	* Source/CFLocale.c:
+	* Source/GSPrivate.h:
+	* Source/Keys+Identifiers.c:
+	* Source/CFUUID.c:
+	* Source/CFXMLNode.c:
+	* Source/GSHashTable.c:
+	* Source/CFStringEncoding.c:
+	* Source/CFXMLParser.c:
+	* Source/CFRuntime.c:
+	* Headers/CoreFoundation/CFRuntime.h:
+	* Headers/CoreFoundation/CFBase.h: Improve portability.
+	* Source/CFBinaryHeap.c: Started adding code.
+
 2012-01-05 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFStringUtilities.c: Include GSPrivate.h.

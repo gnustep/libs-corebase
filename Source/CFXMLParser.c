@@ -29,6 +29,8 @@
 #include "CoreFoundation/CFNumber.h"
 #include "CoreFoundation/CFXMLParser.h"
 
+#include <stdlib.h>
+
 static CFTypeID _kCFXMLParserTypeID = 0;
 
 

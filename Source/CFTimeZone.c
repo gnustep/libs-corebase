@@ -33,35 +33,7 @@
 #include "CoreFoundation/CFTimeZone.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "GSPrivate.h"
-
-/*************************/
-/* Time Zone Information */
-/*************************/
-#define	TZ_MAGIC	'TZif'
-/* These structures is easy enough to reproduce. */
-struct tzhead
-{
-  // All fields are in big-endian format.
-  uint8_t tzh_magic[4];
-  uint8_t tzh_version[1];
-  uint8_t tzh_reserved[15];
-  uint8_t tzh_ttisgmtcnt[4];
-  uint8_t tzh_ttisstdcnt[4];
-  uint8_t tzh_leapcnt[4];
-  uint8_t tzh_timecnt[4];
-  uint8_t tzh_typecnt[4];
-  uint8_t tzh_charcnt[4];
-};
-
-struct ttinfo
-{
-  uint8_t tt_gmtoff[4];
-  uint8_t tt_isdst;
-  uint8_t tt_abbrind;
-};
-/*************************/
-
-#define BUFFER_SIZE 256
+#include "tzfile.h"
 
 struct __CFTimeZone
 {
@@ -69,7 +41,6 @@ struct __CFTimeZone
   CFStringRef   _name;
   CFDataRef     _data;
   CFStringRef   _abbrev;
-  
 };
 
 static CFTypeID _kCFTimeZoneTypeID;

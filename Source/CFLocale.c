@@ -24,12 +24,6 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <unicode/uloc.h>
-#include <unicode/ulocdata.h>
-#include <unicode/ucurr.h>
-
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFCalendar.h"
 #include "CoreFoundation/CFNumberFormatter.h"
@@ -37,6 +31,11 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFLocale.h"
 #include "GSPrivate.h"
+
+#include <string.h>
+#include <unicode/uloc.h>
+#include <unicode/ulocdata.h>
+#include <unicode/ucurr.h>
 
 #define BUFFER_SIZE 256
 

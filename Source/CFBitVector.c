@@ -28,6 +28,8 @@
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFBitVector.h"
 
+#include <string.h>
+
 static CFTypeID _kCFBitVectorTypeID = 0;
 
 struct __CFBitVector
