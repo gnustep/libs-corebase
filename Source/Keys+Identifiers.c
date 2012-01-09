@@ -10,10 +10,14 @@ struct __CFString
   CFAllocatorRef _deallocator;
 };
 
+#if defined (_WIN32)
+#define DLL_EXPORT __declspec(dllexport)
+#endif
+
 #define CONST_STRING_DECL(var, str) \
   static struct __CFString __ ## var ## __ = \
   { {0, 0, {1, 0, 0}}, (void*)str, sizeof(str) - 1, 0, NULL }; \
-  const CFStringRef var = (CFStringRef) & __ ## var ## __;
+ DLL_EXPORT const CFStringRef var = (CFStringRef) & __ ## var ## __;
 
 //
 // CFError identifiers

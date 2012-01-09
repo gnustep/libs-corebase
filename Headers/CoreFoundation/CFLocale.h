@@ -122,25 +122,25 @@ CF_EXPORT const CFStringRef kCFLocaleCurrentLocaleDidChangeNotification;
 //
 // Creating a Locale
 //
-CFLocaleRef
+CF_EXPORT CFLocaleRef
 CFLocaleCopyCurrent (void);
 
-CFLocaleRef
+CF_EXPORT CFLocaleRef
 CFLocaleCreate (CFAllocatorRef allocator,
                 CFStringRef localeIdent);
 
-CFLocaleRef
+CF_EXPORT CFLocaleRef
 CFLocaleCreateCopy (CFAllocatorRef allocator,
                     CFLocaleRef locale);
 
-CFLocaleRef
+CF_EXPORT CFLocaleRef
 CFLocaleGetSystem (void);
 
 //
 // Getting System Locale Information
 //
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CFArrayRef
+CF_EXPORT CFArrayRef
 CFLocaleCopyAvailableLocaleIdentifiers (void);
 #endif
 
@@ -148,18 +148,18 @@ CFLocaleCopyAvailableLocaleIdentifiers (void);
 // Getting ISO Information
 //
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CFArrayRef
+CF_EXPORT CFArrayRef
 CFLocaleCopyISOCountryCodes (void);
 
-CFArrayRef
+CF_EXPORT CFArrayRef
 CFLocaleCopyISOLanguageCodes (void);
 
-CFArrayRef
+CF_EXPORT CFArrayRef
 CFLocaleCopyISOCurrencyCodes (void);
 #endif
 
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CFArrayRef
+CF_EXPORT CFArrayRef
 CFLocaleCopyCommonISOCurrencyCodes (void);
 #endif
 
@@ -167,42 +167,42 @@ CFLocaleCopyCommonISOCurrencyCodes (void);
 // Language Preferences
 //
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CFArrayRef
+CF_EXPORT CFArrayRef
 CFLocaleCopyPreferredLanguages (void);
 #endif
 
 //
 // Getting Information About a Locale
 //
-CFStringRef
+CF_EXPORT CFStringRef
 CFLocaleCopyDisplayNameForPropertyValue (CFLocaleRef displayLocale,
                                          CFStringRef key,
                                          CFStringRef value);
 
-CFTypeRef
+CF_EXPORT CFTypeRef
 CFLocaleGetValue (CFLocaleRef locale,
                   CFStringRef key);
 
-CFStringRef
+CF_EXPORT CFStringRef
 CFLocaleGetIdentifier (CFLocaleRef locale);
 
 //
 // Getting and Creating Locale Identifiers
 //
-CFStringRef
+CF_EXPORT CFStringRef
 CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
                                                    CFStringRef localeIdent);
 
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CFStringRef
+CF_EXPORT CFStringRef
 CFLocaleCreateCanonicalLanguageIdentifierFromString (CFAllocatorRef allocator,
                                                      CFStringRef localeIdent);
 
-CFDictionaryRef
+CF_EXPORT CFDictionaryRef
 CFLocaleCreateComponentsFromLocaleIdentifier (CFAllocatorRef allocator,
                                               CFStringRef localeIdent);
 
-CFStringRef
+CF_EXPORT CFStringRef
 CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
                                               CFDictionaryRef dictionary);
 #endif
@@ -210,24 +210,24 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
 //
 // Getting the CFLocale Type ID
 //
-CFTypeID
+CF_EXPORT CFTypeID
 CFLocaleGetTypeID (void);
 
 //
 // New Functions
 //
 #if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CFStringRef
+CF_EXPORT CFStringRef
 CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode (CFAllocatorRef allocator,
-                                                     uint32_t lcid);
+                                                     UInt32 lcid);
 
-CFLocaleLanguageDirection
+CF_EXPORT CFLocaleLanguageDirection
 CFLocaleGetLanguageCharacterDirection (CFStringRef isoLangCode);
 
-CFLocaleLanguageDirection
+CF_EXPORT CFLocaleLanguageDirection
 CFLocaleGetLanguageLineDirection (CFStringRef isoLangCode);
 
-uint32_t
+CF_EXPORT UInt32
 CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier (CFStringRef localeIdent);
 #endif
 

@@ -149,7 +149,7 @@ GSHashPointer (const void *value)
 CF_INLINE CFHashCode
 GSHashBytes (const void *bytes, CFIndex length)
 {
-  CFHashCode ret;
+  CFHashCode ret = 0;
   if (length > 0)
     {
       register CFIndex idx;
@@ -183,6 +183,26 @@ CFLocaleGetCStringIdentifier (CFLocaleRef locale);
 
 
 
+#if defined(_MSC_VER)
+CF_INLINE void *
+__CFISAForTypeID (CFTypeID typeID)
+{
+  return NULL;
+}
+
+CF_INLINE Boolean
+CF_IS_OBJC (CFTypeID typeID, const void *obj)
+{
+  return false;
+}
+
+#define CF_OBJC_FUNCDISPATCH0(typeID, rettype, obj, sel)
+#define CF_OBJC_FUNCDISPATCH1(typeID, rettype, obj, sel, a1)
+#define CF_OBJC_FUNCDISPATCH2(typeID, rettype, obj, sel, a1, a2)
+#define CF_OBJC_FUNCDISPATCH3(typeID, rettype, obj, sel, a1, a2, a3)
+#define CF_OBJC_FUNCDISPATCH4(typeID, rettype, obj, sel, a1, a2, a3, a4)
+#define CF_OBJC_FUNCDISPATCH5(typeID, rettype, obj, sel, a1, a2, a3, a4, a5)
+#else
 #define BOOL OBJC_BOOL
 #include <objc/runtime.h>
 #undef BOOL
@@ -282,5 +302,6 @@ do { \
       return (rettype)imp((id)obj, s, a1, a2, a3, a4, a5); \
     } \
   } while(0)
+#endif /* defined(_MSC_VER) */
 
 #endif /* __GSPRIVATE_H__ */

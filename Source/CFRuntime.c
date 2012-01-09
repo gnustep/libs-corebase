@@ -215,7 +215,7 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
 // CFType Functions
 //
 extern CFStringRef
-__CFStringMakeConstantString (const char *str) __attribute__ ((pure));
+__CFStringMakeConstantString (const char *str) __attribute__((pure));
 
 CFStringRef
 CFCopyDescription (CFTypeRef cf)
@@ -255,7 +255,7 @@ CFCopyTypeIDDescription (CFTypeID typeID)
     return NULL;
   
   cfclass = __CFRuntimeClassTable[typeID];
-  return CFRetain(__CFStringMakeConstantString(cfclass->className));
+  return __CFStringMakeConstantString(cfclass->className);
 }
 
 Boolean
@@ -362,9 +362,10 @@ CFRelease (CFTypeRef cf)
       CFIndex result = GSAtomicDecrementCFIndex (&(((obj)cf)[-1].retained));
       if (result < 0)
         {
+          CFRuntimeClass *cls;
           assert (result == -1);
           
-          CFRuntimeClass *cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
+          cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
           
           if (cls->finalize)
             cls->finalize (cf);
@@ -418,7 +419,6 @@ extern void CFDateFormatterInitialize (void);
 extern void CFDictionaryInitialize (void);
 extern void CFErrorInitialize (void);
 extern void CFLocaleInitialize (void);
-extern void CFBundleInitialize (void);
 extern void CFNullInitialize (void);
 extern void CFNumberInitialize (void);
 extern void CFNumberFormatterInitialize (void);
@@ -430,7 +430,10 @@ extern void CFTreeInitialize (void);
 extern void CFUUIDInitialize (void);
 extern void CFXMLNodeInitialize (void);
 
+#if defined(_WIN32)
+#else
 void CFInitialize (void) __attribute__((constructor));
+#endif
 
 static CFIndex CFInitialized = 0;
 void CFInitialize (void)
@@ -462,7 +465,6 @@ void CFInitialize (void)
   CFDictionaryInitialize ();
   CFErrorInitialize ();
   CFLocaleInitialize ();
-  CFBundleInitialize();
   CFNullInitialize ();
   CFNumberInitialize ();
   CFNumberFormatterInitialize ();

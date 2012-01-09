@@ -36,78 +36,13 @@
 #endif
 #endif
 
-struct __CFBundle
-{
-  /** Superclass. */
-  CFRuntimeBase          _parent;
-  NSBundle              *bundle;
-};
-
-static CFTypeID _kCFBundleTypeID;
-
-static void CFBundleFinalize(CFBundleRef b)
-{
-  [b->bundle release];
-}
-
-static Boolean CFBundleEqual(CFBundleRef cf1, CFBundleRef cf2)
-{
-  return [cf1->bundle isEqual: cf2->bundle];
-}
-
-static CFHashCode CFBundleHash(CFBundleRef cf)
-{
-  return [cf->bundle hash];
-}
-
-static CFStringRef CFBundleCopyDebugDesc(CFBundleRef cf)
-{
-  return [NSString stringWithFormat: _(@"<CFBundle %p: %@>"), cf, [cf->bundle bundlePath]];
-}
-
-static CFStringRef CFBundleCopyFormattingDesc(CFBundleRef cf,
-  CFDictionaryRef formatOptions)
-{
-  return CFBundleCopyDebugDesc(cf);
-}
-
-static const CFRuntimeClass CFBundleClass =
-{
-  0,
-  "CFBundle",
-  NULL,
-  NULL,
-  (void (*)(CFTypeRef))CFBundleFinalize,
-  (Boolean (*)(CFTypeRef, CFTypeRef))CFBundleEqual,
-  (CFHashCode (*)(CFTypeRef))CFBundleHash,
-  (CFStringRef (*)(CFTypeRef, CFDictionaryRef))CFBundleCopyFormattingDesc,
-  (CFStringRef (*)(CFTypeRef))CFBundleCopyDebugDesc
-};
-
-CFTypeID CFBundleGetTypeID(void)
-{
-  return _kCFBundleTypeID;
-}
-
-void CFBundleInitialize(void)
-{
-  _kCFBundleTypeID = _CFRuntimeRegisterClass(&CFBundleClass);
-}
-
 CFBundleRef CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL)
 {
   NSString *path = [(NSURL*)bundleURL path];
 
   if (nil == path) { return 0; }
 
-  struct __CFBundle *new;
-  
-  new = (struct __CFBundle *)_CFRuntimeCreateInstance(allocator,
-    CFBundleGetTypeID(), sizeof(struct __CFBundle) - sizeof(CFRuntimeBase),
-    NULL);
-  new->bundle = [[NSBundle alloc] initWithPath: path];
-
-  return new;
+  return (CFBundleRef)[[NSBundle alloc] initWithPath: path];
 }
 
 void* CFBundleGetFunctionPointerForName(CFBundleRef bundle,

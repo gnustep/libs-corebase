@@ -163,6 +163,7 @@ CFDateFormatterSetCalendarName (CFDateFormatterRef fmt, int prop,
 {
   CFDictionaryRef dict;
   CFMutableDictionaryRef mDict;
+  CFStringRef locale;
   
   dict = CFLocaleCreateComponentsFromLocaleIdentifier (NULL,
     CFLocaleGetIdentifier (fmt->_locale));
@@ -170,8 +171,7 @@ CFDateFormatterSetCalendarName (CFDateFormatterRef fmt, int prop,
   CFRelease (dict);
   CFDictionarySetValue (mDict, kCFLocaleCalendarIdentifier, value);
   
-  CFStringRef locale =
-    CFLocaleCreateLocaleIdentifierFromComponents (NULL, mDict);
+  locale = CFLocaleCreateLocaleIdentifierFromComponents (NULL, mDict);
   CFRelease (fmt->_locale);
   fmt->_locale = CFLocaleCreate (NULL, locale);
   CFRelease (locale);

@@ -53,8 +53,8 @@ CFBinaryHeapFinalize (CFTypeRef cf)
   
   if (heap->_callBacks->release)
     {
-      const void *cur = heap->_values;
-      const void *end = cur + heap->_count;
+      const void **cur = heap->_values;
+      const void **end = cur + heap->_count;
       while (cur < end)
         heap->_callBacks->release (allocator, cur++);
     }
@@ -204,8 +204,8 @@ CFBinaryHeapRemoveAllValues (CFBinaryHeapRef heap)
   if (heap->_callBacks->release)
     {
       CFAllocatorRef allocator = CFGetAllocator(heap);
-      const void *cur = heap->_values;
-      const void *end = cur + heap->_count;
+      const void **cur = heap->_values;
+      const void **end = cur + heap->_count;
       while (cur < end)
         heap->_callBacks->release (allocator, cur++);
     }

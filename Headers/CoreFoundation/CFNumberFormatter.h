@@ -205,7 +205,7 @@ CFNumberFormatterCreateStringWithValue (CFAllocatorRef allocator,
 
 Boolean
 CFNumberFormatterGetDecimalInfoForCurrencyCode (CFStringRef currencyCode,
-  int32_t *defaultFractionDigits, double *roundingIncrement);
+  SInt32 *defaultFractionDigits, double *roundingIncrement);
 
 Boolean
 CFNumberFormatterGetValueFromString (CFNumberFormatterRef formatter,

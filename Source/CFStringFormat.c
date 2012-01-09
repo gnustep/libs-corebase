@@ -33,6 +33,11 @@
 #include <string.h>
 #include <unicode/unum.h>
 
+#if defined(_MSC_VER)
+typedef SInt64 intmax_t;
+typedef UInt64 uintmax_t;
+#endif
+
 #define CF_FMT_FLAG_SIGN       (1<<0)
 #define CF_FMT_FLAG_LEFT_ALIGN (1<<1)
 #define CF_FMT_FLAG_ALT        (1<<2)

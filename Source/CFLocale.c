@@ -102,7 +102,7 @@ void CFLocaleInitialize (void)
   GSMutexInitialize (&_kCFLocaleLock);
 }
 
-static inline CFLocaleLanguageDirection
+CF_INLINE CFLocaleLanguageDirection
 ICUToCFLocaleOrientation (ULayoutType layout)
 {
   switch (layout)
@@ -150,10 +150,11 @@ CFArrayCreateArrayWithUEnumeration (UEnumeration *en)
   mArray = CFArrayCreateMutable (NULL, (CFIndex)count, &kCFTypeArrayCallBacks);
   while ((current = uenum_unext(en, &len, &err)))
     {
+      CFStringRef string;
+      
       if (U_FAILURE(err))
         continue;
-      CFStringRef string =
-        CFStringCreateWithCharacters (NULL, current, (CFIndex)len);
+      string = CFStringCreateWithCharacters (NULL, current, (CFIndex)len);
       CFArrayAppendValue (mArray, string);
     }
   

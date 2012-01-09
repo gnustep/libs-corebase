@@ -39,8 +39,8 @@ typedef enum
   CFByteOrderBigEndian
 } CFByteOrder;
 
-typedef uint32_t CFSwappedFloat32;  /* Same as GNUstep NSSwappedFloat */
-typedef uint64_t CFSwappedFloat64;  /* Same as GNUstep NSSwappedDouble */
+typedef UInt32 CFSwappedFloat32;  /* Same as GNUstep NSSwappedFloat */
+typedef UInt64 CFSwappedFloat64;  /* Same as GNUstep NSSwappedDouble */
 
 CF_INLINE CFByteOrder
 CFByteOrderGetCurrent()
@@ -52,13 +52,13 @@ CFByteOrderGetCurrent()
 #endif
 }
 
-CF_INLINE uint16_t
-CFSwapInt16(uint16_t in)
+CF_INLINE UInt16
+CFSwapInt16(UInt16 in)
 {
   union swap
     {
-      uint16_t num;
-      uint8_t  byt[2];
+      UInt16 num;
+      UInt8  byt[2];
     } dst;
   union swap *src = (union swap*)&in;
   dst.byt[0] = src->byt[1];
@@ -66,13 +66,13 @@ CFSwapInt16(uint16_t in)
   return dst.num;
 }
 
-CF_INLINE uint32_t
-CFSwapInt32(uint32_t in)
+CF_INLINE UInt32
+CFSwapInt32(UInt32 in)
 {
   union swap
     {
-      uint32_t num;
-      uint8_t  byt[4];
+      UInt32 num;
+      UInt8  byt[4];
     } dst;
   union swap *src = (union swap*)&in;
   dst.byt[0] = src->byt[3];
@@ -82,13 +82,13 @@ CFSwapInt32(uint32_t in)
   return dst.num;
 }
 
-CF_INLINE uint64_t
-CFSwapInt64(uint64_t in)
+CF_INLINE UInt64
+CFSwapInt64(UInt64 in)
 {
   union swap
     {
-      uint64_t num;
-      uint8_t  byt[8];
+      UInt64 num;
+      UInt8  byt[8];
     } dst;
   union swap *src = (union swap*)&in;
   dst.byt[0] = src->byt[7];
@@ -106,146 +106,146 @@ CFSwapInt64(uint64_t in)
 
 #if GS_WORDS_BIGENDIAN
 
-CF_INLINE uint16_t
-CFSwapInt16BigToHost(uint16_t in)
+CF_INLINE UInt16
+CFSwapInt16BigToHost(UInt16 in)
 {
   return in;
 }
 
-CF_INLINE uint16_t
-CFSwapInt16HostToBig(uint16_t in)
+CF_INLINE UInt16
+CFSwapInt16HostToBig(UInt16 in)
 {
   return in;
 }
-CF_INLINE uint16_t
-CFSwapInt16HostToLittle(uint16_t in)
+CF_INLINE UInt16
+CFSwapInt16HostToLittle(UInt16 in)
 {
   return CFSwapInt16(in);
 }
 
-CF_INLINE uint16_t
-CFSwapInt16LittleToHost(uint16_t in)
+CF_INLINE UInt16
+CFSwapInt16LittleToHost(UInt16 in)
 {
   return CFSwapInt16(in);
 }
 
-CF_INLINE uint32_t
-CFSwapInt32BigToHost(uint32_t in)
+CF_INLINE UInt32
+CFSwapInt32BigToHost(UInt32 in)
 {
   return in;
 }
 
-CF_INLINE uint32_t
-CFSwapInt32HostToBig(uint32_t in)
+CF_INLINE UInt32
+CFSwapInt32HostToBig(UInt32 in)
 {
   return in;
 }
 
-CF_INLINE uint32_t
-CFSwapInt32HostToLittle(uint32_t in)
+CF_INLINE UInt32
+CFSwapInt32HostToLittle(UInt32 in)
 {
   return CFSwapInt32(in);
 }
 
-CF_INLINE uint32_t
-CFSwapInt32LittleToHost(uint32_t in)
+CF_INLINE UInt32
+CFSwapInt32LittleToHost(UInt32 in)
 {
   return CFSwapInt32(in);
 }
 
-CF_INLINE uint64_t
-CFSwapInt64BigToHost(uint64_t in)
+CF_INLINE UInt64
+CFSwapInt64BigToHost(UInt64 in)
 {
   return in;
 }
 
-CF_INLINE uint64_t
-CFSwapInt64HostToBig(uint64_t in)
+CF_INLINE UInt64
+CFSwapInt64HostToBig(UInt64 in)
 {
   return in;
 }
 
-CF_INLINE uint64_t
-CFSwapInt64HostToLittle(uint64_t in)
+CF_INLINE UInt64
+CFSwapInt64HostToLittle(UInt64 in)
 {
   return CFSwapInt64(in);
 }
 
-CF_INLINE uint64_t
-CFSwapInt64LittleToHost(uint64_t in)
+CF_INLINE UInt64
+CFSwapInt64LittleToHost(UInt64 in)
 {
   return CFSwapInt64(in);
 }
 
 #else
 
-CF_INLINE uint16_t
-CFSwapInt16BigToHost(uint16_t in)
+CF_INLINE UInt16
+CFSwapInt16BigToHost(UInt16 in)
 {
   return CFSwapInt16(in);
 }
 
-CF_INLINE uint16_t
-CFSwapInt16HostToBig(uint16_t in)
+CF_INLINE UInt16
+CFSwapInt16HostToBig(UInt16 in)
 {
   return CFSwapInt16(in);
 }
-CF_INLINE uint16_t
-CFSwapInt16HostToLittle(uint16_t in)
+CF_INLINE UInt16
+CFSwapInt16HostToLittle(UInt16 in)
 {
   return in;
 }
 
-CF_INLINE uint16_t
-CFSwapInt16LittleToHost(uint16_t in)
+CF_INLINE UInt16
+CFSwapInt16LittleToHost(UInt16 in)
 {
   return in;
 }
 
-CF_INLINE uint32_t
-CFSwapInt32BigToHost(uint32_t in)
+CF_INLINE UInt32
+CFSwapInt32BigToHost(UInt32 in)
 {
   return CFSwapInt32(in);
 }
 
-CF_INLINE uint32_t
-CFSwapInt32HostToBig(uint32_t in)
+CF_INLINE UInt32
+CFSwapInt32HostToBig(UInt32 in)
 {
   return CFSwapInt32(in);
 }
 
-CF_INLINE uint32_t
-CFSwapInt32HostToLittle(uint32_t in)
+CF_INLINE UInt32
+CFSwapInt32HostToLittle(UInt32 in)
 {
   return in;
 }
 
-CF_INLINE uint32_t
-CFSwapInt32LittleToHost(uint32_t in)
+CF_INLINE UInt32
+CFSwapInt32LittleToHost(UInt32 in)
 {
   return in;
 }
 
-CF_INLINE uint64_t
-CFSwapInt64BigToHost(uint64_t in)
+CF_INLINE UInt64
+CFSwapInt64BigToHost(UInt64 in)
 {
   return CFSwapInt64(in);
 }
 
-CF_INLINE uint64_t
-CFSwapInt64HostToBig(uint64_t in)
+CF_INLINE UInt64
+CFSwapInt64HostToBig(UInt64 in)
 {
   return CFSwapInt64(in);
 }
 
-CF_INLINE uint64_t
-CFSwapInt64HostToLittle(uint64_t in)
+CF_INLINE UInt64
+CFSwapInt64HostToLittle(UInt64 in)
 {
   return in;
 }
 
-CF_INLINE uint64_t
-CFSwapInt64LittleToHost(uint64_t in)
+CF_INLINE UInt64
+CFSwapInt64LittleToHost(UInt64 in)
 {
   return in;
 }

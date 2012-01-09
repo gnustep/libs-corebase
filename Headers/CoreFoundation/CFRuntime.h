@@ -29,6 +29,7 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
+#include <stddef.h>
 
 CF_EXTERN_C_BEGIN
 
@@ -82,7 +83,7 @@ struct __CFRuntimeClass
 #endif
 #if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
 #define CF_REFCOUNT_AVAILABLE 1
-  uint32_t (*refcount)(intptr_t op, CFTypeRef cf); // _kCFRuntimeCustomRefCount
+  UInt32 (*refcount)(intptr_t op, CFTypeRef cf); // _kCFRuntimeCustomRefCount
 #endif
 };
 
@@ -122,12 +123,12 @@ typedef struct __CFRuntimeBase CFRuntimeBase;
 struct __CFRuntimeBase
 {
   void *_isa;
-  int16_t _typeID;
+  SInt16 _typeID;
   struct
     {
-      int16_t ro:       1; // 0 = read-only object
-      int16_t reserved: 7; // For internal CFRuntime use
-      int16_t info:     8; // Can be used by CF type
+      SInt16 ro:       1; // 0 = read-only object
+      SInt16 reserved: 7; // For internal CFRuntime use
+      SInt16 info:     8; // Can be used by CF type
     } _flags;
 };
 

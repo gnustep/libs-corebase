@@ -24,15 +24,6 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <assert.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-#include <unicode/uchar.h>
-#include <unicode/unorm.h>
-#include <unicode/ustring.h>
-#include <unicode/utrans.h>
-
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFArray.h"
@@ -41,9 +32,17 @@
 #include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
-
 #include "CoreFoundation/ForFoundationOnly.h"
 #include "GSPrivate.h"
+
+#include <assert.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#include <unicode/uchar.h>
+#include <unicode/unorm.h>
+#include <unicode/ustring.h>
+#include <unicode/utrans.h>
 
 #define CFRANGE_CHECK(len, range) \
   ((range.location + range.length) <= len)
@@ -615,9 +614,11 @@ CFStringGetBytes (CFStringRef str, CFRange range,
 void
 CFStringGetCharacters (CFStringRef str, CFRange range, UniChar *buffer)
 {
+  CFStringEncoding enc;
+  
   CF_OBJC_FUNCDISPATCH2(_kCFStringTypeID, void, str,
     "getCharacters:range:", buffer, range);
-  CFStringEncoding enc = kCFStringEncodingUTF16;
+  enc = kCFStringEncodingUTF16;
   __CFStringEncodeByteStream (str, range.location, range.length,
     false, enc, '?', (UInt8*)buffer, range.length * sizeof(UniChar), NULL);
 }

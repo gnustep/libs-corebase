@@ -24,17 +24,16 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include <unicode/ubrk.h>
-#include <unicode/ucol.h>
-#include <unicode/uloc.h>
-#include <unicode/usearch.h>
-
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFArray.h"
 #include "CoreFoundation/CFCharacterSet.h"
 #include "CoreFoundation/CFLocale.h"
 #include "CoreFoundation/CFString.h"
 #include "GSPrivate.h"
+
+#include <unicode/ucol.h>
+#include <unicode/uloc.h>
+#include <unicode/usearch.h>
 
 
 
