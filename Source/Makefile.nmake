@@ -13,7 +13,8 @@ all: $(OBJECTS)
           /DEFAULTLIB:icuin /DEFAULTLIB:icuuc /DLL /OUT:gnustep-corebase.dll
 
 .c.obj:
-	$(CC) $(ADDITIONAL_INCLUDE_DIRS) $(OBJ_CFLAGS) $(ADDITIONAL_CFLAGS) $(CFLAGS) -c $<
+	$(CC) $(ADDITIONAL_INCLUDE_DIRS) $(OBJ_CFLAGS) $(ADDITIONAL_CFLAGS) \
+          $(CFLAGS) -c $<
 
 clean:
 	del *.obj

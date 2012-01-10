@@ -442,7 +442,7 @@ CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
   va_list arg;
   int value;
   UCalendarDateFields field;
-  CFCalendarUnit unit;
+  CFCalendarUnit unit = 0;
   UErrorCode err = U_ZERO_ERROR;
   
   CFCalendarOpenUCalendar(cal);

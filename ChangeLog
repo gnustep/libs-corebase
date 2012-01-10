@@ -1,20 +1,27 @@
+2012-01-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFCalendar.c:
+	* Source/CFDateFormatter.c:
+	* Source/CFBundle.m: Avoid compiler warnings.
+	* Source/Keys+Identifiers.c: Fix broken build.
+
 2012-01-08 Stefan Bidigaray <stefanbidi@gmail.com>
 
-	* Headers\CoreFoundation\CFRuntime.h:
-	* Headers\CoreFoundation\CFByteOrder.h:
-	* Headers\CoreFoundation\CFString.h:
-	* Headers\CoreFoundation\CFLocale.h:
-	* Headers\CoreFoundation\CFNumberFormatter.h:
-	* Source\CFString.c:
-	* Source\CFStringFormat.c:
-	* Source\CFBundle.m:
-	* Source\CFLocale.c:
-	* Source\GSPrivate.h:
-	* Source\CFDateFormatter.c:
-	* Source\CFStringUtilities.c:
-	* Source\Keys+Identifiers.c:
-	* Source\CFBinaryHeap.c:
-	* Source\CFRuntime.c: More portability improvements.
+	* Headers/CoreFoundation/CFRuntime.h:
+	* Headers/CoreFoundation/CFByteOrder.h:
+	* Headers/CoreFoundation/CFString.h:
+	* Headers/CoreFoundation/CFLocale.h:
+	* Headers/CoreFoundation/CFNumberFormatter.h:
+	* Source/CFString.c:
+	* Source/CFStringFormat.c:
+	* Source/CFBundle.m:
+	* Source/CFLocale.c:
+	* Source/GSPrivate.h:
+	* Source/CFDateFormatter.c:
+	* Source/CFStringUtilities.c:
+	* Source/Keys+Identifiers.c:
+	* Source/CFBinaryHeap.c:
+	* Source/CFRuntime.c: More portability improvements.
 
 2012-01-08 Stefan Bidigaray <stefanbidi@gmail.com>
 

@@ -75,7 +75,7 @@ void CFDateFormatterInitialize (void)
 CF_INLINE UDateFormatStyle
 CFDataFormatterStyleToUDateFormatStyle (CFDateFormatterStyle style)
 {
-  UDateFormatStyle us;
+  UDateFormatStyle us = 0;
   switch (style)
     {
       case kCFDateFormatterNoStyle:
