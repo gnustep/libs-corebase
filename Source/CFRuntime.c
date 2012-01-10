@@ -74,7 +74,9 @@ struct obj_layout_unpadded {
  *	structure correct.
  */
 struct obj_layout {
+#if !defined(_MSC_VER)
   char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
+#endif
   CFAllocatorRef allocator;
   CFIndex        retained;
 };
@@ -214,9 +216,6 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
 //
 // CFType Functions
 //
-extern CFStringRef
-__CFStringMakeConstantString (const char *str) __attribute__((pure));
-
 CFStringRef
 CFCopyDescription (CFTypeRef cf)
 {
@@ -430,8 +429,7 @@ extern void CFTreeInitialize (void);
 extern void CFUUIDInitialize (void);
 extern void CFXMLNodeInitialize (void);
 
-#if defined(_WIN32)
-#else
+#if !defined(_MSC_VER)
 void CFInitialize (void) __attribute__((constructor));
 #endif
 
@@ -476,3 +474,17 @@ void CFInitialize (void)
   CFUUIDInitialize ();
   CFXMLNodeInitialize ();
 }
+
+#if defined(_MSC_VER)
+#include <windows.h>
+
+BOOL DllMain (HINSTANCE hinst, DWORD fdwReason, LPVOID ldvReserved)
+{
+  if (fdwReason == DLL_PROCESS_ATTACH)
+    {
+      CFInitialize ();
+    }
+  
+  return TRUE;
+}
+#endif

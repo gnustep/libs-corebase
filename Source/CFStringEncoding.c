@@ -297,7 +297,12 @@ CFStringConvertStandardNameToEncoding (const char *name, CFIndex length)
 #define ISO_LEN sizeof(ISO_PREFIX)-1
 #define WIN_LEN sizeof(WIN_PREFIX)-1
 #define CP_LEN sizeof(CP_PREFIX)-1
-  
+
+/* This isn't a very smart thing to do, but for now it's good enough. */
+#if defined(_MSC_VER)
+#define strncasecmp(a, b, n) lstrcmpiA (a, b)
+#endif
+
   if (length == -1)
     length = strlen (name);
   

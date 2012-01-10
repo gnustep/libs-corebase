@@ -236,12 +236,27 @@ CFBitVectorGetCount (CFBitVectorRef bv)
   return bv->_count;
 }
 
+#if defined(__GNUC__) || defined(__llvm__)
+#define POPCOUNT(u8) __builtin_popcount(u8)
+#else
+static UInt8 mu0 = 0x55;
+static UInt8 mu1 = 0x33;
+static UInt8 mu2 = 0x0F;
+CF_INLINE CFIndex POPCOUNT(UInt8 u8)
+{
+  UInt8 x = u8 - ((u8>>1)&mu0);
+  x = (x & mu1) + ((x>>2)&mu1);
+  x = (x + (x>>4)) & mu2;
+  return x & 0xFF;
+}
+#endif
+
 static UInt8
 CountOne (UInt8 byte, UInt8 mask, void *context)
 {
   CFIndex *count = (CFIndex*)context;
   
-  *count += __builtin_popcount (byte & mask);
+  *count += POPCOUNT(byte & mask);
   return byte;
 }
 
@@ -250,7 +265,7 @@ CountZero (UInt8 byte, UInt8 mask, void *context)
 {
   CFIndex *count = (CFIndex*)context;
   
-  *count += __builtin_popcount (~byte & mask);
+  *count += POPCOUNT(~byte & mask);
   return byte;
 }
 

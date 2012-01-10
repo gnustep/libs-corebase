@@ -1,4 +1,5 @@
 include $(GNUSTEP_MAKEFILES)/common.make
+include common.mk
 
 PACKAGE_NAME = gnustep-corebase
 
@@ -15,73 +16,13 @@ libgnustep-corebase_OBJC_FILES = \
   NSCFString.m \
   NSCFType.m
 
-libgnustep-corebase_C_FILES = \
-  CFArray.c \
-  CFBag.c \
-  CFBase.c \
-  CFBinaryHeap.c \
-  CFBitVector.c \
-  CFCalendar.c \
-  CFCharacterSet.c \
-  CFData.c \
-  CFDate.c \
-  CFDateFormatter.c \
-  CFDictionary.c \
-  CFError.c \
-  CFLocale.c \
-  CFNumber.c \
-  CFNumberFormatter.c \
-  CFRuntime.c \
-  CFSet.c \
-  CFString.c \
-  CFStringEncoding.c \
-  CFStringFormat.c \
-  CFStringUtilities.c \
-  CFTimeZone.c \
-  CFTree.c \
-  CFUUID.c \
-  CFXMLNode.c \
-  CFXMLParser.c \
-  GSHashTable.c \
-  Keys+Identifiers.c
+libgnustep-corebase_C_FILES = $(COREBASE_C_FILES)
 
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += `icu-config --ldflags-libsonly`
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
 libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
 
-libgnustep-corebase_HEADER_FILES = \
-  CoreFoundation.h \
-  CFAttributedString.h \
-  CFBag.h \
-  CFBase.h \
-  CFBinaryHeap.h \
-  CFBitVector.h \
-  CFBundle.h \
-  CFArray.h \
-  CFByteOrder.h \
-  CFCalendar.h \
-  CFCharacterSet.h \
-  CFData.h \
-  CFDate.h \
-  CFDateFormatter.h \
-  CFDictionary.h \
-  CFError.h \
-  CFLocale.h \
-  CFNumber.h \
-  CFNumberFormatter.h \
-  CFPropertyList.h \
-  CFRunLoop.h \
-  CFRuntime.h \
-  CFSet.h \
-  CFStream.h \
-  CFString.h \
-  CFStringEncodingExt.h \
-  CFTimeZone.h \
-  CFTree.h \
-  CFURL.h \
-  CFUUID.h \
-  CFXMLNode.h \
-  CFXMLParser.h
+libgnustep-corebase_HEADER_FILES = $(COREBASE_HEADER_FILES)
 
 libgnustep-corebase_NEEDS_GUI = NO
 
@@ -89,10 +30,5 @@ libgnustep-corebase_NEEDS_GUI = NO
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
   ADDITIONAL_LDFLAGS = -L/mingw/bin
 endif
-
-ADDITIONAL_INCLUDE_DIRS = -I../Headers
-ADDITIONAL_CFLAGS = -DBUILDING_SELF -DMAC_OS_X_VERSION_MAX_ALLOWED=100700
-ADDITIONAL_CXXFLAGS = -DBUILDING_SELF -DMAC_OS_X_VERSION_MAX_ALLOWED=100700
-ADDITIONAL_OBJCFLAGS = -DBUILDING_SELF -DMAC_OS_X_VERSION_MAX_ALLOWED=100700
 
 include $(GNUSTEP_MAKEFILES)/library.make
