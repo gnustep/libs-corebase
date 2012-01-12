@@ -27,6 +27,7 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFNumberFormatter.h"
+#include "GSPrivate.h"
 
 #include <math.h>
 #include <stddef.h>
@@ -34,8 +35,13 @@
 #include <unicode/unum.h>
 
 #if defined(_MSC_VER)
+#if defined(_WIN64)
 typedef SInt64 intmax_t;
 typedef UInt64 uintmax_t;
+#else
+typedef SInt32 intmax_t;
+typedef UInt32 uintmax_t;
+#endif
 #endif
 
 #define CF_FMT_FLAG_SIGN       (1<<0)
@@ -44,50 +50,18 @@ typedef UInt64 uintmax_t;
 #define CF_FMT_FLAG_PAD        (1<<3)
 #define CF_FMT_FLAG_GROUP_SEP  (1<<4)
 
-#define CF_FMT_POUND    0x0023
-#define CF_FMT_DOLLAR   0x0024
-#define CF_FMT_PERCENT  0x0025
-#define CF_FMT_QUOTE    0x0027
-#define CF_FMT_ASTERISK 0x002A
-#define CF_FMT_PLUS     0x002B
-#define CF_FMT_MINUS    0x002D
-#define CF_FMT_PERIOD   0x002E
-
-#define CF_FMT_ZERO  0x0030
-#define CF_FMT_ONE   0x0031
-#define CF_FMT_TWO   0x0032
-#define CF_FMT_THREE 0x0033
-#define CF_FMT_FOUR  0x0034
-#define CF_FMT_FIVE  0x0035
-#define CF_FMT_SIX   0x0036
-#define CF_FMT_SEVEN 0x0037
-#define CF_FMT_EIGHT 0x0038
-#define CF_FMT_NINE  0x0039
-
-#define CF_FMT_CAP_A 0x0041
-#define CF_FMT_CAP_L 0x004C
-#define CF_FMT_CAP_X 0x0058
-#define CF_FMT_A 0x0061
-#define CF_FMT_H 0x0068
-#define CF_FMT_J 0x006A
-#define CF_FMT_L 0x006C
-#define CF_FMT_T 0x0074
-#define CF_FMT_X 0x0078
-#define CF_FMT_Z 0x007A
-
-#define CF_FMT_IS_DIGIT(c) (c) >= CF_FMT_ZERO && (c) <= CF_FMT_NINE
-#define CF_FMT_IS_FLAG(c) (c) == CF_FMT_PLUS \
-  || (c) == CF_FMT_MINUS \
-  || (c) == CF_FMT_POUND \
-  || (c) == CF_FMT_ZERO
-#define CF_FMT_IS_LENGTH(c) (c) == CF_FMT_CAP_L \
-  || (c) == CF_FMT_H \
-  || (c) == CF_FMT_J \
-  || (c) == CF_FMT_L \
-  || (c) == CF_FMT_Q \
-  || (c) == CF_FMT_T \
-  || (c) == CF_FMT_Z
-#define CF_FMT_IS_CAPS(c) (c) >= 0x0041 && (c) <= 0x005A
+#define CF_FMT_IS_FLAG(c) (c) == CHAR_PLUS \
+  || (c) == CHAR_MINUS \
+  || (c) == CHAR_NUMBER \
+  || (c) == CHAR_ZERO
+#define CF_FMT_IS_LENGTH(c) (c) == CHAR_CAP_L \
+  || (c) == CHAR_H \
+  || (c) == CHAR_J \
+  || (c) == CHAR_L \
+  || (c) == CHAR_Q \
+  || (c) == CHAR_T \
+  || (c) == CHAR_Z
+#define CHAR_IS_CAPS(c) (c) >= 0x0041 && (c) <= 0x005A
 
 typedef enum
 {
@@ -461,8 +435,8 @@ CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
         value = (UInt64)arg->intValue;
     }
   
-#define TO_CAP_DIGIT(n) (n < 10 ? n + CF_FMT_ZERO : n - 10 + CF_FMT_CAP_A)
-#define TO_LOWER_DIGIT(n) (n < 10 ? n + CF_FMT_ZERO : n - 10 + CF_FMT_A)
+#define TO_CAP_DIGIT(n) (n < 10 ? n + CHAR_ZERO : n - 10 + CHAR_CAP_A)
+#define TO_LOWER_DIGIT(n) (n < 10 ? n + CHAR_ZERO : n - 10 + CHAR_A)
   do
     {
       int num = value % base;
@@ -472,13 +446,13 @@ CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
     } while (value != 0);
   
   while (length < spec->width) // pad
-    buffer[length++] = CF_FMT_ZERO;
+    buffer[length++] = CHAR_ZERO;
   
   if (spec->flags & CF_FMT_FLAG_ALT)
     {
       if (base == 16)
-        buffer[length++] = spec->useCaps ? CF_FMT_CAP_X : CF_FMT_X;
-      buffer[length++] = CF_FMT_ZERO;
+        buffer[length++] = spec->useCaps ? CHAR_CAP_X : CHAR_X;
+      buffer[length++] = CHAR_ZERO;
     }
   
   left = buffer;
@@ -680,10 +654,10 @@ static const CFFormatFormatterInfo _kCFStringFormatter[] =
   CFUnknownFormat,   CFUnknownFormat,    CFUnknownFormat,    CFUnknownFormat
 };
 
-#define CF_FMT_MIN_TYPE 0x0040
-#define CF_FMT_MAX_TYPE \
+#define CHAR_MIN_TYPE 0x0040
+#define CHAR_MAX_TYPE \
   (sizeof(_kCFStringFormatter) / sizeof(CFFormatFormatterInfo))
-#define CF_FMT_CAPS_TYPE 0x005B - CF_FMT_MIN_TYPE
+#define CHAR_CAPS_TYPE 0x005B - CHAR_MIN_TYPE
 
 CFFormatArgument *
 CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
@@ -705,7 +679,7 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
   current = start;
   for(;;)
     {
-      while (current < end && *current != CF_FMT_PERCENT)
+      while (current < end && *current != CHAR_PERCENT)
         ++current;
       if (current == end)
         break;
@@ -732,13 +706,13 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
   count = 0;
   for (;;)
     {
-      while (current < end && *current != CF_FMT_PERCENT)
+      while (current < end && *current != CHAR_PERCENT)
         ++current;
       if (current == end)
         break;
       ++current; // Skip %
       
-      if (*current == CF_FMT_PERCENT) // Skip %%
+      if (*current == CHAR_PERCENT) // Skip %%
         {
           ++current;
           continue;
@@ -747,15 +721,15 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
       callout = 0;
       for (;;)
         {
-          if (CF_FMT_IS_DIGIT(*current))
+          if (CHAR_IS_DIGIT(*current))
             {
-              int num = *(current++) - CF_FMT_ZERO;
-              while (CF_FMT_IS_DIGIT(*current))
+              int num = *(current++) - CHAR_ZERO;
+              while (CHAR_IS_DIGIT(*current))
                 {
                   num *= 10;
-                  num += *(current++) - CF_FMT_ZERO;
+                  num += *(current++) - CHAR_ZERO;
                 }
-              if (*current == CF_FMT_DOLLAR)
+              if (*current == CHAR_DOLLAR)
                 {
                   callout = num - 1;
                   ++current;
@@ -763,11 +737,11 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
                     count = num;
                 }
             }
-          else if (CF_FMT_IS_FLAG(*current) || *current == CF_FMT_PERIOD)
+          else if (CF_FMT_IS_FLAG(*current) || *current == CHAR_PERIOD)
             {
               ++current;
             }
-          else if (*current == CF_FMT_ASTERISK)
+          else if (*current == CHAR_ASTERISK)
             {
               typeList[pos] = CFIntegerType;
               pos += 1;
@@ -779,19 +753,19 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
             }
         }
       is64Bits[pos] = false;
-      if (*(current) == CF_FMT_H)
+      if (*(current) == CHAR_H)
         {
           ++current;
-          if (*current == CF_FMT_H)
+          if (*current == CHAR_H)
             ++current;
         }
-      else if (*(current) == CF_FMT_L)
+      else if (*(current) == CHAR_L)
         {
           ++current;
 #if __LP64__
           is64Bits[pos] = true;
 #endif
-          if (*(current) == CF_FMT_L)
+          if (*(current) == CHAR_L)
             {
 #if !__LP64__
               is64Bits[pos] = true;
@@ -801,8 +775,8 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
         }
       type = *current;
       
-      typeIdx = type - CF_FMT_MIN_TYPE;
-      if (typeIdx < CF_FMT_MAX_TYPE)
+      typeIdx = type - CHAR_MIN_TYPE;
+      if (typeIdx < CHAR_MAX_TYPE)
         if (callout)
           typeList[callout] = _kCFStringFormatter[typeIdx].type;
         else
@@ -872,17 +846,17 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
   info->spec.precision = -1;
   
   /* Check parameter field */
-  if (CF_FMT_IS_DIGIT(*current))
+  if (CHAR_IS_DIGIT(*current))
     {
       UniChar *revert = current;
       
-      num = *(current++) - CF_FMT_ZERO;
-      while (CF_FMT_IS_DIGIT(*current))
+      num = *(current++) - CHAR_ZERO;
+      while (CHAR_IS_DIGIT(*current))
         {
           num *= 10;
-          num += *(current++) - CF_FMT_ZERO;
+          num += *(current++) - CHAR_ZERO;
         }
-      if (*current == CF_FMT_DOLLAR)
+      if (*current == CHAR_DOLLAR)
         {
           ++current;
           info->spec.argPos = num - 1;
@@ -898,16 +872,16 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
     {
       switch (*current)
         {
-          case CF_FMT_PLUS:
+          case CHAR_PLUS:
             info->spec.flags |= CF_FMT_FLAG_SIGN;
             break;
-          case CF_FMT_MINUS:
+          case CHAR_MINUS:
             info->spec.flags |= CF_FMT_FLAG_LEFT_ALIGN;
             break;
-          case CF_FMT_POUND:
+          case CHAR_NUMBER:
             info->spec.flags |= CF_FMT_FLAG_ALT;
             break;
-          case CF_FMT_ZERO:
+          case CHAR_ZERO:
             info->spec.flags |= CF_FMT_FLAG_PAD;
             break;
         }
@@ -915,17 +889,17 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
     }
   
   /* Check width */
-  if (CF_FMT_IS_DIGIT(*current))
+  if (CHAR_IS_DIGIT(*current))
     {
-      num = *(current++) - CF_FMT_ZERO;
-      while (CF_FMT_IS_DIGIT(*current))
+      num = *(current++) - CHAR_ZERO;
+      while (CHAR_IS_DIGIT(*current))
         {
           num *= 10;
-          num += *(current++) - CF_FMT_ZERO;
+          num += *(current++) - CHAR_ZERO;
         }
       info->spec.width = num;
     }
-  else if (*current == CF_FMT_ASTERISK)
+  else if (*current == CHAR_ASTERISK)
     {
       ++current;
       info->spec.width = argList[*arg].intValue;
@@ -933,20 +907,20 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
     }
   
   /* Check precision */
-  if (*current == CF_FMT_PERIOD)
+  if (*current == CHAR_PERIOD)
     {
       ++current;
-      if (CF_FMT_IS_DIGIT(*current))
+      if (CHAR_IS_DIGIT(*current))
         {
-          num = *(current++) - CF_FMT_ZERO;
-          while (CF_FMT_IS_DIGIT(*current))
+          num = *(current++) - CHAR_ZERO;
+          while (CHAR_IS_DIGIT(*current))
             {
               num *= 10;
-              num += *(current++) - CF_FMT_ZERO;
+              num += *(current++) - CHAR_ZERO;
             }
           info->spec.precision = num;
         }
-      else if (*current == CF_FMT_ASTERISK)
+      else if (*current == CHAR_ASTERISK)
         {
           ++current;
           info->spec.precision = argList[*arg].intValue;
@@ -961,13 +935,13 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
   /* Check length */
   switch (*current)
     {
-      case CF_FMT_CAP_L:
+      case CHAR_CAP_L:
         ++current;
         info->spec.length = CFLongDoubleLength;
         break;
-      case CF_FMT_H:
+      case CHAR_H:
         ++current;
-        if (*current == CF_FMT_H)
+        if (*current == CHAR_H)
           {
             ++current;
             info->spec.length = CFCharLength;
@@ -977,13 +951,13 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
             info->spec.length = CFShortLength;
           }
         break;
-      case CF_FMT_J:
+      case CHAR_J:
         ++current;
         info->spec.length = CFIntMaxTLength;
         break;
-      case CF_FMT_L:
+      case CHAR_L:
         ++current;
-        if (*current == CF_FMT_L)
+        if (*current == CHAR_L)
           {
             ++current;
             info->spec.length = CFLongLongLength;
@@ -993,25 +967,25 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
             info->spec.length = CFLongLength;
           }
         break;
-      case CF_FMT_T:
+      case CHAR_T:
         ++current;
         info->spec.length = CFPtrDiffTLength;
         break;
-      case CF_FMT_Z:
+      case CHAR_Z:
         ++current;
         info->spec.length = CFSizeTLength;
         break;
     }
   
   /* Check type */
-  if (*current == CF_FMT_PERCENT)
+  if (*current == CHAR_PERCENT)
     {
       ++current;
       info->fmt = CFFormatPercent;
       return (current - start);
     }
-  typeIdx = *(current++) - CF_FMT_MIN_TYPE;
-  if (typeIdx < CF_FMT_MAX_TYPE)
+  typeIdx = *(current++) - CHAR_MIN_TYPE;
+  if (typeIdx < CHAR_MAX_TYPE)
     {
       info->fmt = _kCFStringFormatter[typeIdx].formatter;
       info->spec.type = _kCFStringFormatter[typeIdx].type;
@@ -1020,7 +994,7 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
           info->spec.argPos = *arg;
           *arg += 1;
         }
-      info->spec.useCaps = (typeIdx < CF_FMT_CAPS_TYPE);
+      info->spec.useCaps = (typeIdx < CHAR_CAPS_TYPE);
     }
   else
     {
@@ -1073,7 +1047,7 @@ _CFStringAppendFormatAndArgumentsAux (CFMutableStringRef outputString,
   for (;;)
     {
       start = current;
-      while (current < end && *current != CF_FMT_PERCENT)
+      while (current < end && *current != CHAR_PERCENT)
         ++current;
       
       if (current != start)

@@ -27,6 +27,7 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFURL.h"
+#include "GSPrivate.h"
 
 static CFTypeID _kCFURLTypeID = 0;
 
@@ -35,6 +36,7 @@ struct __CFURL
   CFRuntimeBase _parent;
   CFStringRef   _urlString;
   CFURLRef      _baseURL;
+  CFStringEncoding _encoding; // The encoding of the escape characters
 };
 
 static void
@@ -316,12 +318,114 @@ CFURLCreateData (CFAllocatorRef alloc, CFURLRef url, CFStringEncoding encoding,
   return NULL;
 }
 
+#define URL_IS_UNRESERVED(c) (CHAR_IS_ALPHA(c) || CHAR_IS_DIGIT(c) \
+  || c == CHAR_MINUS || c == CHAR_PERIOD || c == CHAR_LOW_LINE \
+  || c == CHAR_TILDE)
+#define URL_IS_SUB_DELIMS(c) (c == CHAR_EXCLAMATION || c == CHAR_DOLLAR \
+  || c == CHAR_AMPERSAND || c == CHAR_APOSTROPHE || c == CHAR_L_PARANTHESIS \
+  || c == CHAR_ASTERISK || c == CHAR_PLUS || c == CHAR_COMMA \
+  || c == CHAR_SEMICOLON || c == CHAR_EQUAL)
+
+static Boolean
+CFURLAppendPercentEscapedForCharacter (char **dst, UniChar c,
+  CFStringEncoding enc)
+{
+  char buffer[8]; // 8 characters should be more than enough for any encoding.
+  char *start;
+  char *target;
+  const UniChar *source;
+  
+  start = buffer;
+  target = start;
+  source = &c;
+  if (CFStringEncodingFromUnicode(enc, &target, target+8, &source, source+1))
+    {
+      while (start < target)
+        (*(*dst)++) = (*start++);
+      return true;
+    }
+  
+  return false;
+}
+
+
+static Boolean
+CFURLStringContainsCharacter (CFStringRef toEscape, UniChar ch)
+{
+  CFStringInlineBuffer iBuffer;
+  CFIndex sLength;
+  CFIndex i;
+  UniChar c;
+  
+  sLength = CFStringGetLength (toEscape);
+  CFStringInitInlineBuffer (toEscape, &iBuffer, CFRangeMake (0, sLength));
+  for (i = 0 ; i < sLength ; ++i)
+    {
+      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, i);
+      if (c == ch)
+        return true;
+    }
+  
+  return false;
+}
+
+CF_INLINE Boolean
+CFURLShouldEscapeCharacter (UniChar c, CFStringRef leaveUnescaped,
+  CFStringRef toEscape)
+{
+  if (URL_IS_UNRESERVED(c))
+    {
+      if (leaveUnescaped && CFURLStringContainsCharacter(leaveUnescaped, c))
+        return false;
+      if (toEscape && CFURLStringContainsCharacter(toEscape, c))
+        return true;
+      
+      return false;
+    }
+  
+  return true;
+}
+
 CFStringRef
 CFURLCreateStringByAddingPercentEscapes (CFAllocatorRef alloc,
-  CFStringRef origString, CFStringRef charactersToLeaveUnescaped,
-  CFStringRef legalURLCharactersToBeEscaped, CFStringEncoding encoding)
+  CFStringRef origString, CFStringRef leaveUnescaped,
+  CFStringRef toEscape, CFStringEncoding encoding)
 {
-  return NULL;
+  CFStringInlineBuffer iBuffer;
+  CFStringRef ret;
+  CFIndex sLength;
+  CFIndex idx;
+  char *dst;
+  char *dpos;
+  UniChar c;
+  
+  sLength = CFStringGetLength (origString);
+  CFStringInitInlineBuffer (origString, &iBuffer, CFRangeMake (0, sLength));
+  
+  dst = CFAllocatorAllocate (alloc, sizeof(char) * sLength * 3, 0);
+  dpos = dst;
+  for (idx = 0 ; idx < sLength ; ++idx)
+    {
+      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx);
+      if (CFURLShouldEscapeCharacter(c, leaveUnescaped, toEscape))
+        {
+          if (!CFURLAppendPercentEscapedForCharacter (&dpos, c, encoding))
+            {
+              CFAllocatorDeallocate (alloc, dst);
+              return NULL;
+            }
+        }
+      else
+        {
+          *(dpos++) = (char)c;
+        }
+    }
+  
+  ret = CFStringCreateWithBytes (alloc, (UInt8*)dst, (CFIndex)(dpos - dst),
+    kCFStringEncodingASCII, false);
+  CFAllocatorDeallocate (alloc, dst);
+  
+  return ret;
 }
 
 CFStringRef

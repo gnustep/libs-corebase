@@ -1,5 +1,16 @@
 2012-01-11 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFURL.c:
+	* Source/CFURL.m:
+	* Source/common.mk:
+	* Source/GNUmakefile: Replace CFURL.m with CFURL.c.  CFURL still not
+	functional.
+	* Source/CFStringEncoding.c:
+	* Source/CFStringFormat.c:
+	* Source/GSPrivate.h: Moved some defines and functions to GSPrivate.h.
+
+2012-01-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFCalendar.c:
 	* Source/CFDateFormatter.c:
 	* Source/CFBundle.m: Avoid compiler warnings.

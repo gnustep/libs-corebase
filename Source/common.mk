@@ -31,6 +31,7 @@ COREBASE_C_FILES = \
   CFStringUtilities.c \
   CFTimeZone.c \
   CFTree.c \
+  CFURL.c \
   CFUUID.c \
   CFXMLNode.c \
   CFXMLParser.c \
