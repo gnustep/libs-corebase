@@ -1,3 +1,15 @@
+2012-01-14 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFURL.c:
+	* Source/CFString.c:
+	* Source/CFStringEncoding.c:
+	* Source/GSPrivate.h: Redesigned Unicode conversion.
+	* Headers/CoreFoundation/CFBase.h: Define __BIG_ENDIAN__ or 
+	__LITTLE_ENDIAN__ macros for platforms do not already define them.
+	* Headers/CoreFoundation/CFByteOrder.h: Use new endian macros.
+	* Headers/CoreFoundation/ForFoundationOnly.h: Delete.
+
+
 2012-01-11 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFURL.c:

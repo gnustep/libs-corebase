@@ -5,7 +5,7 @@
    Written by: Stefan Bidigaray
    Date: May, 2011
    
-   This file is part of GNUstep CoreBase Library.
+   This file is part of the GNUstep CoreBase Library.
    
    This library is free software; you can redisibute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,6 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
 #include "GSPrivate.h"
-#include "CoreFoundation/ForFoundationOnly.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -54,7 +53,7 @@ typedef struct
 } _str_encoding;
 
 // The values in this table are best guess.
-static const _str_encoding str_encoding_table[] =
+static _str_encoding str_encoding_table[] =
 {
   { kCFStringEncodingMacRoman, "macos-0_2-10.2", 10000, NULL },
   { kCFStringEncodingMacJapanese, "", 10001, NULL },
@@ -284,6 +283,26 @@ static void
 CFStringICUConverterClose (UConverter *cnv)
 {
   ucnv_close (cnv);
+}
+
+static UConverter *
+CFStringEncodingGetUConverter (CFStringEncoding encoding)
+{
+  CFIndex tblIdx;
+  _str_encoding *tableEntry;
+  UConverter *ucnv;
+  
+  tblIdx = CFStringEncodingTableIndex (encoding);
+  tableEntry = &str_encoding_table[tblIdx];
+  ucnv = tableEntry->ucnv;
+  if (ucnv == NULL)
+    {
+      ucnv = CFStringICUConverterOpen (encoding, 0);
+      if (GSAtomicCompareAndSwapPointer(&tableEntry->ucnv, NULL, ucnv) != NULL)
+        CFStringICUConverterClose (ucnv);
+    }
+  
+  return ucnv;
 }
 
 static CFStringEncoding
@@ -576,9 +595,8 @@ CFStringGetMaximumSizeForEncoding (CFIndex length, CFStringEncoding encoding)
   UConverter *cnv;
   int8_t charSize;
   
-  cnv = CFStringICUConverterOpen (encoding, 0);
+  cnv = CFStringEncodingGetUConverter (encoding);
   charSize = ucnv_getMaxCharSize (cnv);
-  CFStringICUConverterClose (cnv);
   return charSize * length;
 }
 
@@ -663,324 +681,130 @@ CFStringGetNameOfEncoding (CFStringEncoding encoding)
 
 
 CFIndex
-CFStringEncodingFromUnicode (CFStringEncoding encoding, char **target,
-  const char *targetLimit, const UniChar **source, const UniChar *sourceLimit)
+GSStringEncodingFromUnicode (CFStringEncoding encoding, char *dst,
+  CFIndex dstLength, const UniChar **src, CFIndex srcLength, char lossByte,
+  Boolean isExternalRepresentation, CFIndex *bytesNeeded)
 {
-  return 0;
-}
-
-CFIndex
-__CFStringEncodeByteStream (CFStringRef string, CFIndex rangeLoc,
-  CFIndex rangeLen, Boolean generatingExternalFile, CFStringEncoding encoding,
-  char lossByte, UInt8 *buffer, CFIndex max, CFIndex *usedBufLen)
-{
-  /* string = The string to convert
-     rangeLoc = start
-     rangeLen = end
-     generatingExternalFile = include BOM
-     encoding = the encoding to encode to
-     lossByte = if a character can't be converted replace if with this
-                if 0, then conversion stops
-     buffer = the output buffer
-              if buffer == NULL, then this function just checks if the string
-              can be converted
-     max = size of buffer
-     usedBufLen = on return contains the number of bytes needed
-     return -> number of characters converted (this is different from
-               usedBufLen)
-  */
+  CFIndex used;
+  UInt8 stackBuffer[U_CNV_SAFECLONE_BUFFERSIZE];
+  int32_t pBufferSize = U_CNV_SAFECLONE_BUFFERSIZE;
+  UConverter *ucnv;
+  UErrorCode err = U_ZERO_ERROR;
   
-  /* FIXME: Currently disregarding isExternalRepresentation flag. */
-  
-  const UniChar *characters = CFStringGetCharactersPtr (string);
-  CFIndex bytesNeeded = 0;
-  CFIndex charactersConverted = 0;
-  
-  if (characters)
+  ucnv = CFStringEncodingGetUConverter (encoding);
+  ucnv = ucnv_safeClone (ucnv, stackBuffer, &pBufferSize, &err);
+  used = 0;
+  if (U_SUCCESS(err))
     {
-      const UniChar *source = (const UniChar *)(characters + rangeLoc);
-      const UniChar *sourceLimit = (const UniChar *)(source + rangeLen);
+      char *target;
+      const char *targetLimit;
+      const UniChar *source;
+      const UniChar *sourceLimit;
       
-      if (encoding == kCFStringEncodingUTF16)
+      target = dst;
+      targetLimit = target + dstLength;
+      source = *src;
+      sourceLimit = source + srcLength;
+      
+      if (isExternalRepresentation)
         {
-          UniChar *target = (UniChar *)buffer;
-          UniChar *targetLimit = target + rangeLen;
-          while (source < sourceLimit)
-            {
-              if (target < targetLimit)
-                *(target++) = *(source++);
-            }
-          bytesNeeded = (CFIndex)(sourceLimit - characters);
-          charactersConverted = (CFIndex)(target - (UniChar*)buffer);
+          /* To add a BOM we can simply convert an fake BOM. */
+          const UniChar bom[] = { UTF16_BOM };
+          const UniChar *bomStart = bom;
+          
+          ucnv_fromUnicode (ucnv, &target, targetLimit, &bomStart,
+            bomStart + 1, NULL, false, &err);
         }
-      else
+      
+      ucnv_fromUnicode (ucnv, &target, targetLimit, &source, sourceLimit, NULL,
+        true, &err);
+      *src = source;
+      used = (CFIndex)(target - dst);
+      if (bytesNeeded)
         {
-          char *target = (char *)buffer;
-          const char *targetLimit = (const char *)(target + max);
-          UConverter *ucnv;
-          UErrorCode err = U_ZERO_ERROR;
-          
-          ucnv = CFStringICUConverterOpen (encoding, lossByte);
-          
-          ucnv_fromUnicode (ucnv, &target, targetLimit, &source, sourceLimit,
-            NULL, true, &err);
-          bytesNeeded = (CFIndex)(target - (char*)buffer);
-          charactersConverted = bytesNeeded;
-          if (err == U_BUFFER_OVERFLOW_ERROR)
+          *bytesNeeded = used;
+          if (bytesNeeded && err == U_BUFFER_OVERFLOW_ERROR)
             {
               char ibuffer[256]; // Arbitrary buffer size
-              targetLimit = ibuffer + sizeof(ibuffer);
+              
+              targetLimit = ibuffer + 256;
               do
                 {
                   target = ibuffer;
+                  err = U_ZERO_ERROR;
                   ucnv_fromUnicode (ucnv, &target, targetLimit, &source,
                     sourceLimit, NULL, true, &err);
-                  bytesNeeded += (CFIndex)(target - ibuffer);
+                  *bytesNeeded += (CFIndex)(target - ibuffer);
                 } while (err == U_BUFFER_OVERFLOW_ERROR);
             }
-          
-          CFStringICUConverterClose (ucnv);
         }
-    }
-  else /* CFString is ASCII */
-    {
-      const char *str = CFStringGetCStringPtr (string, kCFStringEncodingASCII);
-      if (__CFStringEncodingIsSupersetOfASCII(encoding))
-        {
-          char *target = (char *)buffer;
-          const char *targetLimit = (const char *)(target + max);
-          const char *source = (str + rangeLoc);
-          const char *sourceLimit = (source + rangeLen);
-          
-          while (source < sourceLimit)
-            {
-              if (target < targetLimit)
-                *(target++) = *(source++);
-            }
-          bytesNeeded = (CFIndex)(sourceLimit - str);
-          charactersConverted = (CFIndex)(target - (char*)buffer);
-        }
-      else if (encoding == kCFStringEncodingUTF16)
-        {
-          UniChar *target = (UniChar *)buffer;
-          const UniChar *targetLimit = (const UniChar *)(target + max);
-          const char *source = (str + rangeLoc);
-          const char *sourceLimit = (source + rangeLen);
-          
-          while (source < sourceLimit)
-            {
-              if (target < targetLimit)
-                *(target++) = (UniChar)*(source++);
-            }
-          bytesNeeded = (CFIndex)(sourceLimit - str);
-          charactersConverted = (CFIndex)(target - (UniChar*)buffer);
-        }
-      else /* Use UConverter */
-        {
-          /* FIXME: This code path isn't working properly.  Instead of
-             using ucnv_fromAlgorithmic use a small buffer to make the
-             conversion from ASCII to Unicode then use ucnv_toUnicode()
-             to convert from Unicode to another encoding. */
-          CFIndex len;
-          UConverter *ucnv;
-          char *target = (char *)buffer;
-          const char *source = (str + rangeLoc);
-          CFIndex targetCapacity = max;
-          CFIndex sourceLength = rangeLen;
-          UErrorCode err = U_ZERO_ERROR;
-          
-          ucnv = CFStringICUConverterOpen (encoding, lossByte);
-          
-          len = ucnv_fromAlgorithmic (ucnv, UCNV_US_ASCII, target,
-            targetCapacity, source, sourceLength, &err);
-          
-          CFStringICUConverterClose (ucnv);
-          
-          bytesNeeded = len;
-          // FIXME: charactersConverted = ?
-        }
+      
+      ucnv_close (ucnv);
     }
   
-  if (usedBufLen)
-    *usedBufLen = bytesNeeded;
-  
-  return charactersConverted;
+  return used;
 }
 
-#define CHECK_IS_ASCII(str, len, output) do \
-{ \
-  CFIndex i = 0; \
-  output = true; \
-  while (i < len) \
-    if (str[i++] > 0x80) \
-      { \
-        output = false; \
-        break; \
-      } \
-} while (0)
-
-Boolean
-__CFStringDecodeByteStream3 (const UInt8 *bytes, CFIndex len,
-  CFStringEncoding encoding, Boolean alwaysUnicode,
-  CFVarWidthCharBuffer *buffer, Boolean *useClientsMemoryPtr,
-  UInt32 converterFlags)
+CFIndex
+GSStringEncodingToUnicode (CFStringEncoding encoding, UniChar *dst,
+  CFIndex dstLength, const char **src, CFIndex srcLength,
+  Boolean isExternalRepresentation, CFIndex *bytesNeeded)
 {
-  /* bytes = the input bytes
-     len = number of bytes in bytes
-     encoding = the encoding bytes are in
-                if a BOM is not provided the function assumes big endian
-     alwaysUnicode = convert to unicode
-     buffer = a CFVarWidthCharBuffer structure:
-              {
-                chars = on return, a buffer with the characters
-                isASCII = follow chars.c or chars.u
-                shouldFreeChars = free chars after getting data
-                allocator = allocator to use for chars
-                numChars = number of characters written (allocated space may
-                           be larger)
-                localBuffer = for internal use
-              }
-     useClientsMemoryPtr = set to true if bytes did not need to be converted
-     return -> false if an error occurred
-  */
+  CFIndex converted;
+  UInt8 stackBuffer[U_CNV_SAFECLONE_BUFFERSIZE];
+  int32_t pBufferSize = U_CNV_SAFECLONE_BUFFERSIZE;
+  UConverter *ucnv;
+  UErrorCode err = U_ZERO_ERROR;
   
-  if (len == 0)
+  ucnv = CFStringEncodingGetUConverter (encoding);
+  ucnv = ucnv_safeClone (ucnv, stackBuffer, &pBufferSize, &err);
+  converted = 0;
+  if (U_SUCCESS(err))
     {
-      buffer->numChars = 0;
-      buffer->chars.c = NULL;
-      buffer->isASCII = true;
-      return true;
+      UniChar *target;
+      const UniChar *targetLimit;
+      const char *source;
+      const char *sourceLimit;
+      
+      target = dst;
+      targetLimit = target + dstLength;
+      source = *src;
+      sourceLimit = source + srcLength;
+      
+      if (isExternalRepresentation)
+        {
+          UniChar bom[1];
+          UniChar *bomStart = bom;
+          
+          ucnv_toUnicode (ucnv, &bomStart, bomStart + 1, &source, sourceLimit,
+            NULL, false, &err);
+        }
+      
+      ucnv_toUnicode (ucnv, &target, targetLimit, &source, sourceLimit, NULL,
+        true, &err);
+      *src = source;
+      converted = (CFIndex)(target - dst);
+      if (bytesNeeded)
+        {
+          *bytesNeeded = converted;
+          if (err == U_BUFFER_OVERFLOW_ERROR)
+            {
+              UniChar ibuffer[256]; // Arbitrary buffer size
+              
+              targetLimit = ibuffer + 256;
+              do
+                {
+                  target = ibuffer;
+                  err = U_ZERO_ERROR;
+                  ucnv_toUnicode (ucnv, &target, targetLimit, &source,
+                    sourceLimit, NULL, true, &err);
+                  *bytesNeeded += (CFIndex)((char*)target - (char*)ibuffer);
+                } while (err == U_BUFFER_OVERFLOW_ERROR);
+            }
+        }
+      
+      ucnv_close (ucnv);
     }
   
-  if (useClientsMemoryPtr)
-    *useClientsMemoryPtr = true;
-  buffer->isASCII = alwaysUnicode ? false : true;
-  buffer->shouldFreeChars = false;
-  if (buffer->allocator == NULL)
-    buffer->allocator = CFAllocatorGetDefault ();
-  
-  if (encoding == kCFStringEncodingUTF16
-      || encoding == kCFStringEncodingUTF16LE
-      || encoding == kCFStringEncodingUTF16BE)
-    {
-      Boolean swap = false;
-      const UniChar *source = (const UniChar *)bytes;
-      const UniChar *sourceLimit  = (const UniChar *)(bytes + len);
-      UniChar *characters = (UniChar *)source;
-      
-      if (encoding == kCFStringEncodingUTF16)
-        {
-          UniChar bom = *source;
-          
-          if (bom == 0xFFFE || bom == 0xFEFF)
-            {
-              ++source;
-#if GS_WORDS_BIGENDIAN
-              if (bom == 0xFFFE) // Little Endian
-                swap = true;
-#else
-              if (bom == 0xFEFF) // Bid Endian
-                swap = true;
-#endif
-            }
-        }
-#if GS_WORDS_BIGENDIAN
-      else if (encoding == kCFStringEncodingUTF16LE)
-        swap = true;
-#else
-      else if (encoding == kCFStringEncodingUTF16BE)
-        swap = true;
-#endif
-      
-      buffer->numChars = (CFIndex)(sourceLimit - source);
-      buffer->isASCII = false;
-      
-      if (swap)
-        {
-          // Can we use the localBuffer?
-          if (len < __kCFVarWidthLocalBufferSize)
-            {
-              characters = (UniChar *)buffer->localBuffer;
-            }
-          else
-            {
-              characters = CFAllocatorAllocate (buffer->allocator,
-                len + sizeof(UniChar), 0);
-              buffer->shouldFreeChars = true;
-            }
-          
-          /* We'll swap the bytes if we need to */
-          if (swap)
-            {
-              UniChar *in = (UniChar *)source;
-              UniChar *out = characters;
-              while (in < sourceLimit)
-                *(out++) = CFSwapInt16 (*(in++));
-            }
-          
-          if (useClientsMemoryPtr)
-            *useClientsMemoryPtr = false;
-        }
-      
-      buffer->chars.u = characters;
-    }
-  else
-    {
-      Boolean ascii;
-      UniChar *dest;
-      CFIndex destCapacity;
-      CFIndex localBufferCapacity;
-      const char *src = (const char *)bytes;
-      UConverter *ucnv;
-      UErrorCode err = U_ZERO_ERROR;
-      
-      /* Check to see if we can store this as ASCII */
-      if (!alwaysUnicode && __CFStringEncodingIsSupersetOfASCII(encoding))
-        {
-          /* If all characters in this set are ASCII, treat them as such. */
-          CHECK_IS_ASCII(bytes, len, ascii);
-          if (ascii)
-            {
-              buffer->numChars = len;
-              buffer->chars.c = (UInt8 *)bytes;
-              return true;
-            }
-        }
-      
-      ucnv = CFStringICUConverterOpen (encoding, 0);
-      if (ucnv == NULL)
-        return false;
-      
-      dest = (UniChar *)buffer->localBuffer;
-      localBufferCapacity = __kCFVarWidthLocalBufferSize / sizeof(UniChar);
-      destCapacity = ucnv_toUChars (ucnv, dest, localBufferCapacity, src, len,
-        &err);
-      if (err == U_BUFFER_OVERFLOW_ERROR
-          || err == U_STRING_NOT_TERMINATED_WARNING)
-        {
-          CFIndex newCapacity = destCapacity + 1;
-          dest = CFAllocatorAllocate (buffer->allocator,
-            newCapacity * sizeof(UniChar), 0);
-          destCapacity = ucnv_toUChars (ucnv, dest, newCapacity, src, len,
-            &err);
-          buffer->shouldFreeChars = true;
-        }
-      
-      CFStringICUConverterClose (ucnv);
-      if (U_FAILURE(err))
-        {
-          if (dest != (UniChar *)buffer->localBuffer)
-            CFAllocatorDeallocate (buffer->allocator, dest);
-          return false;
-        }
-      
-      if (useClientsMemoryPtr)
-        *useClientsMemoryPtr = false;
-      buffer->chars.u = dest;
-      buffer->isASCII = false;
-      buffer->numChars = destCapacity;
-    }
-  
-  return true;
+  return converted;
 }
-

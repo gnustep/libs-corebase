@@ -28,6 +28,25 @@
 #ifndef __COREFOUNDATION_CFBASE_H__
 #define __COREFOUNDATION_CFBASE_H__
 
+/* CoreFoundation defineds __LITTLE_ENDIAN__ or __BIG_ENDIAN__ so we'll
+ * do the same here for compatibility.
+ */
+#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+# if defined(__GNUC__)
+#  if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#   define __LITTLE_ENDIAN__ 1
+#  elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#   define __BIG_ENDIAN__ 1
+#  else
+#   error Cannot establish platform endianness!
+#  endif
+# elif defined(_MSC_VER) && defined(_M_IX86)
+#  define __LITTLE_ENDIAN__ 1
+# else
+#  error Cannot establish platform endianness!
+# endif
+#endif
+
 /* FIXME: These macros are defined here to work around an issue with including
  * GNUstepBase/GSVersionMacros.h when compiling with clang or on Windows.
  */

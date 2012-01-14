@@ -28,8 +28,9 @@
 #define __GSPRIVATE_H__
 
 #include "CoreFoundation/CFBase.h"
-#include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFLocale.h"
+#include "CoreFoundation/CFString.h"
+#include "CoreFoundation/CFStringEncodingExt.h"
 
 
 
@@ -54,6 +55,8 @@
   InterlockedDecrement((LONG volatile*)(ptr))
 #define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
   InterlockedCompareExchange((ptr), (newv), (oldv))
+#define GSAtomicCompareAndSwapPointer(ptr, oldv, newv) \
+  InterlockedCompareExchangePointer((ptr), (newv), (oldv))
 
 #else /* _WIN32 */
 
@@ -73,6 +76,8 @@
 #define GSAtomicDecrementCFIndex(ptr) atomic_fetchadd_long ((u_long*)(ptr), -1)
 #define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
   atomic_cmpset_long((ptr), (oldv), (newv))
+#define GSAtomicCompareAndSwapPointer(ptr, oldv, newv) \
+  atomic_cmpset_p((ptr), (oldv), (newv))
 
 #elif defined(__llvm__) \
       || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
@@ -81,6 +86,8 @@
 #define GSAtomicDecrementCFIndex(ptr) __sync_sub_and_fetch((long*)(ptr), 1)
 #define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
   __sync_val_compare_and_swap((long*)(ptr), (long)(oldv), (long)(newv))
+#define GSAtomicCompareAndSwapPointer(ptr, oldv, newv) \
+  __sync_val_compare_and_swap((void**)(ptr), (void*)(oldv), (void*)(newv))
 
 #endif
 
@@ -240,14 +247,78 @@ GSHashBytes (const void *bytes, CFIndex length)
 #define CHAR_IS_ALPHA(c) (CHAR_IS_UPPER_CASE(c) || CHAR_IS_LOWER_CASE(c))
 
 
+CF_INLINE Boolean
+__CFStringEncodingIsSupersetOfASCII (CFStringEncoding encoding)
+{
+  switch (encoding & 0xF00)
+    {
+      case 0x100:
+        return encoding == kCFStringEncodingUTF8 ? true : false;
+      case 0x000: // MacOS codepage
+        if (encoding == kCFStringEncodingMacJapanese
+            || encoding == kCFStringEncodingMacArabic
+            || encoding == kCFStringEncodingMacHebrew
+            || encoding == kCFStringEncodingMacUkrainian
+            || encoding == kCFStringEncodingMacSymbol
+            || encoding == kCFStringEncodingMacDingbats)
+          return false;
+      case 0x200: // ISO-8859-*
+      case 0x400: // DOS codepage
+      case 0x500: // Windows codepage
+        return true;
+      case 0x600:
+        return encoding == kCFStringEncodingASCII ? true : false;
+    }
+  return false;
+}
 
-CFIndex
-CFStringEncodingFromUnicode (CFStringEncoding encoding, char **target,
-  const char *targetLimit, const UniChar **source, const UniChar *sourceLimit);
+#if __BIG_ENDIAN__
+#define UTF16_ENCODING kCFStringEncodingUTF16BE
+#define UTF16_BOM_HI 0xFE
+#define UTF16_BOM_LO 0xFF
+#else
+#define UTF16_ENCODING kCFStringEncodingUTF16LE
+#define UTF16_BOM_HI 0xFF
+#define UTF16_BOM_LO 0xFE
+#endif
+#define UTF16_BOM 0xFEFF
 
+/* This function converts a Unicode string to a specified encoding.
+ * It returns the number of bytes consumed.
+ * If you need to know how many characters were consumed, you must compare
+ * the value of *src before the function call to the one after the function
+ * has returned.
+ * WARNING: Never tell this function to convert to kCFStringEncodingUTF16
+ * because it will add a BOM even if one already exists, regardless of
+ * isExternalRepresentation.
+ */
 CFIndex
-CFStringEncodingToUnicode (CFStringEncoding encoding, UniChar **target,
-  const UniChar *targetLimit, const char **source, const char *sourceLimit);
+GSStringEncodingFromUnicode (CFStringEncoding encoding, char *dst,
+  CFIndex dstLength, const UniChar **src, CFIndex srcLength, char lossByte,
+  Boolean isExternalRepresentation, CFIndex *bytesNeeded);
+
+/* This function converts a Unicode string to a specified encoding.
+ * It return the number of characters converted.
+ * If you need to know how many bytes were consumed, you must compare
+ * the value of *src before the function call to the one after the function
+ * has returned.
+ * WARNING: Never tell this function to convert from kCFStringEncodingUTF16
+ * because it will add a BOM.
+ */
+CFIndex
+GSStringEncodingToUnicode (CFStringEncoding encoding, UniChar *dst,
+  CFIndex dstLength, const char **src, CFIndex srcLength,
+  Boolean isExternalRepresentation, CFIndex *bytesNeeded);
+
+void
+_CFStringAppendFormatAndArgumentsAux (CFMutableStringRef outputString,
+  CFStringRef (*copyDescFunc)(void *, const void *loc),
+  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args);
+
+CFStringRef
+_CFStringCreateWithFormatAndArgumentsAux (CFAllocatorRef alloc,
+  CFStringRef (*copyDescFunc)(void *, const void *loc),
+  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args);
 
 const void *
 CFTypeRetainCallBack (CFAllocatorRef allocator, const void *value);
@@ -257,6 +328,11 @@ CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
 
 const char *
 CFLocaleGetCStringIdentifier (CFLocaleRef locale);
+
+
+
+#define GS_MAX(a,b) (a > b ? a : b)
+#define GS_MIN(a,b) (a < b ? a : b)
 
 
 

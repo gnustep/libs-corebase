@@ -45,7 +45,7 @@ typedef UInt64 CFSwappedFloat64;  /* Same as GNUstep NSSwappedDouble */
 CF_INLINE CFByteOrder
 CFByteOrderGetCurrent()
 {
-#if GS_WORDS_BIGENDIAN
+#if __BIG_ENDIAN__
   return CFByteOrderBigEndian;
 #else
   return CFByteOrderLittleEndian;
@@ -104,7 +104,7 @@ CFSwapInt64(UInt64 in)
 
 
 
-#if GS_WORDS_BIGENDIAN
+#if __BIG_ENDIAN__
 
 CF_INLINE UInt16
 CFSwapInt16BigToHost(UInt16 in)

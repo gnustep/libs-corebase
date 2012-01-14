@@ -330,18 +330,32 @@ static Boolean
 CFURLAppendPercentEscapedForCharacter (char **dst, UniChar c,
   CFStringEncoding enc)
 {
+  CFIndex len;
   char buffer[8]; // 8 characters should be more than enough for any encoding.
-  char *start;
-  char *target;
   const UniChar *source;
   
-  start = buffer;
-  target = start;
   source = &c;
-  if (CFStringEncodingFromUnicode(enc, &target, target+8, &source, source+1))
+  if ((len =
+      GSStringEncodingFromUnicode(enc, buffer, 8, &source, 1, 0, false, NULL)))
     {
-      while (start < target)
-        (*(*dst)++) = (*start++);
+      char hi;
+      char lo;
+      char *target;
+      const char *end;
+      
+      target = buffer;
+      end = target + len;
+      do
+        {
+          (*(*dst)++) = '%';
+          hi = ((*target >> 4) & 0x0F);
+          lo = (*target & 0x0F);
+          (*(*dst)++) = (hi > 9) ? hi + 'A' - 10 : hi + '0';
+          (*(*dst)++) = (lo > 9) ? lo + 'A' - 10 : lo + '0';
+          
+          ++target;
+        } while (target < end);
+      
       return true;
     }
   
