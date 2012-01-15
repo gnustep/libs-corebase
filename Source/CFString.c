@@ -417,8 +417,9 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 *bytes,
           new->_contents = (void*)bytes;
           new->_deallocator = contentsDealloc;
           new->_count = encoding == kCFStringEncodingASCII
-            ? numBytes : numBytes * sizeof(UniChar);
-          
+            ? numBytes : numBytes / sizeof(UniChar);
+          if (encoding != kCFStringEncodingASCII)
+            CFStringSetUnicode (new);
         }
     }
   
