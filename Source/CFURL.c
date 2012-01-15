@@ -318,9 +318,14 @@ CFURLCreateData (CFAllocatorRef alloc, CFURLRef url, CFStringEncoding encoding,
   return NULL;
 }
 
+#define URL_IS_RESERVED(c) (URL_IS_GEN_DELIMS(c) || URL_IS_SUB_DELIMS(c))
 #define URL_IS_UNRESERVED(c) (CHAR_IS_ALPHA(c) || CHAR_IS_DIGIT(c) \
   || c == CHAR_MINUS || c == CHAR_PERIOD || c == CHAR_LOW_LINE \
   || c == CHAR_TILDE)
+
+#define URL_IS_GEN_DELIMS(c) (c == CHAR_COLON || c == CHAR_SLASH \
+  || c == CHAR_QUESTION || c == CHAR_NUMBER || c == CHAR_L_SQUARE_BRACKET \
+  || c == CHAR_R_SQUARE_BRACKET || c == CHAR_AT)
 #define URL_IS_SUB_DELIMS(c) (c == CHAR_EXCLAMATION || c == CHAR_DOLLAR \
   || c == CHAR_AMPERSAND || c == CHAR_APOSTROPHE || c == CHAR_L_PARANTHESIS \
   || c == CHAR_ASTERISK || c == CHAR_PLUS || c == CHAR_COMMA \
@@ -387,15 +392,16 @@ CF_INLINE Boolean
 CFURLShouldEscapeCharacter (UniChar c, CFStringRef leaveUnescaped,
   CFStringRef toEscape)
 {
-  if (URL_IS_UNRESERVED(c))
+  if (URL_IS_UNRESERVED(c) || URL_IS_RESERVED(c))
     {
-      if (leaveUnescaped && CFURLStringContainsCharacter(leaveUnescaped, c))
-        return false;
       if (toEscape && CFURLStringContainsCharacter(toEscape, c))
         return true;
       
       return false;
     }
+  
+  if (leaveUnescaped && CFURLStringContainsCharacter(leaveUnescaped, c))
+    return false;
   
   return true;
 }

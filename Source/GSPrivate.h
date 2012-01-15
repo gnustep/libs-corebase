@@ -214,6 +214,7 @@ GSHashBytes (const void *bytes, CFIndex length)
 #define CHAR_EQUAL     0x003D
 #define CHAR_GREATER_THAN 0x003E
 #define CHAR_QUESTION  0x003F
+#define CHAR_AT        0x0040
 
 #define CHAR_CAP_A 0x0041
 #define CHAR_CAP_L 0x004C
