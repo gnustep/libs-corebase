@@ -1,6 +1,12 @@
 2012-01-15 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GSPrivate.h:
+	* Source/CFURL.c: Added percent escape replacement function.
+	* Tests/CFURL/escaping.m: Added more tests.
+
+2012-01-15 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GSPrivate.h:
 	* Source/CFURL.c: Fixed bug in percent escape function.
 	* Tests/CFURL/escaping.m: Added first CFURL test.
 

@@ -217,6 +217,7 @@ GSHashBytes (const void *bytes, CFIndex length)
 #define CHAR_AT        0x0040
 
 #define CHAR_CAP_A 0x0041
+#define CHAR_CAP_F 0x0046
 #define CHAR_CAP_L 0x004C
 #define CHAR_CAP_X 0x0058
 #define CHAR_CAP_Z 0x005A
@@ -229,6 +230,7 @@ GSHashBytes (const void *bytes, CFIndex length)
 #define CHAR_GRAVE      0x0060
 
 #define CHAR_A 0x0061
+#define CHAR_F 0x0066
 #define CHAR_H 0x0068
 #define CHAR_J 0x006A
 #define CHAR_L 0x006C
@@ -242,6 +244,8 @@ GSHashBytes (const void *bytes, CFIndex length)
 #define CHAR_TILDE   0x007E
 
 #define CHAR_IS_DIGIT(c) ((c) >= CHAR_ZERO && (c) <= CHAR_NINE)
+#define CHAR_IS_HEX(c) (CHAR_IS_DIGIT(c) \
+  && ((c > CHAR_CAP_A && c < CHAR_CAP_F) || (c > CHAR_A && c < CHAR_F))
 #define CHAR_IS_ASCII(c) ((c) < 128)
 #define CHAR_IS_UPPER_CASE(c) ((c) >= CHAR_CAP_A && (c) <= CHAR_CAP_Z)
 #define CHAR_IS_LOWER_CASE(c) ((c) >= CHAR_A && (c) <= CHAR_Z)

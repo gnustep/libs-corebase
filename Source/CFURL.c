@@ -437,7 +437,7 @@ CFURLCreateStringByAddingPercentEscapes (CFAllocatorRef alloc,
         }
       else
         {
-          *(dpos++) = (char)c;
+          (*dpos++) = (char)c;
         }
     }
   
@@ -450,17 +450,90 @@ CFURLCreateStringByAddingPercentEscapes (CFAllocatorRef alloc,
 
 CFStringRef
 CFURLCreateStringByReplacingPercentEscapes (CFAllocatorRef alloc,
-  CFStringRef origString, CFStringRef charactersToLeaveEscaped)
+  CFStringRef origString, CFStringRef leaveEscaped)
 {
-  return NULL;
+  return CFURLCreateStringByReplacingPercentEscapesUsingEncoding (alloc,
+    origString, leaveEscaped, kCFStringEncodingUTF8);
+}
+
+CF_INLINE char
+CFURLCharacterForPercentEscape (CFStringInlineBuffer *src, CFIndex *idx,
+  CFStringEncoding enc)
+{
+  UInt8 bytes[8];
+  UInt8 tmp;
+  UInt8 *str;
+  UniChar current;
+  UniChar c;
+  CFIndex num;
+  CFIndex i;
+  CFIndex j;
+  
+  i = (*idx) + 1;
+  j = 0;
+  do
+    {
+      current = CFStringGetCharacterFromInlineBuffer (src, i++);
+      tmp = (UInt8)((current > CHAR_A
+        ? current - CHAR_A : current - CHAR_ZERO) & 0x0F) << 4;
+      
+      current = CFStringGetCharacterFromInlineBuffer (src, i++);
+      tmp |= (UInt8)((current > CHAR_A
+        ? current - CHAR_A : current - CHAR_ZERO) & 0x0F);
+      
+      bytes[j++] = tmp;
+    } while (current == CHAR_PERCENT && i < 6);
+  
+  c = 0;
+  str = bytes;
+  num = GSStringEncodingToUnicode (enc, &c, 1, (const char**)&str, j,
+    false, NULL);
+  if (num)
+    (*idx) += (CFIndex)(str - bytes) + num;
+  return c;
 }
 
 CFStringRef
 CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
-  CFStringRef origString, CFStringRef charactersToLeaveEscaped,
-  CFStringEncoding encoding)
+  CFStringRef origString, CFStringRef leaveEscaped, CFStringEncoding encoding)
 {
-  return NULL;
+  CFStringInlineBuffer iBuffer;
+  CFStringRef ret;
+  CFIndex sLength;
+  CFIndex idx;
+  UniChar *dst;
+  UniChar *dpos;
+  UniChar c;
+  
+  sLength = CFStringGetLength (origString);
+  CFStringInitInlineBuffer (origString, &iBuffer, CFRangeMake (0, sLength));
+  
+  dst = CFAllocatorAllocate (alloc, sizeof(UniChar) * sLength, 0);
+  dpos = dst;
+  for (idx = 0 ; idx < sLength ; ++idx)
+    {
+      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx);
+      if (c == CHAR_PERCENT && leaveEscaped && (idx + 2) < sLength)
+        {
+          UniChar repChar;
+          
+          repChar = CFURLCharacterForPercentEscape (&iBuffer, &idx, encoding);
+          if (CFURLStringContainsCharacter(leaveEscaped, repChar))
+            // Skip the '%'
+            (*dpos++) = c;
+          else
+            (*dpos++) = repChar;
+        }
+      else
+        {
+          (*dpos++) = c;
+        }
+    }
+  
+  ret = CFStringCreateWithCharacters (alloc, dst, (CFIndex)(dpos - dst));
+  CFAllocatorDeallocate (alloc, dst);
+  
+  return ret;
 }
 
 Boolean
