@@ -48,7 +48,6 @@
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFSet.h>
-#include <CoreFoundation/CFStream.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStringEncodingExt.h>
 #include <CoreFoundation/CFTimeZone.h>

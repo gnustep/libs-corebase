@@ -1,6 +1,0 @@
-{
-	"NSRange" = "CFRange";
-	"NSArray*" = "CFArrayRef";
-	"NSMutableArray*" = "CFMutableArrayRef";
-	"id" = "CFTypeRef";
-}
