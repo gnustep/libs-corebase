@@ -245,7 +245,7 @@ GSHashBytes (const void *bytes, CFIndex length)
 
 #define CHAR_IS_DIGIT(c) ((c) >= CHAR_ZERO && (c) <= CHAR_NINE)
 #define CHAR_IS_HEX(c) (CHAR_IS_DIGIT(c) \
-  && ((c > CHAR_CAP_A && c < CHAR_CAP_F) || (c > CHAR_A && c < CHAR_F))
+  || ((c >= CHAR_CAP_A && c <= CHAR_CAP_F) || (c >= CHAR_A && c <= CHAR_F))
 #define CHAR_IS_ASCII(c) ((c) < 128)
 #define CHAR_IS_UPPER_CASE(c) ((c) >= CHAR_CAP_A && (c) <= CHAR_CAP_Z)
 #define CHAR_IS_LOWER_CASE(c) ((c) >= CHAR_A && (c) <= CHAR_Z)
@@ -275,6 +275,16 @@ __CFStringEncodingIsSupersetOfASCII (CFStringEncoding encoding)
         return encoding == kCFStringEncodingASCII ? true : false;
     }
   return false;
+}
+
+CF_INLINE CFStringEncoding
+GSStringGetFileSystemEncoding (void)
+{
+#if defined(_WIN32)
+  return kCFStringEncodingUTF16;
+#else
+  return CFStringGetSystemEncoding ();
+#endif
 }
 
 #if __BIG_ENDIAN__
