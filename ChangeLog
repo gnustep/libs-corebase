@@ -1,5 +1,13 @@
 2012-01-17 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFURL.c: Set correct delimiter and return an empty string
+	instead of NULL for some functions just so the test suite won't crash.
+	* Source/CFString.c: Fixed bug in CFStringCreateWithBytesNoCopy.
+	* Source/CFBase.c: Fixed bug with kCFAllocatorNull.
+	* Tests/CFURL/create.m: Ported some tests from -base.
+
+2012-01-17 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/GSPrivate.h: Added function to guess file system encoding.
 	* Source/CFURL.c: Added some more create functions.
 	* Source/CFRuntime.c: Initialize CFURL class.

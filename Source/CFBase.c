@@ -104,6 +104,12 @@ null_realloc (void *ptr, CFIndex newsize, CFOptionFlags hint, void *info)
   return NULL;
 }
 
+static void
+null_dealloc (void *ptr, void *info)
+{
+  
+}
+
 static struct __CFAllocator _kCFAllocatorSystemDefault =
 {
   INIT_CFRUNTIME_BASE(),
@@ -113,7 +119,7 @@ static struct __CFAllocator _kCFAllocatorSystemDefault =
 static struct __CFAllocator _kCFAllocatorNull =
 {
   INIT_CFRUNTIME_BASE(),
-  { 0, NULL, NULL, NULL, NULL, null_alloc, null_realloc, NULL, NULL }
+  { 0, NULL, NULL, NULL, NULL, null_alloc, null_realloc, null_dealloc, NULL }
 };
 
 CFAllocatorRef kCFAllocatorDefault = NULL;

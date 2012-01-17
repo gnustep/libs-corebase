@@ -441,7 +441,7 @@ CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
   Boolean isExternalRepresentation, CFAllocatorRef contentsDeallocator)
 {
   return CFStringCreateImmutable (alloc, bytes, numBytes, encoding,
-    isExternalRepresentation, NULL, false);
+    isExternalRepresentation, contentsDeallocator, false);
 }
 
 CFStringRef

@@ -356,14 +356,14 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
       delim = CHAR_SLASH;
       break;
     case kCFURLHFSPathStyle:
+      // FIXME: I don't know how to handle this!
+      abs = (CFStringGetCharacterAtIndex(filePath, 0) == CHAR_COLON);
+      delim = CHAR_COLON;
+    case kCFURLWindowsPathStyle:
       abs = (CFStringGetCharacterAtIndex(filePath, 1) == CHAR_COLON
         && CFStringGetCharacterAtIndex(filePath, 2) == CHAR_BACKSLASH);
       delim = CHAR_BACKSLASH;
       break;
-    case kCFURLWindowsPathStyle:
-      // FIXME: I don't know how to handle this!
-      abs = (CFStringGetCharacterAtIndex(filePath, 0) == CHAR_COLON);
-      delim = CHAR_COLON;
     }
   
   if (abs)
@@ -494,7 +494,7 @@ CFURLCopyPath (CFURLRef url)
 {
   if (CFURLHasInfo(url, kCFURLComponentPath))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -518,7 +518,7 @@ CFURLCopyResourceSpecifier (CFURLRef url)
 {
   if (CFURLHasInfo(url, kCFURLComponentResourceSpecifier))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
