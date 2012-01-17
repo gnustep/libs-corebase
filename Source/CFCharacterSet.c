@@ -1,4 +1,4 @@
-﻿/* CFCharacterSet.c
+/* CFCharacterSet.c
    
    Copyright (C) 2012 Free Software Foundation, Inc.
    
