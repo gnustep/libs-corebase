@@ -118,7 +118,7 @@ CFURLGetTypeID (void)
 #define CFURL_SIZE sizeof(struct __CFURL) - sizeof(CFRuntimeBase)
 
 static Boolean
-CFURLStringParse (struct __CFURL *url, CFStringRef urlString)
+CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
 {
   return true; // FIXME
 }
@@ -128,17 +128,15 @@ CFURLCreate_internal (CFAllocatorRef alloc, CFStringRef string,
   CFURLRef baseURL, CFStringEncoding encoding)
 {
   struct __CFURL *new;
+  CFRange ranges[12];
+  
+  if (!CFURLStringParse (string, ranges))
+    return NULL;
   
   new = (struct __CFURL*)_CFRuntimeCreateInstance (alloc, _kCFURLTypeID,
     CFURL_SIZE, 0);
   if (new)
     {
-      if (!CFURLStringParse (new, string))
-        {
-          CFRelease (new);
-          return NULL;
-        }
-      
       new->_urlString = CFStringCreateCopy (alloc, string);
       new->_baseURL = baseURL ? CFURLCopyAbsoluteURL (baseURL) : NULL;
       new->_encoding = encoding;
@@ -195,7 +193,7 @@ CFURLCreateAbsoluteURLWithBytes (CFAllocatorRef alloc,
   if (str == NULL)
     return NULL;
   
-  url = CFURLCreateWithString (alloc, str, baseURL);
+  url = CFURLCreate_internal (alloc, str, baseURL, encoding);
   if (url)
     {
       CFURLRef tmp = CFURLCopyAbsoluteURL (url);
@@ -218,14 +216,34 @@ CFURLRef
 CFURLCreateCopyAppendingPathComponent (CFAllocatorRef alloc, CFURLRef url,
   CFStringRef pathComponent, Boolean isDirectory)
 {
-  return NULL;
+  CFURLRef ret;
+  CFMutableStringRef str;
+  
+  str = CFStringCreateMutableCopy (alloc, 0, CFURLGetString(url));
+  // FIXME: check if last component is dir or file...
+  CFStringAppend (str, pathComponent);
+  
+  ret = CFURLCreate_internal (alloc, str, url->_baseURL, url->_encoding);
+  CFRelease (str);
+  
+  return ret;
 }
 
 CFURLRef
 CFURLCreateCopyAppendingPathExtension (CFAllocatorRef alloc, CFURLRef url,
   CFStringRef extension)
 {
-  return NULL;
+  CFURLRef ret;
+  CFMutableStringRef str;
+  
+  str = CFStringCreateMutableCopy (alloc, 0, CFURLGetString(url));
+  // FIXME: check if last component is dir or file...
+  CFStringAppend (str, extension);
+  
+  ret = CFURLCreate_internal (alloc, str, url->_baseURL, url->_encoding);
+  CFRelease (str);
+  
+  return ret;
 }
 
 CFURLRef
@@ -351,19 +369,21 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
   
   switch (style)
     {
-    case kCFURLPOSIXPathStyle:
-      abs = (CFStringGetCharacterAtIndex(filePath, 0) == CHAR_SLASH);
-      delim = CHAR_SLASH;
-      break;
-    case kCFURLHFSPathStyle:
-      // FIXME: I don't know how to handle this!
-      abs = (CFStringGetCharacterAtIndex(filePath, 0) == CHAR_COLON);
-      delim = CHAR_COLON;
-    case kCFURLWindowsPathStyle:
-      abs = (CFStringGetCharacterAtIndex(filePath, 1) == CHAR_COLON
-        && CFStringGetCharacterAtIndex(filePath, 2) == CHAR_BACKSLASH);
-      delim = CHAR_BACKSLASH;
-      break;
+      case kCFURLPOSIXPathStyle:
+        abs = (CFStringGetCharacterAtIndex(filePath, 0) == CHAR_SLASH);
+        delim = CHAR_SLASH;
+        break;
+      case kCFURLHFSPathStyle:
+        // FIXME: I don't know how to handle this!
+        abs = (CFStringGetCharacterAtIndex(filePath, 0) == CHAR_COLON);
+        delim = CHAR_COLON;
+      case kCFURLWindowsPathStyle:
+        abs = (CFStringGetCharacterAtIndex(filePath, 1) == CHAR_COLON
+          && CFStringGetCharacterAtIndex(filePath, 2) == CHAR_BACKSLASH);
+        delim = CHAR_BACKSLASH;
+        break;
+      default:
+        return NULL;
     }
   
   if (abs)
@@ -438,7 +458,7 @@ CFURLCopyFileSystemPath (CFURLRef url, CFURLPathStyle style)
 {
   if (CFURLHasInfo(url, kCFURLComponentPath))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -446,7 +466,7 @@ CFURLCopyFragment (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 {
   if (CFURLHasInfo(url, kCFURLComponentFragment))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -454,7 +474,7 @@ CFURLCopyHostName (CFURLRef url)
 {
   if (CFURLHasInfo(url, kCFURLComponentHost))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -462,7 +482,7 @@ CFURLCopyLastPathComponent (CFURLRef url)
 {
   if (CFURLHasInfo(url, kCFURLComponentPath))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -470,7 +490,7 @@ CFURLCopyNetLocation (CFURLRef url)
 {
   if (CFURLHasInfo(url, kCFURLComponentNetLocation))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -478,7 +498,7 @@ CFURLCopyParameterString (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 {
   if (CFURLHasInfo(url, kCFURLComponentParameterString))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -486,7 +506,7 @@ CFURLCopyPassword (CFURLRef url)
 {
   if (CFURLHasInfo(url, kCFURLComponentPassword))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -502,7 +522,7 @@ CFURLCopyPathExtension (CFURLRef url)
 {
   if (CFURLHasInfo(url, kCFURLComponentPath))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -510,7 +530,7 @@ CFURLCopyQueryString (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 {
   if (CFURLHasInfo(url, kCFURLComponentQuery))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -526,7 +546,7 @@ CFURLCopyScheme (CFURLRef url)
 {
   if (CFURLHasInfo(url, kCFURLComponentScheme))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -534,7 +554,7 @@ CFURLCopyStrictPath (CFURLRef url, Boolean *isAbsolute)
 {
   if (CFURLHasInfo(url, kCFURLComponentPath))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 CFStringRef
@@ -542,7 +562,7 @@ CFURLCopyUserName (CFURLRef url)
 {
   if (CFURLHasInfo(url, kCFURLComponentUser))
     return NULL;
-  return NULL;
+  return CFSTR("");
 }
 
 SInt32

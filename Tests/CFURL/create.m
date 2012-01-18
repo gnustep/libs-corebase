@@ -28,6 +28,9 @@ int main (void)
   str = CFURLCopyResourceSpecifier (url);
   PASS_CFEQ(str, CFSTR("//localhost/C:%5CWINDOWS/"),
     "Resource specifier of C:\\WINDOWS is //localhost/C:%%5CWINDOWS/");
+  CFRelease (str);
+  str = CFURLCopyFileSystemPath (url, kCFURLWindowsPathStyle);
+  PASS_CFEQ(str, CFSTR("C:\\WINDOWS\\"), "File system path is C:\\WINDOWS\\");
   
   CFRelease (url);
   CFRelease (url2);
@@ -43,6 +46,9 @@ int main (void)
   str = CFURLCopyResourceSpecifier (url);
   PASS_CFEQ(str, CFSTR("//localhost/usr/"),
     "Resource Specifier of /usr is //localhost/usr/");
+  CFRelease (str);
+  str = CFURLCopyFileSystemPath (url, kCFURLPOSIXPathStyle);
+  PASS_CFEQ(str, CFSTR("/usr/"), "File system path is /usr/");
   
   CFRelease (url);
   CFRelease (url2);
@@ -63,6 +69,42 @@ int main (void)
   CFRelease (url);
   CFRelease (url2);
   CFRelease (str);
+  
+  url = CFURLCreateWithString (NULL,
+    CFSTR("http://www.w3.org/silly-file-path/"), NULL);
+  str = CFURLCopyPath (url);
+  PASS_CFEQ(str, CFSTR("/silly-file-path"),
+    "Path of http://www.w3.org/silly-file-path/ is /silly-file-path");
+  CFRelease (str);
+  str = CFURLCopyResourceSpecifier (url);
+  PASS_CFEQ(str, CFSTR("//www.w3.org/silly-file-path/"),
+    "resourceSpecifier of http://www.w3.org/silly-file-path/ is "
+    "//www.w3.org/silly-file-path/");
+  
+  CFRelease (url);
+  CFRelease (str);
+  
+  url = CFURLCreateWithString (NULL, CFSTR("http://www.w3.org/silly-file-name"),
+    NULL);
+  str = CFURLCopyScheme (url);
+  PASS_CFEQ(str, CFSTR("http"),
+       "Scheme of http://www.w3.org/silly-file-name is http");
+  CFRelease (str);
+  str = CFURLCopyHostName (url);
+  PASS_CFEQ(str, CFSTR("www.w3.org"),
+    "Host of http://www.w3.org/silly-file-name is www.w3.org");
+  CFRelease (str);
+  str = CFURLCopyStrictPath (url, NULL);
+  PASS_CFEQ(str, CFSTR("silly-file-name"),
+    "Strict path of http://www.w3.org/silly-file-name is silly-file-name");
+  CFRelease (str);
+  str = CFURLCopyResourceSpecifier (url);
+  PASS_CFEQ(str, CFSTR("//www.w3.org/silly-file-name"),
+    "resourceSpecifier of http://www.w3.org/silly-file-name is "
+    "//www.w3.org/silly-file-name");
+  
+  url = CFURLCreateWithString (NULL, CFSTR("this isn't a URL"), NULL);
+  PASS(url == NULL, "URL with 'this isn't a URL' returns NULL");
   
   return 0;
 }

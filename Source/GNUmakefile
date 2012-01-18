@@ -7,7 +7,6 @@ LIBRARY_NAME = libgnustep-corebase
 
 libgnustep-corebase_OBJC_FILES = \
   CFBundle.m \
-  CFPropertyList.m \
   NSCFArray.m \
   NSCFData.m \
   NSCFError.m \
