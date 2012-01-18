@@ -243,21 +243,18 @@ CFNumberBestType (CFNumberType type)
       case kCFNumberShortType:
       case kCFNumberSInt32Type:
       case kCFNumberIntType:
-#if !defined(__LP64__)
+#if !defined(__LP64__) && !defined(_WIN64)
       case kCFNumberLongType:
       case kCFNumberCFIndexType:
-  #if !defined(_WIN64)
       case kCFNumberNSIntegerType:
-  #endif
 #endif
         return kCFNumberSInt32Type;
         break;
       case kCFNumberSInt64Type:
       case kCFNumberLongLongType:
-#if defined(__LP64__)
+#if defined(__LP64__) || defined(_WIN64)
       case kCFNumberLongType:
       case kCFNumberCFIndexType:
-#elif defined(_WIN64)
       case kCFNumberNSIntegerType:
 #endif
         return kCFNumberSInt64Type;
@@ -420,12 +417,10 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
         return success;
       case kCFNumberSInt32Type:
       case kCFNumberIntType:
-#if !defined(__LP64__)
+#if !defined(__LP64__) && !defined(_WIN64)
       case kCFNumberLongType:
       case kCFNumberCFIndexType:
-  #if !defined(_WIN64)
       case kCFNumberNSIntegerType:
-  #endif
 #endif
         if (numType == kCFNumberSInt32Type)
           CFNumberConvert (SInt32, &(num[1]), SInt32, valuePtr, success);
@@ -436,10 +431,9 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
         return success;
       case kCFNumberSInt64Type:
       case kCFNumberLongLongType:
-#if defined(__LP64__)
+#if defined(__LP64__) || defined(_WIN64)
       case kCFNumberLongType:
       case kCFNumberCFIndexType:
-#elif defined(_WIN64)
       case kCFNumberNSIntegerType:
 #endif
         if (numType == kCFNumberSInt32Type)

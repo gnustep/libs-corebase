@@ -1,7 +1,15 @@
 2012-01-17 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CFBase.h:
+	* Source/CFStringFormat.c:
+	* Source/CFNumber.c:
+	* Source/GSPrivate.h:
+	* Source/GSHashTable.c: Fixes for 64-bit Windows.
+
+2012-01-17 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Tools/: Remove make_c_interface tool.
-	* Headers/CoreFoundation/CoreFoundatino.h:
+	* Headers/CoreFoundation/CoreFoundation.h:
 	* Source/GNUmakefile:
 	* Source/common.mk: Remove CFStream from build for now.
 

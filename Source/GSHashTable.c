@@ -162,13 +162,9 @@ GSHashPointer2 (const void *value)
 /* Knuth's hash function.  We add the 1 to make sure the answer is never
  * zero.
  */
-#if defined(__LP64__)
+#if defined(__LP64__) || defined(_WIN64)
 /* 64-bit operating systems */
   return (CFHashCode)((((UInt64)value >> 3)) * 2654435761UL) + 1;
-#elif defined(_WIN64)
-/* 64-bit operating systems */
-  return (CFHashCode)((((UInt32)value >> 3)) * 2654435761UL) + 1;
- 
 #else
 /* 32-bit operating systems */
   return (CFHashCode)((((UInt32)value >> 3)) * 2654435761UL) + 1;

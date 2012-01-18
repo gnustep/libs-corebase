@@ -35,13 +35,8 @@
 #include <unicode/unum.h>
 
 #if defined(_MSC_VER)
-#if defined(_WIN64)
-typedef SInt64 intmax_t;
-typedef UInt64 uintmax_t;
-#else
-typedef SInt32 intmax_t;
-typedef UInt32 uintmax_t;
-#endif
+typedef intptr_t intmax_t;
+typedef uintptr_t uintmax_t;
 #endif
 
 #define CF_FMT_FLAG_SIGN       (1<<0)

@@ -28,6 +28,8 @@
 #ifndef __COREFOUNDATION_CFBASE_H__
 #define __COREFOUNDATION_CFBASE_H__
 
+#include <stddef.h> // for intptr_t and uintptr_t
+
 /* CoreFoundation defineds __LITTLE_ENDIAN__ or __BIG_ENDIAN__ so we'll
  * do the same here for compatibility.
  */
@@ -176,12 +178,12 @@ CF_EXTERN_C_BEGIN
 //
 // CFType types
 //
-typedef unsigned long CFHashCode;
+typedef uintptr_t CFHashCode;
 /** @defgroup CFType
     @{
     @class CFType
  */
-typedef unsigned long CFTypeID;
+typedef uintptr_t CFTypeID;
 typedef const void *CFTypeRef;
 /** @}
  */
@@ -189,8 +191,8 @@ typedef const void *CFTypeRef;
 //
 // Base Utilities
 //
-typedef unsigned long CFOptionFlags;
-typedef signed long CFIndex;
+typedef uintptr_t CFOptionFlags;
+typedef intptr_t CFIndex;
 
 typedef struct {
   CFIndex location;
@@ -241,7 +243,7 @@ CF_EXPORT const double kCFCoreFoundationVersionNumber;
 #define kCFCoreFoundationVersionNumber10_1_3  227.20
 #define kCFCoreFoundationVersionNumber10_1_4  227.30
 #define kCFCoreFoundationVersionNumber10_2    263.00
-#define kCFCoreFoundationVersionNumber10_2_1	263.10
+#define kCFCoreFoundationVersionNumber10_2_1  263.10
 #define kCFCoreFoundationVersionNumber10_2_2  263.10
 #define kCFCoreFoundationVersionNumber10_2_3  263.30
 #define kCFCoreFoundationVersionNumber10_2_4  263.30

@@ -142,12 +142,9 @@ GSHashInt64ToInt32 (UInt64 value)
 CF_INLINE CFHashCode
 GSHashPointer (const void *value)
 {
-#if defined(__LP64__)
+#if defined(__LP64__) || defined(_WIN64)
 /* 64-bit operating systems */
   return (CFHashCode)GSHashInt64 ((UInt64)value);
-#elif defined(_WIN64)
-/* The 64-bit operating system with 32-bit longs */
-  return (CFHashCode)GSHashInt64ToInt32 ((UInt64)value);
 #else
 /* 32-bit operating systems */
   return (CFHashCode)GSHashInt32 ((UInt32)value);
