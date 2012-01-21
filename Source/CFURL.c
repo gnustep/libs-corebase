@@ -30,6 +30,12 @@
  * difference is that RFC 3986 adds IPv6 address support, allowing
  * this implementation to be a little more future proof than if we were
  * using only RFC 2396.
+ * 
+ * FIXME
+ * The last paragraph on section 3.2.2. Host of RFC 3986 mentions that
+ * URI producers should transform non-ASCII DNS registered names to the
+ * IDNA encoding.  ICU provides an IDNA API that can be used if something
+ * like this needs to be done.
  */
 
 #include "CoreFoundation/CFRuntime.h"
@@ -37,14 +43,19 @@
 #include "CoreFoundation/CFURL.h"
 #include "GSPrivate.h"
 
+#include <string.h>
+
 #if defined(_WIN32)
 #define CFURL_DEFAULT_PATH_STYLE kCFURLWindowsPathStyle
 #else
 #define CFURL_DEFAULT_PATH_STYLE kCFURLPOSIXPathStyle
 #endif
 
+#define URL_IS_LEGAL(c) (c > CHAR_SPACE && c < 0x007F)
 #define URL_IS_SCHEME(c) (CHAR_IS_ALPHA(c) || CHAR_IS_DIGIT(c) \
-  c == CHAR_PLUS || c == CHAR_MINUS || c == CHAR_PERIOD)
+  || c == CHAR_PLUS || c == CHAR_MINUS || c == CHAR_PERIOD)
+#define URL_IS_PCHAR(c) (URL_IS_UNRESERVED(c) || c == CHAR_PERCENT \
+  || URL_IS_SUB_DELIMS(c) || c == CHAR_COLON || c == CHAR_AT)
 
 #define URL_IS_RESERVED(c) (URL_IS_GEN_DELIMS(c) || URL_IS_SUB_DELIMS(c))
 #define URL_IS_UNRESERVED(c) (CHAR_IS_ALPHA(c) || CHAR_IS_DIGIT(c) \
@@ -67,16 +78,19 @@ struct __CFURL
   CFStringRef   _urlString;
   CFURLRef      _baseURL;
   CFStringEncoding _encoding; // The encoding of the escape characters
-  CFOptionFlags _info; // Used to find out which ranges have data.
   CFRange       _ranges[12]; // CFURLComponentType ranges
 };
 
-#define kCFURLCanBeDecomposed 0
+enum
+{
+  _kCFURLCanBeDecomposed = (1<<0)
+};
 
 CF_INLINE Boolean
-CFURLHasInfo (CFURLRef url, CFIndex option)
+CFURLSetCanBeDecomposed (CFURLRef url)
 {
-  return (url->_info & (1<<option)) ? true : false;
+  return
+    ((CFRuntimeBase *)url)->_flags.info & _kCFURLCanBeDecomposed ? true : false;
 }
 
 static void
@@ -115,13 +129,213 @@ CFURLGetTypeID (void)
   return _kCFURLTypeID;
 }
 
-#define CFURL_SIZE sizeof(struct __CFURL) - sizeof(CFRuntimeBase)
-
-static Boolean
+CF_INLINE Boolean
 CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
 {
-  return true; // FIXME
+  /* URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+   * hier-part     = "//" authority path-abempty
+   *               / path-absolute
+   *               / path-rootless
+   *               / path-empty
+   * URI-reference = URI / relative-ref
+   * relative-ref  = "//" authority path-abempty
+   *               / path-absolute
+   *               / path-noscheme
+   *               / path-empty
+   */
+  
+  CFStringInlineBuffer iBuffer;
+  CFIndex idx;
+  CFIndex start;
+  CFIndex resourceSpecifierStart;
+  CFIndex length;
+  UniChar c;
+  
+  length = CFStringGetLength (urlString);
+  CFStringInitInlineBuffer (urlString, &iBuffer, CFRangeMake(0, length));
+  idx = start = 0;
+  resourceSpecifierStart = kCFNotFound;
+  
+  /* Since ':' can appear anywhere in the string, we'll try to find
+   * the scheme first.
+   */
+  c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
+  if (CHAR_IS_ALPHA(c))
+    {
+      do
+        {
+          c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
+        } while (idx < length && URL_IS_SCHEME(c));
+      
+      if (c == CHAR_COLON)
+        {
+          ranges[kCFURLComponentScheme - 1] =
+            CFRangeMake (start, idx - start - 1);
+        }
+      else
+        {
+          ranges[kCFURLComponentScheme - 1] = CFRangeMake (kCFNotFound, 0);
+          idx = 0; // Start over...
+        }
+      
+      start = idx;
+    }
+  
+  /* Parse the relative-ref:
+   * hier-part    = "//" authority path-abempty
+   *              / path-absolute
+   *              / path-rootless
+   *              / path-empty
+   * relative-ref = "//" authority path-abempty
+   *              / path-absolute
+   *              / path-noscheme
+   *              / path-empty
+   */
+  if (idx > length) /* path-empty */
+    return true;
+  
+  c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
+  if (c == CHAR_SLASH)
+    {
+      /* "//" authority path-abempty
+       * path-absolute
+       */
+      resourceSpecifierStart = idx - 1;
+      if (idx > length)
+        return true;
+          
+      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
+      if (c == CHAR_SLASH)
+        {
+          /* "//" authority path-abempty */
+          UniChar c;
+          CFIndex end;
+          CFIndex i;
+          
+          i = idx;
+          start = i;
+          
+          if (i >= length) /* empty authority */
+            return false;
+          
+          /* Go to the end so we can parse backwards. */
+          do
+            {
+              c = CFStringGetCharacterFromInlineBuffer (&iBuffer, i++);
+              if (!URL_IS_LEGAL(c))
+                return false;
+            } while (c != CHAR_SLASH && i < length);
+          
+          end = i;
+          i = start;
+          ranges[kCFURLComponentNetLocation - 1] =
+            CFRangeMake (start, end - start - 1);
+          
+          while (i < end)
+            {
+              /* FIXME: RFC 3986 is a little vague on what goes in the
+               * UserInfo section, and Apple requires both User Name and
+               * Password. We simply consider everything after the first ':'
+               * to be part of the password. This behavior needs to be tested.
+               */
+              c = CFStringGetCharacterFromInlineBuffer (&iBuffer, i++);
+              if (c == CHAR_AT)
+                {
+                  CFIndex userInfoEnd;
+                  
+                  ranges[kCFURLComponentUserInfo - 1] =
+                    CFRangeMake (start, i - start);
+                  userInfoEnd = i;
+                  
+                  i = start;
+                  while (i < userInfoEnd)
+                    {
+                      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, i++);
+                      if (c == CHAR_COLON)
+                        {
+                          ranges[kCFURLComponentPassword - 1] =
+                            CFRangeMake (i, userInfoEnd - i - 1);
+                          break;
+                        }
+                    }
+                  
+                  ranges[kCFURLComponentUser - 1] =
+                    CFRangeMake (start, i - start - 1);
+                  start = userInfoEnd;
+                  break;
+                }
+            }
+          
+          i = end;
+          idx = end; // Set idx before we move it to search for a port.
+          
+          /* Try to find a port. */
+          while (i > start)
+            {
+              c = CFStringGetCharacterFromInlineBuffer (&iBuffer, --i);
+              if (c == CHAR_COLON)
+                {
+                  ranges[kCFURLComponentPort - 1] = CFRangeMake (i, end - i);
+                  end = i;
+                  break;
+                }
+            }
+          /* Whatever's left is the host name. */
+          ranges[kCFURLComponentHost - 1] =
+            CFRangeMake (start, end - start - 1);
+          
+          c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx);
+          start = idx - 1; // Shift back to just before '/'
+        }
+    }
+  
+  while (idx < length)
+    {
+      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
+      if (c == CHAR_QUESTION || c == CHAR_NUMBER)
+        break;
+      if (!URL_IS_LEGAL(c))
+        return false;
+    }
+  if (idx < length)
+    ranges[kCFURLComponentPath - 1] = CFRangeMake (start, idx - start - 1);
+  else
+    ranges[kCFURLComponentPath - 1] = CFRangeMake (start, idx - start);
+  
+  if (idx < length && c == CHAR_QUESTION)
+    {
+      start = idx;
+      while (idx < length)
+        {
+          c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
+          if (c == CHAR_NUMBER)
+            break;
+          if (!(URL_IS_PCHAR(c) || c == CHAR_SLASH || c == CHAR_QUESTION))
+            return false;
+        }
+      ranges[kCFURLComponentQuery - 1] = CFRangeMake (start, idx - start - 1);
+    }
+  
+  if (idx < length && c == CHAR_NUMBER)
+    {
+      start = idx;
+      while (idx < length)
+        {
+          c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
+          if (!(URL_IS_PCHAR(c) || c == CHAR_SLASH || c == CHAR_QUESTION))
+            return false;
+        }
+      ranges[kCFURLComponentFragment - 1] =
+        CFRangeMake (start, idx - start);
+    }
+  
+  ranges[kCFURLComponentResourceSpecifier - 1] =
+    CFRangeMake (resourceSpecifierStart, idx - resourceSpecifierStart);
+  
+  return true;
 }
+
+#define CFURL_SIZE sizeof(struct __CFURL) - sizeof(CFRuntimeBase)
 
 static CFURLRef
 CFURLCreate_internal (CFAllocatorRef alloc, CFStringRef string,
@@ -129,7 +343,10 @@ CFURLCreate_internal (CFAllocatorRef alloc, CFStringRef string,
 {
   struct __CFURL *new;
   CFRange ranges[12];
+  CFIndex i;
   
+  for (i = 0 ; i < 12 ; ++i)
+    ranges[i] = CFRangeMake (kCFNotFound, 0);
   if (!CFURLStringParse (string, ranges))
     return NULL;
   
@@ -138,8 +355,13 @@ CFURLCreate_internal (CFAllocatorRef alloc, CFStringRef string,
   if (new)
     {
       new->_urlString = CFStringCreateCopy (alloc, string);
-      new->_baseURL = baseURL ? CFURLCopyAbsoluteURL (baseURL) : NULL;
+      if (ranges[kCFURLComponentScheme - 1].location == kCFNotFound
+          && baseURL)
+        new->_baseURL = CFURLCopyAbsoluteURL (baseURL);
+      else
+        new->_baseURL = NULL;
       new->_encoding = encoding;
+      memcpy (new->_ranges, ranges, sizeof(ranges));
     }
   
   return new;
@@ -319,6 +541,9 @@ CFURLCreateWithFileSystemPath (CFAllocatorRef alloc,
 CF_INLINE CFURLRef
 CFURLCreateWithCurrentDirectory (CFAllocatorRef alloc)
 {
+  CFURLRef ret;
+  CFStringRef cwd;
+  CFMutableStringRef str;
 #if defined(_WIN32)
   wchar_t buffer[MAX_PATH];
   DWORD length;
@@ -327,34 +552,27 @@ CFURLCreateWithCurrentDirectory (CFAllocatorRef alloc)
   if (length == 0)
     return NULL;
   
-  return CFURLCreateFromFileSystemRepresentation (alloc,
-    (const UInt8 *)buffer, length, true);
+  cwd = CFStringCreateWithBytesNoCopy (alloc, (const UInt8 *)buffer, length,
+    GSStringGetFileSystemEncoding(), false, kCFAllocatorNull);
 #else
   char buffer[1024];
   
   if (getcwd(buffer, 1024) == NULL)
     return NULL;
   
-  return CFURLCreateFromFileSystemRepresentation (alloc,
-    (const UInt8 *)buffer, strlen(buffer), true);
+  cwd = CFStringCreateWithBytesNoCopy (alloc, (const UInt8 *)buffer,
+    strlen(buffer), GSStringGetFileSystemEncoding(), false, kCFAllocatorNull);
 #endif
-}
-
-CF_INLINE Boolean
-CFURLStringIsAbsoluteFSPath (CFStringRef filePath, CFURLPathStyle style)
-{
-  switch (style)
-    {
-    case kCFURLPOSIXPathStyle:
-      return (CFStringGetCharacterAtIndex(filePath, 0) == CHAR_SLASH);
-    case kCFURLHFSPathStyle:
-      return (CFStringGetCharacterAtIndex(filePath, 1) == CHAR_COLON
-        && CFStringGetCharacterAtIndex(filePath, 1) == CHAR_BACKSLASH);
-    case kCFURLWindowsPathStyle:
-      // FIXME: I don't know how to handle this!
-      return false;
-    }
-  return false;
+  
+  str = CFStringCreateMutable (alloc, 0);
+  CFStringAppend (str, CFSTR("file://localhost/"));
+  CFStringAppend (str, cwd);
+  
+  ret = CFURLCreateWithString (alloc, str, NULL);
+  CFRelease (cwd);
+  CFRelease (str);
+  
+  return ret;
 }
 
 CFURLRef
@@ -448,128 +666,218 @@ CFURLCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes, CFIndex length,
 Boolean
 CFURLCanBeDecomposed (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLCanBeDecomposed))
-    return false;
-  return false;
+  if (((CFRuntimeBase*)url)->_flags.info & _kCFURLCanBeDecomposed)
+    return true;
+  else
+    return url->_baseURL ? CFURLCanBeDecomposed(url->_baseURL) : false;
 }
 
 CFStringRef
 CFURLCopyFileSystemPath (CFURLRef url, CFURLPathStyle style)
 {
-  if (CFURLHasInfo(url, kCFURLComponentPath))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentPath - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyFileSystemPath (url->_baseURL, style);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyFragment (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 {
-  if (CFURLHasInfo(url, kCFURLComponentFragment))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentFragment - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyFragment (url->_baseURL, charactersToLeaveEscaped);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyHostName (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentHost))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentHost - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyHostName (url->_baseURL);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyLastPathComponent (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentPath))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentPath - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyLastPathComponent (url->_baseURL);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyNetLocation (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentNetLocation))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentNetLocation - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyNetLocation (url->_baseURL);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyParameterString (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 {
-  if (CFURLHasInfo(url, kCFURLComponentParameterString))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentParameterString - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyParameterString (url->_baseURL, charactersToLeaveEscaped);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyPassword (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentPassword))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentPassword - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyPassword (url->_baseURL);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyPath (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentPath))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentPath - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyPath (url->_baseURL);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyPathExtension (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentPath))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentPath - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyPathExtension (url->_baseURL);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyQueryString (CFURLRef url, CFStringRef charactersToLeaveEscaped)
 {
-  if (CFURLHasInfo(url, kCFURLComponentQuery))
-    return NULL;
-  return CFSTR("");
+    CFRange range = url->_ranges[kCFURLComponentQuery - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyQueryString (url->_baseURL, charactersToLeaveEscaped);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyResourceSpecifier (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentResourceSpecifier))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentResourceSpecifier - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyResourceSpecifier (url->_baseURL);
+      return CFSTR(""); // FIXME
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyScheme (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentScheme))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentScheme - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyScheme (url->_baseURL);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyStrictPath (CFURLRef url, Boolean *isAbsolute)
 {
-  if (CFURLHasInfo(url, kCFURLComponentPath))
-    return NULL;
-  return CFSTR("");
+CFRange range = url->_ranges[kCFURLComponentPath - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyStrictPath (url->_baseURL, isAbsolute);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 CFStringRef
 CFURLCopyUserName (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentUser))
-    return NULL;
-  return CFSTR("");
+  CFRange range = url->_ranges[kCFURLComponentUser - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLCopyUserName (url->_baseURL);
+      return NULL;
+    }
+  return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
+    range);
 }
 
 SInt32
 CFURLGetPortNumber (CFURLRef url)
 {
-  if (CFURLHasInfo(url, kCFURLComponentPort))
-    return 0;
+CFRange range = url->_ranges[kCFURLComponentPort - 1];
+  if (range.location == kCFNotFound)
+    {
+      if (url->_baseURL)
+        return CFURLGetPortNumber (url->_baseURL);
+      return 0;
+    }
   return 0;
 }
 

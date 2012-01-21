@@ -232,6 +232,7 @@ GSHashBytes (const void *bytes, CFIndex length)
 #define CHAR_J 0x006A
 #define CHAR_L 0x006C
 #define CHAR_T 0x0074
+#define CHAR_V 0x0076
 #define CHAR_X 0x0078
 #define CHAR_Z 0x007A
 

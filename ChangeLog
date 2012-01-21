@@ -1,3 +1,10 @@
+2012-01-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFURL.c: Added a URI parser.
+	* Source/GSPrivate.h: Added CHAR_V.
+	* Tests/CFURL/create.m: Added a few more tests.
+	* Tests/CFURL/ref_resolution.m: Tests for reference resolution.
+
 2012-01-17 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GNUmakefile: Remove CFPropertyList from build.
