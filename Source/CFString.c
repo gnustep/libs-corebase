@@ -958,12 +958,14 @@ CFStringCreateMutableCopy (CFAllocatorRef alloc, CFIndex maxLength,
   CFStringInlineBuffer buffer;
   UniChar *contents;
   CFIndex textLen;
+  CFIndex capacity;
   CFIndex idx;
   
   textLen = CFStringGetLength(str);
-  if (maxLength < textLen)
-    textLen = maxLength;
-  new = (CFMutableStringRef)CFStringCreateMutable (alloc, textLen);
+  capacity = textLen;
+  if (maxLength > capacity)
+    capacity = maxLength;
+  new = (CFMutableStringRef)CFStringCreateMutable (alloc, capacity);
   
   // An inline buffer is going to work well here...
   CFStringInitInlineBuffer (str, &buffer, CFRangeMake(0, textLen));

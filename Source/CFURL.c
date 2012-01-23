@@ -179,6 +179,7 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
         }
       
       start = idx;
+      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
     }
   
   /* Parse the relative-ref:
@@ -194,7 +195,6 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
   if (idx > length) /* path-empty */
     return true;
   
-  c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
   if (c == CHAR_SLASH)
     {
       /* "//" authority path-abempty
@@ -291,11 +291,11 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
   
   while (idx < length)
     {
-      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
       if (c == CHAR_QUESTION || c == CHAR_NUMBER)
         break;
       if (!URL_IS_LEGAL(c))
         return false;
+      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
     }
   if (idx < length)
     ranges[kCFURLComponentPath - 1] = CFRangeMake (start, idx - start - 1);
@@ -313,7 +313,10 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
           if (!(URL_IS_PCHAR(c) || c == CHAR_SLASH || c == CHAR_QUESTION))
             return false;
         }
-      ranges[kCFURLComponentQuery - 1] = CFRangeMake (start, idx - start - 1);
+      if (c == CHAR_NUMBER)
+        ranges[kCFURLComponentQuery - 1] = CFRangeMake (start, idx - start - 1);
+      else
+        ranges[kCFURLComponentQuery - 1] = CFRangeMake (start, idx - start);
     }
   
   if (idx < length && c == CHAR_NUMBER)
@@ -374,31 +377,254 @@ CFURLCreateWithString (CFAllocatorRef alloc, CFStringRef string,
   return CFURLCreate_internal (alloc, string, baseURL, kCFStringEncodingUTF8);
 }
 
+static void
+CFURLStringRemoveDotSegments (CFMutableStringRef string, CFRange range)
+{
+  
+}
+
 CFURLRef
 CFURLCopyAbsoluteURL (CFURLRef relativeURL)
 {
-  CFIndex len;
-  CFStringRef absStr;
-  CFMutableStringRef str;
-  CFURLRef abs;
-  CFURLRef ret;
+  CFAllocatorRef alloc;
+  CFMutableStringRef targetString;
+  CFStringRef relString;
+  CFStringRef baseString;
+  CFURLRef base;
+  CFURLRef target;
+  UniChar *buffer;
+  CFIndex bufferLength;
+  CFIndex capacity;
+  CFRange *relRanges;
+  CFRange baseRanges[12];
+  CFRange range;
   
-  if (relativeURL->_baseURL == NULL)
+  base = relativeURL->_baseURL;
+  if (base == NULL)
     return CFRetain (relativeURL);
   
-  abs = CFURLCopyAbsoluteURL (relativeURL->_baseURL);
-  absStr = CFURLGetString(abs);
-  len = CFStringGetLength(absStr) + CFStringGetLength(relativeURL->_urlString);
-  str = CFStringCreateMutableCopy (NULL, len, absStr);
-  CFStringAppend (str, relativeURL->_urlString);
+  /* This is a bit of a pain.  We can't assume _baseURL is a CFURL, so we
+   * need to parse it before moving forward.  To avoid parsing the same
+   * string twice (in the case that _baseURL is a CFURL) we check first.
+   */
+  baseString = CFURLGetString (base);
+  if (CF_IS_OBJC(_kCFURLTypeID, base))
+    CFURLStringParse (baseString, baseRanges);
+  else
+    memcpy (baseRanges, base->_ranges, sizeof(baseRanges));
   
-  ret = CFURLCreate_internal (CFGetAllocator(relativeURL), str, NULL,
-    relativeURL->_encoding);
+  relString = relativeURL->_urlString;
+  relRanges = (CFRange*)relativeURL->_ranges;
   
-  CFRelease (str);
-  CFRelease (abs);
+  alloc = CFGetAllocator(relativeURL);
+  bufferLength = GS_MAX(CFStringGetLength (relString),
+    CFStringGetLength (baseString));
+  buffer = CFAllocatorAllocate (alloc, bufferLength * sizeof(UniChar), 0);
+  capacity = CFStringGetLength (relString) + CFStringGetLength (baseString);
+  targetString = CFStringCreateMutable (alloc, capacity);
   
-  return ret;
+  range = relRanges[kCFURLComponentScheme - 1];
+  if (range.location != kCFNotFound)
+    {
+      /* Scheme */
+      CFStringGetCharacters (relString, range, buffer);
+      CFStringAppendCharacters (targetString, buffer, range.length);
+      CFStringAppendCString (targetString, ":", kCFStringEncodingASCII);
+      
+      /* Authority */
+      range = relRanges[kCFURLComponentNetLocation - 1];
+      if (range.location != kCFNotFound)
+        {
+          CFStringAppendCString (targetString, "//", kCFStringEncodingASCII);
+          CFStringGetCharacters (relString, range, buffer);
+          CFStringAppendCharacters (targetString, buffer, range.length);
+        }
+      
+      /* Path */
+      range = relRanges[kCFURLComponentPath - 1];
+      if (range.location != kCFNotFound)
+        {
+          CFRange pathRange;
+          pathRange.location = CFStringGetLength (targetString);
+          pathRange.length = range.length;
+          
+          CFStringGetCharacters (relString, range, buffer);
+          CFStringAppendCharacters (targetString, buffer, range.length);
+          CFURLStringRemoveDotSegments (targetString, pathRange);
+        }
+      
+      /* Query */
+      range = relRanges[kCFURLComponentQuery - 1];
+      if (range.location != kCFNotFound)
+        {
+          CFStringAppendCString (targetString, "?", kCFStringEncodingASCII);
+          CFStringGetCharacters (relString, range, buffer);
+          CFStringAppendCharacters (targetString, buffer, range.length);
+        }
+    }
+  else
+    {
+      /* Scheme */
+      range = baseRanges[kCFURLComponentScheme - 1];
+      if (range.location != kCFNotFound)
+        {
+          CFStringGetCharacters (baseString, range, buffer);
+          CFStringAppendCharacters (targetString, buffer, range.length);
+          CFStringAppendCString (targetString, ":", kCFStringEncodingASCII);
+        }
+      
+      range = relRanges[kCFURLComponentNetLocation - 1];
+      if (range.location != kCFNotFound)
+        {
+          /* Authority */
+          CFStringAppendCString (targetString, "//", kCFStringEncodingASCII);
+          CFStringGetCharacters (relString, range, buffer);
+          CFStringAppendCharacters (targetString, buffer, range.length);
+          
+          /* Path */
+          range = relRanges[kCFURLComponentPath - 1];
+          if (range.location != kCFNotFound)
+            {
+              CFRange pathRange;
+              pathRange.location = CFStringGetLength (targetString);
+              pathRange.length = range.length;
+              
+              CFStringGetCharacters (relString, range, buffer);
+              CFStringAppendCharacters (targetString, buffer, range.length);
+              CFURLStringRemoveDotSegments (targetString, pathRange);
+            }
+          
+          /* Query */
+          range = relRanges[kCFURLComponentQuery - 1];
+          if (range.location != kCFNotFound)
+            {
+              CFStringAppendCString (targetString, "?",
+                kCFStringEncodingASCII);
+              CFStringGetCharacters (relString, range, buffer);
+              CFStringAppendCharacters (targetString, buffer, range.length);
+            }
+        }
+      else
+        {
+          /* Authority */
+          range = baseRanges[kCFURLComponentNetLocation - 1];
+          if (range.location != kCFNotFound)
+            {
+              CFStringAppendCString (targetString, "//",
+                kCFStringEncodingASCII);
+              CFStringGetCharacters (baseString, range, buffer);
+              CFStringAppendCharacters (targetString, buffer, range.length);
+            }
+          
+          range = relRanges[kCFURLComponentPath - 1];
+          if (range.location != kCFNotFound)
+            {
+              /* Path */
+              if (range.length == 0)
+                {
+                  range = baseRanges[kCFURLComponentPath - 1];
+                  if (range.location != kCFNotFound)
+                    {
+                      CFStringGetCharacters (baseString, range, buffer);
+                      CFStringAppendCharacters (targetString, buffer,
+                        range.length);
+                    }
+                  
+                  /* Query */
+                  range = relRanges[kCFURLComponentQuery - 1];
+                  if (range.location != kCFNotFound)
+                    {
+                      CFStringAppendCString (targetString, "?",
+                        kCFStringEncodingASCII);
+                      CFStringGetCharacters (relString, range, buffer);
+                      CFStringAppendCharacters (targetString, buffer,
+                        range.length);
+                    }
+                  else
+                    {
+                      /* Query */
+                      range = baseRanges[kCFURLComponentQuery - 1];
+                      if (range.location != kCFNotFound)
+                        {
+                          CFStringAppendCString (targetString, "?",
+                            kCFStringEncodingASCII);
+                          CFStringGetCharacters (baseString, range, buffer);
+                          CFStringAppendCharacters (targetString, buffer,
+                            range.length);
+                        }
+                    }
+                }
+              else
+                {
+                  if (CFStringGetCharacterAtIndex(relString, range.location)
+                      == CHAR_SLASH)
+                    {
+                      CFRange pathRange;
+                      pathRange.location = CFStringGetLength (targetString);
+                      pathRange.length = range.length;
+                      
+                      CFStringGetCharacters (relString, range, buffer);
+                      CFStringAppendCharacters (targetString, buffer,
+                        range.length);
+                      CFURLStringRemoveDotSegments (targetString, pathRange);
+                    }
+                  else
+                    {
+                      CFRange pathRange;
+                      CFRange baseRange;
+                      
+                      baseRange = baseRanges[kCFURLComponentPath - 1];
+                      
+                      CFStringGetCharacters (baseString, baseRange, buffer);
+                      if (baseRange.location != kCFNotFound
+                          && buffer[baseRange.length - 1] != CHAR_SLASH)
+                        {
+                          /* Remove last path component */
+                          CFIndex count;
+                          count = baseRange.length - 1;
+                          while (buffer[--count] != CHAR_SLASH);
+                          baseRange.length = count + 1;
+                        }
+                      CFStringAppendCharacters (targetString, buffer,
+                        baseRange.length);
+                      
+                      pathRange.location = CFStringGetLength (targetString);
+                      pathRange.length = range.length + baseRange.length;
+                      CFStringGetCharacters (relString, range, buffer);
+                      CFStringAppendCharacters (targetString, buffer,
+                        range.length);
+                      
+                      CFURLStringRemoveDotSegments (targetString, pathRange);
+                    }
+                  
+                  range = relRanges[kCFURLComponentQuery - 1];
+                  if (range.location != kCFNotFound)
+                    {
+                      CFStringAppendCString (targetString, "?",
+                        kCFStringEncodingASCII);
+                      CFStringGetCharacters (relString, range, buffer);
+                      CFStringAppendCharacters (targetString, buffer,
+                        range.length);
+                    }
+                }
+            }
+        }
+    }
+  
+  /* Fragment */
+  range = relRanges[kCFURLComponentFragment - 1];
+  if (range.location != kCFNotFound)
+    {
+      CFStringAppendCString (targetString, "#", kCFStringEncodingASCII);
+      CFStringGetCharacters (relString, range, buffer);
+      CFStringAppendCharacters (targetString, buffer, range.length);
+    }
+  
+  target = CFURLCreate_internal (alloc, targetString, NULL,
+    kCFStringEncodingUTF8);
+  CFRelease (targetString);
+  
+  return target;
 }
 
 CFURLRef

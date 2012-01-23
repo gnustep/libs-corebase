@@ -615,7 +615,8 @@ CFStringGetCharacterFromInlineBuffer (CFStringInlineBuffer *buf, CFIndex idx)
       if (idx < 0 || idx >= buf->rangeToBuffer.length)
         return 0;
       
-      buf->bufferedRangeStart = idx - 4;
+      // Use 16 here so it's efficient to go backwards, too
+      buf->bufferedRangeStart = idx - 16;
       if (buf->bufferedRangeStart < 0)
         buf->bufferedRangeStart = 0;
       buf->bufferedRangeEnd =
