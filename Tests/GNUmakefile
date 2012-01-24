@@ -29,7 +29,7 @@ check::
 	LD_LIBRARY_PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${LD_LIBRARY_PATH}";\
 	PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${PATH}";\
 	export ADDITIONAL_INCLUDE_DIRS;\
-	export ADDITIONAL_LIBS_DIR;\
+	export ADDITIONAL_LIB_DIRS;\
 	export LD_LIBRARY_PATH;\
 	export PATH;\
 	if [ "$(DEBUG)" = "" ]; then \
