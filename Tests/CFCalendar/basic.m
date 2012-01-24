@@ -15,7 +15,9 @@ int main (void)
   // FIXME: Need to specify a CFTimeZone but it is currently unsupported.
   PASS(CFCalendarComposeAbsoluteTime(cal, &at, "yMd", 2011, 7, 8),
     "Absolute time composed.");
+  testHopeful = true;
   PASS(at == 331794000.0, "Absolute time composed correctly.");
+  testHopeful = false;
   
   PASS(CFCalendarDecomposeAbsoluteTime(cal, at, "yMH", &year, &month, &hour),
     "Absolute time decomposed.");
