@@ -1,5 +1,10 @@
 2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFURL.c: Added class functions.
+	* Source/GSPrivate.h: Fix for atomic operations on Windows.
+
+2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Tests/CFArray/mutablearray.m:
 	* Tests/CFArray/create.m: Fix tests for 64-bit systems.
 	* Tests/CFNumberFormatter/parse.m:

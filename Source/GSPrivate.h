@@ -49,12 +49,23 @@
 #define GSMutexUnlock(x) LeaveCriticalSection(x)
 #define GSMutexDestroy(x) DeleteCriticalSection(x)
 
+#if defined(_WIN64)
+#define GSAtomicIncrementCFIndex(ptr) \
+  InterlockedIncrement64(LONGLONG volatile*)(ptr))
+#define GSAtomicDecrementCFIndex(ptr) \
+  InterlockedDecrement64(LONGLONG volatile*)(ptr))
+#define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
+  InterlockedCompareExchange64((LONGLONG volatile*)(ptr), (newv), (oldv))
+#else
 #define GSAtomicIncrementCFIndex(ptr) \
   InterlockedIncrement((LONG volatile*)(ptr))
 #define GSAtomicDecrementCFIndex(ptr) \
   InterlockedDecrement((LONG volatile*)(ptr))
 #define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
-  InterlockedCompareExchange((ptr), (newv), (oldv))
+  InterlockedCompareExchange((LONG volatile*)(ptr), (newv), (oldv))
+#endif /* _WIN64 */
+
+
 #define GSAtomicCompareAndSwapPointer(ptr, oldv, newv) \
   InterlockedCompareExchangePointer((ptr), (newv), (oldv))
 
@@ -72,12 +83,12 @@
 
 #include <sys/types.h>
 #include <machine/atomic.h>
-#define GSAtomicIncrementCFIndex(ptr) atomic_fetchadd_long ((u_long*)(ptr), 1)
-#define GSAtomicDecrementCFIndex(ptr) atomic_fetchadd_long ((u_long*)(ptr), -1)
+#define GSAtomicIncrementCFIndex(ptr) atomic_fetchadd_long ((ptr), 1)
+#define GSAtomicDecrementCFIndex(ptr) atomic_fetchadd_long ((ptr), -1)
 #define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
   atomic_cmpset_long((ptr), (oldv), (newv))
 #define GSAtomicCompareAndSwapPointer(ptr, oldv, newv) \
-  atomic_cmpset_p((ptr), (oldv), (newv))
+  atomic_cmpset_ptr((ptr), (oldv), (newv))
 
 #elif defined(__llvm__) \
       || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))

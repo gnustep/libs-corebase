@@ -89,8 +89,8 @@ enum
 CF_INLINE Boolean
 CFURLSetCanBeDecomposed (CFURLRef url)
 {
-  return
-    ((CFRuntimeBase *)url)->_flags.info & _kCFURLCanBeDecomposed ? true : false;
+  return ((CFRuntimeBase *)url)->_flags.info & _kCFURLCanBeDecomposed
+    ? true : false;
 }
 
 static void
@@ -103,6 +103,44 @@ CFURLFinalize (CFTypeRef cf)
     CFRelease (url->_baseURL);
 }
 
+static Boolean
+CFURLEqual (CFTypeRef cf1, CFTypeRef cf2)
+{
+  Boolean equal;
+  CFURLRef url1 = CFURLCopyAbsoluteURL ((CFURLRef)cf1);
+  CFURLRef url2 = CFURLCopyAbsoluteURL ((CFURLRef)cf2);
+  
+  equal = CFEqual (CFURLGetString(url1), CFURLGetString(url2));
+  
+  CFRelease (url1);
+  CFRelease (url2);
+  return equal;
+}
+
+static CFHashCode
+CFURLHash (CFTypeRef cf)
+{
+  CFHashCode hash;
+  CFURLRef url = CFURLCopyAbsoluteURL ((CFURLRef)cf);
+  
+  hash = CFHash (CFURLGetString(url));
+  
+  CFRelease (url);
+  return hash;
+}
+
+static CFStringRef
+CFURLFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
+{
+  CFStringRef str;
+  CFURLRef url = CFURLCopyAbsoluteURL ((CFURLRef)cf);
+  
+  str = CFRetain (CFURLGetString(url));
+  
+  CFRelease (url);
+  return str;
+}
+
 static const CFRuntimeClass CFURLClass =
 {
   0,
@@ -110,9 +148,9 @@ static const CFRuntimeClass CFURLClass =
   NULL,
   NULL,
   CFURLFinalize,
-  NULL,
-  NULL,
-  NULL,
+  CFURLEqual,
+  CFURLHash,
+  CFURLFormattingDesc,
   NULL
 };
 
