@@ -25,6 +25,16 @@ int main (void)
   CFRelease (url2);
   CFRelease (str);
   
+  url = CFURLCreateWithString (NULL, CFSTR("http://a"), NULL);
+  url2 = CFURLCreateWithString (NULL, CFSTR("../g"), url);
+  url3 = CFURLCopyAbsoluteURL (url2);
+  PASS_CFEQ(CFURLGetString(url3), CFSTR("http://a/g"),
+    "../g resolved against http://a is http://a/g");
+  
+  CFRelease(url);
+  CFRelease(url2);
+  CFRelease(url3);
+  
   /* Examples from RFC 3986 */
   url = CFURLCreateWithString (NULL, CFSTR("http://a/b/c/d;p?q"), NULL);
   
@@ -114,8 +124,8 @@ int main (void)
   
   url2 = CFURLCreateWithString (NULL, CFSTR("g;x=1/./y"), url);
   url3 = CFURLCopyAbsoluteURL (url2);
-  PASS_CFEQ(CFURLGetString(url3), CFSTR("http://a/b/c/g;x=1/./y"),
-    "g;x=1/./y resolved against http://a/b/c/d;p?q is http://a/b/c/g;x=1/./y");
+  PASS_CFEQ(CFURLGetString(url3), CFSTR("http://a/b/c/g;x=1/y"),
+    "g;x=1/./y resolved against http://a/b/c/d;p?q is http://a/b/c/g;x=1/y");
   CFRelease(url3);
   CFRelease(url2);
   

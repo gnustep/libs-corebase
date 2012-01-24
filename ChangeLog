@@ -1,3 +1,8 @@
+2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFURL.c: Implmented function to remove dot segments in paths.
+	* Tests/CFURL/ref_resolution.m: Added an extra test.
+
 2012-01-23 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFURL.c: Resolve URIs in CFURLCopyAbsoluteURL().
