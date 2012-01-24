@@ -6,7 +6,6 @@
 
 int main (void)
 {
-  CFNumberRef num;
   CFLocaleRef loc;
   CFStringRef str;
   CFNumberFormatterRef nf;
@@ -14,7 +13,6 @@ int main (void)
   SInt16 int_16;
   SInt32 int_32;
   SInt64 int_64;
-  int    sint;
   double d;
   CFRange range;
   

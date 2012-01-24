@@ -2,7 +2,7 @@
 #include "../CFTesting.h"
 
 #define ARRAY_SIZE 5
-const int array[ARRAY_SIZE] = { 1, 2, 3, 4, 5 };
+const CFIndex array[ARRAY_SIZE] = { 1, 2, 3, 4, 5 };
 
 int main (void)
 {
@@ -14,10 +14,10 @@ int main (void)
   
   n = CFArrayGetCount (a);
   PASS(n == ARRAY_SIZE, "CFArray has correct number of values.");
-  n = CFArrayGetCountOfValue (a, CFRangeMake(0, ARRAY_SIZE), 3);
+  n = (CFIndex)CFArrayGetCountOfValue (a, CFRangeMake(0, ARRAY_SIZE), (const void*)3);
   PASS(n == 1, "Found 1 occurence of the value.");
   
-  n = CFArrayGetValueAtIndex (a, 1);
+  n = (CFIndex)CFArrayGetValueAtIndex (a, 1);
   PASS(n == 2, "Found value.");
   
   CFRelease (a);

@@ -159,7 +159,7 @@ CFIndex GSPointGetY (GSPointRef o)
 {
   GSPoint *new;
   
-  new = (GSPointRef)GSPointCreate(NULL, x, y);
+  new = (GSPoint*)GSPointCreate(NULL, x, y);
   
   RELEASE(self);
   

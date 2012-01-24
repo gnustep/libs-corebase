@@ -42,8 +42,8 @@ int main (void)
   
   str1 = CFStringCreateMutable (NULL, 0);
   CFStringReplaceAll (str1, CFSTR("abcdef"));
-  str2 = CFSTR("123");
-  CFStringPad (str1, str2, 9, 1);
+  constant1 = CFSTR("123");
+  CFStringPad (str1, constant1, 9, 1);
   PASS_CFEQ(str1, CFSTR("abcdef231"), "Padding works.");
   CFStringPad (str1, NULL, 3, 0);
   PASS_CFEQ(str1, CFSTR("abc"), "Truncating works.");

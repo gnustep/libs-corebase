@@ -43,7 +43,7 @@ int main (void)
   CFRelease(str1);
   CFRelease(str2);
   
-  ptr = 12;
+  ptr = (void*)12;
   str1 = CFStringCreateWithFormat (NULL, NULL,
     CFSTR("%p %s"), ptr, "A longer than usual string.");
   str2 = CFSTR ("0xc A longer than usual string.");

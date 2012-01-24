@@ -11,7 +11,7 @@ int main (void)
   CFArrayRef array;
   UniChar ubuffer[] = { 'O', 'K', '!', 0 };
   
-  str1 = CFStringCreateWithBytes (NULL, "OK", 2, kCFStringEncodingASCII, false);
+  str1 = CFStringCreateWithBytes (NULL, (const UInt8*)"OK", 2, kCFStringEncodingASCII, false);
   
   str2 = CFStringCreateWithBytes (NULL, (const UInt8*)ubuffer, 2 * sizeof(UniChar), kCFStringEncodingUTF16LE, false);
   
