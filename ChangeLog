@@ -1,5 +1,10 @@
 2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* GNUMakefile: Include Tests as a subproject.
+	* Tests/GNUmakefile: Add 'make check'.
+
+2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFURL.c: Implmented function to remove dot segments in paths.
 	* Tests/CFURL/ref_resolution.m: Added an extra test.
 

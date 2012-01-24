@@ -21,6 +21,6 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 PACKAGE_NAME = gnustep-corebase
 
-SUBPROJECTS = Source
+SUBPROJECTS = Source Tests
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make
