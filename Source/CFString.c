@@ -685,7 +685,7 @@ CFStringGetBytes (CFStringRef str, CFRange range,
           const char *end;
           
           dst = (UniChar*)buffer;
-          bytes = str->_contents + range.location;
+          bytes = (char*)str->_contents + range.location;
           end = bytes + range.length;
           
           while (bytes < end)
@@ -705,7 +705,7 @@ CFStringGetBytes (CFStringRef str, CFRange range,
           
           converted = 0;
           used = 0;
-          bytes = str->_contents + range.location;
+          bytes = (char*)str->_contents + range.location;
           end = bytes + range.length;
           while (bytes < end)
             {

@@ -1,5 +1,13 @@
 2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/Makefile.nmake:
+	* Source/CFString.c:
+	* Source/GSPrivate.h:
+	* Headers/CoreFoundation/CFString.h:
+	* Headers/CoreFoundation/CFBase.h: Fixes for Windows.
+
+2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFURL.c: Added class functions.
 	* Source/GSPrivate.h: Fix for atomic operations on Windows.
 

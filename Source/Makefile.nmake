@@ -6,11 +6,11 @@ include common.mk
 
 OBJECTS = $(COREBASE_C_FILES:.c=.obj)
 
-OBJ_CFLAGS = -IC:\GNUstep\GNUstep\System\Library\Headers -I..\..\icu\include -MT
+OBJ_CFLAGS = -MT
 
 all: $(OBJECTS)
-	link $(OBJECTS) /LIBPATH:..\..\icu\lib64 \
-          /DEFAULTLIB:icuin /DEFAULTLIB:icuuc /DLL /OUT:gnustep-corebase.dll
+	link $(OBJECTS) $(LINKFLAGS) \
+	  /DEFAULTLIB:icuin /DEFAULTLIB:icuuc /DLL /OUT:gnustep-corebase.dll
 
 .c.obj:
 	$(CC) $(ADDITIONAL_INCLUDE_DIRS) $(OBJ_CFLAGS) $(ADDITIONAL_CFLAGS) \

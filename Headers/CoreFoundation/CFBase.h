@@ -42,7 +42,7 @@
 #  else
 #   error Cannot establish platform endianness!
 #  endif
-# elif defined(_MSC_VER) && defined(_M_IX86)
+# elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
 #  define __LITTLE_ENDIAN__ 1
 # else
 #  error Cannot establish platform endianness!
@@ -173,6 +173,12 @@ CF_EXTERN_C_BEGIN
 # elif _WIN32
 #  define CF_INLINE static __inline__
 # endif
+#endif
+
+#if defined(__GNUC__) || defined(__llvm__)
+#define GS_PURE_FUNCTION __attribute__((pure))
+#else
+#define GS_PURE_FUNCTION
 #endif
 
 //

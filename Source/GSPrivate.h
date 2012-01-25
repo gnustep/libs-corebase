@@ -51,9 +51,9 @@
 
 #if defined(_WIN64)
 #define GSAtomicIncrementCFIndex(ptr) \
-  InterlockedIncrement64(LONGLONG volatile*)(ptr))
+  InterlockedIncrement64((LONGLONG volatile*)(ptr))
 #define GSAtomicDecrementCFIndex(ptr) \
-  InterlockedDecrement64(LONGLONG volatile*)(ptr))
+  InterlockedDecrement64((LONGLONG volatile*)(ptr))
 #define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
   InterlockedCompareExchange64((LONGLONG volatile*)(ptr), (newv), (oldv))
 #else
