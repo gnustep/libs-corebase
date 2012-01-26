@@ -62,6 +62,7 @@ COREBASE_HEADER_FILES = \
   CFRunLoop.h \
   CFRuntime.h \
   CFSet.h \
+  CFStream.h \
   CFString.h \
   CFStringEncodingExt.h \
   CFTimeZone.h \

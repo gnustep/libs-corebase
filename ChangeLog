@@ -1,3 +1,7 @@
+2012-01-25 Ivan Vucica <ivan@vucica.net>
+
+        * Source/common.mk: Added missing CFStream.h to list of headers.
+
 2012-01-25 Stefan Bidigaray <stefanbidi@gmail.com>
 
         * Source/CFDateFormatter.c: Fix bug in 
