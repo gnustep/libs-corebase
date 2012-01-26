@@ -1,3 +1,8 @@
+2012-01-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
+        * Source/common.mk: Remove CFStream.h and CFPropertyList.h.
+	* Headers/CoreFoundation/CoreFoundation.h: Remove CFPropertyList.h.
+
 2012-01-25 Ivan Vucica <ivan@vucica.net>
 
         * Source/common.mk: Added missing CFStream.h to list of headers.
