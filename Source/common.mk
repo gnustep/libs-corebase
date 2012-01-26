@@ -40,13 +40,13 @@ COREBASE_C_FILES = \
 
 COREBASE_HEADER_FILES = \
   CoreFoundation.h \
+  CFArray.h \
   CFAttributedString.h \
   CFBag.h \
   CFBase.h \
   CFBinaryHeap.h \
   CFBitVector.h \
   CFBundle.h \
-  CFArray.h \
   CFByteOrder.h \
   CFCalendar.h \
   CFCharacterSet.h \

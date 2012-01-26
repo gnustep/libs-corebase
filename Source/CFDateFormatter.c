@@ -114,9 +114,9 @@ CFDateFormatterSetup (CFDateFormatterRef dfmt)
   udStyle = CFDataFormatterStyleToUDateFormatStyle (dfmt->_dateStyle);
   
   cLocale = CFLocaleGetCStringIdentifier (dfmt->_locale);
-  
-  uTzIDLength = CFStringGetLength (CFTimeZoneGetName(dfmt->_tz));
 #if 0 // FIXME
+  uTzIDLength = CFStringGetLength (CFTimeZoneGetName(dfmt->_tz));
+  
   if (uTzIDLength > BUFFER_SIZE)
     uTzIDLength = BUFFER_SIZE;
   CFStringGetCharacters (CFTimeZoneGetName(dfmt->_tz),
@@ -552,7 +552,7 @@ CFDateFormatterCreateStringWithAbsoluteTime (CFAllocatorRef alloc,
   UDate udate = ABSOLUTETIME_TO_UDATE(at);
   UErrorCode err = U_ZERO_ERROR;
   
-  length = udat_format (fmt->_fmt, udate, NULL, BUFFER_SIZE, NULL, &err);
+  length = udat_format (fmt->_fmt, udate, string, BUFFER_SIZE, NULL, &err);
   if (length > BUFFER_SIZE)
     length = BUFFER_SIZE;
   if (U_FAILURE(err))

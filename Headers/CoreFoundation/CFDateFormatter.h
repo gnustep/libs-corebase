@@ -28,6 +28,7 @@
 #define __COREFOUNDATION_CFDATEFORMATTER_H__
 
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFLocale.h>
 
 #if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED

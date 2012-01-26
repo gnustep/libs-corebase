@@ -1,6 +1,13 @@
+2012-01-25 Stefan Bidigaray <stefanbidi@gmail.com>
+
+        * Source/CFDateFormatter.c: Fix bug in 
+	CFDateFormatterCreateStringFromAbsoluteTime().
+	* Headers/CoreFoundation/CFDateFormatter.h: Include CFDate.h.
+	* Tests/CFDateFormatter: Basic tests for CFDateFormatter.
+
 2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
-	* Source/Makefile.nmake:
+        * Source/Makefile.nmake:
 	* Source/CFString.c:
 	* Source/GSPrivate.h:
 	* Headers/CoreFoundation/CFString.h:
@@ -8,7 +15,7 @@
 
 2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
-	* Source/CFURL.c: Added class functions.
+        * Source/CFURL.c: Added class functions.
 	* Source/GSPrivate.h: Fix for atomic operations on Windows.
 
 2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
