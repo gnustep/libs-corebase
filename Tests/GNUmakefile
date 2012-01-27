@@ -23,7 +23,7 @@ all::
 TOP_DIR := $(shell dirname $(CURDIR))
 
 check::
-	(\
+	@(\
 	ADDITIONAL_INCLUDE_DIRS="-I$(TOP_DIR)/Headers";\
 	ADDITIONAL_LIB_DIRS="-L$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR)";\
 	LD_LIBRARY_PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${LD_LIBRARY_PATH}";\

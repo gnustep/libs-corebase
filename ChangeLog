@@ -1,5 +1,11 @@
 2012-01-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
+        * Tests/GNUmakefile: Done print command.
+	* Tests/CFDateFormatter/basic.m: Added some more tests.
+	* Tests/CFURL/create.m: Marked failing tests as hopefuls.
+
+2012-01-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
         * Source/common.mk: Remove CFStream.h and CFPropertyList.h.
 	* Headers/CoreFoundation/CoreFoundation.h: Remove CFPropertyList.h.
 
