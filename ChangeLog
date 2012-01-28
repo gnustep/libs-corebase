@@ -1,3 +1,7 @@
+2012-01-28 Stefan Bidigaray <stefanbidi@gmail.com>
+
+        * Source/CFUUID.c: Correctly identify OpenBSD.
+
 2012-01-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
         * Tests/GNUmakefile: Done print command.

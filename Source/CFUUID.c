@@ -41,7 +41,7 @@
 // platforms we don't, so we use some less random data based on the current 
 // time and pid to seed the random number generator.
 #if defined(__FreeBSD__) \
-    || defined(__OpenBSD) \
+    || defined(__OpenBSD__) \
     || defined(__DragonFly__) \
     || defined(__APPLE__)
   #define INITRANDOM() srandomdev()
