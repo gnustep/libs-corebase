@@ -1,5 +1,11 @@
 2012-01-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFData.c: Fix bug in CFDataEqual().
+	* Tests/CFData:
+	* Tests/CFDate: New tests.
+
+2012-01-29 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFError.c:
 	* Source/CFString.c:
 	* Source/CFLocale.c:
@@ -15,7 +21,7 @@
 
 2012-01-28 Stefan Bidigaray <stefanbidi@gmail.com>
 
-        * Source/CFUUID.c: Correctly identify OpenBSD.
+	* Source/CFUUID.c: Correctly identify OpenBSD.
 
 2012-01-26 Stefan Bidigaray <stefanbidi@gmail.com>
 

@@ -107,7 +107,7 @@ CFDataEqual (CFTypeRef cf1, CFTypeRef cf2)
   if (length != CFDataGetLength(d2))
     return false;
   
-  return memcmp (d1->_contents, d2->_contents, length);
+  return (memcmp (d1->_contents, d2->_contents, length) == 0);
 }
 
 static CFHashCode
@@ -174,7 +174,7 @@ CFDataCreate_internal (CFAllocatorRef allocator, const UInt8 *bytes,
       else
         {
           if (bytesDealloc == NULL)
-            bytesDealloc = allocator;
+            bytesDealloc = CFAllocatorGetDefault ();
           newData->_deallocator = CFRetain(bytesDealloc);
           CFDataSetFreeBytes (newData);
         }
