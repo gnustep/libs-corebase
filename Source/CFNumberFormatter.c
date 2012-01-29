@@ -37,7 +37,82 @@
 
 #define BUFFER_SIZE 512
 
-
+CONST_STRING_DECL(kCFNumberFormatterCurrencyCode,
+  "kCFNumberFormatterCurrencyCode");
+CONST_STRING_DECL(kCFNumberFormatterDecimalSeparator,
+  "kCFNumberFormatterDecimalSeparator");
+CONST_STRING_DECL(kCFNumberFormatterCurrencyDecimalSeparator,
+  "kCFNumberFormatterCurrencyDecimalSeparator");
+CONST_STRING_DECL(kCFNumberFormatterAlwaysShowDecimalSeparator,
+  "kCFNumberFormatterAlwaysShowDecimalSeparator");
+CONST_STRING_DECL(kCFNumberFormatterGroupingSeparator,
+  "kCFNumberFormatterGroupingSeparator");
+CONST_STRING_DECL(kCFNumberFormatterUseGroupingSeparator,
+  "kCFNumberFormatterUseGroupingSeparator");
+CONST_STRING_DECL(kCFNumberFormatterPercentSymbol,
+  "kCFNumberFormatterPercentSymbol");
+CONST_STRING_DECL(kCFNumberFormatterZeroSymbol,
+  "kCFNumberFormatterZeroSymbol");
+CONST_STRING_DECL(kCFNumberFormatterNaNSymbol,
+  "kCFNumberFormatterNaNSymbol");
+CONST_STRING_DECL(kCFNumberFormatterInfinitySymbol,
+  "kCFNumberFormatterInfinitySymbol");
+CONST_STRING_DECL(kCFNumberFormatterMinusSign,
+  "kCFNumberFormatterMinusSign");
+CONST_STRING_DECL(kCFNumberFormatterPlusSign,
+  "kCFNumberFormatterPlusSign");
+CONST_STRING_DECL(kCFNumberFormatterCurrencySymbol,
+  "kCFNumberFormatterCurrencySymbol");
+CONST_STRING_DECL(kCFNumberFormatterExponentSymbol,
+  "kCFNumberFormatterExponentSymbol");
+CONST_STRING_DECL(kCFNumberFormatterMinIntegerDigits,
+  "kCFNumberFormatterMinIntegerDigits");
+CONST_STRING_DECL(kCFNumberFormatterMaxIntegerDigits,
+  "kCFNumberFormatterMaxIntegerDigits");
+CONST_STRING_DECL(kCFNumberFormatterMinFractionDigits,
+  "kCFNumberFormatterMinFractionDigits");
+CONST_STRING_DECL(kCFNumberFormatterMaxFractionDigits,
+  "kCFNumberFormatterMaxFractionDigits");
+CONST_STRING_DECL(kCFNumberFormatterGroupingSize,
+  "kCFNumberFormatterGroupingSize");
+CONST_STRING_DECL(kCFNumberFormatterSecondaryGroupingSize,
+  "kCFNumberFormatterSecondaryGroupingSize");
+CONST_STRING_DECL(kCFNumberFormatterRoundingMode,
+  "kCFNumberFormatterRoundingMode");
+CONST_STRING_DECL(kCFNumberFormatterRoundingIncrement,
+  "kCFNumberFormatterRoundingIncrement");
+CONST_STRING_DECL(kCFNumberFormatterFormatWidth,
+  "kCFNumberFormatterFormatWidth");
+CONST_STRING_DECL(kCFNumberFormatterPaddingPosition,
+  "kCFNumberFormatterPaddingPosition");
+CONST_STRING_DECL(kCFNumberFormatterPaddingCharacter,
+  "kCFNumberFormatterPaddingCharacter");
+CONST_STRING_DECL(kCFNumberFormatterDefaultFormat,
+  "kCFNumberFormatterDefaultFormat");
+CONST_STRING_DECL(kCFNumberFormatterMultiplier,
+  "kCFNumberFormatterMultiplier");
+CONST_STRING_DECL(kCFNumberFormatterPositivePrefix,
+  "kCFNumberFormatterPositivePrefix");
+CONST_STRING_DECL(kCFNumberFormatterPositiveSuffix,
+  "kCFNumberFormatterPositiveSuffix");
+CONST_STRING_DECL(kCFNumberFormatterNegativePrefix,
+  "kCFNumberFormatterNegativePrefix");
+CONST_STRING_DECL(kCFNumberFormatterNegativeSuffix,
+  "kCFNumberFormatterNegativeSuffix");
+CONST_STRING_DECL(kCFNumberFormatterPerMillSymbol,
+  "kCFNumberFormatterPerMillSymbol");
+CONST_STRING_DECL(kCFNumberFormatterInternationalCurrencySymbol,
+  "kCFNumberFormatterInternationalCurrencySymbol"); 
+CONST_STRING_DECL(kCFNumberFormatterCurrencyGroupingSeparator,
+  "kCFNumberFormatterCurrencyGroupingSeparator");
+CONST_STRING_DECL(kCFNumberFormatterIsLenient,
+  "kCFNumberFormatterIsLenient");
+CONST_STRING_DECL(kCFNumberFormatterUseSignificantDigits,
+  "kCFNumberFormatterUseSignificantDigits");
+CONST_STRING_DECL(kCFNumberFormatterMinSignificantDigits,
+  "kCFNumberFormatterMinSignificantDigits");
+CONST_STRING_DECL(kCFNumberFormatterMaxSignificantDigits,
+  "kCFNumberFormatterMaxSignificantDigits");
 
 struct __CFNumberFormatter
 {

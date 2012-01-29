@@ -33,7 +33,151 @@ extern void CFInitialize (void);
 extern UInt32 __CFRuntimeClassTableSize;
 extern UInt32 __CFRuntimeClassTableCount;
 extern Class NSCFTypeClass;
-extern CFStringRef keys_identifiers[];
+
+const CFStringRef *constant_cfstrings[] =
+{
+  // CFError Keys
+  &kCFErrorDomainPOSIX,
+  &kCFErrorDomainOSStatus,
+  &kCFErrorDomainMach,
+  &kCFErrorDomainCocoa,
+  &kCFErrorLocalizedDescriptionKey,
+  &kCFErrorLocalizedFailureReasonKey,
+  &kCFErrorLocalizedRecoverySuggestionKey,
+  &kCFErrorDescriptionKey,
+  &kCFErrorUnderlyingErrorKey,
+
+  // CFString Transformation identifiers
+  &kCFStringTransformStripCombiningMarks,
+  &kCFStringTransformToLatin,
+  &kCFStringTransformFullwidthHalfwidth,
+  &kCFStringTransformLatinKatakana,
+  &kCFStringTransformLatinHiragana,
+  &kCFStringTransformHiraganaKatakana,
+  &kCFStringTransformMandarinLatin,
+  &kCFStringTransformLatinHangul,
+  &kCFStringTransformLatinArabic,
+  &kCFStringTransformLatinHebrew,
+  &kCFStringTransformLatinThai,
+  &kCFStringTransformLatinCyrillic,
+  &kCFStringTransformLatinGreek,
+  &kCFStringTransformToXMLHex,
+  &kCFStringTransformToUnicodeName,
+  &kCFStringTransformStripDiacritics,
+
+  // CFLocale keys
+  &kCFLocaleMeasurementSystem,
+  &kCFLocaleDecimalSeparator,
+  &kCFLocaleGroupingSeparator,
+  &kCFLocaleCurrencySymbol,
+  &kCFLocaleCurrencyCode,
+  &kCFLocaleIdentifier,
+  &kCFLocaleLanguageCode,
+  &kCFLocaleCountryCode,
+  &kCFLocaleScriptCode,
+  &kCFLocaleVariantCode,
+  &kCFLocaleExemplarCharacterSet,
+  &kCFLocaleCalendarIdentifier,
+  &kCFLocaleCalendar,
+  &kCFLocaleCollationIdentifier,
+  &kCFLocaleUsesMetricSystem,
+  &kCFLocaleCollatorIdentifier,
+  &kCFLocaleQuotationBeginDelimiterKey,
+  &kCFLocaleQuotationEndDelimiterKey,
+  &kCFLocaleAlternateQuotationBeginDelimiterKey,
+  &kCFLocaleAlternateQuotationEndDelimiterKey,
+
+  // CFCalendar identifiers
+  &kCFGregorianCalendar,
+  &kCFBuddhistCalendar,
+  &kCFChineseCalendar,
+  &kCFHebrewCalendar,
+  &kCFIslamicCalendar,
+  &kCFIslamicCivilCalendar,
+  &kCFJapaneseCalendar,
+  &kCFRepublicOfChinaCalendar,
+  &kCFPersianCalendar,
+  &kCFIndianCalendar,
+  &kCFISO8601Calendar,
+
+  // CFDateFormatter keys
+  &kCFDateFormatterIsLenient,
+  &kCFDateFormatterTimeZone,
+  &kCFDateFormatterCalendarName,
+  &kCFDateFormatterDefaultFormat,
+  &kCFDateFormatterTwoDigitStartDate,
+  &kCFDateFormatterDefaultDate,
+  &kCFDateFormatterCalendar,
+  &kCFDateFormatterEraSymbols,
+  &kCFDateFormatterMonthSymbols,
+  &kCFDateFormatterShortMonthSymbols,
+  &kCFDateFormatterWeekdaySymbols,
+  &kCFDateFormatterShortWeekdaySymbols,
+  &kCFDateFormatterAMSymbol,
+  &kCFDateFormatterPMSymbol,
+  &kCFDateFormatterLongEraSymbols,
+  &kCFDateFormatterVeryShortMonthSymbols,
+  &kCFDateFormatterStandaloneMonthSymbols,
+  &kCFDateFormatterShortStandaloneMonthSymbols,
+  &kCFDateFormatterVeryShortStandaloneMonthSymbols,
+  &kCFDateFormatterVeryShortWeekdaySymbols,
+  &kCFDateFormatterStandaloneWeekdaySymbols,
+  &kCFDateFormatterShortStandaloneWeekdaySymbols,
+  &kCFDateFormatterVeryShortStandaloneWeekdaySymbols,
+  &kCFDateFormatterQuarterSymbols,
+  &kCFDateFormatterShortQuarterSymbols,
+  &kCFDateFormatterStandaloneQuarterSymbols,
+  &kCFDateFormatterShortStandaloneQuarterSymbols,
+  &kCFDateFormatterGregorianStartDate,
+
+  // CFNumberFormatter keys
+  &kCFNumberFormatterCurrencyCode,
+  &kCFNumberFormatterDecimalSeparator,
+  &kCFNumberFormatterCurrencyDecimalSeparator,
+  &kCFNumberFormatterAlwaysShowDecimalSeparator,
+  &kCFNumberFormatterGroupingSeparator,
+  &kCFNumberFormatterUseGroupingSeparator,
+  &kCFNumberFormatterPercentSymbol,
+  &kCFNumberFormatterZeroSymbol,
+  &kCFNumberFormatterNaNSymbol,
+  &kCFNumberFormatterInfinitySymbol,
+  &kCFNumberFormatterMinusSign,
+  &kCFNumberFormatterPlusSign,
+  &kCFNumberFormatterCurrencySymbol,
+  &kCFNumberFormatterExponentSymbol,
+  &kCFNumberFormatterMinIntegerDigits,
+  &kCFNumberFormatterMaxIntegerDigits,
+  &kCFNumberFormatterMinFractionDigits,
+  &kCFNumberFormatterMaxFractionDigits,
+  &kCFNumberFormatterGroupingSize,
+  &kCFNumberFormatterSecondaryGroupingSize,
+  &kCFNumberFormatterRoundingMode,
+  &kCFNumberFormatterRoundingIncrement,
+  &kCFNumberFormatterFormatWidth,
+  &kCFNumberFormatterPaddingPosition,
+  &kCFNumberFormatterPaddingCharacter,
+  &kCFNumberFormatterDefaultFormat,
+  &kCFNumberFormatterMultiplier,
+  &kCFNumberFormatterPositivePrefix,
+  &kCFNumberFormatterPositiveSuffix,
+  &kCFNumberFormatterNegativePrefix,
+  &kCFNumberFormatterNegativeSuffix,
+  &kCFNumberFormatterPerMillSymbol,
+  &kCFNumberFormatterInternationalCurrencySymbol,
+  &kCFNumberFormatterCurrencyGroupingSeparator,
+  &kCFNumberFormatterIsLenient,
+  &kCFNumberFormatterUseSignificantDigits,
+  &kCFNumberFormatterMinSignificantDigits,
+  &kCFNumberFormatterMaxSignificantDigits,
+
+  // CFXMLTree
+  &kCFXMLTreeErrorDescription,
+  &kCFXMLTreeErrorLineNumber,
+  &kCFXMLTreeErrorLocation,
+  &kCFXMLTreeErrorStatusCode,
+  
+  NULL
+};
 
 void NSCFInitialize (void)
 {
@@ -59,9 +203,28 @@ void NSCFInitialize (void)
       CFRuntimeBridgeClass (CFErrorGetTypeID(), "NSCFError");
       CFRuntimeBridgeClass (CFStringGetTypeID(), "NSCFString");
       
-      Class NSCFStringClass = objc_getClass ("NSCFString");
-      for (i = 0 ; keys_identifiers[i] != NULL ; ++i)
-        ((CFRuntimeBase*)keys_identifiers[i])->_isa = NSCFStringClass;
+      // Init Constants Strings
+      for (i = 0 ; constant_cfstrings[i] != NULL ; ++i)
+        _CFRuntimeInitStaticInstance(*(constant_cfstrings[i]), CFStringGetTypeID());
+      
+      // Init Allocators
+      CFRuntimeSetInstanceISA((void*)kCFAllocatorSystemDefault,
+        NSCFTypeClass);
+      CFRuntimeSetInstanceISA((void*)kCFAllocatorMalloc,
+        NSCFTypeClass);
+      CFRuntimeSetInstanceISA((void*)kCFAllocatorMallocZone,
+        NSCFTypeClass);
+      CFRuntimeSetInstanceISA((void*)kCFAllocatorNull,
+        NSCFTypeClass);
+      
+      // Init Numbers
+      CFRuntimeSetInstanceISA((void*)kCFBooleanTrue, NSCFTypeClass);
+      CFRuntimeSetInstanceISA((void*)kCFBooleanFalse, NSCFTypeClass);
+      CFRuntimeSetInstanceISA((void*)kCFNumberNaN, NSCFTypeClass);
+      CFRuntimeSetInstanceISA((void*)kCFNumberNegativeInfinity,
+        NSCFTypeClass);
+      CFRuntimeSetInstanceISA((void*)kCFNumberPositiveInfinity,
+        NSCFTypeClass);
     }
 }
 

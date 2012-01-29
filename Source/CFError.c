@@ -32,6 +32,25 @@
 
 
 
+CONST_STRING_DECL(kCFErrorDomainPOSIX,
+  "kCFErrorDomainPOSIX");
+CONST_STRING_DECL(kCFErrorDomainOSStatus,
+  "kCFErrorDomainOSStatus");
+CONST_STRING_DECL(kCFErrorDomainMach,
+  "kCFErrorDomainMach");
+CONST_STRING_DECL(kCFErrorDomainCocoa,
+  "kCFErrorDomainCocoa");
+CONST_STRING_DECL(kCFErrorLocalizedDescriptionKey,
+  "kCFErrorLocalizedDescriptionKey");
+CONST_STRING_DECL(kCFErrorLocalizedFailureReasonKey,
+  "kCFErrorLocalizedFailureReasonKey");
+CONST_STRING_DECL(kCFErrorLocalizedRecoverySuggestionKey,
+  "kCFErrorLocalizedRecoverySuggestionKey");
+CONST_STRING_DECL(kCFErrorDescriptionKey,
+  "kCFErrorDescriptionKey");
+CONST_STRING_DECL(kCFErrorUnderlyingErrorKey,
+  "kCFErrorUnderlyingErrorKey");
+
 struct __CFError
 {
   CFRuntimeBase   _parent;

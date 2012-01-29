@@ -38,6 +38,63 @@
 
 #define BUFFER_SIZE 256
 
+CONST_STRING_DECL(kCFDateFormatterIsLenient,
+  "kCFDateFormatterIsLenient");
+CONST_STRING_DECL(kCFDateFormatterTimeZone,
+  "kCFDateFormatterTimeZone");
+CONST_STRING_DECL(kCFDateFormatterCalendarName,
+  "kCFDateFormatterCalendarName");
+CONST_STRING_DECL(kCFDateFormatterDefaultFormat,
+  "kCFDateFormatterDefaultFormat");
+CONST_STRING_DECL(kCFDateFormatterTwoDigitStartDate,
+  "kCFDateFormatterTwoDigitStartDate");
+CONST_STRING_DECL(kCFDateFormatterDefaultDate,
+  "kCFDateFormatterDefaultDate");
+CONST_STRING_DECL(kCFDateFormatterCalendar,
+  "kCFDateFormatterCalendar");
+CONST_STRING_DECL(kCFDateFormatterEraSymbols,
+  "kCFDateFormatterEraSymbols");
+CONST_STRING_DECL(kCFDateFormatterMonthSymbols,
+  "kCFDateFormatterMonthSymbols");
+CONST_STRING_DECL(kCFDateFormatterShortMonthSymbols,
+  "kCFDateFormatterShortMonthSymbols");
+CONST_STRING_DECL(kCFDateFormatterWeekdaySymbols,
+  "kCFDateFormatterWeekdaySymbols");
+CONST_STRING_DECL(kCFDateFormatterShortWeekdaySymbols,
+  "kCFDateFormatterShortWeekdaySymbols");
+CONST_STRING_DECL(kCFDateFormatterAMSymbol,
+  "kCFDateFormatterAMSymbol");
+CONST_STRING_DECL(kCFDateFormatterPMSymbol,
+  "kCFDateFormatterPMSymbol");
+CONST_STRING_DECL(kCFDateFormatterLongEraSymbols,
+  "kCFDateFormatterLongEraSymbols");
+CONST_STRING_DECL(kCFDateFormatterVeryShortMonthSymbols,
+  "kCFDateFormatterVeryShortMonthSymbols");
+CONST_STRING_DECL(kCFDateFormatterStandaloneMonthSymbols,
+  "kCFDateFormatterStandaloneMonthSymbols");
+CONST_STRING_DECL(kCFDateFormatterShortStandaloneMonthSymbols,
+  "kCFDateFormatterShortStandaloneMonthSymbols");
+CONST_STRING_DECL(kCFDateFormatterVeryShortStandaloneMonthSymbols,
+  "kCFDateFormatterVeryShortStandaloneMonthSymbols");
+CONST_STRING_DECL(kCFDateFormatterVeryShortWeekdaySymbols,
+  "kCFDateFormatterVeryShortWeekdaySymbols");
+CONST_STRING_DECL(kCFDateFormatterStandaloneWeekdaySymbols,
+  "kCFDateFormatterStandaloneWeekdaySymbols");
+CONST_STRING_DECL(kCFDateFormatterShortStandaloneWeekdaySymbols,
+  "kCFDateFormatterShortStandaloneWeekdaySymbols");
+CONST_STRING_DECL(kCFDateFormatterVeryShortStandaloneWeekdaySymbols,
+  "kCFDateFormatterVeryShortStandaloneWeekdaySymbols");
+CONST_STRING_DECL(kCFDateFormatterQuarterSymbols,
+  "kCFDateFormatterQuarterSymbols");
+CONST_STRING_DECL(kCFDateFormatterShortQuarterSymbols,
+  "kCFDateFormatterShortQuarterSymbols");
+CONST_STRING_DECL(kCFDateFormatterStandaloneQuarterSymbols,
+  "kCFDateFormatterStandaloneQuarterSymbols");
+CONST_STRING_DECL(kCFDateFormatterShortStandaloneQuarterSymbols,
+  "kCFDateFormatterShortStandaloneQuarterSymbols");
+CONST_STRING_DECL(kCFDateFormatterGregorianStartDate,
+  "kCFDateFormatterGregorianStartDate");
+
 struct __CFDateFormatter
 {
   CFRuntimeBase _parent;

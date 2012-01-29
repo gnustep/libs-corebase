@@ -1,32 +1,47 @@
+2012-01-29 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFError.c:
+	* Source/CFString.c:
+	* Source/CFLocale.c:
+	* Source/GSPrivate.h:
+	* Source/CFDateFormatter.c:
+	* Source/CFNumberFormatter.c:
+	* Source/CFXMLParser.c:
+	* Source/NSCFType.m: Try to work around library loading issues
+	a little better and initialize all constant instances.
+	* Headers/CoreFoundation/CFBase.h: Define CF_EXPORT for C++ files.
+	* Source/common.mk:
+	* Source/Keys+Identifiers.c: Removed.
+
 2012-01-28 Stefan Bidigaray <stefanbidi@gmail.com>
 
         * Source/CFUUID.c: Correctly identify OpenBSD.
 
 2012-01-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
-        * Tests/GNUmakefile: Done print command.
+	* Tests/GNUmakefile: Done print command.
 	* Tests/CFDateFormatter/basic.m: Added some more tests.
 	* Tests/CFURL/create.m: Marked failing tests as hopefuls.
 
 2012-01-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
-        * Source/common.mk: Remove CFStream.h and CFPropertyList.h.
+	* Source/common.mk: Remove CFStream.h and CFPropertyList.h.
 	* Headers/CoreFoundation/CoreFoundation.h: Remove CFPropertyList.h.
 
 2012-01-25 Ivan Vucica <ivan@vucica.net>
 
-        * Source/common.mk: Added missing CFStream.h to list of headers.
+	* Source/common.mk: Added missing CFStream.h to list of headers.
 
 2012-01-25 Stefan Bidigaray <stefanbidi@gmail.com>
 
-        * Source/CFDateFormatter.c: Fix bug in 
+	* Source/CFDateFormatter.c: Fix bug in 
 	CFDateFormatterCreateStringFromAbsoluteTime().
 	* Headers/CoreFoundation/CFDateFormatter.h: Include CFDate.h.
 	* Tests/CFDateFormatter: Basic tests for CFDateFormatter.
 
 2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
-        * Source/Makefile.nmake:
+	* Source/Makefile.nmake:
 	* Source/CFString.c:
 	* Source/GSPrivate.h:
 	* Headers/CoreFoundation/CFString.h:
@@ -34,7 +49,7 @@
 
 2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
-        * Source/CFURL.c: Added class functions.
+	* Source/CFURL.c: Added class functions.
 	* Source/GSPrivate.h: Fix for atomic operations on Windows.
 
 2012-01-24 Stefan Bidigaray <stefanbidi@gmail.com>

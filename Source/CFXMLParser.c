@@ -28,12 +28,20 @@
 #include "CoreFoundation/CFDictionary.h"
 #include "CoreFoundation/CFNumber.h"
 #include "CoreFoundation/CFXMLParser.h"
+#include "GSPrivate.h"
 
 #include <stdlib.h>
 
+CONST_STRING_DECL(kCFXMLTreeErrorDescription,
+  "kCFXMLTreeErrorDescription");
+CONST_STRING_DECL(kCFXMLTreeErrorLineNumber,
+  "kCFXMLTreeErrorLineNumber");
+CONST_STRING_DECL(kCFXMLTreeErrorLocation,
+  "kCFXMLTreeErrorLocation");
+CONST_STRING_DECL(kCFXMLTreeErrorStatusCode,
+  "kCFXMLTreeErrorStatusCode");
+
 static CFTypeID _kCFXMLParserTypeID = 0;
-
-
 
 CFTypeID
 CFXMLParserGetTypeID (void)

@@ -47,6 +47,39 @@
 #define CFRANGE_CHECK(len, range) \
   ((range.location + range.length) <= len)
 
+CONST_STRING_DECL(kCFStringTransformStripCombiningMarks,
+  "NFD; [:nonspacing mark:]Remove; NFC");
+CONST_STRING_DECL(kCFStringTransformToLatin,
+  "Any-Latin");
+CONST_STRING_DECL(kCFStringTransformFullwidthHalfwidth,
+  "Fullwidth-Halfwidth");
+CONST_STRING_DECL(kCFStringTransformLatinKatakana,
+  "Latin-Katakana");
+CONST_STRING_DECL(kCFStringTransformLatinHiragana,
+  "Latin-Hiragana");
+CONST_STRING_DECL(kCFStringTransformHiraganaKatakana ,
+  "Hiragana-Katakana");
+CONST_STRING_DECL(kCFStringTransformMandarinLatin,
+  "Mandarin-Latin");
+CONST_STRING_DECL(kCFStringTransformLatinHangul,
+  "Latin-Hangul");
+CONST_STRING_DECL(kCFStringTransformLatinArabic,
+  "Latin-Arabic");
+CONST_STRING_DECL(kCFStringTransformLatinHebrew,
+  "Latin-Hebrew");
+CONST_STRING_DECL(kCFStringTransformLatinThai,
+  "Latin-Thai");
+CONST_STRING_DECL(kCFStringTransformLatinCyrillic,
+  "Latin-Cyrillic");
+CONST_STRING_DECL(kCFStringTransformLatinGreek,
+  "Latin-Greek");
+CONST_STRING_DECL(kCFStringTransformToXMLHex,
+  "Any-Hex/XML");
+CONST_STRING_DECL(kCFStringTransformToUnicodeName,
+  "Any-Name");
+CONST_STRING_DECL(kCFStringTransformStripDiacritics,
+  "NFD; [:nonspacing marks:]Remove; NFC");
+
 /* CFString has two possible internal encodings:
      * UTF-16 (preferable)
      * ASCII
@@ -248,17 +281,10 @@ CFStringRef __CFStringMakeConstantString (const char *str)
   return old;
 }
 
-extern struct __CFString *keys_identifiers[];
-
 void CFStringInitialize (void)
 {
-  CFIndex i;
-  
   _kCFStringTypeID = _CFRuntimeRegisterClass (&CFStringClass);
   GSMutexInitialize (&static_strings_lock);
-  
-  for (i = 0 ; keys_identifiers[i] != NULL ; ++i)
-    _CFRuntimeInitStaticInstance (keys_identifiers[i], _kCFStringTypeID);
 }
 
 

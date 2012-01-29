@@ -28,6 +28,7 @@
 #define __GSPRIVATE_H__
 
 #include "CoreFoundation/CFBase.h"
+#include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFLocale.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
@@ -187,6 +188,26 @@ GSHashBytes (const void *bytes, CFIndex length)
 }
 
 
+
+struct __CFConstantString
+{
+  CFRuntimeBase  _parent;
+  void          *_contents;
+  CFIndex        _count;
+  CFHashCode     _hash;
+  CFAllocatorRef _deallocator;
+};
+
+#if defined (_WIN32)
+#define DLL_EXPORT __declspec(dllexport)
+#else
+#define DLL_EXPORT
+#endif
+
+#define CONST_STRING_DECL(var, str) \
+  static struct __CFConstantString __ ## var ## __ = \
+    { {0, 0, {1, 0, 0}}, (void*)str, sizeof(str) - 1, 0, NULL }; \
+  DLL_EXPORT const CFStringRef var = (CFStringRef) & __ ## var ## __;
 
 #define CHAR_SPACE      0x0020
 #define CHAR_EXCLAMATION 0x0021

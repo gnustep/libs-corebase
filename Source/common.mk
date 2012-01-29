@@ -35,8 +35,7 @@ COREBASE_C_FILES = \
   CFUUID.c \
   CFXMLNode.c \
   CFXMLParser.c \
-  GSHashTable.c \
-  Keys+Identifiers.c
+  GSHashTable.c
 
 COREBASE_HEADER_FILES = \
   CoreFoundation.h \

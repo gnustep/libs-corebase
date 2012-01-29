@@ -129,7 +129,7 @@ typedef UInt8  UTF8Char;
 # endif
 #endif
 
-#if _WIN32
+#if defined(_WIN32)
 # if defined(BUILDING_SELF)
 #  if defined(__cplusplus)
 #   define CF_EXPORT extern "C" __declspec(dllexport)
@@ -144,7 +144,11 @@ typedef UInt8  UTF8Char;
 #  endif
 # endif
 #else
-# define CF_EXPORT extern
+# if defined(__cplusplus)
+#  define CF_EXPORT extern "C"
+# else
+#  define CF_EXPORT extern
+# endif
 #endif
 
 #if !defined(__bool_true_false_are_defined)

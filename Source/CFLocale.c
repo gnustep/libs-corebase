@@ -43,6 +43,59 @@
 #define ICU_COLLATION_KEY "collation"
 #define ICU_CURRENCY_KEY "currency"
 
+CONST_STRING_DECL(kCFLocaleMeasurementSystem,
+  "kCFLocaleMeasurementSystem");
+CONST_STRING_DECL(kCFLocaleDecimalSeparator,
+  "kCFLocaleDecimalSeparator");
+CONST_STRING_DECL(kCFLocaleGroupingSeparator,
+  "kCFLocaleGroupingSeparator");
+CONST_STRING_DECL(kCFLocaleCurrencySymbol,
+  "kCFLocaleCurrencySymbol");
+CONST_STRING_DECL(kCFLocaleCurrencyCode,
+  "currency");
+CONST_STRING_DECL(kCFLocaleIdentifier,
+  "kCFLocaleIdentifier");
+CONST_STRING_DECL(kCFLocaleLanguageCode,
+  "kCFLocaleLanguageCode");
+CONST_STRING_DECL(kCFLocaleCountryCode,
+  "kCFLocaleCountryCode");
+CONST_STRING_DECL(kCFLocaleScriptCode,
+  "kCFLocaleScriptCode");
+CONST_STRING_DECL(kCFLocaleVariantCode,
+  "kCFLocaleVariantCode");
+CONST_STRING_DECL(kCFLocaleExemplarCharacterSet,
+  "kCFLocaleExemplarCharacterSet");
+CONST_STRING_DECL(kCFLocaleCalendarIdentifier,
+  "kCFLocaleCalendarIdentifier");
+CONST_STRING_DECL(kCFLocaleCalendar,
+  "calendar");
+CONST_STRING_DECL(kCFLocaleCollationIdentifier,
+  "collation");
+CONST_STRING_DECL(kCFLocaleUsesMetricSystem,
+  "kCFLocaleUsesMetricSystem");
+CONST_STRING_DECL(kCFLocaleCollatorIdentifier,
+  "kCFLocaleCollatorIdentifier");
+CONST_STRING_DECL(kCFLocaleQuotationBeginDelimiterKey,
+  "kCFLocaleQuotationBeginDelimiterKey");
+CONST_STRING_DECL(kCFLocaleQuotationEndDelimiterKey,
+  "kCFLocaleQuotationEndDelimiterKey");
+CONST_STRING_DECL(kCFLocaleAlternateQuotationBeginDelimiterKey,
+  "kCFLocaleAlternateQuotationBeginDelimiterKey");
+CONST_STRING_DECL(kCFLocaleAlternateQuotationEndDelimiterKey,
+  "kCFLocaleAlternateQuotationEndDelimiterKey");
+
+CONST_STRING_DECL(kCFGregorianCalendar, "gregorian");
+CONST_STRING_DECL(kCFBuddhistCalendar, "buddhist");
+CONST_STRING_DECL(kCFChineseCalendar, "chinese");
+CONST_STRING_DECL(kCFHebrewCalendar, "hebrew");
+CONST_STRING_DECL(kCFIslamicCalendar, "islamic");
+CONST_STRING_DECL(kCFIslamicCivilCalendar, "islamic-civil");
+CONST_STRING_DECL(kCFJapaneseCalendar, "japanese");
+CONST_STRING_DECL(kCFRepublicOfChinaCalendar, "roc");
+CONST_STRING_DECL(kCFPersianCalendar, "persian");
+CONST_STRING_DECL(kCFIndianCalendar, "indian");
+CONST_STRING_DECL(kCFISO8601Calendar, "iso8601"); // Introduced on UTS #35 v2.0
+
 struct __CFLocale
 {
   /* The ivar order is important... must be exactly like NSLocale's. */
