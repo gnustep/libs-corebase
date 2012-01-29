@@ -34,6 +34,11 @@
 #include "CoreFoundation/CFStringEncodingExt.h"
 #include "GSPrivate.h"
 
+/* Need the next few includes so we can initialize the string constants */
+#include "CoreFoundation/CFError.h"
+#include "CoreFoundation/CFDateFormatter.h"
+#include "CoreFoundation/CFXMLParser.h"
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -285,6 +290,161 @@ void CFStringInitialize (void)
 {
   _kCFStringTypeID = _CFRuntimeRegisterClass (&CFStringClass);
   GSMutexInitialize (&static_strings_lock);
+  
+  GSRuntimeConstantInit (kCFErrorDomainPOSIX, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFErrorDomainOSStatus, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFErrorDomainMach, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFErrorDomainCocoa, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFErrorLocalizedDescriptionKey, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFErrorLocalizedFailureReasonKey, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFErrorLocalizedRecoverySuggestionKey,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFErrorDescriptionKey, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFErrorUnderlyingErrorKey, _kCFStringTypeID);
+  
+  GSRuntimeConstantInit (kCFStringTransformStripCombiningMarks, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformToLatin, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformFullwidthHalfwidth, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformLatinKatakana, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformLatinHiragana, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformHiraganaKatakana, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformMandarinLatin, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformLatinHangul, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformLatinArabic, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformLatinHebrew, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformLatinThai, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformLatinCyrillic, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformLatinGreek, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformToXMLHex, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformToUnicodeName, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformStripDiacritics, _kCFStringTypeID);
+  
+  GSRuntimeConstantInit (kCFLocaleMeasurementSystem, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleDecimalSeparator, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleGroupingSeparator, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleCurrencySymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleCurrencyCode, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleIdentifier, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleLanguageCode, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleCountryCode, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleScriptCode, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleVariantCode, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleExemplarCharacterSet, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleCalendarIdentifier, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleCollationIdentifier, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleUsesMetricSystem, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleCollatorIdentifier, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleQuotationBeginDelimiterKey, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleQuotationEndDelimiterKey, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleAlternateQuotationBeginDelimiterKey,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleAlternateQuotationEndDelimiterKey,
+    _kCFStringTypeID);
+
+  GSRuntimeConstantInit (kCFGregorianCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFBuddhistCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFChineseCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFHebrewCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFIslamicCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFIslamicCivilCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFJapaneseCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFRepublicOfChinaCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFPersianCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFIndianCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFISO8601Calendar, _kCFStringTypeID);
+  
+  GSRuntimeConstantInit (kCFDateFormatterIsLenient, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterTimeZone, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterCalendarName, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterDefaultFormat, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterTwoDigitStartDate, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterDefaultDate, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterCalendar, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterEraSymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterMonthSymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterShortMonthSymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterWeekdaySymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterShortWeekdaySymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterAMSymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterPMSymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterLongEraSymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterVeryShortMonthSymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterStandaloneMonthSymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterShortStandaloneMonthSymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterVeryShortStandaloneMonthSymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterVeryShortWeekdaySymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterStandaloneWeekdaySymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterShortStandaloneWeekdaySymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterVeryShortStandaloneWeekdaySymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterQuarterSymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterShortQuarterSymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterStandaloneQuarterSymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterShortStandaloneQuarterSymbols,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterGregorianStartDate, _kCFStringTypeID);
+
+  GSRuntimeConstantInit (kCFNumberFormatterCurrencyCode, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterDecimalSeparator, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterCurrencyDecimalSeparator,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterAlwaysShowDecimalSeparator,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterGroupingSeparator, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterUseGroupingSeparator,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterPercentSymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterZeroSymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterNaNSymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterInfinitySymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMinusSign, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterPlusSign, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterCurrencySymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterExponentSymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMinIntegerDigits, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMaxIntegerDigits, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMinFractionDigits, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMaxFractionDigits, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterGroupingSize, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterSecondaryGroupingSize,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterRoundingMode, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterRoundingIncrement, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterFormatWidth, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterPaddingPosition, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterPaddingCharacter, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterDefaultFormat, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMultiplier, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterPositivePrefix, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterPositiveSuffix, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterNegativePrefix, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterNegativeSuffix, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterPerMillSymbol, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterInternationalCurrencySymbol,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterCurrencyGroupingSeparator,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterIsLenient, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterUseSignificantDigits,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMinSignificantDigits,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMaxSignificantDigits,
+    _kCFStringTypeID);
+  
+  GSRuntimeConstantInit (kCFXMLTreeErrorDescription, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFXMLTreeErrorLineNumber, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFXMLTreeErrorLocation, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFXMLTreeErrorStatusCode, _kCFStringTypeID);
 }
 
 

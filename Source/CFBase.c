@@ -64,14 +64,10 @@ void CFAllocatorInitialize (void)
   _kCFDefaultAllocator = kCFAllocatorSystemDefault;
   
   /* These are already semi-initialized by INIT_CFRUNTIME_BASE() */
-  _CFRuntimeInitStaticInstance ((void*)kCFAllocatorSystemDefault,
-    _kCFAllocatorTypeID);
-  _CFRuntimeInitStaticInstance ((void*)kCFAllocatorMalloc,
-    _kCFAllocatorTypeID);
-  _CFRuntimeInitStaticInstance ((void*)kCFAllocatorMallocZone,
-    _kCFAllocatorTypeID);
-  _CFRuntimeInitStaticInstance ((void*)kCFAllocatorNull,
-    _kCFAllocatorTypeID);
+  GSRuntimeConstantInit (kCFAllocatorSystemDefault, _kCFAllocatorTypeID);
+  GSRuntimeConstantInit (kCFAllocatorMalloc, _kCFAllocatorTypeID);
+  GSRuntimeConstantInit (kCFAllocatorMallocZone, _kCFAllocatorTypeID);
+  GSRuntimeConstantInit (kCFAllocatorNull, _kCFAllocatorTypeID);
 }
 
 static void *
@@ -263,6 +259,7 @@ void CFNullInitialize (void)
 {
   _kCFNullTypeID = _CFRuntimeRegisterClass (&CFNullClass);
   _CFRuntimeSetInstanceTypeID (&_kCFNull, _kCFNullTypeID);
+  GSRuntimeConstantInit (kCFNull, _kCFNullTypeID);
 }
 
 CFTypeID

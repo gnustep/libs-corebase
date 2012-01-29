@@ -1,5 +1,15 @@
 2012-01-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFString.c:
+	* Source/CFBase.c:
+	* Source/CFNumber.c:
+	* Source/CFRuntime.c:
+	* Source/GSPrivate.h:
+	* Source/NSCFType.m: Generate a table of constant instances
+	to be initialized.
+
+2012-01-29 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFData.c: Fix bug in CFDataEqual().
 	* Tests/CFData:
 	* Tests/CFDate: New tests.

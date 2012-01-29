@@ -404,6 +404,30 @@ CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value)
 
 
 
+static CFTypeRef GSRuntimeConstantTable[512];
+static CFIndex GSRuntimeConstantTableSize = 0;
+
+void
+GSRuntimeConstantInit (CFTypeRef cf, CFTypeID typeID)
+{
+  ((CFRuntimeBase*)cf)->_typeID = typeID;
+  GSRuntimeConstantTable[GSRuntimeConstantTableSize++] = cf;
+}
+
+void
+GSRuntimeInitializeConstants (void)
+{
+  CFIndex i;
+  CFTypeID tid;
+  
+  for (i = 0 ; i < GSRuntimeConstantTableSize ; ++i)
+    {
+      tid = ((CFRuntimeBase*)GSRuntimeConstantTable[i])->_typeID;
+      ((CFRuntimeBase*)GSRuntimeConstantTable[i])->_isa =
+        __CFRuntimeObjCClassTable[tid];
+    }
+}
+
 extern void CFAllocatorInitialize (void);
 extern void CFArrayInitialize (void);
 extern void CFBagInitialize (void);

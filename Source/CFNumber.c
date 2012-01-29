@@ -76,8 +76,8 @@ void CFBooleanInitialize (void)
 {
   _kCFBooleanTypeID = _CFRuntimeRegisterClass(&CFBooleanClass);
   
-  _CFRuntimeInitStaticInstance (&_kCFBooleanTrue, _kCFBooleanTypeID);
-  _CFRuntimeInitStaticInstance (&_kCFBooleanFalse, _kCFBooleanTypeID);
+  GSRuntimeConstantInit (kCFBooleanTrue, _kCFBooleanTypeID);
+  GSRuntimeConstantInit (kCFBooleanFalse, _kCFBooleanTypeID);
 }
 
 CFTypeID
@@ -172,11 +172,11 @@ void CFNumberInitialize (void)
 {
   _kCFNumberTypeID = _CFRuntimeRegisterClass (&CFNumberClass);
   
-  _CFRuntimeSetInstanceTypeID ((CFTypeRef)&_kCFNumberNaN, _kCFNumberTypeID);
+  GSRuntimeConstantInit (kCFNumberNaN, _kCFNumberTypeID);
   _kCFNumberNaN._cfnum._parent._flags.info = kCFNumberDoubleType;
-  _CFRuntimeSetInstanceTypeID ((CFTypeRef)&_kCFNumberNegInf, _kCFNumberTypeID);
+  GSRuntimeConstantInit (kCFNumberNegativeInfinity, _kCFNumberTypeID);
   _kCFNumberNegInf._cfnum._parent._flags.info = kCFNumberDoubleType;
-  _CFRuntimeSetInstanceTypeID ((CFTypeRef)&_kCFNumberPosInf, _kCFNumberTypeID);
+  GSRuntimeConstantInit (kCFNumberPositiveInfinity, _kCFNumberTypeID);
   _kCFNumberPosInf._cfnum._parent._flags.info = kCFNumberDoubleType;
 }
 

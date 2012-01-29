@@ -374,7 +374,8 @@ CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
 const char *
 CFLocaleGetCStringIdentifier (CFLocaleRef locale);
 
-
+void
+GSRuntimeConstantInit (CFTypeRef cf, CFTypeID typeID);
 
 #define GS_MAX(a,b) (a > b ? a : b)
 #define GS_MIN(a,b) (a < b ? a : b)
