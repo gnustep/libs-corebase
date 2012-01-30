@@ -117,7 +117,7 @@ CFCharacterSetCreateInvertedSet (CFAllocatorRef alloc, CFCharacterSetRef set)
     _kCFCharacterSetTypeID, CFCHARACTERSET_SIZE, 0);
   if (new)
     {
-      new->_uset = uset_clone (set->_uset);
+      new->_uset = uset_cloneAsThawed (set->_uset);
       uset_complement (new->_uset);
       uset_freeze (new->_uset);
     }
@@ -153,7 +153,7 @@ USetAddString (USet *set, CFStringRef string)
   str = CFAllocatorAllocate (NULL, sizeof(UniChar) * len, 0);
   CFStringGetCharacters (string, CFRangeMake(0, len), str);
   
-  uset_addString (set, str, len);
+  uset_addAllCodePoints (set, str, len);
   
   CFAllocatorDeallocate (NULL, str);
 }

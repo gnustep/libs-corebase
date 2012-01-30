@@ -1,5 +1,11 @@
 2012-01-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFCharacterSet.c: Fixed bugs found with new tests.
+	* Tests/CFCharacterSet:
+	* Tests/CFTree: New tests.
+
+2012-01-29 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFString.c:
 	* Source/CFBase.c:
 	* Source/CFNumber.c:
