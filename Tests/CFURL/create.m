@@ -31,7 +31,6 @@ int main (void)
   PASS_CFEQ(str, CFSTR("C:/WINDOWS/"), "File system path is C:/WINDOWS/");
   
   CFRelease (url);
-  CFRelease (url2);
   CFRelease (str);
   
   url = CFURLCreateWithFileSystemPath (NULL, CFSTR("/usr"),
@@ -47,7 +46,6 @@ int main (void)
   testHopeful = FALSE;
   
   CFRelease (url);
-  CFRelease (url2);
   CFRelease (str);
   
   url = CFURLCreateWithString (NULL,
