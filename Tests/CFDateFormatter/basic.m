@@ -26,6 +26,7 @@ int main (void)
     "Absolute time gotten for 2/1/2003");
   PASS(at == 315615600.0,
     "Absolute time for Montag, 1. Januar 2011 23:00 is 315615600.0");
+  printf ("%f\n", at);
   
   CFRelease(fmt);
   
@@ -40,6 +41,7 @@ int main (void)
     "Absolute time gotten for 20050403 02:01 vorm.");
   PASS(at == 134186460.0,
     "Absolute time for 20050403 02:01 vorm. is 134186460.0");
+  printf ("%f\n", at);
   
   CFRelease(fmt);
   CFRelease(loc);

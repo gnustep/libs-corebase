@@ -7,7 +7,7 @@ int main (void)
   CFTreeRef child1;
   CFTreeRef child2;
   CFTreeRef child3;
-  struct CFTreeContext ctxt;
+  CFTreeContext ctxt;
   
   ctxt.version = 0;
   ctxt.info = NULL;

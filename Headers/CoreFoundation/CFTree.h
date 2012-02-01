@@ -39,8 +39,8 @@ typedef const void *(*CFTreeRetainCallBack) (const void *info);
 typedef void (*CFTreeReleaseCallBack) (const void *info);
 typedef CFStringRef (*CFTreeCopyDescriptionCallBack) (const void *info);
 
-typedef struct CFTreeContext CFTreeContext;
-struct CFTreeContext
+typedef struct _CFTreeContext CFTreeContext;
+struct _CFTreeContext
 {
   CFIndex version;
   void *info;

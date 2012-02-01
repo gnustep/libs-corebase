@@ -22,17 +22,13 @@ int main (void)
   /* These next few tests copied from gnustep-base. */
   url = CFURLCreateWithFileSystemPath (NULL, CFSTR("C:\\WINDOWS"),
     kCFURLWindowsPathStyle, true);
-  PASS_CFEQ(CFURLGetString(url), CFSTR("C:\\WINDOWS\\"),
+  PASS_CFEQ(CFURLGetString(url), CFSTR("file://localhost/C:/WINDOWS/"),
     "Windows style path of file URL C:\\WINDOWS is C:\\WINDOWS");
-  url2 = CFURLCopyAbsoluteURL (url);
-  PASS_CFEQ(CFURLGetString(url2), CFSTR("file://localhost/C:%5CWINDOWS/"),
-    "Windows style file URL C:\\WINDOWS is file://localhost/C:%%5CWINDOWS/");
   str = CFURLCopyResourceSpecifier (url);
-  PASS_CFEQ(str, CFSTR("//localhost/C:%5CWINDOWS/"),
-    "Resource specifier of C:\\WINDOWS is //localhost/C:%%5CWINDOWS/");
+  PASS(str == NULL, "Resource specifier of C:\\WINDOWS is NULL");
   CFRelease (str);
   str = CFURLCopyFileSystemPath (url, kCFURLWindowsPathStyle);
-  PASS_CFEQ(str, CFSTR("C:\\WINDOWS\\"), "File system path is C:\\WINDOWS\\");
+  PASS_CFEQ(str, CFSTR("C:/WINDOWS/"), "File system path is C:/WINDOWS/");
   
   CFRelease (url);
   CFRelease (url2);
@@ -40,14 +36,10 @@ int main (void)
   
   url = CFURLCreateWithFileSystemPath (NULL, CFSTR("/usr"),
     kCFURLPOSIXPathStyle, true);
-  PASS_CFEQ(CFURLGetString(url), CFSTR("/usr/"),
+  PASS_CFEQ(CFURLGetString(url), CFSTR("file://localhost/usr/"),
     "String for file URL /usr is /usr/");
-  url2 = CFURLCopyAbsoluteURL (url);
-  PASS_CFEQ(CFURLGetString(url2), CFSTR("file://localhost/usr/"),
-    "File URL /usr is file://localhost/usr/");
   str = CFURLCopyResourceSpecifier (url);
-  PASS_CFEQ(str, CFSTR("//localhost/usr/"),
-    "Resource Specifier of /usr is //localhost/usr/");
+  PASS(str == NULL, "Resource Specifier of /usr is NULL");
   CFRelease (str);
   str = CFURLCopyFileSystemPath (url, kCFURLPOSIXPathStyle);
   PASS_CFEQ(str, CFSTR("/usr/"), "File system path is /usr/");

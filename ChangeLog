@@ -1,3 +1,10 @@
+2012-02-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Tests/CFNumberFormatter/format.m:
+	* Tests/CFTree/basic.m:
+	* Tests/CFDateFormatter/basic.m:
+	* Tests/CFURL/create.m: First attempt at fixing tests for OS X.
+
 2012-01-29 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFCharacterSet.c: Fixed bugs found with new tests.

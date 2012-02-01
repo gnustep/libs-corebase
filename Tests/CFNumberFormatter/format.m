@@ -29,7 +29,7 @@ int main (void)
   CFNumberFormatterSetProperty (nf, kCFNumberFormatterFormatWidth, num);
   str = CFNumberFormatterCreateStringWithValue (NULL, nf,
     kCFNumberSInt8Type, &int_8);
-  PASS_CFEQ(str, CFSTR("              16"), "SInt8 formatted correctly");
+  PASS_CFEQ(str, CFSTR("**************16"), "SInt8 formatted correctly");
   CFRelease(nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterCurrencyStyle);
