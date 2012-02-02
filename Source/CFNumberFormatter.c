@@ -435,8 +435,6 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
       new->_defaultFormat = CFStringCreateWithCharacters (allocator,
         ubuffer, len);
     }
-  ubuffer[0] = ' ';
-  unum_setTextAttribute (new->_fmt, UNUM_PADDING_CHARACTER, ubuffer, 1, &err);
   
   return new;
 }

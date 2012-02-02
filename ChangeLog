@@ -1,5 +1,10 @@
 2012-02-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFNumberFormatter.c: Revert back to using '*' as padding
+	character.
+
+2012-02-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Tests/CFNumberFormatter/format.m:
 	* Tests/CFTree/basic.m:
 	* Tests/CFDateFormatter/basic.m:
