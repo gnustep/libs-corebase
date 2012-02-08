@@ -930,6 +930,7 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
   CFURLRef baseURL)
 {
   CFURLRef ret;
+  CFStringRef path;
   Boolean abs;
   UniChar delim;
   CFIndex filePathLength;
@@ -954,32 +955,44 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
     }
   
   if (abs)
-    baseURL = NULL;
+    {
+      CFMutableStringRef tmp;
+      tmp = CFStringCreateMutableCopy (alloc, 0, CFSTR("file://localhost"));
+      if (style == kCFURLWindowsPathStyle)
+        CFStringAppend (tmp, CFSTR("/"));
+      CFStringAppend (tmp, filePath);
+      
+      path = (CFStringRef)tmp;
+      baseURL = NULL;
+    }
   else if (baseURL == NULL)
-    baseURL = CFURLCreateWithCurrentDirectory (alloc);
+    {
+      baseURL = CFURLCreateWithCurrentDirectory (alloc);
+      path = filePath;
+    }
   else
-    CFRetain (baseURL);
+    {
+      CFRetain (baseURL);
+      path = filePath;
+    }
   
-  filePathLength = CFStringGetLength (filePath);
-  CFRetain (filePath);
+  filePathLength = CFStringGetLength (path);
   if (isDirectory)
     {
-      if (CFStringGetCharacterAtIndex(filePath, filePathLength - 1) != delim)
+      if (CFStringGetCharacterAtIndex(path, filePathLength - 1) != delim)
         {
-          CFRelease (filePath);
-          filePath = (CFStringRef)
-            CFStringCreateMutableCopy (alloc, filePathLength + 1, filePath);
-          CFStringAppendCharacters ((CFMutableStringRef)filePath, &delim, 1);
+          path = (CFStringRef)
+            CFStringCreateMutableCopy (alloc, filePathLength + 1, path);
+          CFStringAppendCharacters ((CFMutableStringRef)path, &delim, 1);
         }
     }
   else
     {
-      if (CFStringGetCharacterAtIndex(filePath, filePathLength - 1) == delim)
+      if (CFStringGetCharacterAtIndex(path, filePathLength - 1) == delim)
         {
-          CFRelease (filePath);
-          filePath =
-            CFStringCreateMutableCopy (alloc, filePathLength, filePath);
-          CFStringDelete ((CFMutableStringRef)filePath,
+          path =
+            CFStringCreateMutableCopy (alloc, filePathLength, path);
+          CFStringDelete ((CFMutableStringRef)path,
             CFRangeMake(filePathLength - 1, 1));
         }
     }
@@ -987,9 +1000,10 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
   /* We don't need to worry about percent escapes since there won't be
    * any for the file system path.  We pass 0 for the encoding.
    */
-  ret = CFURLCreate_internal (alloc, filePath, baseURL, 0);
+  ret = CFURLCreate_internal (alloc, path, baseURL, 0);
   
-  CFRelease (filePath);
+  if (path != filePath)
+    CFRelease (path);
   if (baseURL)
     CFRelease (baseURL);
   

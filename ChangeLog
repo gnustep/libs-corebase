@@ -1,3 +1,8 @@
+2012-02-07 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFURL.c: Add "file://localhost/" to file URLs.
+	* Tests/CFURL/create.m: Fixed tests.
+
 2012-02-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFNumberFormatter.c: Revert back to using '*' as padding

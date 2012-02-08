@@ -17,16 +17,13 @@ int main (void)
   CFRelease (url);
   CFRelease (url2);
   
-  testHopeful = TRUE;
-  
   /* These next few tests copied from gnustep-base. */
   url = CFURLCreateWithFileSystemPath (NULL, CFSTR("C:\\WINDOWS"),
     kCFURLWindowsPathStyle, true);
   PASS_CFEQ(CFURLGetString(url), CFSTR("file://localhost/C:/WINDOWS/"),
-    "Windows style path of file URL C:\\WINDOWS is C:\\WINDOWS");
-  str = CFURLCopyResourceSpecifier (url);
-  PASS(str == NULL, "Resource specifier of C:\\WINDOWS is NULL");
-  CFRelease (str);
+    "Windows style path of file URL C:\\WINDOWS is file://localhost/C:/WINDOWS/");
+  PASS(CFURLCopyResourceSpecifier (url) == NULL,
+    "Resource specifier of C:\\WINDOWS is NULL");
   str = CFURLCopyFileSystemPath (url, kCFURLWindowsPathStyle);
   PASS_CFEQ(str, CFSTR("C:/WINDOWS/"), "File system path is C:/WINDOWS/");
   
@@ -37,13 +34,10 @@ int main (void)
     kCFURLPOSIXPathStyle, true);
   PASS_CFEQ(CFURLGetString(url), CFSTR("file://localhost/usr/"),
     "String for file URL /usr is /usr/");
-  str = CFURLCopyResourceSpecifier (url);
-  PASS(str == NULL, "Resource Specifier of /usr is NULL");
-  CFRelease (str);
+  PASS(CFURLCopyResourceSpecifier (url) == NULL,
+    "Resource Specifier of /usr is NULL");
   str = CFURLCopyFileSystemPath (url, kCFURLPOSIXPathStyle);
   PASS_CFEQ(str, CFSTR("/usr/"), "File system path is /usr/");
-  
-  testHopeful = FALSE;
   
   CFRelease (url);
   CFRelease (str);
@@ -81,10 +75,8 @@ int main (void)
     "Host of http://www.w3.org/silly-file-name is www.w3.org");
   CFRelease (str);
   str = CFURLCopyStrictPath (url, NULL);
-  testHopeful = TRUE;
   PASS_CFEQ(str, CFSTR("silly-file-name"),
     "Strict path of http://www.w3.org/silly-file-name is silly-file-name");
-  testHopeful = FALSE;
   CFRelease (str);
   str = CFURLCopyResourceSpecifier (url);
   PASS_CFEQ(str, CFSTR("//www.w3.org/silly-file-name?query#fragment"),
