@@ -1,3 +1,11 @@
+2012-02-14 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFString.c:
+	* Source/CFStringUtilities.c: Implement function to separate strings.
+	* CFString/general.m: Added new tests.
+	* CFLocale/displayvalues.m: Remove some unnecessary tests.
+	* CFURL/create.m: Added more tests.
+
 2012-02-07 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFURL.c: Add "file://localhost/" to file URLs.

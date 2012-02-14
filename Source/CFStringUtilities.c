@@ -127,7 +127,7 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
   CFStringGetCharacters (stringToFind, CFRangeMake(0, textLength), text);
   
   ucol = CFStringICUCollatorOpen (searchOptions, locale);
-  usrch = usearch_openFromCollator (pattern, patternLength, text, textLength,
+  usrch = usearch_openFromCollator (text, textLength, pattern, patternLength,
     ucol, NULL, &err);
   if (U_FAILURE(err))
     return false;
@@ -232,13 +232,82 @@ CFStringFindCharacterFromSet (CFStringRef str, CFCharacterSetRef theSet,
   return false;
 }
 
+CFStringRef
+CFStringCreateByCombiningStrings (CFAllocatorRef alloc, CFArrayRef theArray,
+  CFStringRef separatorString)
+{
+  CFIndex idx;
+  CFIndex count;
+  CFMutableStringRef string;
+  CFStringRef currentString;
+  CFStringRef ret;
+  
+  count = CFArrayGetCount (theArray) - 1;
+  if (count == 0)
+    return NULL;
+  
+  string = CFStringCreateMutable (NULL, 0);
+  idx = 0;
+  while (idx < count)
+    {
+      currentString = (CFStringRef)CFArrayGetValueAtIndex (theArray, idx++);
+      CFStringAppend (string, currentString);
+      CFStringAppend (string, separatorString);
+    }
+  currentString = CFArrayGetValueAtIndex (theArray, idx);
+  CFStringAppend (string, currentString);
+  
+  ret = CFStringCreateCopy (alloc, string);
+  CFRelease (string);
+  return ret;
+}
+
+CFArrayRef
+CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
+  CFStringRef str, CFStringRef separator)
+{
+  /* This is basically a port of -componentsSeparatedByString: */
+  CFRange search;
+  CFRange complete;
+  CFRange found;
+  CFStringRef tmp;
+  CFArrayRef ret;
+  CFMutableArrayRef array;
+  
+  array = CFArrayCreateMutable (alloc, 0, &kCFTypeArrayCallBacks);
+
+  search = CFRangeMake (0, CFStringGetLength(str));
+  complete = search;
+  while (CFStringFindWithOptions(str, separator, search, 0, &found))
+  {
+    CFRange current;
+    current = CFRangeMake (search.location, found.location);
+    
+    tmp = CFStringCreateWithSubstring(alloc, str, current);
+    CFArrayAppendValue (array, tmp);
+    CFRelease (tmp);
+
+    search = CFRangeMake (search.location + found.location + found.length,
+      complete.length - search.location - found.location - found.length);
+  }
+  
+  // Add the last search string range
+  tmp = CFStringCreateWithSubstring(alloc, str, search);
+  CFArrayAppendValue (array, tmp);
+  CFRelease (tmp);
+  
+  ret = CFArrayCreateCopy (alloc, array);
+  CFRelease(array);
+  
+  return ret;
+}
+
 CFArrayRef
 CFStringCreateArrayWithFindResults (CFAllocatorRef alloc,
   CFStringRef str, CFStringRef stringToFind, CFRange rangeToSearch,
-  CFStringCompareFlags compareOptions)
+  CFStringCompareFlags compOpt)
 {
-  /* FIXME: This requires CFArray to accept input other than objects */
-  return NULL;
+  return NULL; // FIXME
 }
 
 /* These next two functions should be very similar.  According to Apple's

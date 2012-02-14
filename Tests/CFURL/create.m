@@ -25,10 +25,16 @@ int main (void)
   PASS(CFURLCopyResourceSpecifier (url) == NULL,
     "Resource specifier of C:\\WINDOWS is NULL");
   str = CFURLCopyFileSystemPath (url, kCFURLWindowsPathStyle);
-  PASS_CFEQ(str, CFSTR("C:/WINDOWS/"), "File system path is C:/WINDOWS/");
+  PASS_CFEQ(str, CFSTR("C:\\WINDOWS"), "File system path is C:\\WINDOWS");
+  CFRelease (str);
+  str = CFURLCopyPath (url);
+  PASS_CFEQ(str, CFSTR("/C:/WINDOWS/"), "Path is /C:/WINDOWS/");
+  CFRelease (str);
+  str = CFURLCopyStrictPath (url, NULL);
+  PASS_CFEQ(str, CFSTR("C:/WINDOWS/"), "Strict path is C:/WINDOWS/");
+  CFRelease (str);
   
   CFRelease (url);
-  CFRelease (str);
   
   url = CFURLCreateWithFileSystemPath (NULL, CFSTR("/usr"),
     kCFURLPOSIXPathStyle, true);
@@ -37,10 +43,16 @@ int main (void)
   PASS(CFURLCopyResourceSpecifier (url) == NULL,
     "Resource Specifier of /usr is NULL");
   str = CFURLCopyFileSystemPath (url, kCFURLPOSIXPathStyle);
-  PASS_CFEQ(str, CFSTR("/usr/"), "File system path is /usr/");
+  PASS_CFEQ(str, CFSTR("/usr"), "File system path is /usr");
+  CFRelease (str);
+  str = CFURLCopyPath (url);
+  PASS_CFEQ(str, CFSTR("/usr/"), "Path is /usr/");
+  CFRelease (str);
+  str = CFURLCopyStrictPath (url, NULL);
+  PASS_CFEQ(str, CFSTR("usr/"), "Strict path is usr/");
+  CFRelease (str);
   
   CFRelease (url);
-  CFRelease (str);
   
   url = CFURLCreateWithString (NULL,
     CFSTR("http://user:password@www.w3.org:5/silly-file-path/"), NULL);
@@ -57,12 +69,11 @@ int main (void)
     "http://user:password@www.w3.org:5/silly-file-path/ is password");
   CFRelease (str);
   str = CFURLCopyResourceSpecifier (url);
-  PASS_CFEQ(str, CFSTR("//user:password@www.w3.org:5/silly-file-path/"),
-    "resourceSpecifier of http://www.w3.org/silly-file-path/ is "
-    "//www.w3.org/silly-file-path/");
+  PASS(str == NULL,
+    "resourceSpecifier of http://www.w3.org/silly-file-path/ is NULL");
+  CFRelease (str);
   
   CFRelease (url);
-  CFRelease (str);
   
   url = CFURLCreateWithString (NULL,
     CFSTR("http://www.w3.org/silly-file-name?query#fragment"), NULL);
@@ -91,6 +102,21 @@ int main (void)
   PASS_CFEQ(str, CFSTR("fragment"), "Fragment of "
     "http://www.w3.org/silly-file-name?query#fragment is fragment");
   CFRelease (str);
+  
+  CFRelease (url);
+  
+  url = CFURLCreateWithString (NULL,
+    CFSTR("http://www.w3.org/silly?param1=test1&param2=test2"), NULL);
+  str = CFURLCopyQueryString (url, NULL);
+  PASS_CFEQ(str, CFSTR("param1=test1&param2=test2"), "Query of "
+    "http://www.w3.org/silly?param1=test1&param2=test2 is param1=test1&param2=test2");
+  CFRelease (str);
+  str = CFURLCopyParameterString (url, NULL);
+  PASS_CFEQ(str, CFSTR("test1"), "Parameter string for "
+    "http://www.w3.org/silly?param1=test1&param2=test2 is test1");
+  CFRelease(str);
+  
+  CFRelease(url);
   
   url = CFURLCreateWithString (NULL, CFSTR("this isn't a URL"), NULL);
   PASS(url == NULL, "URL with 'this isn't a URL' returns NULL");

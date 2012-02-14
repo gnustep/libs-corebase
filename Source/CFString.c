@@ -631,36 +631,6 @@ CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
 }
 
 CFStringRef
-CFStringCreateByCombiningStrings (CFAllocatorRef alloc, CFArrayRef theArray,
-  CFStringRef separatorString)
-{
-  CFIndex idx;
-  CFIndex count;
-  CFMutableStringRef string;
-  CFStringRef currentString;
-  CFStringRef ret;
-  
-  count = CFArrayGetCount (theArray) - 1;
-  if (count == 0)
-    return NULL;
-  
-  string = CFStringCreateMutable (NULL, 0);
-  idx = 0;
-  while (idx < count)
-    {
-      currentString = (CFStringRef)CFArrayGetValueAtIndex (theArray, idx++);
-      CFStringAppend (string, currentString);
-      CFStringAppend (string, separatorString);
-    }
-  currentString = CFArrayGetValueAtIndex (theArray, idx);
-  CFStringAppend (string, currentString);
-  
-  ret = CFStringCreateCopy (alloc, string);
-  CFRelease (string);
-  return ret;
-}
-
-CFStringRef
 CFStringCreateCopy (CFAllocatorRef alloc, CFStringRef str)
 {
   CFIndex length;
@@ -803,13 +773,6 @@ CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
     return NULL;
   
   return CFDataCreateWithBytesNoCopy (alloc, buffer, usedLen, alloc);
-}
-
-CFArrayRef
-CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
-  CFStringRef str, CFStringRef separatorString)
-{
-  return NULL; // FIXME
 }
 
 const UniChar *
@@ -1130,7 +1093,7 @@ CFStringCreateMutable (CFAllocatorRef alloc, CFIndex maxLength)
   new->_allocator = alloc ? alloc : CFAllocatorGetDefault();
   new->_contents = CFAllocatorAllocate (new->_allocator,
     new->_capacity * sizeof(UniChar), 0);
-  
+//   
   CFSTRING_INIT_MUTABLE(new);
   
   return (CFMutableStringRef)new;
