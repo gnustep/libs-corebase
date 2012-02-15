@@ -1,5 +1,13 @@
 2012-02-14 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFURL.c: Some more work on file system paths.
+	* Tests/CFNumber/general.m:
+	* Tests/CFLocale/create.m: Modified tests.
+	* Tests/CFURL/create.m: Moved file system path tests from here...
+	* Tests/CFURL/file_system_path.m: ...to here.
+
+2012-02-14 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFString.c:
 	* Source/CFStringUtilities.c: Implement function to separate strings.
 	* CFString/general.m: Added new tests.
