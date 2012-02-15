@@ -10,49 +10,11 @@ int main (void)
   
   url = CFURLCreateWithString (NULL, CFSTR("http://www.gnustep.org"), NULL);
   PASS(url != NULL, "URL created.");
-  
   url2 = CFURLCopyAbsoluteURL (url);
   PASS(url == url2, "Absolute URL of an absolute URL are the same.");
   
   CFRelease (url);
   CFRelease (url2);
-  
-  /* These next few tests copied from gnustep-base. */
-  url = CFURLCreateWithFileSystemPath (NULL, CFSTR("C:\\WINDOWS"),
-    kCFURLWindowsPathStyle, true);
-  PASS_CFEQ(CFURLGetString(url), CFSTR("file://localhost/C:/WINDOWS/"),
-    "Windows style path of file URL C:\\WINDOWS is file://localhost/C:/WINDOWS/");
-  PASS(CFURLCopyResourceSpecifier (url) == NULL,
-    "Resource specifier of C:\\WINDOWS is NULL");
-  str = CFURLCopyFileSystemPath (url, kCFURLWindowsPathStyle);
-  PASS_CFEQ(str, CFSTR("C:\\WINDOWS"), "File system path is C:\\WINDOWS");
-  CFRelease (str);
-  str = CFURLCopyPath (url);
-  PASS_CFEQ(str, CFSTR("/C:/WINDOWS/"), "Path is /C:/WINDOWS/");
-  CFRelease (str);
-  str = CFURLCopyStrictPath (url, NULL);
-  PASS_CFEQ(str, CFSTR("C:/WINDOWS/"), "Strict path is C:/WINDOWS/");
-  CFRelease (str);
-  
-  CFRelease (url);
-  
-  url = CFURLCreateWithFileSystemPath (NULL, CFSTR("/usr"),
-    kCFURLPOSIXPathStyle, true);
-  PASS_CFEQ(CFURLGetString(url), CFSTR("file://localhost/usr/"),
-    "String for file URL /usr is /usr/");
-  PASS(CFURLCopyResourceSpecifier (url) == NULL,
-    "Resource Specifier of /usr is NULL");
-  str = CFURLCopyFileSystemPath (url, kCFURLPOSIXPathStyle);
-  PASS_CFEQ(str, CFSTR("/usr"), "File system path is /usr");
-  CFRelease (str);
-  str = CFURLCopyPath (url);
-  PASS_CFEQ(str, CFSTR("/usr/"), "Path is /usr/");
-  CFRelease (str);
-  str = CFURLCopyStrictPath (url, NULL);
-  PASS_CFEQ(str, CFSTR("usr/"), "Strict path is usr/");
-  CFRelease (str);
-  
-  CFRelease (url);
   
   url = CFURLCreateWithString (NULL,
     CFSTR("http://user:password@www.w3.org:5/silly-file-path/"), NULL);
@@ -73,7 +35,19 @@ int main (void)
     "resourceSpecifier of http://www.w3.org/silly-file-path/ is NULL");
   CFRelease (str);
   
+  url2 = CFURLCreateWithString (NULL, CFSTR("additional/string"), url);
+  str = CFURLGetString (url2);
+  PASS_CFEQ(str, CFSTR("additional/string"), "String is additional/string");
+  str = CFURLCopyPath (url2);
+  PASS_CFEQ(str, CFSTR("/silly-file-path/additional/string"),
+    "Copied path is resolved against base.");
+  CFRelease (str);
+  str = CFURLCopyResourceSpecifier (url2);
+  PASS(str != NULL, "Resource specifier of relative url is additional/string");
+  CFRelease (str);
+  
   CFRelease (url);
+  CFRelease (url2);
   
   url = CFURLCreateWithString (NULL,
     CFSTR("http://www.w3.org/silly-file-name?query#fragment"), NULL);

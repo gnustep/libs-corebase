@@ -46,7 +46,6 @@ int main (void)
   PASS(CFNumberGetValue(num2, kCFNumberSInt16Type, &i16) == false,
     "Float converted to short.");
   PASS(i16 == 3, "Float converted to short correctly.");
-  printf ("%d\n", i16);
   
   CFRelease (num1);
   CFRelease (num2);
