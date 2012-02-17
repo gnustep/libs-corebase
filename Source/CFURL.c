@@ -83,9 +83,16 @@ struct __CFURL
 
 enum
 {
-  _kCFURLCanBeDecomposed = (1<<0),
+  _kCFURLIsDecomposable = (1<<0),
   _kCFURLIsFileSystemPath = (1<<1)
 };
+
+CF_INLINE Boolean
+CFURLIsDecomposable (CFURLRef url)
+{
+  return ((CFRuntimeBase *)url)->_flags.info & _kCFURLIsDecomposable
+    ? true : false;
+}
 
 CF_INLINE Boolean
 CFURLIsFileSystemPath (CFURLRef url)
@@ -95,9 +102,9 @@ CFURLIsFileSystemPath (CFURLRef url)
 }
 
 CF_INLINE void
-CFURLSetCanBeDecomposed (CFURLRef url)
+CFURLSetIsDecomposable (CFURLRef url)
 {
-  ((CFRuntimeBase *)url)->_flags.info |= _kCFURLCanBeDecomposed;
+  ((CFRuntimeBase *)url)->_flags.info |= _kCFURLIsDecomposable;
 }
 
 CF_INLINE void
@@ -1091,7 +1098,7 @@ CFURLCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes, CFIndex length,
 Boolean
 CFURLCanBeDecomposed (CFURLRef url)
 {
-  if (((CFRuntimeBase*)url)->_flags.info & _kCFURLCanBeDecomposed)
+  if (CFURLIsDecomposable(url))
     return true;
   else
     return url->_baseURL ? CFURLCanBeDecomposed(url->_baseURL) : false;
@@ -1292,11 +1299,8 @@ CFURLCopyResourceSpecifier (CFURLRef url)
 {
   CFRange range = url->_ranges[kCFURLComponentResourceSpecifier - 1];
   if (range.location == kCFNotFound)
-    {
-      if (url->_baseURL)
-        return CFURLCopyResourceSpecifier (url->_baseURL);
-      return NULL;
-    }
+    return NULL;
+  
   return CFStringCreateWithSubstring (CFGetAllocator(url), url->_urlString,
     range);
 }

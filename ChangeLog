@@ -1,4 +1,10 @@
-2012-02-14 Stefan Bidigaray <stefanbidi@gmail.com>
+2012-02-16 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFURL.c: A little clean up.
+	* Tests/CFURL/file_system_path.m:
+	* Tests/CFURL/create.m: Added more tests.
+
+2012-02-15 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFURL.c: Some more work on file system paths.
 	* Tests/CFNumber/general.m:

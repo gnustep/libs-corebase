@@ -18,6 +18,8 @@ int main (void)
   
   url = CFURLCreateWithString (NULL,
     CFSTR("http://user:password@www.w3.org:5/silly-file-path/"), NULL);
+  PASS(CFURLCanBeDecomposed(url) == true,
+    "http://user:password@www.w3.org:5/silly-file-path/ path can be decomposed");
   str = CFURLCopyPath (url);
   PASS_CFEQ(str, CFSTR("/silly-file-path/"), "Path of "
     "http://user:password@www.w3.org:5/silly-file-path/ is /silly-file-path/");
@@ -36,6 +38,8 @@ int main (void)
   CFRelease (str);
   
   url2 = CFURLCreateWithString (NULL, CFSTR("additional/string"), url);
+  PASS(CFURLCanBeDecomposed(url) == true,
+    "additional/string path can be decomposed since base URL is decomposable");
   str = CFURLGetString (url2);
   PASS_CFEQ(str, CFSTR("additional/string"), "String is additional/string");
   str = CFURLCopyPath (url2);
@@ -51,6 +55,8 @@ int main (void)
   
   url = CFURLCreateWithString (NULL,
     CFSTR("http://www.w3.org/silly-file-name?query#fragment"), NULL);
+  PASS(CFURLCanBeDecomposed(url) == true,
+    "http://www.w3.org/silly-file-name?query#fragment path can be decomposed");
   str = CFURLCopyScheme (url);
   PASS_CFEQ(str, CFSTR("http"),
        "Scheme of http://www.w3.org/silly-file-name is http");
@@ -81,6 +87,10 @@ int main (void)
   
   url = CFURLCreateWithString (NULL,
     CFSTR("http://www.w3.org/silly?param1=test1&param2=test2"), NULL);
+  str = CFURLCopyResourceSpecifier (url);
+  PASS_CFEQ(str, CFSTR("param1=test1&param2=test2"),
+    "Resource specifier for http://www.w3.org/silly?param1=test1&param2=test2"
+    " is param1=test1&param2=test2");
   str = CFURLCopyQueryString (url, NULL);
   PASS_CFEQ(str, CFSTR("param1=test1&param2=test2"), "Query of "
     "http://www.w3.org/silly?param1=test1&param2=test2 is param1=test1&param2=test2");
