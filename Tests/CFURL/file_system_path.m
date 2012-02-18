@@ -9,7 +9,7 @@ int main (void)
   
   url = CFURLCreateWithFileSystemPath (NULL, CFSTR("C:\\WINDOWS"),
     kCFURLWindowsPathStyle, true);
-  PASS(CFURLCanBeDecomposed(url) == true, "C:\WINDOWS path can be decomposed");
+  PASS(CFURLCanBeDecomposed(url) == true, "C:\\WINDOWS path can be decomposed");
   PASS_CFEQ(CFURLGetString(url), CFSTR("file://localhost/C:/WINDOWS/"),
     "Windows style path of file URL C:\\WINDOWS is file://localhost/C:/WINDOWS/");
   PASS(CFURLCopyResourceSpecifier (url) == NULL,
@@ -49,14 +49,13 @@ int main (void)
     kCFURLPOSIXPathStyle, true);
   url = CFURLCreateWithFileSystemPathRelativeToBase (NULL, CFSTR("local/share"),
     kCFURLPOSIXPathStyle, true, baseURL);
-  PASS(CFURLCanBeDecomposed(url) == false,
-    "local/share path cannot be decomposed");
+  PASS(CFURLCanBeDecomposed(url) == true,
+    "local/share path can be decomposed");
   str = CFURLGetString (url);
-  PASS_CFEQ(str, CFSTR("local/share/"), "String is local/share");
-  CFRelease (str);
+  PASS_CFEQ(str, CFSTR("local/share/"), "String is local/share/");
   str = CFURLCopyFileSystemPath (url, kCFURLPOSIXPathStyle);
-  PASS_CFEQ(str, CFSTR("/usr/local/share"),
-    "File system path is resolved against base");
+  PASS_CFEQ(str, CFSTR("local/share"),
+    "File system path is not resolved against base");
   CFRelease (str);
   PASS(CFURLHasDirectoryPath(url) == true, "local/share is a directory path.");
   

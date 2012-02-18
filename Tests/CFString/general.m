@@ -22,7 +22,10 @@ int main (void)
   
   PASS(CFStringFindWithOptions(str, CFSTR("\\"), CFRangeMake(5, 12), 0, &found),
     "'\\' was found.");
-  PASS(found.location == 5 && found.length == 1, "String has range (4, 1)");
+  PASS(found.location == 5 && found.length == 1, "String has range (5, 1)");
+  printf ("(%d, %d)", found.location, found.length);
+  
+  CFRelease (str);
   
   return 0;
 }
