@@ -5,14 +5,14 @@
 
 int main (void)
 {
-/*  CFTimeZoneRef tz;
+  CFTimeZoneRef tz;
   
-  tz = CFTimeZoneCreateWithName (NULL, CFSTR("America/Chicago"), true);
+  tz = CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, 0.0);
   PASS(tz != NULL, "CFTimeZone create successfully.");
-  PASS_CFEQ(CFTimeZoneGetName(tz), CFSTR("America/Chicago"),
+  PASS_CFEQ(CFTimeZoneGetName(tz), CFSTR("GMT+0000"),
     "CFTimeZone has correct name.");
   
-  CFRelease(tz); */
+  CFRelease(tz);
   
   return 0;
 }

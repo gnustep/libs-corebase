@@ -59,7 +59,7 @@ CFTimeZoneCreateWithTimeIntervalFromGMT (CFAllocatorRef alloc,
   CFTimeInterval ti);
 
 CF_EXPORT CFTimeZoneRef
-CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDateRef data);
+CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data);
 
 CF_EXPORT CFDictionaryRef
 CFTimeZoneCopyAbbreviationDictionary (void);
