@@ -28,7 +28,7 @@
 #ifndef __COREFOUNDATION_CFBASE_H__
 #define __COREFOUNDATION_CFBASE_H__
 
-#include <stddef.h> // for intptr_t and uintptr_t
+#include <stddef.h> /* for intptr_t and uintptr_t */
 
 /* CoreFoundation defineds __LITTLE_ENDIAN__ or __BIG_ENDIAN__ so we'll
  * do the same here for compatibility.
@@ -65,12 +65,12 @@
 
 #define MAC_OS_X_VERSION_MAX_ALLOWED 100700
 
-// FIXME: Define CFRunLoopRef here for now...
+/* FIXME: Define CFRunLoopRef here for now... */
 typedef struct CFRunLoop *CFRunLoopRef;
 
-//
-// CoreFoundation types
-//
+/*
+ * CoreFoundation types
+ */
 #if defined(_MSC_VER)
 #include <intsafe.h>
 typedef UINT8  Boolean;
@@ -185,9 +185,9 @@ CF_EXTERN_C_BEGIN
 #define GS_PURE_FUNCTION
 #endif
 
-//
-// CFType types
-//
+/*
+ * CFType types
+ */
 typedef uintptr_t CFHashCode;
 /** @defgroup CFType
     @{
@@ -198,9 +198,9 @@ typedef const void *CFTypeRef;
 /** @}
  */
 
-//
-// Base Utilities
-//
+/*
+ * Base Utilities
+ */
 typedef uintptr_t CFOptionFlags;
 typedef intptr_t CFIndex;
 
@@ -294,14 +294,14 @@ CF_EXPORT const double kCFCoreFoundationVersionNumber;
 #define kCFCoreFoundationVersionNumber10_5_5  476.15
 #define kCFCoreFoundationVersionNumber10_5_6  476.17
 
-//
-// CFPropertyList
-//
+/*
+ *CFPropertyList
+ */
 typedef struct CFPropertyList *CFPropertyListRef;
 
-//
-// CFString
-//
+/*
+ * CFString
+ */
 #if __OBJC__
 @class NSString;
 @class NSMutableString;
@@ -478,9 +478,9 @@ CFRetain (CFTypeRef cf);
 
 
 
-//
-// CFNull
-//
+/*
+ * CFNull
+ */
 #if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 typedef struct __CFNull *CFNullRef;
 

@@ -151,9 +151,9 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   
   if (memcmp(header->tzh_magic, TZ_MAGIC, sizeof(TZ_MAGIC)) != 0)
     return NULL;
-  tzh_timecnt = (SInt32)CFSwapInt32BigToHost ((UInt32)header->tzh_timecnt);
-  tzh_typecnt = (SInt32)CFSwapInt32BigToHost ((UInt32)header->tzh_typecnt);
-  tzh_charcnt = (SInt32)CFSwapInt32BigToHost ((UInt32)header->tzh_charcnt);
+  tzh_timecnt = (SInt32)CFSwapInt32BigToHost (*(UInt32*)header->tzh_timecnt);
+  tzh_typecnt = (SInt32)CFSwapInt32BigToHost (*(UInt32*)header->tzh_typecnt);
+  tzh_charcnt = (SInt32)CFSwapInt32BigToHost (*(UInt32*)header->tzh_charcnt);
   /* Make sure we're not above any of the maximums. */
   if (tzh_timecnt > TZ_MAX_TIMES)
     return NULL;
