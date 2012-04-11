@@ -1,3 +1,9 @@
+2012-04-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFArray.c: Fix bug in CFArrayGetFirstIndexOfValue().
+	* Tests/CFArray/create.m:
+	* Tests/CFArray/mutablearray.m: Add tests.
+
 2012-04-10 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFTimeZone.c: Add code to search transition times.

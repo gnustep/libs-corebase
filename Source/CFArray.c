@@ -31,7 +31,6 @@
 #include "GSPrivate.h"
 
 #include <string.h>
-#include <assert.h>
 
 struct __CFArray
 {
@@ -326,15 +325,13 @@ CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range,
   CFIndex end;
   CFArrayEqualCallBack equal;
   
-  assert (range.location + range.length <= array->_count);
-  
   contents = array->_contents;
   idx = range.location;
   end = idx + range.length;
   equal = array->_callBacks->equal;
   if (equal)
     {
-      while (idx < end)
+      while (idx <= end)
         {
           if (equal (value, contents[idx++]))
             break;
@@ -342,13 +339,13 @@ CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range,
     }
   else
     {
-      while (idx < end)
+      while (idx <= end)
         {
           if (value == contents[idx++])
             break;
         }
     }
-  if (idx >= end)
+  if (idx > end)
     idx = -1;
   
   return idx;
@@ -362,8 +359,6 @@ CFArrayGetLastIndexOfValue (CFArrayRef array, CFRange range,
   CFIndex idx;
   CFIndex start;
   CFArrayEqualCallBack equal;
-  
-  assert (range.location + range.length <= array->_count);
   
   contents = array->_contents;
   start = range.location;
@@ -405,7 +400,6 @@ CFArrayGetValueAtIndex (CFArrayRef array, CFIndex idx)
   CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, const void *, array,
     "objectAtIndex:", idx);
   
-  assert (idx < array->_count);
   return (array->_contents)[idx];
 }
 
@@ -415,7 +409,6 @@ CFArrayGetValues (CFArrayRef array, CFRange range, const void **values)
   CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
     "getObjects:range:", values, range);
   
-  assert (range.location + range.length < array->_count);
   memcpy (values, (array->_contents + range.location),
     range.length * sizeof(const void*));
 }

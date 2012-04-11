@@ -3,6 +3,7 @@
 
 #define ARRAY_SIZE 5
 const CFIndex array[ARRAY_SIZE] = { 5, 2, 3, 4, 1 };
+const CFIndex sorted[ARRAY_SIZE+1] = { 1, 2, 3, 4, 5, 7 };
 
 CFComparisonResult comp (const void *val1, const void *val2, void *context)
 {
@@ -15,6 +16,8 @@ int main (void)
   CFArrayRef a;
   CFMutableArrayRef ma;
   CFIndex n;
+  CFIndex len;
+  CFIndex buf[ARRAY_SIZE + 1];
   
   a = CFArrayCreate (NULL, (const void**)&array, ARRAY_SIZE, NULL);
   PASS(a != NULL, "CFArray created.");
@@ -24,13 +27,19 @@ int main (void)
   
   n = 7;
   CFArrayAppendValue (ma, (const void*)n);
-  n = CFArrayGetCount ((CFArrayRef)ma);
-  PASS(n == ARRAY_SIZE + 1, "CFMutableArray has correct number of values.");
+  len = CFArrayGetCount ((CFArrayRef)ma);
+  PASS(len == ARRAY_SIZE + 1, "CFMutableArray has correct number of values.");
   
-  CFArraySortValues (ma, CFRangeMake(0, n), &comp, NULL);
-  PASS((CFIndex)CFArrayGetValueAtIndex((CFArrayRef)ma, 0) == 1
-    && (CFIndex)CFArrayGetValueAtIndex((CFArrayRef)ma, ARRAY_SIZE) == 7,
+  CFArraySortValues (ma, CFRangeMake(0, len), comp, NULL);
+  CFArrayGetValues (ma, CFRangeMake(0, len), (const void**)buf);
+  PASS(memcmp(buf, sorted, sizeof(CFIndex) * ARRAY_SIZE) == 0,
     "Array sorted correctly.");
+  
+  n = CFArrayBSearchValues (ma, CFRangeMake(2, len - 2), (const void*)5, comp, NULL);
+  PASS(n == 4, "Index of number 5 is %d.", n);
+  
+  n = CFArrayBSearchValues (ma, CFRangeMake(0, len), (const void*)6, comp, NULL);
+  PASS(n == 5, "Index of value between values is %d.", n);
   
   return 0;
 }
