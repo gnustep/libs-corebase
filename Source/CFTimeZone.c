@@ -3,7 +3,7 @@
    Copyright (C) 2011 Free Software Foundation, Inc.
    
    Written by: Stefan Bidigaray
-   Date: July, 2011
+   Date: April, 2012
    
    This file is part of the GNUstep CoreBase Library.
    
@@ -38,6 +38,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unicode/ucal.h>
 
 struct _ttinfo
 {
@@ -110,6 +111,12 @@ void CFTimeZoneInitialize (void)
 }
 
 
+
+CFTypeID
+CFTimeZoneGetTypeID (void)
+{
+  return _kCFTimeZoneTypeID;
+}
 
 #define CFTIMEZONE_SIZE sizeof(struct __CFTimeZone) - sizeof(CFRuntimeBase)
 
@@ -240,13 +247,6 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   return old;
 }
 
-CFTimeZoneRef
-CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
-  Boolean tryAbbrev)
-{
-  return NULL;
-}
-
 struct TZFile
 {
   struct tzhead header;
@@ -293,29 +293,187 @@ CFTimeZoneCreateWithTimeIntervalFromGMT (CFAllocatorRef alloc,
   return new;
 }
 
-CFDictionaryRef
-CFTimeZoneCopyAbbreviationDictionary (void)
+
+CFTimeZoneRef
+CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
+  Boolean tryAbbrev)
 {
   return NULL; /* FIXME */
 }
 
 CFStringRef
+CFTimeZoneGetName (CFTimeZoneRef tz)
+{
+  CF_OBJC_FUNCDISPATCH0(_kCFTimeZoneTypeID, CFStringRef, tz, "name");
+  return tz->_name;
+}
+
+CFDataRef
+CFTimeZoneGetData (CFTimeZoneRef tz)
+{
+  CF_OBJC_FUNCDISPATCH0(_kCFTimeZoneTypeID, CFDataRef, tz, "data");
+  return tz->_data;
+}
+
+static CFComparisonResult
+CFTimeZoneComparator (const void *v1, const void *v2, void *ctxt)
+{
+  TransInfo *ti1 = (TransInfo*)v1;
+  TransInfo *ti2 = (TransInfo*)v2;
+  
+  return (ti1->transition < ti2->transition) ? kCFCompareLessThan :
+    ((ti1->transition == ti2->transition) ? kCFCompareEqualTo :
+    kCFCompareGreaterThan);
+}
+
+CFStringRef
 CFTimeZoneCopyAbbreviation (CFTimeZoneRef tz, CFAbsoluteTime at)
 {
-  return NULL; /* FIXME */
+  TransInfo tmp;
+  CFIndex idx;
+  
+  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
+    sizeof(TransInfo), CFTimeZoneComparator, NULL);
+  
+  return CFRetain (tz->_abbrevs[tz->_transitions[idx].abbrevIdx]);
+}
+
+CFTimeInterval
+CFTimeZoneGetDaylightSavingTimeOffset (CFTimeZoneRef tz, CFAbsoluteTime at)
+{
+  TransInfo tmp;
+  TransInfo *cur;
+  TransInfo *prev;
+  CFIndex idx;
+  CFTimeInterval ret;
+  
+  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
+    sizeof(TransInfo), CFTimeZoneComparator, NULL);
+  
+  if (tz->_transCount <= 1)
+    return 0.0; /* No DST, so no DST offset. */
+  
+  /* We always check against the previous GMT offset since the index returned
+   * might be at the end of the array.
+   */
+  cur = &(tz->_transitions[idx]);
+  prev = &(tz->_transitions[idx - 1]);
+  if (cur->offset > prev->offset)
+    ret = (CFTimeInterval)(cur->offset - prev->offset);
+  else
+    ret = (CFTimeInterval)(prev->offset - cur->offset);
+  
+  return ret;
+}
+
+Boolean
+CFTimeZoneIsDaylightSavingTime (CFTimeZoneRef tz, CFAbsoluteTime at)
+{
+  TransInfo tmp;
+  CFIndex idx;
+  
+  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
+    sizeof(TransInfo), CFTimeZoneComparator, NULL);
+  
+  return (Boolean)(tz->_transitions[idx].isDST);
+}
+
+CFTimeInterval
+CFTimeZoneGetSecondsFromGMT (CFTimeZoneRef tz, CFAbsoluteTime at)
+{
+  TransInfo tmp;
+  CFIndex idx;
+  
+  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
+    sizeof(TransInfo), CFTimeZoneComparator, NULL);
+  
+  return (CFTimeInterval)(tz->_transitions[idx].offset);
+}
+
+CFAbsoluteTime
+CFTimeZoneGetNextDaylightSavingTimeTransition (CFTimeZoneRef tz,
+  CFAbsoluteTime at)
+{
+  TransInfo tmp;
+  CFIndex idx;
+  
+  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
+    sizeof(TransInfo), CFTimeZoneComparator, NULL);
+  
+  return tz->_transitions[idx].transition == 0 ? 0 :
+    tz->_transitions[idx].transition + kCFAbsoluteTimeIntervalSince1970;
+}
+
+#define BUFFER_SIZE 256
+
+CFStringRef
+CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
+  CFLocaleRef locale)
+{
+  UniChar localizedName[BUFFER_SIZE];
+  UniChar zoneID[BUFFER_SIZE];
+  char cLocale[ULOC_FULLNAME_CAPACITY];
+  CFIndex len;
+  UCalendarDisplayNameType ucaltype;
+  UCalendar *ucal;
+  UErrorCode err;
+  CFStringRef ret;
+  
+  CF_OBJC_FUNCDISPATCH2(_kCFTimeZoneTypeID, CFStringRef, tz,
+    "localizedName:locale:", style, locale);
+  
+  len = CFStringGetLength (tz->_name);
+  if (len > BUFFER_SIZE)
+    len = BUFFER_SIZE;
+  CFStringGetCharacters (tz->_name, CFRangeMake(0, len), zoneID);
+  
+  err = U_ZERO_ERROR;
+  ucal = ucal_open (zoneID, len, NULL, UCAL_TRADITIONAL, &err);
+  if (U_FAILURE(err))
+    return NULL;
+  
+  switch (style)
+    {
+      case kCFTimeZoneNameStyleShortStandard:
+        ucaltype = UCAL_SHORT_STANDARD;
+        break;
+      case kCFTimeZoneNameStyleDaylightSaving:
+        ucaltype = UCAL_DST;
+        break;
+      case kCFTimeZoneNameStyleShortDaylightSaving:
+        ucaltype = UCAL_SHORT_DST;
+        break;
+      default: /* Covers kCFTimeZoneNameStyleStandard */
+        ucaltype = UCAL_STANDARD;
+    }
+  len = ucal_getTimeZoneDisplayName (ucal, ucaltype, cLocale,
+    localizedName, BUFFER_SIZE, &err);
+  if (len > BUFFER_SIZE)
+    len = BUFFER_SIZE;
+  
+  ret = CFStringCreateWithCharacters (CFGetAllocator(tz), localizedName, len);
+  ucal_close (ucal);
+  
+  return ret;
 }
 
 CFTimeZoneRef
 CFTimeZoneCopyDefault (void)
 {
-
-  return NULL;
-}
-
-CFTimeZoneRef
-CFTimeZoneCopySystem (void)
-{
-  return NULL; /* FIXME */
+  CFTimeZoneRef ret;
+  
+  GSMutexLock (&_kCFTimeZoneLock);
+  if (_kCFTimeZoneDefault == NULL)
+    _kCFTimeZoneDefault = CFRetain (CFTimeZoneCopySystem());
+  ret = CFRetain (_kCFTimeZoneDefault);
+  GSMutexUnlock (&_kCFTimeZoneLock);
+  
+  return ret;
 }
 
 void
@@ -328,10 +486,10 @@ CFTimeZoneSetDefault (CFTimeZoneRef tz)
   GSMutexUnlock (&_kCFTimeZoneLock);
 }
 
-CFArrayRef
-CFTimeZoneCopyKnownNames (void)
+CFTimeZoneRef
+CFTimeZoneCopySystem (void)
 {
-  return NULL;
+  return NULL; /* FIXME */
 }
 
 void
@@ -346,6 +504,18 @@ CFTimeZoneResetSystem (void)
   GSMutexUnlock (&_kCFTimeZoneLock);
 }
 
+CFArrayRef
+CFTimeZoneCopyKnownNames (void)
+{
+  return NULL; /* FIXME */
+}
+
+CFDictionaryRef
+CFTimeZoneCopyAbbreviationDictionary (void)
+{
+  return NULL; /* FIXME */
+}
+
 void
 CFTimeZoneSetAbbreviationDictionary (CFDictionaryRef dict)
 {
@@ -354,54 +524,4 @@ CFTimeZoneSetAbbreviationDictionary (CFDictionaryRef dict)
     CFRelease (_kCFTimeZoneAbbreviations);
   _kCFTimeZoneAbbreviations = (CFDictionaryRef)CFRetain (dict);
   GSMutexUnlock (&_kCFTimeZoneLock);
-}
-
-CFStringRef
-CFTimeZoneGetName (CFTimeZoneRef tz)
-{
-  return tz->_name;
-}
-
-CFStringRef
-CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
-  CFLocaleRef locale)
-{
-  return NULL;
-}
-
-CFDataRef
-CFTimeZoneGetData (CFTimeZoneRef tz)
-{
-  return tz->_data;
-}
-
-CFTimeInterval
-CFTimeZoneGetSecondsFromGMT (CFTimeZoneRef tz, CFAbsoluteTime at)
-{
-  return 0.0; /* FIXME */
-}
-
-Boolean
-CFTimeZoneIsDaylightSavingTime (CFTimeZoneRef tz, CFAbsoluteTime at)
-{
-  return false; /* FIXME */
-}
-
-CFTimeInterval
-CFTimeZoneGetDaylightSavingTimeOffset (CFTimeZoneRef tz, CFAbsoluteTime at)
-{
-  return 0.0; /* FIXME */
-}
-
-CFAbsoluteTime
-CFTimeZoneGetNextDaylightSavingTimeTransition (CFTimeZoneRef tz,
-  CFAbsoluteTime at)
-{
-  return 0.0; /* FIXME */
-}
-
-CFTypeID
-CFTimeZoneGetTypeID (void)
-{
-  return _kCFTimeZoneTypeID;
 }

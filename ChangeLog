@@ -1,3 +1,13 @@
+2012-04-10 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFTimeZone.c: Add code to search transition times.
+	* Source/GSPrivate.h: Declare GSBSearch() to perform bsearches 
+	on C arrays.
+	* Source/common.mk:
+	* Source/GSFunctions.c: New file for functions that work on C types.
+	* Tests/CFTimeZone/create.m: Move from here...
+	* Tests/CFTimeZone/basic.m: ...to here and new tests.
+
 2012-04-08 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFTimeZone.c: Start implementing CFTimeZone.

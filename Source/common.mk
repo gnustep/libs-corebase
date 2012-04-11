@@ -35,6 +35,7 @@ COREBASE_C_FILES = \
   CFUUID.c \
   CFXMLNode.c \
   CFXMLParser.c \
+  GSFunctions.c \
   GSHashTable.c
 
 COREBASE_HEADER_FILES = \
