@@ -29,5 +29,16 @@ int main (void)
   CFRelease (str);
   CFRelease (str2);
   
+  str = CFURLCreateStringByAddingPercentEscapes (NULL, urlStr, NULL,
+    CFSTR("nm/."), kCFStringEncodingUTF8);
+  PASS_CFEQ(str, CFSTR("http:%2F%2Fwww%2Eg%6Eustep%2Eorg%2FTest%20file%2Eht%6Dl"),
+    "Correct characters escaped.");
+  
+  str2 = CFURLCreateStringByReplacingPercentEscapes (NULL, str, CFSTR(""));
+  PASS_CFEQ(str2, urlStr, "Percent escapes replaced correctly.");
+  
+  CFRelease (str);
+  CFRelease (str2);
+  
   return 0;
 }

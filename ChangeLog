@@ -1,5 +1,10 @@
 2012-04-11 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFURL.c: Fix bug in CFURL string percent unescaping.
+	* Tests/CFURL/escaping.m: Added more tests.
+
+2012-04-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFArray.c: Fix bug in CFArrayGetFirstIndexOfValue().
 	* Tests/CFArray/create.m:
 	* Tests/CFArray/mutablearray.m: Add tests.
