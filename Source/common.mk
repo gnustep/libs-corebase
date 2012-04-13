@@ -32,6 +32,7 @@ COREBASE_C_FILES = \
   CFTimeZone.c \
   CFTree.c \
   CFURL.c \
+  CFURLAccess.c \
   CFUUID.c \
   CFXMLNode.c \
   CFXMLParser.c \
@@ -66,6 +67,7 @@ COREBASE_HEADER_FILES = \
   CFTimeZone.h \
   CFTree.h \
   CFURL.h \
+  CFURLAccess.h \
   CFUUID.h \
   CFXMLNode.h \
   CFXMLParser.h

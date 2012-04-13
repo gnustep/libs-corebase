@@ -1,4 +1,10 @@
-2012-04-11 Stefan Bidigaray <stefanbidi@gmail.com>
+2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFURLAccess.h:
+	* Source/CFURLAccess.c:
+	* Source/common.mk: Add CFURLAccess skeleton.
+
+2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFURL.c:
 	* Source/CFStringFormat.c:
