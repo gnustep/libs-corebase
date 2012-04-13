@@ -45,18 +45,18 @@ typedef uintptr_t uintmax_t;
 #define CF_FMT_FLAG_PAD        (1<<3)
 #define CF_FMT_FLAG_GROUP_SEP  (1<<4)
 
-#define CF_FMT_IS_FLAG(c) (c) == CHAR_PLUS \
-  || (c) == CHAR_MINUS \
-  || (c) == CHAR_NUMBER \
-  || (c) == CHAR_ZERO
-#define CF_FMT_IS_LENGTH(c) (c) == CHAR_CAP_L \
-  || (c) == CHAR_H \
-  || (c) == CHAR_J \
-  || (c) == CHAR_L \
-  || (c) == CHAR_Q \
-  || (c) == CHAR_T \
-  || (c) == CHAR_Z
-#define CHAR_IS_CAPS(c) (c) >= 0x0041 && (c) <= 0x005A
+#define CF_FMT_IS_FLAG(c) (c) == '+' \
+  || (c) == '-' \
+  || (c) == '#' \
+  || (c) == '0'
+#define CF_FMT_IS_LENGTH(c) (c) == 'L' \
+  || (c) == 'h' \
+  || (c) == 'j' \
+  || (c) == 'l' \
+  || (c) == 'q' \
+  || (c) == 't' \
+  || (c) == 'z'
+#define CHAR_IS_CAPS(c) (c) >= 'A' && (c) <= 'Z'
 
 typedef enum
 {
@@ -430,8 +430,8 @@ CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
         value = (UInt64)arg->intValue;
     }
   
-#define TO_CAP_DIGIT(n) (n < 10 ? n + CHAR_ZERO : n - 10 + CHAR_CAP_A)
-#define TO_LOWER_DIGIT(n) (n < 10 ? n + CHAR_ZERO : n - 10 + CHAR_A)
+#define TO_CAP_DIGIT(n) (n < 10 ? n + '0' : n - 10 + 'A')
+#define TO_LOWER_DIGIT(n) (n < 10 ? n + '0' : n - 10 + 'a')
   do
     {
       int num = value % base;
@@ -441,13 +441,13 @@ CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
     } while (value != 0);
   
   while (length < spec->width) // pad
-    buffer[length++] = CHAR_ZERO;
+    buffer[length++] = '0';
   
   if (spec->flags & CF_FMT_FLAG_ALT)
     {
       if (base == 16)
-        buffer[length++] = spec->useCaps ? CHAR_CAP_X : CHAR_X;
-      buffer[length++] = CHAR_ZERO;
+        buffer[length++] = spec->useCaps ? 'X' : 'x';
+      buffer[length++] = '0';
     }
   
   left = buffer;
@@ -674,7 +674,7 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
   current = start;
   for(;;)
     {
-      while (current < end && *current != CHAR_PERCENT)
+      while (current < end && *current != '%')
         ++current;
       if (current == end)
         break;
@@ -701,13 +701,13 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
   count = 0;
   for (;;)
     {
-      while (current < end && *current != CHAR_PERCENT)
+      while (current < end && *current != '%')
         ++current;
       if (current == end)
         break;
       ++current; // Skip %
       
-      if (*current == CHAR_PERCENT) // Skip %%
+      if (*current == '%') // Skip %%
         {
           ++current;
           continue;
@@ -718,13 +718,13 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
         {
           if (CHAR_IS_DIGIT(*current))
             {
-              int num = *(current++) - CHAR_ZERO;
+              int num = *(current++) - '0';
               while (CHAR_IS_DIGIT(*current))
                 {
                   num *= 10;
-                  num += *(current++) - CHAR_ZERO;
+                  num += *(current++) - '0';
                 }
-              if (*current == CHAR_DOLLAR)
+              if (*current == '$')
                 {
                   callout = num - 1;
                   ++current;
@@ -732,11 +732,11 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
                     count = num;
                 }
             }
-          else if (CF_FMT_IS_FLAG(*current) || *current == CHAR_PERIOD)
+          else if (CF_FMT_IS_FLAG(*current) || *current == '.')
             {
               ++current;
             }
-          else if (*current == CHAR_ASTERISK)
+          else if (*current == '*')
             {
               typeList[pos] = CFIntegerType;
               pos += 1;
@@ -748,19 +748,19 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
             }
         }
       is64Bits[pos] = false;
-      if (*(current) == CHAR_H)
+      if (*(current) == 'h')
         {
           ++current;
-          if (*current == CHAR_H)
+          if (*current == 'h')
             ++current;
         }
-      else if (*(current) == CHAR_L)
+      else if (*(current) == 'l')
         {
           ++current;
 #if __LP64__
           is64Bits[pos] = true;
 #endif
-          if (*(current) == CHAR_L)
+          if (*(current) == 'l')
             {
 #if !__LP64__
               is64Bits[pos] = true;
@@ -845,13 +845,13 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
     {
       UniChar *revert = current;
       
-      num = *(current++) - CHAR_ZERO;
+      num = *(current++) - '0';
       while (CHAR_IS_DIGIT(*current))
         {
           num *= 10;
-          num += *(current++) - CHAR_ZERO;
+          num += *(current++) - '0';
         }
-      if (*current == CHAR_DOLLAR)
+      if (*current == '$')
         {
           ++current;
           info->spec.argPos = num - 1;
@@ -867,16 +867,16 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
     {
       switch (*current)
         {
-          case CHAR_PLUS:
+          case '+':
             info->spec.flags |= CF_FMT_FLAG_SIGN;
             break;
-          case CHAR_MINUS:
+          case '-':
             info->spec.flags |= CF_FMT_FLAG_LEFT_ALIGN;
             break;
-          case CHAR_NUMBER:
+          case '#':
             info->spec.flags |= CF_FMT_FLAG_ALT;
             break;
-          case CHAR_ZERO:
+          case '0':
             info->spec.flags |= CF_FMT_FLAG_PAD;
             break;
         }
@@ -886,15 +886,15 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
   /* Check width */
   if (CHAR_IS_DIGIT(*current))
     {
-      num = *(current++) - CHAR_ZERO;
+      num = *(current++) - '0';
       while (CHAR_IS_DIGIT(*current))
         {
           num *= 10;
-          num += *(current++) - CHAR_ZERO;
+          num += *(current++) - '0';
         }
       info->spec.width = num;
     }
-  else if (*current == CHAR_ASTERISK)
+  else if (*current == '*')
     {
       ++current;
       info->spec.width = argList[*arg].intValue;
@@ -902,20 +902,20 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
     }
   
   /* Check precision */
-  if (*current == CHAR_PERIOD)
+  if (*current == '.')
     {
       ++current;
       if (CHAR_IS_DIGIT(*current))
         {
-          num = *(current++) - CHAR_ZERO;
+          num = *(current++) - '0';
           while (CHAR_IS_DIGIT(*current))
             {
               num *= 10;
-              num += *(current++) - CHAR_ZERO;
+              num += *(current++) - '0';
             }
           info->spec.precision = num;
         }
-      else if (*current == CHAR_ASTERISK)
+      else if (*current == '*')
         {
           ++current;
           info->spec.precision = argList[*arg].intValue;
@@ -930,13 +930,13 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
   /* Check length */
   switch (*current)
     {
-      case CHAR_CAP_L:
+      case 'L':
         ++current;
         info->spec.length = CFLongDoubleLength;
         break;
-      case CHAR_H:
+      case 'h':
         ++current;
-        if (*current == CHAR_H)
+        if (*current == 'h')
           {
             ++current;
             info->spec.length = CFCharLength;
@@ -946,13 +946,13 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
             info->spec.length = CFShortLength;
           }
         break;
-      case CHAR_J:
+      case 'j':
         ++current;
         info->spec.length = CFIntMaxTLength;
         break;
-      case CHAR_L:
+      case 'l':
         ++current;
-        if (*current == CHAR_L)
+        if (*current == 'l')
           {
             ++current;
             info->spec.length = CFLongLongLength;
@@ -962,18 +962,18 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
             info->spec.length = CFLongLength;
           }
         break;
-      case CHAR_T:
+      case 't':
         ++current;
         info->spec.length = CFPtrDiffTLength;
         break;
-      case CHAR_Z:
+      case 'z':
         ++current;
         info->spec.length = CFSizeTLength;
         break;
     }
   
   /* Check type */
-  if (*current == CHAR_PERCENT)
+  if (*current == '%')
     {
       ++current;
       info->fmt = CFFormatPercent;
@@ -1042,7 +1042,7 @@ _CFStringAppendFormatAndArgumentsAux (CFMutableStringRef outputString,
   for (;;)
     {
       start = current;
-      while (current < end && *current != CHAR_PERCENT)
+      while (current < end && *current != '%')
         ++current;
       
       if (current != start)

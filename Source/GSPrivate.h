@@ -213,87 +213,26 @@ struct __CFConstantString
     { {0, 0, {1, 0, 0}}, (void*)str, sizeof(str) - 1, 0, NULL }; \
   DLL_EXPORT const CFStringRef var = (CFStringRef) & __ ## var ## __;
 
-#define CHAR_SPACE      0x0020
-#define CHAR_EXCLAMATION 0x0021
-#define CHAR_QUOTATION  0x0022
-#define CHAR_NUMBER     0x0023
-#define CHAR_DOLLAR     0x0024
-#define CHAR_PERCENT    0x0025
-#define CHAR_AMPERSAND  0x0026
-#define CHAR_APOSTROPHE 0x0027
-#define CHAR_L_PARANTHESIS 0x0028
-#define CHAR_R_PARANTHESIS 0x0029
-#define CHAR_ASTERISK   0x002A
-#define CHAR_PLUS       0x002B
-#define CHAR_COMMA      0x002C
-#define CHAR_MINUS      0x002D
-#define CHAR_PERIOD     0x002E
-#define CHAR_SLASH      0x002F
-
-#define CHAR_ZERO  0x0030
-#define CHAR_ONE   0x0031
-#define CHAR_TWO   0x0032
-#define CHAR_THREE 0x0033
-#define CHAR_FOUR  0x0034
-#define CHAR_FIVE  0x0035
-#define CHAR_SIX   0x0036
-#define CHAR_SEVEN 0x0037
-#define CHAR_EIGHT 0x0038
-#define CHAR_NINE  0x0039
-
-#define CHAR_COLON     0x003A
-#define CHAR_SEMICOLON 0x003B
-#define CHAR_LESS_THAN 0x003C
-#define CHAR_EQUAL     0x003D
-#define CHAR_GREATER_THAN 0x003E
-#define CHAR_QUESTION  0x003F
-#define CHAR_AT        0x0040
-
-#define CHAR_CAP_A 0x0041
-#define CHAR_CAP_F 0x0046
-#define CHAR_CAP_L 0x004C
-#define CHAR_CAP_X 0x0058
-#define CHAR_CAP_Z 0x005A
-
-#define CHAR_L_SQUARE_BRACKET 0x005B
-#define CHAR_BACKSLASH  0x005C
-#define CHAR_R_SQUARE_BRACKET 0x005D
-#define CHAR_CIRCUMFLEX 0x005E
-#define CHAR_LOW_LINE   0x005F
-#define CHAR_GRAVE      0x0060
-
-#define CHAR_A 0x0061
-#define CHAR_F 0x0066
-#define CHAR_H 0x0068
-#define CHAR_J 0x006A
-#define CHAR_L 0x006C
-#define CHAR_T 0x0074
-#define CHAR_V 0x0076
-#define CHAR_X 0x0078
-#define CHAR_Z 0x007A
-
-#define CHAR_L_BRACE 0x007B
-#define CHAR_VERTICAL_LINE 0x007C
-#define CHAR_R_BRACE 0x007D
-#define CHAR_TILDE   0x007E
-
-#define CHAR_IS_DIGIT(c) ((c) >= CHAR_ZERO && (c) <= CHAR_NINE)
+#define CHAR_IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
 #define CHAR_IS_HEX(c) (CHAR_IS_DIGIT(c) \
-  || ((c >= CHAR_CAP_A && c <= CHAR_CAP_F) || (c >= CHAR_A && c <= CHAR_F))
+  || ((c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'))
 #define CHAR_IS_ASCII(c) ((c) < 128)
-#define CHAR_IS_UPPER_CASE(c) ((c) >= CHAR_CAP_A && (c) <= CHAR_CAP_Z)
-#define CHAR_IS_LOWER_CASE(c) ((c) >= CHAR_A && (c) <= CHAR_Z)
+#define CHAR_IS_UPPER_CASE(c) ((c) >= 'A' && (c) <= 'Z')
+#define CHAR_IS_LOWER_CASE(c) ((c) >= 'a' && (c) <= 'z')
 #define CHAR_IS_ALPHA(c) (CHAR_IS_UPPER_CASE(c) || CHAR_IS_LOWER_CASE(c))
 
 
 CF_INLINE Boolean
 __CFStringEncodingIsSupersetOfASCII (CFStringEncoding encoding)
 {
+  if (encoding == kCFStringEncodingASCII)
+    return true;
+  
   switch (encoding & 0xF00)
     {
       case 0x100:
         return encoding == kCFStringEncodingUTF8 ? true : false;
-      case 0x000: // MacOS codepage
+      case 0x000: /* MacOS codepage */
         if (encoding == kCFStringEncodingMacJapanese
             || encoding == kCFStringEncodingMacArabic
             || encoding == kCFStringEncodingMacHebrew
@@ -301,12 +240,10 @@ __CFStringEncodingIsSupersetOfASCII (CFStringEncoding encoding)
             || encoding == kCFStringEncodingMacSymbol
             || encoding == kCFStringEncodingMacDingbats)
           return false;
-      case 0x200: // ISO-8859-*
-      case 0x400: // DOS codepage
-      case 0x500: // Windows codepage
+      case 0x200: /* ISO-8859-* */
+      case 0x400: /* DOS codepage */
+      case 0x500: /* Windows codepage */
         return true;
-      case 0x600:
-        return encoding == kCFStringEncodingASCII ? true : false;
     }
   return false;
 }

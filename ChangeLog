@@ -1,5 +1,12 @@
 2012-04-11 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFURL.c:
+	* Source/CFStringFormat.c:
+	* Source/GSPrivate.h: Use ASCII characters directly instead of their 
+	numberical value.
+
+2012-04-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFURL.c: Fix bug in CFURL string percent unescaping.
 	* Tests/CFURL/escaping.m: Added more tests.
 

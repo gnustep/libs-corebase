@@ -30,12 +30,6 @@
  * difference is that RFC 3986 adds IPv6 address support, allowing
  * this implementation to be a little more future proof than if we were
  * using only RFC 2396.
- * 
- * FIXME
- * The last paragraph on section 3.2.2. Host of RFC 3986 mentions that
- * URI producers should transform non-ASCII DNS registered names to the
- * IDNA encoding.  ICU provides an IDNA API that can be used if something
- * like this needs to be done.
  */
 
 #include "CoreFoundation/CFRuntime.h"
@@ -51,24 +45,20 @@
 #define CFURL_DEFAULT_PATH_STYLE kCFURLPOSIXPathStyle
 #endif
 
-#define URL_IS_LEGAL(c) (c > CHAR_SPACE && c < 0x007F)
+#define URL_IS_LEGAL(c) (c > 0x0020 && c < 0x007F)
 #define URL_IS_SCHEME(c) (CHAR_IS_ALPHA(c) || CHAR_IS_DIGIT(c) \
-  || c == CHAR_PLUS || c == CHAR_MINUS || c == CHAR_PERIOD)
-#define URL_IS_PCHAR(c) (URL_IS_UNRESERVED(c) || c == CHAR_PERCENT \
-  || URL_IS_SUB_DELIMS(c) || c == CHAR_COLON || c == CHAR_AT)
+  || c == '+' || c == '-' || c == '.')
+#define URL_IS_PCHAR(c) (URL_IS_UNRESERVED(c) || c == '%' \
+  || URL_IS_SUB_DELIMS(c) || c == ':' || c == '@')
 
 #define URL_IS_RESERVED(c) (URL_IS_GEN_DELIMS(c) || URL_IS_SUB_DELIMS(c))
 #define URL_IS_UNRESERVED(c) (CHAR_IS_ALPHA(c) || CHAR_IS_DIGIT(c) \
-  || c == CHAR_MINUS || c == CHAR_PERIOD || c == CHAR_LOW_LINE \
-  || c == CHAR_TILDE)
+  || c == '-' || c == '.' || c == '_' || c == '~')
 
-#define URL_IS_GEN_DELIMS(c) (c == CHAR_COLON || c == CHAR_SLASH \
-  || c == CHAR_QUESTION || c == CHAR_NUMBER || c == CHAR_L_SQUARE_BRACKET \
-  || c == CHAR_R_SQUARE_BRACKET || c == CHAR_AT)
-#define URL_IS_SUB_DELIMS(c) (c == CHAR_EXCLAMATION || c == CHAR_DOLLAR \
-  || c == CHAR_AMPERSAND || c == CHAR_APOSTROPHE || c == CHAR_L_PARANTHESIS \
-  || c == CHAR_ASTERISK || c == CHAR_PLUS || c == CHAR_COMMA \
-  || c == CHAR_SEMICOLON || c == CHAR_EQUAL)
+#define URL_IS_GEN_DELIMS(c) (c == ':' || c == '/' || c == '?' \
+  || c == '#' || c == '[' || c == ']' || c == '@')
+#define URL_IS_SUB_DELIMS(c) (c == '!' || c == '$' || c == '&' || c == '\'' \
+  || c == '(' || c == '*' || c == '+' || c == ',' || c == ';' || c == '=')
 
 static CFTypeID _kCFURLTypeID = 0;
 
@@ -77,8 +67,8 @@ struct __CFURL
   CFRuntimeBase _parent;
   CFStringRef   _urlString;
   CFURLRef      _baseURL;
-  CFStringEncoding _encoding; // The encoding of the escape characters
-  CFRange       _ranges[12]; // CFURLComponentType ranges
+  CFStringEncoding _encoding; /* The encoding of the escape characters */
+  CFRange       _ranges[12]; /* CFURLComponentType ranges */
 };
 
 enum
@@ -240,6 +230,7 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
    */
   /* Scheme component */
   c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
+  hasScheme = false;
   if (CHAR_IS_ALPHA(c))
     {
       do
@@ -247,7 +238,7 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
           c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
         } while (URL_IS_SCHEME(c));
       
-      if (c == CHAR_COLON)
+      if (c == ':')
         {
           ranges[kCFURLComponentScheme - 1] =
             CFRangeMake (start, idx - start - 1);
@@ -255,8 +246,7 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
         }
       else
         {
-          idx = 0; // Start over...
-          hasScheme = false;
+          idx = 0; /* Start over... */
         }
       
       start = idx;
@@ -275,8 +265,7 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
    */
   /* Net Location component */
   hasNetLoc = false;
-  if (c == CHAR_SLASH
-      && CFStringGetCharacterFromInlineBuffer (&iBuffer, idx) == CHAR_SLASH)
+  if (c == '/' && CFStringGetCharacterFromInlineBuffer (&iBuffer, idx) == '/')
     {
       /* "//" authority path-abempty */
       CFIndex end;
@@ -306,7 +295,7 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
            * to be part of the password. This behavior needs to be tested.
            */
           c = CFStringGetCharacterFromInlineBuffer (&iBuffer, i++);
-          if (c == CHAR_AT)
+          if (c == '@')
             {
               CFIndex userInfoEnd;
               
@@ -318,7 +307,7 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
               while (i < userInfoEnd)
                 {
                   c = CFStringGetCharacterFromInlineBuffer (&iBuffer, i++);
-                  if (c == CHAR_COLON)
+                  if (c == ':')
                     {
                       ranges[kCFURLComponentPassword - 1] =
                         CFRangeMake (i, userInfoEnd - i - 1);
@@ -334,13 +323,13 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
         }
       
       i = end;
-      idx = end; // Set idx before we move it to search for a port.
+      idx = end; /* Set idx before we move it to search for a port. */
       
       /* Try to find a port. */
       while (i > start)
         {
           c = CFStringGetCharacterFromInlineBuffer (&iBuffer, --i);
-          if (c == CHAR_COLON)
+          if (c == ':')
             {
               ranges[kCFURLComponentPort - 1] = CFRangeMake (i, end - i);
               end = i;
@@ -350,12 +339,12 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
       /* Whatever's left is the host name. */
       ranges[kCFURLComponentHost - 1] = CFRangeMake (start, end - start - 1);
       
-      start = idx - 1; // Shift back to just before '/'
+      start = idx - 1; /* Shift back to just before '/' */
       c = CFStringGetCharacterFromInlineBuffer (&iBuffer, start);
     }
   
   /* Path component */
-  while ((URL_IS_PCHAR(c) || c == CHAR_SLASH) && c != CHAR_SEMICOLON)
+  while ((URL_IS_PCHAR(c) || c == '/') && c != ';')
     c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
   
   ranges[kCFURLComponentPath - 1] = CFRangeMake (start, idx - start - 1);
@@ -363,13 +352,13 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
     resourceSpecifierStart = start;
   
   /* Parameter String component */
-  if (c == CHAR_SEMICOLON)
+  if (c == ';')
     {
       start = idx;
       do
         {
           c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
-        } while (URL_IS_PCHAR(c) || c == CHAR_SLASH);
+        } while (URL_IS_PCHAR(c) || c == '/');
       
       ranges[kCFURLComponentParameterString - 1] =
         CFRangeMake (start, idx - start - 1);
@@ -377,13 +366,13 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
     }
   
   /* Query component */
-  if (c == CHAR_QUESTION)
+  if (c == '?')
     {
       start = idx;
       do
         {
           c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
-        } while (URL_IS_PCHAR(c) || c == CHAR_SLASH || c == CHAR_QUESTION);
+        } while (URL_IS_PCHAR(c) || c == '/' || c == '?');
       
       ranges[kCFURLComponentQuery - 1] = CFRangeMake (start, idx - start - 1);
       if (resourceSpecifierStart == kCFNotFound)
@@ -391,13 +380,13 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
     }
   
   /* Fragment component */
-  if (c == CHAR_NUMBER)
+  if (c == '#')
     {
       start = idx;
       do
         {
           c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
-        } while (URL_IS_PCHAR(c) || c == CHAR_SLASH || c == CHAR_QUESTION);
+        } while (URL_IS_PCHAR(c) || c == '/' || c == '?');
       
       ranges[kCFURLComponentFragment - 1] = CFRangeMake (start, idx-start-1);
       if (resourceSpecifierStart == kCFNotFound)
@@ -444,7 +433,7 @@ CFURLCreate_internal (CFAllocatorRef alloc, CFStringRef string,
       memcpy (new->_ranges, ranges, sizeof(ranges));
       
       if (CFStringGetCharacterAtIndex(new->_urlString,
-            CFStringGetLength(new->_urlString) - 1) == CHAR_SLASH)
+            CFStringGetLength(new->_urlString) - 1) == '/')
         CFURLSetIsDirectoryPath (new);
     }
   
@@ -471,14 +460,14 @@ CFURLStringAppendByRemovingDotSegments (CFMutableStringRef string,
   pathStart = CFStringGetLength (string);
   
   /* Skip any '../' and './' */
-  if (buffer < bufferEnd && *buffer == CHAR_PERIOD)
+  if (buffer < bufferEnd && *buffer == '.')
     {
-      if ((buffer + 1) < bufferEnd && buffer[1] == CHAR_SLASH)
+      if ((buffer + 1) < bufferEnd && buffer[1] == '/')
         {
           buffer += 1;
         }
-      else if ((buffer + 2) < bufferEnd && buffer[1] == CHAR_PERIOD
-          && buffer[2] == CHAR_SLASH)
+      else if ((buffer + 2) < bufferEnd && buffer[1] == '.'
+          && buffer[2] == '/')
         {
           buffer += 2;
         }
@@ -488,16 +477,16 @@ CFURLStringAppendByRemovingDotSegments (CFMutableStringRef string,
   /* Start checking for '/.' and '/..' */
   while (buffer < bufferEnd)
     {
-      if ((buffer + 1) < bufferEnd && buffer[0] == CHAR_SLASH
-          && buffer[1] == CHAR_PERIOD)
+      if ((buffer + 1) < bufferEnd && buffer[0] == '/'
+          && buffer[1] == '.')
         {
           /* Skip '/./' or '/.'EOS */
-          if (((buffer + 2) < bufferEnd && buffer[2] == CHAR_SLASH)
+          if (((buffer + 2) < bufferEnd && buffer[2] == '/')
               || (buffer + 2) == bufferEnd)
             {
               if ((buffer + 2) == bufferEnd)
                 {
-                  buffer[1] = CHAR_SLASH;
+                  buffer[1] = '/';
                   buffer += 1;
                 }
               else
@@ -506,9 +495,9 @@ CFURLStringAppendByRemovingDotSegments (CFMutableStringRef string,
                 }
             }
           /* Skip '/../' or '/..'EOS */
-          else if (((buffer + 3) < bufferEnd && buffer[2] == CHAR_PERIOD
-                && buffer[3] == CHAR_SLASH)
-                || ((buffer + 3) == bufferEnd && buffer[2] == CHAR_PERIOD))
+          else if (((buffer + 3) < bufferEnd && buffer[2] == '.'
+                && buffer[3] == '/')
+                || ((buffer + 3) == bufferEnd && buffer[2] == '.'))
             {
               CFStringInlineBuffer iBuffer;
               UniChar c;
@@ -522,7 +511,7 @@ CFURLStringAppendByRemovingDotSegments (CFMutableStringRef string,
               while (i >= 0)
                 {
                   c = CFStringGetCharacterFromInlineBuffer (&iBuffer, i--);
-                  if (c == CHAR_SLASH)
+                  if (c == '/')
                     break;
                 }
               CFStringDelete (string,
@@ -530,7 +519,7 @@ CFURLStringAppendByRemovingDotSegments (CFMutableStringRef string,
               
               if ((buffer + 3) == bufferEnd)
                 {
-                  buffer[2] = CHAR_SLASH;
+                  buffer[2] = '/';
                   buffer += 2;
                 }
               else
@@ -545,7 +534,7 @@ CFURLStringAppendByRemovingDotSegments (CFMutableStringRef string,
               do
                 {
                   buffer++;
-                } while (buffer < bufferEnd && *buffer != CHAR_SLASH);
+                } while (buffer < bufferEnd && *buffer != '/');
               CFStringAppendCharacters (string, bufferStart,
                 buffer - bufferStart);
             }
@@ -556,7 +545,7 @@ CFURLStringAppendByRemovingDotSegments (CFMutableStringRef string,
           do
             {
               buffer++;
-            } while (buffer < bufferEnd && *buffer != CHAR_SLASH);
+            } while (buffer < bufferEnd && *buffer != '/');
           CFStringAppendCharacters (string, bufferStart, buffer - bufferStart);
         }
       bufferStart = buffer;
@@ -726,7 +715,7 @@ CFURLCopyAbsoluteURL (CFURLRef relativeURL)
               else
                 {
                   if (CFStringGetCharacterAtIndex(relString, range.location)
-                      == CHAR_SLASH)
+                      == '/')
                     {
                       CFStringGetCharacters (relString, range, buffer);
                       CFURLStringAppendByRemovingDotSegments (targetString,
@@ -743,12 +732,12 @@ CFURLCopyAbsoluteURL (CFURLRef relativeURL)
                           CFStringGetCharacters (baseString, baseRange, buffer);
                           
                           if (baseRange.length > 0
-                              && buffer[baseRange.length - 1] != CHAR_SLASH)
+                              && buffer[baseRange.length - 1] != '/')
                             {
                               /* Remove last path component */
                               CFIndex count;
                               count = baseRange.length - 1;
-                              while (buffer[--count] != CHAR_SLASH);
+                              while (buffer[--count] != '/');
                               baseRange.length = count + 1;
                             }
                         }
@@ -796,7 +785,7 @@ CFURLCreateAbsoluteURLWithBytes (CFAllocatorRef alloc,
   const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding,
   CFURLRef baseURL, Boolean useCompatibilityMode)
 {
-  // FIXME: what to do with useCompatibilityMode?
+  /* FIXME: what to do with useCompatibilityMode? */
   CFURLRef url;
   CFStringRef str;
   
@@ -817,71 +806,43 @@ CFURLCreateAbsoluteURLWithBytes (CFAllocatorRef alloc,
 }
 
 CFURLRef
-CFURLCreateByResolvingBookmarkData (CFAllocatorRef alloc, CFDataRef bookmark,
-  CFURLBookmarkResolutionOptions options, CFURLRef relativeToURL,
-  CFArrayRef resourcePropertiesToInclude, Boolean *isStale, CFErrorRef *error)
-{
-  return NULL; // FIXME: ???
-}
-
-CFURLRef
 CFURLCreateCopyAppendingPathComponent (CFAllocatorRef alloc, CFURLRef url,
   CFStringRef pathComponent, Boolean isDirectory)
 {
-  CFURLRef ret;
-  CFMutableStringRef str;
-  
-  str = CFStringCreateMutableCopy (alloc, 0, CFURLGetString(url));
-  // FIXME: check if last component is dir or file...
-  CFStringAppend (str, pathComponent);
-  
-  ret = CFURLCreate_internal (alloc, str, url->_baseURL, url->_encoding);
-  CFRelease (str);
-  
-  return ret;
+  return NULL; /* FIXME */
 }
 
 CFURLRef
 CFURLCreateCopyAppendingPathExtension (CFAllocatorRef alloc, CFURLRef url,
   CFStringRef extension)
 {
-  CFURLRef ret;
-  CFMutableStringRef str;
-  
-  str = CFStringCreateMutableCopy (alloc, 0, CFURLGetString(url));
-  // FIXME: check if last component is dir or file...
-  CFStringAppend (str, extension);
-  
-  ret = CFURLCreate_internal (alloc, str, url->_baseURL, url->_encoding);
-  CFRelease (str);
-  
-  return ret;
+  return NULL; /* FIXME */
 }
 
 CFURLRef
 CFURLCreateCopyDeletingLastPathComponent (CFAllocatorRef alloc, CFURLRef url)
 {
-  return NULL;
+  return NULL; /* FIXME */
 }
 
 CFURLRef
 CFURLCreateCopyDeletingPathExtension (CFAllocatorRef alloc, CFURLRef url)
 {
-  return NULL;
+  return NULL; /* FIXME */
 }
 
 CFURLRef
 CFURLCreateFilePathURL (CFAllocatorRef alloc, CFURLRef url,
   CFErrorRef *error)
 {
-  return NULL;
+  return NULL; /* FIXME */
 }
 
 CFURLRef
 CFURLCreateFileReferenceURL (CFAllocatorRef alloc, CFURLRef url,
   CFErrorRef *error)
 {
-  return NULL; // FIXME ???
+  return NULL; /* FIXME ??? */
 }
 
 CFURLRef
@@ -969,7 +930,7 @@ static CFStringRef
 CFURLCreateStringFromHFSPathStyle (CFAllocatorRef alloc,
   CFStringRef filePath, Boolean isAbsolute, Boolean isDirectory)
 {
-  return NULL; // FIXME
+  return NULL; /* FIXME */
 }
 
 static CFStringRef
@@ -987,10 +948,10 @@ CFURLCreateStringFromWindowsPathStyle (CFAllocatorRef alloc,
   CFRelease (tmp);
   
   idx = 0;
-  if (isAbsolute) // Instead empty string to get leading '/'
+  if (isAbsolute) /* Instead empty string to get leading '/' */
     {
       CFArrayInsertValueAtIndex (comps, 0, CFSTR(""));
-      idx = 2; // Skip drive letter
+      idx = 2; /* Skip drive letter */
     }
   
   count = CFArrayGetCount (comps);
@@ -1009,7 +970,7 @@ CFURLCreateStringFromWindowsPathStyle (CFAllocatorRef alloc,
       ++idx;
     }
   
-  // Add '/' for directories
+  /* Add '/' for directories */
   if (isDirectory
       && !CFEqual(CFArrayGetValueAtIndex(comps, idx - 1), CFSTR("")))
     CFArrayInsertValueAtIndex (comps, count, CFSTR(""));
@@ -1033,14 +994,14 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
   switch (style)
     {
       case kCFURLPOSIXPathStyle:
-        abs = (CFStringGetCharacterAtIndex(filePath, 0) == CHAR_SLASH);
+        abs = (CFStringGetCharacterAtIndex(filePath, 0) == '/');
         path = CFURLCreateStringByAddingPercentEscapes (alloc, filePath,
           NULL, NULL, kCFStringEncodingUTF8);
         if (path != filePath)
           CFRetain (path);
         filePathLen = CFStringGetLength(path);
         if (isDirectory
-            && CFStringGetCharacterAtIndex(path, filePathLen) != CHAR_SLASH)
+            && CFStringGetCharacterAtIndex(path, filePathLen) != '/')
           {
             CFStringRef tmp;
             tmp = CFStringCreateWithFormat (alloc, NULL, CFSTR("%@/"), path);
@@ -1052,13 +1013,13 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
         /* FIXME: I believe HFS path style is like POSIX with ':' instead
          * of '/' as the separator.
          */
-        abs = (CFStringGetCharacterAtIndex(filePath, 0) == CHAR_COLON);
+        abs = (CFStringGetCharacterAtIndex(filePath, 0) == ':');
         path = CFURLCreateStringFromHFSPathStyle (alloc, filePath, abs,
           isDirectory);
         break;
       case kCFURLWindowsPathStyle:
-        abs = (CFStringGetCharacterAtIndex(filePath, 1) == CHAR_COLON
-          && CFStringGetCharacterAtIndex(filePath, 2) == CHAR_BACKSLASH);
+        abs = (CFStringGetCharacterAtIndex(filePath, 1) == ':'
+          && CFStringGetCharacterAtIndex(filePath, 2) == '\\');
         path = CFURLCreateStringFromWindowsPathStyle (alloc, filePath, abs,
           isDirectory);
         break;
@@ -1174,7 +1135,7 @@ CFURLCopyFileSystemPath (CFURLRef url, CFURLPathStyle style)
         fsPath, CFSTR(""), url->_encoding);
       len = CFStringGetLength (fsPath);
       /* Check for len == 1 in case the path is simply '/' */
-      if (len > 1 && CFStringGetCharacterAtIndex(fsPath, len - 1) == CHAR_SLASH)
+      if (len > 1 && CFStringGetCharacterAtIndex(fsPath, len - 1) == '/')
         {
           tmp = CFStringCreateWithSubstring (alloc, fsPath,
             CFRangeMake(0, len - 1));
@@ -1185,7 +1146,7 @@ CFURLCopyFileSystemPath (CFURLRef url, CFURLPathStyle style)
       switch (style)
         {
           case kCFURLPOSIXPathStyle:
-            // Do nothing.
+            /* Do nothing. */
             break;
           case kCFURLHFSPathStyle:
             {
@@ -1242,7 +1203,7 @@ CFURLCopyHostName (CFURLRef url)
 CFStringRef
 CFURLCopyLastPathComponent (CFURLRef url)
 {
-  return NULL; // FIXME
+  return NULL; /* FIXME */
 }
 
 CFStringRef
@@ -1301,7 +1262,7 @@ CFURLCopyPath (CFURLRef url)
 CFStringRef
 CFURLCopyPathExtension (CFURLRef url)
 {
-  return NULL; // FIXME
+  return NULL; /* FIXME */
 }
 
 CFStringRef
@@ -1352,7 +1313,7 @@ CFURLCopyStrictPath (CFURLRef url, Boolean *isAbsolute)
   path = CFURLCopyPath(url);
   if (path)
     {
-      if (CFStringGetCharacterAtIndex(path, 0) == CHAR_SLASH)
+      if (CFStringGetCharacterAtIndex(path, 0) == '/')
         {
           CFStringRef tmp;
           
@@ -1434,12 +1395,17 @@ CFURLCreateData (CFAllocatorRef alloc, CFURLRef url, CFStringEncoding encoding,
   return ret;
 }
 
+/* This is the maximum number of UTF-8 bytes needed to represent everything
+ * possible Unicode character
+ */
+#define MAX_BYTES 4
+
 static Boolean
 CFURLAppendPercentEscapedForCharacter (char **dst, UniChar c,
   CFStringEncoding enc)
 {
   CFIndex len;
-  char buffer[8]; // 8 characters should be more than enough for any encoding.
+  char buffer[MAX_BYTES];
   const UniChar *source;
   
   source = &c;
@@ -1573,11 +1539,6 @@ CFURLCreateStringByReplacingPercentEscapes (CFAllocatorRef alloc,
     origString, leaveEscaped, kCFStringEncodingUTF8);
 }
 
-/* This is the maximum number of UTF-8 bytes needed to represent everything
- * possible Unicode character
- */
-#define MAX_BYTES 4
-
 CF_INLINE char
 CFURLCharacterForPercentEscape (CFStringInlineBuffer *src, CFIndex *idx,
   CFStringEncoding enc)
@@ -1614,7 +1575,7 @@ CFURLCharacterForPercentEscape (CFStringInlineBuffer *src, CFIndex *idx,
         tmp |= c2 - 'a' + 10;
       
       bytes[j++] = tmp;
-    } while (CFStringGetCharacterFromInlineBuffer(src, i++) == CHAR_PERCENT
+    } while (CFStringGetCharacterFromInlineBuffer(src, i++) == '%'
              && j < MAX_BYTES);
   
   c = 0;
@@ -1647,7 +1608,7 @@ CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
   while (idx < sLength)
     {
       c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
-      if (c == CHAR_PERCENT && leaveEscaped && (idx + 2) < sLength)
+      if (c == '%' && leaveEscaped && (idx + 2) < sLength)
         {
           UniChar repChar;
           
@@ -1660,7 +1621,7 @@ CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
             }
           repChar = CFURLCharacterForPercentEscape (&iBuffer, &idx, encoding);
           if (CFURLStringContainsCharacter(leaveEscaped, repChar))
-            // Skip the '%'
+            /* Skip the '%' */
             (*dpos++) = c;
           else
             (*dpos++) = repChar;
@@ -1687,12 +1648,14 @@ CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
 CFStringRef
 CFURLGetString (CFURLRef url)
 {
+  CF_OBJC_FUNCDISPATCH0(_kCFURLTypeID, CFStringRef, url, "relativeString")
   return url->_urlString;
 }
 
 CFURLRef
 CFURLGetBaseURL (CFURLRef url)
 {
+  CF_OBJC_FUNCDISPATCH0(_kCFURLTypeID, CFStringRef, url, "baseURL")
   return url->_baseURL;
 }
 
@@ -1700,20 +1663,20 @@ Boolean
 CFURLGetFileSystemRepresentation (CFURLRef url, Boolean resolveAgainstBase,
   UInt8 *buffer, CFIndex bufLen)
 {
-  return false; // FIXME
+  return false; /* FIXME */
 }
 
 CFIndex
 CFURLGetBytes (CFURLRef url, UInt8 *buffer, CFIndex bufLen)
 {
-  return 0; // FIXME
+  return 0; /* FIXME */
 }
 
 CFRange
 CFURLGetByteRangeForComponent (CFURLRef url, CFURLComponentType comp,
   CFRange *rangeIncludingSeparators)
 {
-  return CFRangeMake (kCFNotFound, 0); // FIXME
+  return CFRangeMake (kCFNotFound, 0); /* FIXME */
 }
 
 Boolean
@@ -1752,14 +1715,14 @@ CFDictionaryRef
 CFURLCreateResourcePropertiesForKeysFromBookmarkData (CFAllocatorRef alloc,
   CFArrayRef resourcePropertiesToReturn, CFDataRef bookmark)
 {
-  return NULL; // FIXME: ???
+  return NULL; /* FIXME */
 }
 
 CFTypeRef
 CFURLCreateResourcePropertyForKeyFromBookmarkData (CFAllocatorRef alloc,
   CFStringRef resourcePropertyKey, CFDataRef bookmark)
 {
-  return NULL; // FIXME: ???
+  return NULL; /* FIXME */
 }
 
 Boolean
@@ -1783,31 +1746,39 @@ CFURLSetTemporaryResourcePropertyForKey (CFURLRef url, CFStringRef key,
   
 }
 
+CFURLRef
+CFURLCreateByResolvingBookmarkData (CFAllocatorRef alloc, CFDataRef bookmark,
+  CFURLBookmarkResolutionOptions options, CFURLRef relativeToURL,
+  CFArrayRef resourcePropertiesToInclude, Boolean *isStale, CFErrorRef *error)
+{
+  return NULL; /* FIXME */
+}
+
 CFDataRef
 CFURLCreateBookmarkData (CFAllocatorRef alloc, CFURLRef url,
   CFURLBookmarkCreationOptions options, CFArrayRef resourcePropertiesToInclude,
   CFURLRef relativeToURL, CFErrorRef *error)
 {
-  return NULL; // FIXME: ???
+  return NULL; /* FIXME */
 }
 
 CFDataRef
 CFURLCreateBookmarkDataFromAliasRecord (CFAllocatorRef alloc,
   CFDataRef aliasRecordDataRef)
 {
-  return NULL; // FIXME: ???
+  return NULL; /* FIXME */
 }
 
 CFDataRef
 CFURLCreateBookmarkDataFromFile (CFAllocatorRef alloc, CFURLRef fileURL,
   CFErrorRef *errorRef)
 {
-  return NULL; // FIXME: ???
+  return NULL; /* FIXME */
 }
 
 Boolean
 CFURLWriteBookmarkDataToFile (CFDataRef bookmarkRef, CFURLRef fileURL,
   CFURLBookmarkFileCreationOptions options, CFErrorRef *errorRef)
 {
-  return false; // FIXME: ???
+  return false; /* FIXME */
 }
