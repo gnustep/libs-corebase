@@ -65,7 +65,7 @@ struct CFBinaryHeapCompareContext
   CFAllocatorCopyDescriptionCallBack copyDescription;
 };
 
-const CFBinaryHeapCallBacks kCFStringBinaryHeapCallBacks;
+CF_EXPORT const CFBinaryHeapCallBacks kCFStringBinaryHeapCallBacks;
 
 
 

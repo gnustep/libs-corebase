@@ -32,6 +32,15 @@
 
 static CFTypeID _kCFBinaryHeapTypeID = 0;
 
+static const CFBinaryHeapCallBacks _kCFNullBinaryHeapCallBacks =
+{
+  0,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
 struct __CFBinaryHeap
 {
   CFRuntimeBase _parent;
@@ -48,7 +57,7 @@ CFBinaryHeapFinalize (CFTypeRef cf)
   CFBinaryHeapRef heap = (CFBinaryHeapRef)cf;
   CFAllocatorRef allocator = CFGetAllocator(heap);
   
-  if (heap->_context.info && heap->_context.release)
+  if (heap->_context.release)
     heap->_context.release (heap->_context.info);
   
   if (heap->_callBacks->release)
@@ -61,6 +70,45 @@ CFBinaryHeapFinalize (CFTypeRef cf)
   CFAllocatorDeallocate (allocator, (void*)heap->_values);
 }
 
+static Boolean
+CFBinaryHeapEqual (CFTypeRef cf1, CFTypeRef cf2)
+{
+  CFBinaryHeapRef heap1 = (CFBinaryHeapRef)cf1;
+  CFBinaryHeapRef heap2 = (CFBinaryHeapRef)cf2;
+  
+  if (heap1->_count != heap2->_count
+      || heap1->_callBacks->compare != heap2->_callBacks->compare
+      || heap1->_context.info != heap2->_context.info)
+    return false;
+  
+  if (heap1->_count > 0)
+    {
+      CFIndex idx;
+      Boolean result;
+      CFBinaryHeapCompareCallBack compare = heap1->_callBacks->compare;
+      
+      for (idx = 0 ; idx < heap1->_count ; ++idx)
+        {
+          if (compare)
+            result = (compare(heap1->_values[idx], heap2->_values[idx],
+              heap1->_context.info) == 0);
+          else
+            result = ((heap1->_values[idx] == heap2->_values[idx]) == false);
+          
+          if (result == false)
+            return false;
+        }
+    }
+  
+  return true;
+}
+
+static CFHashCode
+CFBinaryHeapHash (CFTypeRef cf)
+{
+  return (CFHashCode)((CFBinaryHeapRef)cf)->_count;
+}
+
 static CFRuntimeClass CFBinaryHeapClass =
 {
   0,
@@ -68,8 +116,8 @@ static CFRuntimeClass CFBinaryHeapClass =
   NULL,
   NULL,
   CFBinaryHeapFinalize,
-  NULL,
-  NULL,
+  CFBinaryHeapEqual,
+  CFBinaryHeapHash,
   NULL,
   NULL
 };
@@ -87,17 +135,24 @@ CFBinaryHeapGetTypeID (void)
   return _kCFBinaryHeapTypeID;
 }
 
-#define CFBINARYHEAP_SIZE sizeof(struct __CFBinaryHeap) - sizeof(CFRuntimeBase)
-#define _kCFBinaryHeapMinimumSize 16
-
-static const CFBinaryHeapCallBacks _kCFNullBinaryHeapCallBacks =
+CFIndex
+CFBinaryHeapGetCount (CFBinaryHeapRef heap)
 {
-  0,
-  NULL,
-  NULL,
-  NULL,
-  NULL
-};
+  return heap->_count;
+}
+
+void
+CFBinaryHeapApplyFunction (CFBinaryHeapRef heap,
+  CFBinaryHeapApplierFunction applier, void *context)
+{
+  CFIndex i;
+
+  for (i = 0 ; i < heap->_count ; i++)
+    applier(heap->_values[i], context);
+}
+
+#define CFBINARYHEAP_SIZE sizeof(struct __CFBinaryHeap) - sizeof(CFRuntimeBase)
+#define DEFAULT_HEAP_CAPACITY 15 /* Equivalent to 3 levels */
 
 CFBinaryHeapRef
 CFBinaryHeapCreate (CFAllocatorRef alloc, CFIndex capacity,
@@ -110,8 +165,18 @@ CFBinaryHeapCreate (CFAllocatorRef alloc, CFIndex capacity,
     CFBINARYHEAP_SIZE, 0);
   if (new)
     {
-      if (capacity < _kCFBinaryHeapMinimumSize)
-        capacity = _kCFBinaryHeapMinimumSize;
+      /* Make sure we always have at least 3 complete levels */
+      if (capacity < DEFAULT_HEAP_CAPACITY)
+        {
+          capacity = DEFAULT_HEAP_CAPACITY;
+        }
+      else
+        {
+          CFIndex tmp = DEFAULT_HEAP_CAPACITY;
+          while (capacity > tmp)
+            tmp = (tmp << 1) + 1;
+          capacity = tmp;
+        }
       
       new->_values = CFAllocatorAllocate (alloc, sizeof(void*) * capacity, 0);
       memset (new->_values, 0, sizeof(void*) * capacity);
@@ -140,39 +205,110 @@ CFBinaryHeapRef
 CFBinaryHeapCreateCopy (CFAllocatorRef alloc, CFIndex capacity,
   CFBinaryHeapRef heap)
 {
-  return CFBinaryHeapCreate (alloc, capacity, heap->_callBacks,
+  CFBinaryHeapRef ret;
+  
+  ret = CFBinaryHeapCreate (alloc, capacity, heap->_callBacks,
     &heap->_context);
+  memcpy (ret->_values, heap->_values, sizeof(void*) * heap->_count);
+  
+  return ret;
+}
+
+CF_INLINE void
+CFBinaryHeapCheckCapacityAndGrow (CFBinaryHeapRef heap)
+{
+  if (heap->_count == heap->_capacity)
+    {
+      CFIndex newCapacity = (heap->_capacity << 1) + 1;
+      
+      heap->_values = CFAllocatorReallocate (CFGetAllocator(heap),
+        heap->_values, (newCapacity * sizeof(const void *)), 0);
+      heap->_capacity = newCapacity;
+    }
 }
 
 void
 CFBinaryHeapAddValue (CFBinaryHeapRef heap, const void *value)
 {
+  CFIndex cur;
+  void *info;
+  CFBinaryHeapCompareCallBack compare;
+  CFBinaryHeapRetainCallBack retain;
   
-}
-
-void
-CFBinaryHeapApplyFunction (CFBinaryHeapRef heap,
-  CFBinaryHeapApplierFunction applier, void *context)
-{
+  CFBinaryHeapCheckCapacityAndGrow (heap);
   
+  compare = heap->_callBacks->compare;
+  info = heap->_context.info;
+  cur = heap->_count;
+  while (cur > 0)
+    {
+      /* Shift down */
+      CFIndex parent;
+      const void *p;
+      
+      parent = (cur - 1) >> 1;
+      p = heap->_values[parent];
+      if (compare ? compare(p, value, info) != kCFCompareGreaterThan
+          : p <= value)
+        break;
+      
+      heap->_values[cur] = heap->_values[parent];
+      cur = parent;
+    }
+  
+  retain = heap->_callBacks->retain;
+  heap->_values[cur] = retain ? retain(CFGetAllocator(heap), value) : value;
+  heap->_count += 1;
 }
 
 Boolean
 CFBinaryHeapContainsValue (CFBinaryHeapRef heap, const void *value)
 {
+  CFIndex idx;
+  CFIndex count;
+  CFBinaryHeapCompareCallBack compare;
+  void *info;
+  
+  idx = 0;
+  count = heap->_count;
+  compare = heap->_callBacks->compare;
+  info = heap->_context.info;
+  while (idx < count)
+    {
+      const void *v;
+      
+      v = heap->_values[idx++];
+      if (compare ? compare(v, value, info) == kCFCompareEqualTo : v == value)
+        return true;
+    }
+  
   return false;
-}
-
-CFIndex
-CFBinaryHeapGetCount (CFBinaryHeapRef heap)
-{
-  return heap->_count;
 }
 
 CFIndex
 CFBinaryHeapGetCountOfValue (CFBinaryHeapRef heap, const void *value)
 {
-  return 0;
+  CFIndex idx;
+  CFIndex count;
+  CFIndex counter;
+  CFBinaryHeapCompareCallBack compare;
+  void *info;
+  
+  idx = 0;
+  count = heap->_count;
+  counter = 0;
+  compare = heap->_callBacks->compare;
+  info = heap->_context.info;
+  while (idx < count)
+    {
+      const void *v;
+      
+      v = heap->_values[idx++];
+      if (compare ? compare(v, value, info) == kCFCompareEqualTo : v == value)
+        counter++;
+    }
+  
+  return counter;
 }
 
 const void *
@@ -195,7 +331,15 @@ CFBinaryHeapGetMinimumIfPresent (CFBinaryHeapRef heap, const void **value)
 void
 CFBinaryHeapGetValues (CFBinaryHeapRef heap, const void **values)
 {
+  CFBinaryHeapRef copy;
   
+  copy = CFBinaryHeapCreateCopy (NULL, heap->_capacity, heap);
+  while (CFBinaryHeapGetMinimumIfPresent(copy, values))
+    {
+      values++;
+      CFBinaryHeapRemoveMinimumValue (heap);
+    }
+  CFRelease (copy);
 }
 
 void
@@ -209,11 +353,50 @@ CFBinaryHeapRemoveAllValues (CFBinaryHeapRef heap)
       while (cur < end)
         heap->_callBacks->release (allocator, cur++);
     }
-  memset (heap->_values, 0, sizeof(void*) * heap->_count);
+  
+  heap->_count = 0;
 }
 
 void
 CFBinaryHeapRemoveMinimumValue (CFBinaryHeapRef heap)
 {
+  CFIndex idx;
+  CFIndex child;
+  CFIndex count;
+  CFBinaryHeapReleaseCallBack release;
+  CFBinaryHeapCompareCallBack compare;
+  void *info;
   
+  release = heap->_callBacks->release;
+  if (release)
+    release (CFGetAllocator(heap), heap->_values[0]);
+  
+  compare = heap->_callBacks->compare;
+  info = heap->_context.info;
+  
+  idx = 0;
+  child = (idx << 1) + 1; /* Initialize to left child */
+  count = heap->_count;
+  while (child < count)
+    {
+      const void *v;
+      
+      v = heap->_values[child];
+      if (child + 1 < count) /* Check for a right child */
+        {
+          const void *right;
+          
+          right = heap->_values[child + 1];
+          if (compare ? compare(v, right, info) == kCFCompareLessThan
+              : v > right)
+            {
+              v = right;
+              child += 1;
+            }
+        }
+      
+      heap->_values[idx] = v;
+      idx = child;
+      child = (idx << 1) + 1; /* Go to left child */
+    }
 }

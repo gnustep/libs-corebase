@@ -1,5 +1,11 @@
 2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CFBinaryHeap.h:
+	* Source/CFBinaryHeap.c: Implemented CFBinaryHeap.
+	* Tests/CFBinaryHeap: Added tests.
+
+2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CFURLAccess.h:
 	* Source/CFURLAccess.c:
 	* Source/common.mk: Add CFURLAccess skeleton.
