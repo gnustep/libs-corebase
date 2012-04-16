@@ -22,5 +22,8 @@ int main (void)
   
   CFRelease (a);
   
+  a = CFArrayCreate (NULL, NULL, 0, NULL);
+  PASS (a != NULL, "An array with no values return non-NULL.");
+  
   return 0;
 }

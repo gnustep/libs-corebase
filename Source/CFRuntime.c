@@ -431,7 +431,7 @@ GSRuntimeInitializeConstants (void)
 extern void CFAllocatorInitialize (void);
 extern void CFArrayInitialize (void);
 extern void CFBagInitialize (void);
-//extern void CFBinaryHeapInitialize (void);
+extern void CFBinaryHeapInitialize (void);
 extern void CFBitVectorInitialize (void);
 extern void CFBooleanInitialize (void);
 extern void CFCalendarInitialize (void);
@@ -477,7 +477,7 @@ void CFInitialize (void)
   CFAllocatorInitialize ();
   CFArrayInitialize ();
   CFBagInitialize ();
-//  CFBinaryHeapInitialize ();
+  CFBinaryHeapInitialize ();
   CFBitVectorInitialize ();
   CFBooleanInitialize ();
   CFCalendarInitialize ();

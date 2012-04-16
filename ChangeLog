@@ -1,5 +1,16 @@
 2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CoreFoundation.h: Added CFURLAccess.h
+	* Source/CFURL.c: Implement file system representation functions.
+	* Source/CFURLAccess.c: Implemented file/directory operations.
+	* Tests/CFURLAccess:
+	* Tests/CFURLAccess/TestInfo:
+	* Tests/CFURLAccess/basic.m: Add basic CFURLAccess tests.
+	* Tests/CFArray/create.m: Addition CFArray test.
+	* Source/CFRuntime.c: Initialize CFBinaryHeap.
+
+2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CFBinaryHeap.h:
 	* Source/CFBinaryHeap.c: Implemented CFBinaryHeap.
 	* Tests/CFBinaryHeap: Added tests.

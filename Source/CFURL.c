@@ -74,8 +74,7 @@ struct __CFURL
 enum
 {
   _kCFURLIsDecomposable = (1<<0),
-  _kCFURLIsFileSystemPath = (1<<1),
-  _kCFURLIsDirectoryPath = (1<<2)
+  _kCFURLIsFileSystemPath = (1<<1)
 };
 
 CF_INLINE Boolean
@@ -92,13 +91,6 @@ CFURLIsFileSystemPath (CFURLRef url)
     ? true : false;
 }
 
-CF_INLINE Boolean
-CFURLIsDirectoryPath (CFURLRef url)
-{
-  return ((CFRuntimeBase *)url)->_flags.info & _kCFURLIsDirectoryPath
-    ? true : false;
-}
-
 CF_INLINE void
 CFURLSetIsDecomposable (CFURLRef url)
 {
@@ -109,12 +101,6 @@ CF_INLINE void
 CFURLSetIsFileSystemPath (CFURLRef url)
 {
   ((CFRuntimeBase *)url)->_flags.info |= _kCFURLIsFileSystemPath;
-}
-
-CF_INLINE void
-CFURLSetIsDirectoryPath (CFURLRef url)
-{
-  ((CFRuntimeBase *)url)->_flags.info |= _kCFURLIsDirectoryPath;
 }
 
 
@@ -431,10 +417,6 @@ CFURLCreate_internal (CFAllocatorRef alloc, CFStringRef string,
         }
       new->_encoding = encoding;
       memcpy (new->_ranges, ranges, sizeof(ranges));
-      
-      if (CFStringGetCharacterAtIndex(new->_urlString,
-            CFStringGetLength(new->_urlString) - 1) == '/')
-        CFURLSetIsDirectoryPath (new);
     }
   
   return new;
@@ -842,7 +824,7 @@ CFURLRef
 CFURLCreateFileReferenceURL (CFAllocatorRef alloc, CFURLRef url,
   CFErrorRef *error)
 {
-  return NULL; /* FIXME ??? */
+  return NULL; /* FIXME */
 }
 
 CFURLRef
@@ -1370,7 +1352,8 @@ CFURLGetPortNumber (CFURLRef url)
 Boolean
 CFURLHasDirectoryPath (CFURLRef url)
 {
-  return CFURLIsDirectoryPath(url) ? true : false;
+  CFStringRef str = CFURLGetString (url);
+  return (CFStringGetCharacterAtIndex(str, CFStringGetLength(str) - 1) == '/');
 }
 
 CFDataRef
@@ -1663,13 +1646,53 @@ Boolean
 CFURLGetFileSystemRepresentation (CFURLRef url, Boolean resolveAgainstBase,
   UInt8 *buffer, CFIndex bufLen)
 {
-  return false; /* FIXME */
+  CFStringRef str;
+  CFStringRef unescaped;
+  CFStringEncoding enc;
+  Boolean ret;
+  
+  if (CF_IS_OBJC(_kCFURLTypeID, url))
+    enc = kCFStringEncodingUTF8;
+  else
+    enc = url->_encoding;
+  
+  if (resolveAgainstBase)
+    url = CFURLCopyAbsoluteURL (url);
+  str = CFURLCopyFileSystemPath (url, CFURL_DEFAULT_PATH_STYLE);
+  if (resolveAgainstBase)
+    CFRelease (url);
+  unescaped = CFURLCreateStringByReplacingPercentEscapesUsingEncoding (NULL,
+    str, CFSTR(""), enc);
+  CFRelease (str);
+  
+  ret = CFStringGetFileSystemRepresentation (unescaped, (char*)buffer, bufLen);
+  CFRelease (unescaped);
+  
+  return ret;
 }
 
 CFIndex
 CFURLGetBytes (CFURLRef url, UInt8 *buffer, CFIndex bufLen)
 {
-  return 0; /* FIXME */
+  CFIndex used;
+  CFIndex length;
+  CFIndex converted;
+  CFStringRef str;
+  CFStringEncoding enc;
+  
+  if (CF_IS_OBJC(_kCFURLTypeID, url))
+    enc = kCFStringEncodingUTF8;
+  else
+    enc = url->_encoding;
+  
+  str = CFURLGetString (url);
+  length = CFStringGetLength (str);
+  converted = CFStringGetBytes (str, CFRangeMake(0, length), enc, 0, false,
+    buffer, bufLen, &used);
+  if (converted != used)
+    used = -1;
+  
+  return used;
 }
 
 CFRange

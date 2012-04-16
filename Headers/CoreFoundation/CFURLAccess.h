@@ -36,18 +36,18 @@ CF_EXTERN_C_BEGIN
 /*
  * File URL Properties
  */
-CF_EXPORT const CFStringRef kCFURLFileExists;
-CF_EXPORT const CFStringRef kCFURLFileDirectoryContents;
-CF_EXPORT const CFStringRef kCFURLFileLength;
-CF_EXPORT const CFStringRef kCFURLFileLastModificationTime;
-CF_EXPORT const CFStringRef kCFURLFilePOSIXMode;
-CF_EXPORT const CFStringRef kCFURLFileOwnerID;
+CF_EXPORT const CFStringRef kCFURLFileExists; /* CFBoolean */
+CF_EXPORT const CFStringRef kCFURLFileDirectoryContents; /* CFArray */
+CF_EXPORT const CFStringRef kCFURLFileLength; /* CFNumber */
+CF_EXPORT const CFStringRef kCFURLFileLastModificationTime; /* CFDate */
+CF_EXPORT const CFStringRef kCFURLFilePOSIXMode; /* CFNumber */
+CF_EXPORT const CFStringRef kCFURLFileOwnerID; /* CFNumber */
 
 /*
  * HTTP URL Properties
  */
-CF_EXPORT const CFStringRef kCFURLHTTPStatusCode;
-CF_EXPORT const CFStringRef kCFURLHTTPStatusLine;
+CF_EXPORT const CFStringRef kCFURLHTTPStatusCode; /*CFNumber */
+CF_EXPORT const CFStringRef kCFURLHTTPStatusLine; /* CFString */
 
 /*
  * Error Codes
