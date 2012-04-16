@@ -193,7 +193,7 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
             }
         }
     }
-    {
+    /*{
       struct stat sb;
 
       if (stat (path, &sb) < 0)
@@ -215,7 +215,7 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
             }
           closedir (dir);
         }
-    }
+    }*/
 }
 
 Boolean
