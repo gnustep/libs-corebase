@@ -37,6 +37,7 @@
 /* Need the next few includes so we can initialize the string constants */
 #include "CoreFoundation/CFError.h"
 #include "CoreFoundation/CFDateFormatter.h"
+#include "CoreFoundation/CFURLAccess.h"
 #include "CoreFoundation/CFXMLParser.h"
 
 #include <assert.h>
@@ -445,6 +446,15 @@ void CFStringInitialize (void)
   GSRuntimeConstantInit (kCFXMLTreeErrorLineNumber, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFXMLTreeErrorLocation, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFXMLTreeErrorStatusCode, _kCFStringTypeID);
+  
+  GSRuntimeConstantInit (kCFURLFileExists, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFURLFileDirectoryContents, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFURLFileLength, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFURLFileLastModificationTime, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFURLFilePOSIXMode, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFURLFileOwnerID, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFURLHTTPStatusCode, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFURLHTTPStatusLine, _kCFStringTypeID);
 }
 
 

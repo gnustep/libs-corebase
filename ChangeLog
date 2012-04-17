@@ -1,5 +1,11 @@
 2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFString.c: Initialize CFURLAccess string constants.
+	* Source/CFURLAccess.c: Completed file scheme implementation.
+	* Tests/CFURLAccess/basic.m: Added tests.
+
+2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CoreFoundation.h: Added CFURLAccess.h
 	* Source/CFURL.c: Implement file system representation functions.
 	* Source/CFURLAccess.c: Implemented file/directory operations.
