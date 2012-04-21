@@ -1,5 +1,9 @@
 2012-04-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFURLAccess.c: Fix compiler warnings.
+
+2012-04-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* autom4te.cache:
 	* Source/config.h.in:
 	* configure:

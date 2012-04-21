@@ -88,6 +88,11 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
   SInt32  ownerID;
   
   error = 0;
+  exists = false;
+  length = 0;
+  modTime = 0;
+  mode = 0;
+  ownerID = 0;
   
   if (!CFURLGetFileSystemRepresentation
       (url, true, (UInt8 *) path, PATH_MAX))
@@ -98,24 +103,24 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
     }
   
   /* We'll check for data first */
-  if (resourceData)
+  fd = open (path, O_RDONLY);
+  if (fd >= 0)
     {
-      fd = open (path, O_RDONLY);
-      if (fd >= 0)
+      ssize_t bytesRead;
+      struct stat sb;
+      void *bytes;
+      
+      fstat (fd, &sb);
+      
+      /* Might as well gather as much information as we can here */
+      exists = true;
+      mode = sb.st_mode;
+      ownerID = sb.st_uid;
+      length = sb.st_size;
+      modTime = sb.st_mtime;
+      
+      if (resourceData)
         {
-          ssize_t bytesRead;
-          struct stat sb;
-          void *bytes;
-          
-          fstat (fd, &sb);
-          
-          /* Might as well gather as much information as we can here */
-          exists = true;
-          mode = sb.st_mode;
-          ownerID = sb.st_uid;
-          length = sb.st_size;
-          modTime = sb.st_mtime;
-          
           bytes = CFAllocatorAllocate (alloc, length, 0);
           if ((bytesRead = read (fd, bytes, length)) < 0)
             {
@@ -125,24 +130,27 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
           else
             {
               *resourceData = CFDataCreateWithBytesNoCopy (alloc,
-                                                           (const void *)
-                                                           bytes, length,
+                                                           (const void *)bytes,
+                                                           length,
                                                            alloc);
             }
-          
-          close (fd);
         }
-      else
+      
+      close (fd);
+    }
+  else
+    {
+      switch (errno)
         {
-          switch (errno)
-            {
-              case ENOENT:
-                exists = false;
-                error = kCFURLResourceNotFoundError;
-                break;
-              default:
-                error = kCFURLUnknownError;
-            }
+          case EACCES:
+            exists = true;
+            error = kCFURLResourceAccessViolationError;
+            break;
+          case ENOENT:
+            error = kCFURLResourceNotFoundError;
+            break;
+          default:
+            error = kCFURLUnknownError;
         }
     }
   
@@ -176,86 +184,89 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
           CFDictionaryAddValue (props, kCFURLFileExists,
                                 exists ? kCFBooleanTrue : kCFBooleanFalse);
         }
-      if (CFURLHasDirectoryPath (url) && (fetchAll || (exists
-          && CFArrayContainsValue (desiredProperties, CFRangeMake(0, count),
-          kCFURLFileDirectoryContents))))
+      if (exists)
         {
-          DIR *dir;
-          struct dirent *entry;
-          
-          dir = opendir (path);
-          if (dir)
+          if (CFURLHasDirectoryPath (url) && (fetchAll
+              || CFArrayContainsValue (desiredProperties,
+              CFRangeMake(0, count), kCFURLFileDirectoryContents)))
             {
-              CFArrayRef array;
-              CFMutableArrayRef tmp;
+              DIR *dir;
+              struct dirent *entry;
               
-              tmp = CFArrayCreateMutable (alloc, 0,&kCFTypeArrayCallBacks);
-              while ((entry = readdir (dir)) != NULL)
+              dir = opendir (path);
+              if (dir)
                 {
-                  if (strncmp (entry->d_name, ".", 2) != 0
-                      && strncmp (entry->d_name, "..", 3) != 0)
+                  CFArrayRef array;
+                  CFMutableArrayRef tmp;
+                  
+                  tmp = CFArrayCreateMutable (alloc, 0,&kCFTypeArrayCallBacks);
+                  while ((entry = readdir (dir)) != NULL)
                     {
-                      CFStringRef str;
-                      
-                      str = CFStringCreateWithFileSystemRepresentation (alloc,
-                        entry->d_name);
-                      CFArrayAppendValue (tmp, str);
+                      if (strncmp (entry->d_name, ".", 2) != 0
+                          && strncmp (entry->d_name, "..", 3) != 0)
+                        {
+                          CFStringRef str;
+                          
+                          str = CFStringCreateWithFileSystemRepresentation (
+                            alloc, entry->d_name);
+                          CFArrayAppendValue (tmp, str);
+                        }
                     }
+                  closedir (dir);
+                  
+                  array = CFArrayCreateCopy (alloc, tmp);
+                  CFRelease (tmp);
+                  CFDictionaryAddValue (props, kCFURLFileDirectoryContents,
+                                        array);
+                  CFRelease (array);
                 }
-              closedir (dir);
-              
-              array = CFArrayCreateCopy (alloc, tmp);
-              CFRelease (tmp);
-              CFDictionaryAddValue (props, kCFURLFileDirectoryContents,
-                                    array);
-              CFRelease (array);
+              else
+                {
+                  error = kCFURLUnknownError;
+                }
             }
-          else
+          if (fetchAll
+              || CFArrayContainsValue (desiredProperties,
+              CFRangeMake(0, count), kCFURLFileLength))
             {
-              error = kCFURLUnknownError;
+              CFNumberRef len;
+              
+              len = CFNumberCreate (alloc, kCFNumberCFIndexType, &length);
+              CFDictionaryAddValue (props, kCFURLFileLength, len);
+              CFRelease (len);
             }
-        }
-      if (fetchAll || (exists
-          && CFArrayContainsValue (desiredProperties, CFRangeMake(0, count),
-          kCFURLFileLength)))
-        {
-          CFNumberRef len;
-          
-          len = CFNumberCreate (alloc, kCFNumberCFIndexType, &length);
-          CFDictionaryAddValue (props, kCFURLFileLength, len);
-          CFRelease (len);
-        }
-      if (fetchAll || (exists
-          && CFArrayContainsValue (desiredProperties,CFRangeMake(0, count),
-          kCFURLFileLastModificationTime)))
-        {
-          CFDateRef date;
-          CFAbsoluteTime at;
-          
-          at = ((CFAbsoluteTime)modTime) - kCFAbsoluteTimeIntervalSince1970;
-          date = CFDateCreate (alloc, at);
-          CFDictionaryAddValue (props, kCFURLFileLastModificationTime, date);
-          CFRelease (date);
-        }
-      if (fetchAll || (exists
-          && CFArrayContainsValue (desiredProperties, CFRangeMake(0, count),
-          kCFURLFilePOSIXMode)))
-        {
-          CFNumberRef num;
-          
-          num = CFNumberCreate (alloc, kCFNumberSInt32Type, &mode);
-          CFDictionaryAddValue (props, kCFURLFilePOSIXMode, num);
-          CFRelease (num);
-        }
-      if (fetchAll || (exists
-          && CFArrayContainsValue (desiredProperties, CFRangeMake(0, count),
-          kCFURLFileOwnerID)))
-        {
-          CFNumberRef num;
-          
-          num = CFNumberCreate (alloc, kCFNumberSInt32Type, &ownerID);
-          CFDictionaryAddValue (props, kCFURLFileOwnerID, num);
-          CFRelease (num);
+          if (fetchAll
+              || CFArrayContainsValue (desiredProperties,
+              CFRangeMake(0, count), kCFURLFileLastModificationTime))
+            {
+              CFDateRef date;
+              CFAbsoluteTime at;
+              
+              at = ((CFAbsoluteTime)modTime) - kCFAbsoluteTimeIntervalSince1970;
+              date = CFDateCreate (alloc, at);
+              CFDictionaryAddValue (props, kCFURLFileLastModificationTime, date);
+              CFRelease (date);
+            }
+          if (fetchAll
+              || CFArrayContainsValue (desiredProperties,
+              CFRangeMake(0, count), kCFURLFilePOSIXMode))
+            {
+              CFNumberRef num;
+              
+              num = CFNumberCreate (alloc, kCFNumberSInt32Type, &mode);
+              CFDictionaryAddValue (props, kCFURLFilePOSIXMode, num);
+              CFRelease (num);
+            }
+          if (fetchAll
+              || CFArrayContainsValue (desiredProperties,
+              CFRangeMake(0, count), kCFURLFileOwnerID))
+            {
+              CFNumberRef num;
+              
+              num = CFNumberCreate (alloc, kCFNumberSInt32Type, &ownerID);
+              CFDictionaryAddValue (props, kCFURLFileOwnerID, num);
+              CFRelease (num);
+            }
         }
       
       *properties = CFDictionaryCreateCopy (alloc, props);
