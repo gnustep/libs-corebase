@@ -1,10 +1,20 @@
-2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
+2012-04-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* autom4te.cache:
+	* Source/config.h.in:
+	* configure:
+	* configure.ac: Add configure.
+	* Source/GSPrivate.h: Use results of configure.
+	* Source/GNUmakefile: Move from here...
+	* Source/GNUmakefile.in: ...to here and use results of configure.
+
+2012-04-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFString.c: Initialize CFURLAccess string constants.
 	* Source/CFURLAccess.c: Completed file scheme implementation.
 	* Tests/CFURLAccess/basic.m: Added tests.
 
-2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
+2012-04-15 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CoreFoundation.h: Added CFURLAccess.h
 	* Source/CFURL.c: Implement file system representation functions.
@@ -15,7 +25,7 @@
 	* Tests/CFArray/create.m: Addition CFArray test.
 	* Source/CFRuntime.c: Initialize CFBinaryHeap.
 
-2012-04-12 Stefan Bidigaray <stefanbidi@gmail.com>
+2012-04-14 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CFBinaryHeap.h:
 	* Source/CFBinaryHeap.c: Implemented CFBinaryHeap.

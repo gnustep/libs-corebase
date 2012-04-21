@@ -27,6 +27,8 @@
 #ifndef __GSPRIVATE_H__
 #define __GSPRIVATE_H__
 
+#include "config.h"
+
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFLocale.h"
@@ -323,26 +325,8 @@ GSRuntimeConstantInit (CFTypeRef cf, CFTypeID typeID);
 
 
 
-#if defined(_MSC_VER)
-CF_INLINE void *
-__CFISAForTypeID (CFTypeID typeID)
-{
-  return NULL;
-}
+#if HAVE_LIBOBJC
 
-CF_INLINE Boolean
-CF_IS_OBJC (CFTypeID typeID, const void *obj)
-{
-  return false;
-}
-
-#define CF_OBJC_FUNCDISPATCH0(typeID, rettype, obj, sel)
-#define CF_OBJC_FUNCDISPATCH1(typeID, rettype, obj, sel, a1)
-#define CF_OBJC_FUNCDISPATCH2(typeID, rettype, obj, sel, a1, a2)
-#define CF_OBJC_FUNCDISPATCH3(typeID, rettype, obj, sel, a1, a2, a3)
-#define CF_OBJC_FUNCDISPATCH4(typeID, rettype, obj, sel, a1, a2, a3, a4)
-#define CF_OBJC_FUNCDISPATCH5(typeID, rettype, obj, sel, a1, a2, a3, a4, a5)
-#else
 #define BOOL OBJC_BOOL
 #include <objc/runtime.h>
 #undef BOOL
@@ -442,6 +426,28 @@ do { \
       return (rettype)imp((id)obj, s, a1, a2, a3, a4, a5); \
     } \
   } while(0)
-#endif /* defined(_MSC_VER) */
+
+#else
+
+CF_INLINE void *
+__CFISAForTypeID (CFTypeID typeID)
+{
+  return NULL;
+}
+
+CF_INLINE Boolean
+CF_IS_OBJC (CFTypeID typeID, const void *obj)
+{
+  return false;
+}
+
+#define CF_OBJC_FUNCDISPATCH0(typeID, rettype, obj, sel)
+#define CF_OBJC_FUNCDISPATCH1(typeID, rettype, obj, sel, a1)
+#define CF_OBJC_FUNCDISPATCH2(typeID, rettype, obj, sel, a1, a2)
+#define CF_OBJC_FUNCDISPATCH3(typeID, rettype, obj, sel, a1, a2, a3)
+#define CF_OBJC_FUNCDISPATCH4(typeID, rettype, obj, sel, a1, a2, a3, a4)
+#define CF_OBJC_FUNCDISPATCH5(typeID, rettype, obj, sel, a1, a2, a3, a4, a5)
+
+#endif /* HAVE_LIBOBJC */
 
 #endif /* __GSPRIVATE_H__ */
