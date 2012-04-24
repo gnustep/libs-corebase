@@ -9,6 +9,7 @@ ADDITIONAL_OBJCFLAGS = -DBUILDING_SELF -DMAC_OS_X_VERSION_MAX_ALLOWED=100700
 
 COREBASE_C_FILES = \
   CFArray.c \
+  CFAttributedString.c \
   CFBag.c \
   CFBase.c \
   CFBinaryHeap.c \
