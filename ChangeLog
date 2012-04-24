@@ -1,3 +1,11 @@
+2012-04-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFAttributedString.h:
+	* Source/CFAttributedString.c:
+	* Source/CFRuntime.c:
+	* Source/common.mk: Added CFAttributedString skeleton.
+
+
 2012-04-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFURLAccess.c: Fix compiler warnings.
