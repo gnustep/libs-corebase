@@ -178,9 +178,6 @@ CFBagGetTypeID (void)
 
 
 
-//
-// CFMutableBag
-//
 CFMutableBagRef
 CFBagCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
   const CFBagCallBacks *callBacks)

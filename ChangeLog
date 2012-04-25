@@ -1,5 +1,62 @@
 2012-04-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFBag.c:
+	* Source/CFTimeZone.c:
+	* Source/CFBitVector.c:
+	* Source/CFDictionary.c:
+	* Source/CFString.c:
+	* Source/CFCalendar.c:
+	* Source/CFBase.c:
+	* Source/CFStringFormat.c:
+	* Source/CFSet.c:
+	* Source/CFLocale.c:
+	* Source/CFTree.c:
+	* Source/CFDateFormatter.c:
+	* Source/CFStringUtilities.c:
+	* Source/common.mk:
+	* Source/CFXMLNode.c:
+	* Source/CFUUID.c:
+	* Source/CFCharacterSet.c:
+	* Source/GSHashTable.c:
+	* Source/CFNumberFormatter.c:
+	* Source/CFXMLParser.c:
+	* Source/CFStringEncoding.c:
+	* Source/CFDate.c:
+	* Source/CFArray.c:
+	* Source/GSHashTable.h:
+	* Source/CFRuntime.c:
+	* Headers/CoreFoundation/CFRuntime.h:
+	* Headers/CoreFoundation/CFBag.h:
+	* Headers/CoreFoundation/CFError.h:
+	* Headers/CoreFoundation/CFStringEncodingExt.h:
+	* Headers/CoreFoundation/CFByteOrder.h:
+	* Headers/CoreFoundation/CFBitVector.h:
+	* Headers/CoreFoundation/CFURL.h:
+	* Headers/CoreFoundation/CFDictionary.h:
+	* Headers/CoreFoundation/CFString.h:
+	* Headers/CoreFoundation/CFCalendar.h:
+	* Headers/CoreFoundation/CFBase.h:
+	* Headers/CoreFoundation/CFPropertyList.h:
+	* Headers/CoreFoundation/CFNumber.h:
+	* Headers/CoreFoundation/CFSet.h:
+	* Headers/CoreFoundation/CFStream.h:
+	* Headers/CoreFoundation/CFAttributedString.h:
+	* Headers/CoreFoundation/CFRunLoop.h:
+	* Headers/CoreFoundation/CFLocale.h:
+	* Headers/CoreFoundation/CFTree.h:
+	* Headers/CoreFoundation/CFDateFormatter.h:
+	* Headers/CoreFoundation/CFUUID.h:
+	* Headers/CoreFoundation/CFXMLNode.h:
+	* Headers/CoreFoundation/CFCharacterSet.h:
+	* Headers/CoreFoundation/CFData.h:
+	* Headers/CoreFoundation/CFNumberFormatter.h:
+	* Headers/CoreFoundation/CFDate.h:
+	* Headers/CoreFoundation/CFXMLParser.h:
+	* Headers/CoreFoundation/CFArray.h: Use '/* */' comments instead 
+	of '//'.
+
+2012-04-24 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CFAttributedString.h:
 	* Source/CFAttributedString.c:
 	* Source/CFRuntime.c:

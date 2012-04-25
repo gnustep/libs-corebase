@@ -291,7 +291,7 @@ CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
       complete.length - search.location - found.location - found.length);
   }
   
-  // Add the last search string range
+  /* Add the last search string range */
   tmp = CFStringCreateWithSubstring(alloc, str, search);
   CFArrayAppendValue (array, tmp);
   CFRelease (tmp);
@@ -307,7 +307,7 @@ CFStringCreateArrayWithFindResults (CFAllocatorRef alloc,
   CFStringRef str, CFStringRef stringToFind, CFRange rangeToSearch,
   CFStringCompareFlags compOpt)
 {
-  return NULL; // FIXME
+  return NULL; /* FIXME */
 }
 
 /* These next two functions should be very similar.  According to Apple's

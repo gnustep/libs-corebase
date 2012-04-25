@@ -94,7 +94,7 @@ CONST_STRING_DECL(kCFJapaneseCalendar, "japanese");
 CONST_STRING_DECL(kCFRepublicOfChinaCalendar, "roc");
 CONST_STRING_DECL(kCFPersianCalendar, "persian");
 CONST_STRING_DECL(kCFIndianCalendar, "indian");
-CONST_STRING_DECL(kCFISO8601Calendar, "iso8601"); // Introduced on UTS #35 v2.0
+CONST_STRING_DECL(kCFISO8601Calendar, "iso8601"); /* Introduced on UTS #35 v2.0 */
 
 struct __CFLocale
 {
@@ -176,8 +176,8 @@ ICUToCFLocaleOrientation (ULayoutType layout)
 CF_INLINE const char *
 CFLocaleGetCStringIdentifier_inline (CFLocaleRef locale)
 {
-  // This works because CFLocaleCreateCanonicalIdentifierFromString()
-  // outputs ASCII characters.
+  /* This works because CFLocaleCreateCanonicalIdentifierFromString()
+   * outputs ASCII characters. */
   return CFStringGetCStringPtr (locale->_identifier, kCFStringEncodingASCII);
 }
 
@@ -211,7 +211,7 @@ CFArrayCreateArrayWithUEnumeration (UEnumeration *en)
       CFArrayAppendValue (mArray, string);
     }
   
-  // Close it UEnumeration here so it doesn't get leaked.
+  /* Close it UEnumeration here so it doesn't get leaked. */
   uenum_close (en);
   
   result = CFArrayCreateCopy (NULL, mArray);
@@ -684,13 +684,13 @@ CFLocaleGetValue (CFLocaleRef locale,
   CFIndex idx;
   Boolean found = false;
   
-  // Don't waste any time.
+  /* Don't waste any time. */
   if (locale == NULL || key == NULL)
     return NULL;
   if (key == kCFLocaleIdentifier)
     return locale->_identifier;
   
-  // Make sure we haven't been through this already.
+  /* Make sure we haven't been through this already. */
   if (CFDictionaryGetValueIfPresent(locale->_components, key, &result))
     return result;
   
@@ -903,7 +903,7 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
     TEST_CODE(hasScript, script), TEST_CODE(hasCountry, country),
     TEST_CODE(hasVariant, variant));
 #undef TEST_CODE
-  // Use uloc_setKeywordValue() here since libicu is a required library.
+  /* Use uloc_setKeywordValue() here since libicu is a required library. */
   if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCalendarIdentifier,
       (const void **)&keyword))
     {

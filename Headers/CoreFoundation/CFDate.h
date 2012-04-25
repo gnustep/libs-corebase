@@ -81,9 +81,9 @@ CF_EXPORT const CFTimeInterval kCFAbsoluteTimeIntervalSince1904;
 
 
 
-//
-// Time Utilities
-//
+/*
+ * Time Utilities
+ */
 CFAbsoluteTime
 CFAbsoluteTimeAddGregorianUnits (CFAbsoluteTime at, CFTimeZoneRef tz,
   CFGregorianUnits units);
@@ -113,9 +113,9 @@ CFGregorianDateGetAbsoluteTime (CFGregorianDate gdate, CFTimeZoneRef tz);
 Boolean
 CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags);
 
-//
-// CFDate Functions
-//
+/*
+ * CFDate Functions
+ */
 CFComparisonResult
 CFDateCompare (CFDateRef theDate, CFDateRef otherDate, void *context);
 

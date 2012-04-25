@@ -40,9 +40,9 @@ typedef struct __CFData * CFMutableDataRef;
 #endif
 
 
-//
-// Creating a CFData Object
-//
+/*
+ * Creating a CFData Object
+ */
 CFDataRef
 CFDataCreate (CFAllocatorRef allocator, const UInt8 *bytes, CFIndex length);
 
@@ -53,9 +53,9 @@ CFDataRef
 CFDataCreateWithBytesNoCopy (CFAllocatorRef allocator,const UInt8 *bytes,
   CFIndex length, CFAllocatorRef bytesDeallocator);
 
-//
-// Examining a CFData Object
-//
+/*
+ * Examining a CFData Object
+ */
 const UInt8 *
 CFDataGetBytePtr (CFDataRef theData);
 
@@ -65,15 +65,15 @@ CFDataGetBytes (CFDataRef theData, CFRange range, UInt8 *buffer);
 CFIndex
 CFDataGetLength (CFDataRef theData);
 
-//
-// Getting the CFData Type ID
-//
+/*
+ * Getting the CFData Type ID
+ */
 CFTypeID
 CFDataGetTypeID (void);
 
-//
-// Creating a Mutable Data Object
-//
+/*
+ * Creating a Mutable Data Object
+ */
 CFMutableDataRef
 CFDataCreateMutable (CFAllocatorRef allocator, CFIndex capacity);
 
@@ -81,15 +81,15 @@ CFMutableDataRef
 CFDataCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
   CFDataRef theData);
 
-//
-// Accessing Mutable Data
-//
+/*
+ * Accessing Mutable Data
+ */
 UInt8 *
 CFDataGetMutableBytePtr (CFMutableDataRef theData);
 
-//
-// Modifying a Mutable Data Object
-//
+/*
+ * Modifying a Mutable Data Object
+ */
 void
 CFDataAppendBytes (CFMutableDataRef theData, const UInt8 *bytes, CFIndex length);
 

@@ -409,7 +409,7 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
   if (new == NULL)
     return NULL;
   
-  // Good news, UNumberFormatStyle and NSNumberFormatterStyle match.
+  /* Good news, UNumberFormatStyle and NSNumberFormatterStyle match. */
   new->_fmt = unum_open (style, NULL, 0, cLocale, NULL, &err);
   if (U_FAILURE(err))
     {
@@ -497,7 +497,7 @@ CFNumberFormatterCreateNumberFromString (CFAllocatorRef allocator,
 {
   CFNumberRef result;
   CFNumberType type;
-  UInt8 value[sizeof(double)]; // FIXME: what's the largest value we have?
+  UInt8 value[sizeof(double)]; /* FIXME: what's the largest value we have? */
   
   type = (options == kCFNumberFormatterParseIntegersOnly) ?
     kCFNumberSInt64Type : kCFNumberFloat64Type;
@@ -513,7 +513,7 @@ CFStringRef
 CFNumberFormatterCreateStringWithNumber (CFAllocatorRef allocator,
   CFNumberFormatterRef fmt, CFNumberRef number)
 {
-  UInt8 value[sizeof(double)]; // FIXME: ???
+  UInt8 value[sizeof(double)]; /* FIXME */
   CFNumberType type = CFNumberGetType (number);
   
   if (CFNumberGetValue (number, type, value))
@@ -566,7 +566,7 @@ CFNumberFormatterCreateStringWithValue (CFAllocatorRef allocator,
       case kCFNumberCFIndexType:
         inum = (int64_t)*(CFIndex*)valuePtr;
         break;
-      case kCFNumberNSIntegerType: // FIXME: This isn't defined in CF, so guess
+      case kCFNumberNSIntegerType: /* FIXME: This isn't defined in CF, so guess */
         inum = (int64_t)*(CFIndex*)valuePtr;
         break;
       case kCFNumberFloat32Type:
@@ -581,7 +581,7 @@ CFNumberFormatterCreateStringWithValue (CFAllocatorRef allocator,
       case kCFNumberDoubleType:
         dnum = *(double*)valuePtr;
         break;
-      case kCFNumberCGFloatType: // FIXME: Guess here, too
+      case kCFNumberCGFloatType: /* FIXME: Guess here, too */
         dnum = *(double*)valuePtr;
         break;
     }
@@ -602,7 +602,7 @@ CFNumberFormatterCreateStringWithValue (CFAllocatorRef allocator,
         len = unum_formatInt64 (fmt->_fmt, inum, ubuffer, BUFFER_SIZE,
           NULL, &err);
         break;
-      default: // must be a float type
+      default: /* must be a float type */
         len = unum_formatDouble (fmt->_fmt, dnum, ubuffer, BUFFER_SIZE,
           NULL, &err);
     }
@@ -645,7 +645,7 @@ CFNumberFormatterGetValueFromString (CFNumberFormatterRef fmt,
   UErrorCode err = U_ZERO_ERROR;
   int32_t parsePos;
   double  dresult = 0.0;
-  int64_t iresult = 0; // Keep compiler happy
+  int64_t iresult = 0; /* Keep compiler happy */
   
   if (rangep)
     {
@@ -677,7 +677,7 @@ CFNumberFormatterGetValueFromString (CFNumberFormatterRef fmt,
         iresult = unum_parseInt64 (fmt->_fmt, ubuffer, parseRange.length,
           &parsePos, &err);
         break;
-      default: // must be a float type
+      default: /* must be a float type */
         dresult = unum_parseDouble (fmt->_fmt, ubuffer, parseRange.length,
           &parsePos, &err);
     }
@@ -716,7 +716,7 @@ CFNumberFormatterGetValueFromString (CFNumberFormatterRef fmt,
       case kCFNumberCFIndexType:
         *(CFIndex*)valuePtr = (CFIndex)iresult;
         break;
-      case kCFNumberNSIntegerType: // FIXME: This isn't defined in CF, so guess
+      case kCFNumberNSIntegerType: /* FIXME: This isn't defined in CF, so guess */
         *(CFIndex*)valuePtr = (CFIndex)iresult;
         break;
       case kCFNumberFloat32Type:
@@ -731,7 +731,7 @@ CFNumberFormatterGetValueFromString (CFNumberFormatterRef fmt,
       case kCFNumberDoubleType:
         *(double*)valuePtr = (double)dresult;
         break;
-      case kCFNumberCGFloatType: // FIXME: Guess here, too
+      case kCFNumberCGFloatType: /* FIXME: Guess here, too */
         *(double*)valuePtr = (double)dresult;
         break;
     }

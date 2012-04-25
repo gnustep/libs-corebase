@@ -48,9 +48,9 @@ typedef CFOptionFlags CFURLBookmarkFileCreationOptions;
 typedef CFOptionFlags CFURLBookmarkResolutionOptions;
 #endif
 
-//
-// Constants
-//
+/*
+ * Constants
+ */
 typedef enum CFURLPathStyle CFURLPathStyle;
 enum CFURLPathStyle
 {
@@ -92,9 +92,9 @@ enum
   kCFBookmarkResolutionWithoutMountingMask = (1<<9)
 };
 
-//
-// Common File System Resource Keys
-//
+/*
+ * Common File System Resource Keys
+ */
 CF_EXPORT const CFStringRef kCFURLNameKey;
 CF_EXPORT const CFStringRef kCFURLLocalizedNameKey;
 CF_EXPORT const CFStringRef kCFURLIsRegularFileKey;
@@ -132,9 +132,9 @@ CF_EXPORT const CFStringRef kCFURLFileSecurityKey;
 CF_EXPORT const CFStringRef kCFURLFileResourceTypeKey;
 #endif
 
-//
-// File Resource Types
-//
+/*
+ * File Resource Types
+ */
 #if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFURLFileResourceTypeBlockSpecial;
 CF_EXPORT const CFStringRef kCFURLFileResourceTypeCharacterSpecial;
@@ -146,9 +146,9 @@ CF_EXPORT const CFStringRef kCFURLFileResourceTypeSymbolicLink;
 CF_EXPORT const CFStringRef kCFURLFileResourceTypeUnknown;
 #endif
 
-//
-// File Property Keys
-//
+/*
+ * File Property Keys
+ */
 #if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFURLFileAllocatedSizeKey;
 CF_EXPORT const CFStringRef kCFURLFileSizeKey;
@@ -160,9 +160,9 @@ CF_EXPORT const CFStringRef kCFURLTotalFileAllocatedSizeKey;
 CF_EXPORT const CFStringRef kCFURLTotalFileSizeKey;
 #endif
 
-//
-// Volume Property Keys
-//
+/*
+ * Volume Property Keys
+ */
 #if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFURLVolumeLocalizedFormatDescriptionKey;
 CF_EXPORT const CFStringRef kCFURLVolumeTotalCapacityKey;
@@ -199,22 +199,22 @@ CF_EXPORT const CFStringRef kCFURLVolumeURLForRemountingKey;
 CF_EXPORT const CFStringRef kCFURLVolumeUUIDStringKey;
 #endif
 
-//
-// CFError userInfo Dictionary Keys
-//
+/*
+ * CFError userInfo Dictionary Keys
+ */
 #if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFURLKeysOfUnsetValuesKey;
 #endif
 
-//
-// Getting the CFURL Type ID
-//
+/*
+ * Getting the CFURL Type ID
+ */
 CF_EXPORT CFTypeID
 CFURLGetTypeID (void);
 
-//
-// Creating a CFURL Object
-//
+/*
+ * Creating a CFURL Object
+ */
 CF_EXPORT CFURLRef
 CFURLCopyAbsoluteURL (CFURLRef relativeURL);
 
@@ -264,7 +264,7 @@ CF_EXPORT CFURLRef
 CFURLCreateFromFileSystemRepresentationRelativeToBase (CFAllocatorRef alloc,
   const UInt8 *buffer, CFIndex bufLen, Boolean isDirectory, CFURLRef baseURL);
 
-#if 0 // No FSRef support
+#if 0 /* No FSRef support */
 CF_EXPORT CFURLRef
 CFURLCreateFromFSRef (CFAllocatorRef alloc, const struct FSRef *fsRef);
 #endif
@@ -286,9 +286,9 @@ CF_EXPORT CFURLRef
 CFURLCreateWithString (CFAllocatorRef allocator, CFStringRef string,
   CFURLRef baseURL);
 
-//
-// Accessing the Parts of a URL
-//
+/*
+ * Accessing the Parts of a URL
+ */
 CF_EXPORT Boolean
 CFURLCanBeDecomposed (CFURLRef url);
 
@@ -340,9 +340,9 @@ CFURLGetPortNumber (CFURLRef url);
 CF_EXPORT Boolean
 CFURLHasDirectoryPath (CFURLRef url);
 
-//
-// Converting URLs to Other Representations
-//
+/*
+ * Converting URLs to Other Representations
+ */
 CF_EXPORT CFDataRef
 CFURLCreateData (CFAllocatorRef alloc, CFURLRef url, CFStringEncoding encoding,
   Boolean escapeWhiteSpace);
@@ -367,7 +367,7 @@ CF_EXPORT Boolean
 CFURLGetFileSystemRepresentation (CFURLRef url, Boolean resolveAgainstBase,
   UInt8 *buffer, CFIndex bufLen);
 
-#if 0 // FSRef unsupported
+#if 0 /* FSRef unsupported */
 CF_EXPORT Boolean
 CFURLGetFSRef (CFURLRef url, struct FSRef *fsRef);
 #endif
@@ -375,9 +375,9 @@ CFURLGetFSRef (CFURLRef url, struct FSRef *fsRef);
 CF_EXPORT CFStringRef
 CFURLGetString (CFURLRef url);
 
-//
-// Getting URL Properties
-//
+/*
+ * Getting URL Properties
+ */
 CF_EXPORT CFURLRef
 CFURLGetBaseURL (CFURLRef url);
 
@@ -393,9 +393,9 @@ CF_EXPORT Boolean
 CFURLResourceIsReachable (CFURLRef url, CFErrorRef *error);
 #endif
 
-//
-// Getting and Setting File System Resource Properties
-//
+/*
+ * Getting and Setting File System Resource Properties
+ */
 #if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT void
 CFURLClearResourcePropertyCache (CFURLRef url);
@@ -431,9 +431,9 @@ CF_EXPORT void
 CFURLSetTemporaryResourcePropertyForKey (CFURLRef url, CFStringRef key,
   CFTypeRef propertyValue);
 
-//
-// Working with Bookmark Data
-//
+/*
+ * Working with Bookmark Data
+ */
 CF_EXPORT CFDataRef
 CFURLCreateBookmarkData (CFAllocatorRef alloc, CFURLRef url,
   CFURLBookmarkCreationOptions options, CFArrayRef resourcePropertiesToInclude,

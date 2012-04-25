@@ -146,8 +146,8 @@ CFXMLTreeAddChild (CFXMLParserRef parser, void *parent, void *child,
 void
 CFXMLEndXMLStructure (CFXMLParserRef parser, void *xmlType, void *info)
 {
-  // xmlType is of type CFXMLTree
-  if (CFTreeGetParent(xmlType)) // Only release if not root
+  /* xmlType is of type CFXMLTree */
+  if (CFTreeGetParent(xmlType)) /* Only release if not root */
     CFRelease ((CFTypeRef)xmlType);
 }
 
@@ -184,7 +184,7 @@ CFXMLTreeCreateFromDataWithError (CFAllocatorRef allocator, CFDataRef xmlData,
     {
       if (errorDict)
         {
-          // Handle error
+          /* Handle error */
           CFIndex num;
           CFTypeRef obj;
           CFMutableDictionaryRef dict = CFDictionaryCreateMutable (allocator,

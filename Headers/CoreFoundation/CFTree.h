@@ -49,15 +49,15 @@ struct _CFTreeContext
   CFTreeCopyDescriptionCallBack copyDescription;
 };
 
-//
-// Creating Trees
-//
+/*
+ * Creating Trees
+ */
 CF_EXPORT CFTreeRef
 CFTreeCreate (CFAllocatorRef allocator, const CFTreeContext *context);
 
-//
-// Modifying a Tree
-//
+/*
+ * Modifying a Tree
+ */
 CF_EXPORT void
 CFTreeAppendChild (CFTreeRef tree, CFTreeRef newChild);
 
@@ -76,15 +76,15 @@ CFTreeRemove (CFTreeRef tree);
 CF_EXPORT void
 CFTreeSetContext (CFTreeRef tree, const CFTreeContext *context);
 
-//
-// Sorting a Tree
-//
+/*
+ * Sorting a Tree
+ */
 CF_EXPORT void
 CFTreeSortChildren (CFTreeRef tree, CFComparatorFunction comp, void *context);
 
-//
-// Examining a Tree
-//
+/*
+ * Examining a Tree
+ */
 CF_EXPORT CFTreeRef
 CFTreeFindRoot (CFTreeRef tree);
 
@@ -109,16 +109,16 @@ CFTreeGetNextSibling (CFTreeRef tree);
 CF_EXPORT CFTreeRef
 CFTreeGetParent (CFTreeRef tree);
 
-//
-// Performing an Operation on Tree Elements
-//
+/*
+ * Performing an Operation on Tree Elements
+ */
 CF_EXPORT void
 CFTreeApplyFunctionToChildren (CFTreeRef tree, CFTreeApplierFunction applier,
   void *context);
 
-//
-// Getting the Tree Type ID
-//
+/*
+ * Getting the Tree Type ID
+ */
 CF_EXPORT CFTypeID
 CFTreeGetTypeID (void);
 

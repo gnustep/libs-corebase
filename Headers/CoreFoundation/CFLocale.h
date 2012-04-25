@@ -65,29 +65,29 @@ typedef CFIndex CFLocaleLanguageDirection;
 /** @name CFLocale Property Keys
     @{
  */
-CF_EXPORT const CFStringRef kCFLocaleMeasurementSystem; // CFString
-CF_EXPORT const CFStringRef kCFLocaleDecimalSeparator; // CFString
-CF_EXPORT const CFStringRef kCFLocaleGroupingSeparator; // CFString
-CF_EXPORT const CFStringRef kCFLocaleCurrencySymbol; // CFString
-CF_EXPORT const CFStringRef kCFLocaleCurrencyCode; // CFString
+CF_EXPORT const CFStringRef kCFLocaleMeasurementSystem; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleDecimalSeparator; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleGroupingSeparator; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleCurrencySymbol; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleCurrencyCode; /* CFString */
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CF_EXPORT const CFStringRef kCFLocaleIdentifier; // CFString
-CF_EXPORT const CFStringRef kCFLocaleLanguageCode; // CFString
-CF_EXPORT const CFStringRef kCFLocaleCountryCode; // CFString
-CF_EXPORT const CFStringRef kCFLocaleScriptCode; // CFString
-CF_EXPORT const CFStringRef kCFLocaleVariantCode; // CFString
-CF_EXPORT const CFStringRef kCFLocaleExemplarCharacterSet; // CFCharacterSet
-CF_EXPORT const CFStringRef kCFLocaleCalendarIdentifier; // CFString
-CF_EXPORT const CFStringRef kCFLocaleCalendar; // CFCalendar
-CF_EXPORT const CFStringRef kCFLocaleCollationIdentifier; // CFString
-CF_EXPORT const CFStringRef kCFLocaleUsesMetricSystem; // CFBoolean
+CF_EXPORT const CFStringRef kCFLocaleIdentifier; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleLanguageCode; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleCountryCode; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleScriptCode; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleVariantCode; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleExemplarCharacterSet; /* CFCharacterSet */
+CF_EXPORT const CFStringRef kCFLocaleCalendarIdentifier; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleCalendar; /* CFCalendar */
+CF_EXPORT const CFStringRef kCFLocaleCollationIdentifier; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleUsesMetricSystem; /* CFBoolean */
 #endif
 #if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CF_EXPORT const CFStringRef kCFLocaleCollatorIdentifier; // CFString
-CF_EXPORT const CFStringRef kCFLocaleQuotationBeginDelimiterKey; // CFString
-CF_EXPORT const CFStringRef kCFLocaleQuotationEndDelimiterKey; // CFString
-CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey; // CFString
-CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey; //CFString
+CF_EXPORT const CFStringRef kCFLocaleCollatorIdentifier; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleQuotationBeginDelimiterKey; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleQuotationEndDelimiterKey; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey; /* CFString */
+CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey; /* CFString */
 #endif
 /** @}
  */
@@ -119,9 +119,9 @@ CF_EXPORT const CFStringRef kCFLocaleCurrentLocaleDidChangeNotification;
 
 
 
-//
-// Creating a Locale
-//
+/*
+ * Creating a Locale
+ */
 CF_EXPORT CFLocaleRef
 CFLocaleCopyCurrent (void);
 
@@ -136,17 +136,17 @@ CFLocaleCreateCopy (CFAllocatorRef allocator,
 CF_EXPORT CFLocaleRef
 CFLocaleGetSystem (void);
 
-//
-// Getting System Locale Information
-//
+/*
+ * Getting System Locale Information
+ */
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT CFArrayRef
 CFLocaleCopyAvailableLocaleIdentifiers (void);
 #endif
 
-//
-// Getting ISO Information
-//
+/*
+ * Getting ISO Information
+ */
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT CFArrayRef
 CFLocaleCopyISOCountryCodes (void);
@@ -163,17 +163,17 @@ CF_EXPORT CFArrayRef
 CFLocaleCopyCommonISOCurrencyCodes (void);
 #endif
 
-//
-// Language Preferences
-//
+/*
+ * Language Preferences
+ */
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT CFArrayRef
 CFLocaleCopyPreferredLanguages (void);
 #endif
 
-//
-// Getting Information About a Locale
-//
+/*
+ * Getting Information About a Locale
+ */
 CF_EXPORT CFStringRef
 CFLocaleCopyDisplayNameForPropertyValue (CFLocaleRef displayLocale,
                                          CFStringRef key,
@@ -186,9 +186,9 @@ CFLocaleGetValue (CFLocaleRef locale,
 CF_EXPORT CFStringRef
 CFLocaleGetIdentifier (CFLocaleRef locale);
 
-//
-// Getting and Creating Locale Identifiers
-//
+/*
+ * Getting and Creating Locale Identifiers
+ */
 CF_EXPORT CFStringRef
 CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
                                                    CFStringRef localeIdent);
@@ -207,15 +207,15 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
                                               CFDictionaryRef dictionary);
 #endif
 
-//
-// Getting the CFLocale Type ID
-//
+/*
+ * Getting the CFLocale Type ID
+ */
 CF_EXPORT CFTypeID
 CFLocaleGetTypeID (void);
 
-//
-// New Functions
-//
+/*
+ * New Functions
+ */
 #if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT CFStringRef
 CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode (CFAllocatorRef allocator,

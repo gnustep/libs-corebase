@@ -65,9 +65,6 @@
 
 #define MAC_OS_X_VERSION_MAX_ALLOWED 100700
 
-/* FIXME: Define CFRunLoopRef here for now... */
-typedef struct CFRunLoop *CFRunLoopRef;
-
 /*
  * CoreFoundation types
  */
@@ -434,9 +431,9 @@ CFAllocatorGetTypeID (void);
 
 
 
-//
-// CFType Functions
-//
+/*
+ * CFType Functions
+ */
 /** @ingroup CFType
     @{
  */

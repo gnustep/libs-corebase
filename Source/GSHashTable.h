@@ -71,7 +71,7 @@ struct GSHashTable
   CFAllocatorRef _allocator;
   CFIndex        _capacity;
   CFIndex        _count;
-  CFIndex        _total; // Used for CFBagGetCount()
+  CFIndex        _total; /* Used for CFBagGetCount() */
   GSHashTableKeyCallBacks _keyCallBacks;
   GSHashTableValueCallBacks _valueCallBacks;
   struct GSHashTableBucket *_buckets;

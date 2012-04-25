@@ -79,7 +79,7 @@ CFXMLNodeFinalize (CFTypeRef cf)
           CFRelease (info->notationName);
         }
         break;
-      case kCFXMLNodeTypeDocumentType: // These two have the same structure.
+      case kCFXMLNodeTypeDocumentType: /* These two have the same structure. */
       case kCFXMLNodeTypeNotation:
         {
           CFXMLDocumentTypeInfo *info =
@@ -111,7 +111,7 @@ CFXMLNodeFinalize (CFTypeRef cf)
           CFAllocatorDeallocate (CFGetAllocator (node), info->attributes);
         }
         break;
-      default: // Do nothing for everything else
+      default: /* Do nothing for everything else */
         break;
     }
   
@@ -169,7 +169,7 @@ CFXMLNodeEqual (CFTypeRef cf1, CFTypeRef cf2)
                 (CFXMLEntityReferenceInfo*)node2->_info;
               return entRef1->entityType == entRef2->entityType;
             }
-          case kCFXMLNodeTypeDocumentType: // These two have the same structure.
+          case kCFXMLNodeTypeDocumentType: /* These two have the same structure. */
           case kCFXMLNodeTypeNotation:
             {
               CFXMLDocumentTypeInfo *info1 =
@@ -304,7 +304,7 @@ CFXMLNodeCopyAdditionalInfo (CFAllocatorRef alloc, void *info,
           dest->entityType = src->entityType;
         }
         break;
-      case kCFXMLNodeTypeDocumentType: // These two have the same structure.
+      case kCFXMLNodeTypeDocumentType: /* These two have the same structure. */
       case kCFXMLNodeTypeNotation:
         {
           CFXMLDocumentTypeInfo *src =
@@ -350,7 +350,7 @@ CFXMLNodeCopyAdditionalInfo (CFAllocatorRef alloc, void *info,
             }
         }
         break;
-      default: // Do nothing for everything else
+      default: /* Do nothing for everything else */
         break;
     }
 }

@@ -63,15 +63,15 @@ enum
 
 
 
-//
-// Getting the Character Set Type Identifier
-//
+/*
+ * Getting the Character Set Type Identifier
+ */
 CF_EXPORT CFTypeID
 CFCharacterSetGetTypeID (void);
 
-//
-// Creating Character Sets
-//
+/*
+ * Creating Character Sets
+ */
 #if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT CFCharacterSetRef
 CFCharacterSetCreateCopy (CFAllocatorRef alloc, CFCharacterSetRef set);
@@ -94,15 +94,15 @@ CF_EXPORT CFCharacterSetRef
 CFCharacterSetCreateWithBitmapRepresentation (CFAllocatorRef alloc,
   CFDataRef data);
 
-//
-// Getting Predefined Character Sets
-//
+/*
+ * Getting Predefined Character Sets
+ */
 CF_EXPORT CFCharacterSetRef
 CFCharacterSetGetPredefined (CFCharacterSetPredefinedSet setIdentifier);
 
-//
-// Querying Character Sets
-//
+/*
+ * Querying Character Sets
+ */
 CF_EXPORT CFDataRef
 CFCharacterSetCreateBitmapRepresentation (CFAllocatorRef alloc,
   CFCharacterSetRef set);
@@ -124,9 +124,9 @@ CFCharacterSetIsSupersetOfSet (CFCharacterSetRef set,
 
 
 
-//
-// CFMutableCharacterSet
-//
+/*
+ * CFMutableCharacterSet
+ */
 CF_EXPORT CFMutableCharacterSetRef
 CFCharacterSetCreateMutable (CFAllocatorRef alloc);
 

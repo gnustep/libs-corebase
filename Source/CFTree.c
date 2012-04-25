@@ -67,7 +67,7 @@ CFTreeFinalize (CFTypeRef cf)
   while (child)
     {
       tmp = child->_nextSibling;
-      CFTreeFinalize (child); // No need to go through CFRelease().
+      CFTreeFinalize (child); /* No need to go through CFRelease(). */
       child = tmp;
     }
   
@@ -220,7 +220,7 @@ CFTreeSetContext (CFTreeRef tree, const CFTreeContext *context)
 void
 CFTreeSortChildren (CFTreeRef tree, CFComparatorFunction comp, void *context)
 {
-  // FIXME
+  /* FIXME */
 }
 
 CFTreeRef

@@ -25,7 +25,7 @@
 */
 
 #ifndef __CFCOREFOUNDATION_CFXMLNODE_H__
-#define __CFCOREFOUNDATION_CFXMLNODE_H__
+#define __CFCOREFOUNDATION_CFXMLNODE_H__ 1
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFArray.h>
@@ -174,9 +174,9 @@ CFXMLNodeGetVersion (CFXMLNodeRef node);
 
 
 
-//
-// CFXMLTree
-//
+/*
+ * CFXMLTree
+ */
 typedef CFTreeRef CFXMLTreeRef;
 
 CF_EXPORT CFXMLTreeRef

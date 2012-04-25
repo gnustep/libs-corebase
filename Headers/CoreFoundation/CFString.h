@@ -45,14 +45,14 @@ CF_EXTERN_C_BEGIN
     @{
  */
 
-//
-// Data Types
-//
+/*
+ * Data Types
+ */
 typedef UInt32 CFStringEncoding;
 
-//
-// Constants
-//
+/*
+ * Constants
+ */
 enum CFStringCompareFlags
 {
   kCFCompareCaseInsensitive = 1,
@@ -106,9 +106,6 @@ CF_EXPORT CFStringRef
 __CFStringMakeConstantString (const char *str) GS_PURE_FUNCTION;
 #define CFSTR(x) __CFStringMakeConstantString("" x "")
 
-//
-// Creating a CFString
-//
 /** @name Creating a CFString
     @{
  */
@@ -174,9 +171,6 @@ CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
 /** @}
  */
 
-//
-// Searching Strings
-//
 /** @name Searching CFStrings
     @{
  */
@@ -216,9 +210,6 @@ CFStringGetParagraphBounds (CFStringRef string, CFRange range,
 /** @}
  */
 
-//
-// Comparing Strings
-//
 /** @name Comparing String
     @{
  */
@@ -245,9 +236,6 @@ CFStringCompareWithOptionsAndLocale (CFStringRef theString1,
 /** @}
  */
 
-//
-// Accessing Characters
-//
 /** @name Accessing Characters
     @{
  */
@@ -301,9 +289,6 @@ CFStringIsSurrogateLowCharacter (UniChar character);
 /** @}
  */
 
-//
-// Working With Encodings
-//
 /** @name Working with Encodings
     @{
  */
@@ -360,9 +345,6 @@ CFStringGetMaximumSizeOfFileSystemRepresentation (CFStringRef string);
 /** @}
  */
 
-//
-// Getting Numeric Values
-//
 /** @name Getting Numeric Values
     @{
  */
@@ -374,9 +356,6 @@ CFStringGetIntValue (CFStringRef str);
 /** @}
  */
 
-//
-// Getting String Properties
-//
 /** @name Getting String Properties
     @{
  */
@@ -452,9 +431,7 @@ CF_EXPORT const CFStringRef kCFStringTransformToUnicodeName;
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef kCFStringTransformStripDiacritics;
 #endif
-//
-// CFMutableString
-//
+
 CF_EXPORT void
 CFStringAppend (CFMutableStringRef theString, CFStringRef appendedString);
 
@@ -595,7 +572,7 @@ CFStringGetCharacterFromInlineBuffer (CFStringInlineBuffer *buf, CFIndex idx)
       if (idx < 0 || idx >= buf->rangeToBuffer.length)
         return 0;
       
-      // Use 16 here so it's efficient to go backwards, too
+      /* Use 16 here so it's efficient to go backwards, too */
       buf->bufferedRangeStart = idx - 16;
       if (buf->bufferedRangeStart < 0)
         buf->bufferedRangeStart = 0;

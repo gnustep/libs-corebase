@@ -80,9 +80,9 @@ CF_EXPORT const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks;
 
 
 
-//
-// Creating a dictionary
-//
+/*
+ * Creating a dictionary
+ */
 CFDictionaryRef
 CFDictionaryCreate (CFAllocatorRef allocator, const void **keys,
   const void **values, CFIndex numValues,
@@ -92,9 +92,9 @@ CFDictionaryCreate (CFAllocatorRef allocator, const void **keys,
 CFDictionaryRef
 CFDictionaryCreateCopy (CFAllocatorRef allocator, CFDictionaryRef theDict);
 
-//
-// Examining a dictionary
-//
+/*
+ * Examining a dictionary
+ */
 Boolean
 CFDictionaryContainsKey (CFDictionaryRef theDict, const void *key);
 
@@ -121,22 +121,22 @@ Boolean
 CFDictionaryGetValueIfPresent (CFDictionaryRef theDict, const void *key,
   const void **value);
 
-//
-// Applying a funcation to a dictionary
-//
+/*
+ * Applying a funcation to a dictionary
+ */
 void
 CFDictionaryApplyFunction (CFDictionaryRef theDict,
   CFDictionaryApplierFunction applier, void *context);
 
-//
-// Getting the CFDictionary type ID
-//
+/*
+ * Getting the CFDictionary type ID
+ */
 CFTypeID
 CFDictionaryGetTypeID (void);
 
-//
-// Creating a Mutable Dictionary
-//
+/*
+ * Creating a Mutable Dictionary
+ */
 CFMutableDictionaryRef
 CFDictionaryCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
   const CFDictionaryKeyCallBacks *keyCallBacks,
@@ -146,9 +146,9 @@ CFMutableDictionaryRef
 CFDictionaryCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
   CFDictionaryRef theDict);
 
-//
-// Modifying a Dictionary
-//
+/*
+ * Modifying a Dictionary
+ */
 void
 CFDictionaryAddValue (CFMutableDictionaryRef theDict, const void *key,
   const void *value);

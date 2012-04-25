@@ -47,51 +47,51 @@ enum _CFDateFormatterStyle
   kCFDateFormatterFullStyle = 4
 };
 
-CF_EXPORT const CFStringRef kCFDateFormatterIsLenient; // CFBoolean
-CF_EXPORT const CFStringRef kCFDateFormatterTimeZone; // CFTimeZone
-CF_EXPORT const CFStringRef kCFDateFormatterCalendarName; // CFString
-CF_EXPORT const CFStringRef kCFDateFormatterDefaultFormat; // CFString
+CF_EXPORT const CFStringRef kCFDateFormatterIsLenient; /* CFBoolean */
+CF_EXPORT const CFStringRef kCFDateFormatterTimeZone; /* CFTimeZone */
+CF_EXPORT const CFStringRef kCFDateFormatterCalendarName; /* CFString */
+CF_EXPORT const CFStringRef kCFDateFormatterDefaultFormat; /* CFString */
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CF_EXPORT const CFStringRef kCFDateFormatterTwoDigitStartDate; // CFDate
-CF_EXPORT const CFStringRef kCFDateFormatterDefaultDate; // CFDate
-CF_EXPORT const CFStringRef kCFDateFormatterCalendar; // CFCalendar
-CF_EXPORT const CFStringRef kCFDateFormatterEraSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterMonthSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterShortMonthSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterWeekdaySymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterShortWeekdaySymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterAMSymbol; // CFString
-CF_EXPORT const CFStringRef kCFDateFormatterPMSymbol; // CFString
+CF_EXPORT const CFStringRef kCFDateFormatterTwoDigitStartDate; /* CFDate */
+CF_EXPORT const CFStringRef kCFDateFormatterDefaultDate; /* CFDate */
+CF_EXPORT const CFStringRef kCFDateFormatterCalendar; /* CFCalendar */
+CF_EXPORT const CFStringRef kCFDateFormatterEraSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterMonthSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterShortMonthSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterWeekdaySymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterShortWeekdaySymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterAMSymbol; /* CFString */
+CF_EXPORT const CFStringRef kCFDateFormatterPMSymbol; /* CFString */
 #endif
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED 
-CF_EXPORT const CFStringRef kCFDateFormatterLongEraSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterVeryShortMonthSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterStandaloneMonthSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterShortStandaloneMonthSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterVeryShortStandaloneMonthSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterVeryShortWeekdaySymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterStandaloneWeekdaySymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterShortStandaloneWeekdaySymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterVeryShortStandaloneWeekdaySymbols; //CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterQuarterSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterShortQuarterSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterStandaloneQuarterSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterShortStandaloneQuarterSymbols; // CFArray
-CF_EXPORT const CFStringRef kCFDateFormatterGregorianStartDate; // CFDate
+CF_EXPORT const CFStringRef kCFDateFormatterLongEraSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterVeryShortMonthSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterStandaloneMonthSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterShortStandaloneMonthSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterVeryShortStandaloneMonthSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterVeryShortWeekdaySymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterStandaloneWeekdaySymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterShortStandaloneWeekdaySymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterVeryShortStandaloneWeekdaySymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterQuarterSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterShortQuarterSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterStandaloneQuarterSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterShortStandaloneQuarterSymbols; /* CFArray */
+CF_EXPORT const CFStringRef kCFDateFormatterGregorianStartDate; /* CFDate */
 #endif
 
 
 
-//
-// Creating a Date Formatter
-//
+/*
+ * Creating a Date Formatter
+ */
 CFDateFormatterRef
 CFDateFormatterCreate (CFAllocatorRef alloc, CFLocaleRef locale,
   CFDateFormatterStyle dateStyle, CFDateFormatterStyle timeStyle);
 
-//
-//Configuring a Date Formatter
-//
+/*
+ * Configuring a Date Formatter
+ */
 void
 CFDateFormatterSetFormat (CFDateFormatterRef fmt, CFStringRef formatString);
 
@@ -99,9 +99,9 @@ void
 CFDateFormatterSetProperty (CFDateFormatterRef fmt, CFStringRef key,
   CFTypeRef value);
 
-//
-// Parsing Strings
-//
+/*
+ * Parsing Strings
+ */
 CFDateRef
 CFDateFormatterCreateDateFromString (CFAllocatorRef alloc,
   CFDateFormatterRef fmt, CFStringRef string, CFRange *rangep);
@@ -110,9 +110,9 @@ Boolean
 CFDateFormatterGetAbsoluteTimeFromString (CFDateFormatterRef fmt,
   CFStringRef string, CFRange *rangep, CFAbsoluteTime *atp);
 
-//
-// Creating Strings From Data
-//
+/*
+ * Creating Strings From Data
+ */
 CFStringRef
 CFDateFormatterCreateStringWithAbsoluteTime (CFAllocatorRef alloc,
   CFDateFormatterRef fmt, CFAbsoluteTime at);
@@ -125,9 +125,9 @@ CFStringRef
 CFDateFormatterCreateDateFormatFromTemplate (CFAllocatorRef alloc,
   CFStringRef templ, CFOptionFlags options, CFLocaleRef locale);
 
-//
-// Getting Information About a Date Formatter
-//
+/*
+ * Getting Information About a Date Formatter
+ */
 CFTypeRef
 CFDateFormatterCopyProperty (CFDateFormatterRef fmt, CFStringRef key);
 
@@ -143,9 +143,9 @@ CFDateFormatterGetLocale (CFDateFormatterRef fmt);
 CFDateFormatterStyle
 CFDateFormatterGetTimeStyle (CFDateFormatterRef fmt);
 
-//
-// Getting the CFDateFormatter Type ID
-//
+/*
+ * Getting the CFDateFormatter Type ID
+ */
 CFTypeID
 CFDateFormatterGetTypeID (void);
 

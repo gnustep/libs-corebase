@@ -66,19 +66,19 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef allocator,
                               CFPropertyListRef propertyList,
                               CFOptionFlags mutabilityOption);
 
-// Function marked as obsolete as of 10.6
+/* Function marked as obsolete as of 10.6 */
 CFPropertyListRef
 CFPropertyListCreateFromXMLData (CFAllocatorRef allocator, CFDataRef xmlData,
                                  CFOptionFlags mutabilityOption,
                                  CFStringRef *errorString);
 
-// Function marked as obsolete as of 10.6
+/* Function marked as obsolete as of 10.6 */
 CFDataRef
 CFPropertyListCreateXMLData (CFAllocatorRef allocator,
                              CFPropertyListRef propertyList);
 
 #if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
-// Function is marked as obsolete as of 10.6
+/* Function is marked as obsolete as of 10.6 */
 CFPropertyListRef
 CFPropertyListCreateFromStream (CFAllocatorRef allocator,
                                 CFReadStreamRef stream,
@@ -90,7 +90,7 @@ CFPropertyListCreateFromStream (CFAllocatorRef allocator,
 Boolean
 CFPropertyListIsValid (CFPropertyListRef plist, CFPropertyListFormat format);
 
-// Function is marked as obsolete as of 10.6
+/* Function is marked as obsolete as of 10.6 */
 CFIndex
 CFPropertyListWriteToStream (CFPropertyListRef propertyList,
                              CFWriteStreamRef stream,

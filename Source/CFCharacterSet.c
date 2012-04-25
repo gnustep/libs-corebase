@@ -195,14 +195,14 @@ static const UniChar uppercase_letter[] =
   { '[', ':', 'L', 'u', ':', ']'  };
 static const UniChar non_base[] =
   { '[', ':', 'M', ':', ']'  };
-static const UniChar decomposable[] = // FIXME
+static const UniChar decomposable[] = /* FIXME */
   { ' '  };
 static const UniChar alpha_numeric[] =
   { '[', '[', ':', 'L', ':', ']', '[', ':', 'M', ':', ']',
     '[', ':', 'N', ':', ']', ']' };
 static const UniChar punctuation[] =
   { '[', ':', 'P', ':', ']'  };
-static const UniChar illegal[] = // FIXME: Is this right?
+static const UniChar illegal[] = /* FIXME: Is this right? */
   { '[', '[', ':', '^', 'C', ':', ']', '[', ':', '^', 'L', ':', ']',
     '[', ':', '^', 'M', ':', ']', '[', ':', '^', 'N', ':', ']',
     '[', ':', '^', 'P', ':', ']', '[', ':', '^', 'S', ':', ']',
@@ -247,7 +247,7 @@ CFCharacterSetGetPredefined (CFCharacterSetPredefinedSet setIdentifier)
       GSMutexLock (&_kCFPredefinedCharacterSetLock);
       if (_kCFPredefinedCharacterSets == NULL)
         {
-          // No need to set callbacks.
+          /* No need to set callbacks. */
           _kCFPredefinedCharacterSets =
             CFDictionaryCreateMutable (NULL, 15, NULL, NULL);
         }

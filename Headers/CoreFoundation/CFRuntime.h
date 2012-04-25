@@ -79,11 +79,11 @@ struct __CFRuntimeClass
   CFStringRef (*copyDebugDesc)(CFTypeRef cf);
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 #define CF_RECLAIM_AVAILABLE 1
-  void (*reclaim)(CFTypeRef cf); // _kCFRuntimeResourcefulObject
+  void (*reclaim)(CFTypeRef cf); /* _kCFRuntimeResourcefulObject */
 #endif
 #if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
 #define CF_REFCOUNT_AVAILABLE 1
-  UInt32 (*refcount)(intptr_t op, CFTypeRef cf); // _kCFRuntimeCustomRefCount
+  UInt32 (*refcount)(intptr_t op, CFTypeRef cf); /* _kCFRuntimeCustomRefCount */
 #endif
 };
 
@@ -126,9 +126,9 @@ struct __CFRuntimeBase
   SInt16 _typeID;
   struct
     {
-      SInt16 ro:       1; // 0 = read-only object
-      SInt16 reserved: 7; // For internal CFRuntime use
-      SInt16 info:     8; // Can be used by CF type
+      SInt16 ro:       1; /* 0 = read-only object */
+      SInt16 reserved: 7; /* For internal CFRuntime use */
+      SInt16 info:     8; /* Can be used by CF type */
     } _flags;
 };
 

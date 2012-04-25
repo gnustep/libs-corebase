@@ -25,7 +25,7 @@
 */
 
 #ifndef __COREFOUNDATION_CFSTREAM_H__
-#define __COREFOUNDATION_CFSTREAM_H__
+#define __COREFOUNDATION_CFSTREAM_H__ 1
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFError.h>
@@ -72,7 +72,7 @@ enum _CFStreamStatus
 };
 typedef enum _CFStreamStatus CFStreamStatus;
 
-// Deprecated
+/* Deprecated  */
 enum _CFStreamErrorDomain
 {
   kCFStreamErrorDomainCustom = -1,
@@ -108,9 +108,9 @@ typedef void (*CFReadStreamClientCallBack) (CFReadStreamRef stream,
 
 
 
-//
-// NSStream functions
-//
+/*
+ * NSStream functions
+ */
 /* FIXME: need CFSocket suff...
 void
 CFStreamCreatePairWithSocket (CFAllocatorRef alloc, CFSocketNativeHandle sock,
@@ -122,9 +122,9 @@ CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
                                     UInt32 port, CFReadStreamRef *readStream,
                                     CFWriteStreamRef *writeStream);
 
-//
-// Creating a Write Stream
-//
+/*
+ * Creating a Write Stream
+ */
 CFWriteStreamRef
 CFWriteStreamCreateWithAllocatedBuffers (CFAllocatorRef alloc,
                                          CFAllocatorRef bufferAllocator);
@@ -136,25 +136,25 @@ CFWriteStreamCreateWithBuffer (CFAllocatorRef alloc, UInt8 *buffer,
 CFWriteStreamRef
 CFWriteStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL);
 
-//
-// Opening and Closing a Write Stream
-//
+/*
+ * Opening and Closing a Write Stream
+ */
 void
 CFWriteStreamClose (CFWriteStreamRef stream);
 
 Boolean
 CFWriteStreamOpen (CFWriteStreamRef stream);
 
-//
-// Writing to a Stream
-//
+/*
+ * Writing to a Stream
+ */
 CFIndex
 CFWriteStreamWrite (CFWriteStreamRef stream, const UInt8 *buffer,
                     CFIndex bufferLength);
 
-//
-// Scheduling a Write Stream
-//
+/*
+ * Scheduling a Write Stream
+ */
 void
 CFWriteStreamScheduleWithRunLoop (CFWriteStreamRef stream,
                                   CFRunLoopRef runLoop,
@@ -165,39 +165,39 @@ CFWriteStreamUnscheduleFromRunLoop (CFWriteStreamRef stream,
                                     CFRunLoopRef runLoop,
                                     CFStringRef runLoopMode);
 
-//
-// Examining Write Stream Properties
-//
+/*
+ * Examining Write Stream Properties
+ */
 Boolean
 CFWriteStreamCanAcceptBytes (CFWriteStreamRef stream);
 
 CFTypeRef
 CFWriteStreamCopyProperty (CFWriteStreamRef stream, CFStringRef propertyName);
 
-// Deprecated function
+/* Deprecated function */
 CFStreamError
 CFWriteStreamGetError (CFWriteStreamRef stream);
 
 CFStreamStatus
 CFWriteStreamGetStatus (CFWriteStreamRef stream);
 
-//
-// Setting Write Stream Properties
-//
+/*
+ * Setting Write Stream Properties
+ */
 Boolean
 CFWriteStreamSetClient (CFWriteStreamRef stream, CFOptionFlags streamEvents,
                         CFWriteStreamClientCallBack clientCB,
                         CFStreamClientContext *clientContext);
 
-//
-// Getting the CFWriteStream Type ID
-//
+/*
+ * Getting the CFWriteStream Type ID
+ */
 CFTypeID
 CFWriteStreamGetTypeID (void);
 
-//
-// Creating a Read Stream
-//
+/*
+ * Creating a Read Stream
+ */
 CFReadStreamRef
 CFReadStreamCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
                                    CFIndex length, CFAllocatorRef bytesDeallocator);
@@ -205,24 +205,24 @@ CFReadStreamCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
 CFReadStreamRef
 CFReadStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL);
 
-//
-// Opening and Closing a Read Stream
-//
+/*
+ * Opening and Closing a Read Stream
+ */
 void
 CFReadStreamClose (CFReadStreamRef stream);
 
 Boolean
 CFReadStreamOpen (CFReadStreamRef stream);
 
-//
-// Reading from a Read Stream
-//
+/*
+ * Reading from a Read Stream
+ */
 CFIndex
 CFReadStreamRead (CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength);
 
-//
-// Scheduling a Read Stream
-//
+/*
+ * Scheduling a Read Stream
+ */
 void
 CFReadStreamScheduleWithRunLoop (CFReadStreamRef stream, CFRunLoopRef runLoop,
                                  CFStringRef runLoopMode);
@@ -231,9 +231,9 @@ void
 CFReadStreamUnscheduleFromRunLoop (CFReadStreamRef stream, CFRunLoopRef runLoop,
                                    CFStringRef runLoopMode);
 
-//
-// Examining Stream Properties
-//
+/*
+ * Examining Stream Properties
+ */
 CFTypeRef
 CFReadStreamCopyProperty (CFReadStreamRef stream, CFStringRef propertyName);
 
@@ -241,7 +241,7 @@ const UInt8 *
 CFReadStreamGetBuffer (CFReadStreamRef stream, CFIndex maxBytesToRead,
                        CFIndex *numBytesRead);
 
-// Deprecated function
+/* Deprecated function */
 CFStreamError
 CFReadStreamGetError (CFReadStreamRef stream);
 
@@ -252,17 +252,17 @@ CFReadStreamGetStatus (CFReadStreamRef stream);
 Boolean
 CFReadStreamHasBytesAvailable (CFReadStreamRef stream);
 
-//
-// Setting Stream Properties
-//
+/*
+ * Setting Stream Properties
+ */
 Boolean
 CFReadStreamSetClient (CFReadStreamRef stream, CFOptionFlags streamEvents,
                        CFReadStreamClientCallBack clientCB,
                        CFStreamClientContext *clientContext);
 
-//
-// Getting the CFReadStream Type ID
-//
+/*
+ * Getting the CFReadStream Type ID
+ */
 CFTypeID
 CFReadStreamGetTypeID (void);
 

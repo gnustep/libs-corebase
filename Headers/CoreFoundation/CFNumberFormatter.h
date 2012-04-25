@@ -86,98 +86,98 @@ enum
 };
 
 CF_EXPORT const CFStringRef
-kCFNumberFormatterCurrencyCode; // CFString
+kCFNumberFormatterCurrencyCode; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterDecimalSeparator; // CFString
+kCFNumberFormatterDecimalSeparator; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterCurrencyDecimalSeparator; // CFString
+kCFNumberFormatterCurrencyDecimalSeparator; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterAlwaysShowDecimalSeparator; // CFBoolean
+kCFNumberFormatterAlwaysShowDecimalSeparator; /* CFBoolean */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterGroupingSeparator; // CFString
+kCFNumberFormatterGroupingSeparator; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterUseGroupingSeparator; // CFBoolean
+kCFNumberFormatterUseGroupingSeparator; /* CFBoolean */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterPercentSymbol; // CFString
+kCFNumberFormatterPercentSymbol; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterZeroSymbol; // CFString
+kCFNumberFormatterZeroSymbol; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterNaNSymbol; // CFString
+kCFNumberFormatterNaNSymbol; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterInfinitySymbol; // CFString
+kCFNumberFormatterInfinitySymbol; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMinusSign; // CFString
+kCFNumberFormatterMinusSign; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterPlusSign; // CFString
+kCFNumberFormatterPlusSign; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterCurrencySymbol; // CFString
+kCFNumberFormatterCurrencySymbol; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterExponentSymbol; // CFString
+kCFNumberFormatterExponentSymbol; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMinIntegerDigits; // CFNumber
+kCFNumberFormatterMinIntegerDigits; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMaxIntegerDigits; // CFNumber
+kCFNumberFormatterMaxIntegerDigits; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMinFractionDigits; // CFNumber
+kCFNumberFormatterMinFractionDigits; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMaxFractionDigits; // CFNumber
+kCFNumberFormatterMaxFractionDigits; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterGroupingSize; // CFNumber
+kCFNumberFormatterGroupingSize; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterSecondaryGroupingSize; // CFNumber
+kCFNumberFormatterSecondaryGroupingSize; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterRoundingMode; // CFNumber
+kCFNumberFormatterRoundingMode; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterRoundingIncrement; // CFNumber
+kCFNumberFormatterRoundingIncrement; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterFormatWidth; // CFNumber
+kCFNumberFormatterFormatWidth; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterPaddingPosition; // CFNumber
+kCFNumberFormatterPaddingPosition; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterPaddingCharacter; // CFString
+kCFNumberFormatterPaddingCharacter; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterDefaultFormat; // CFString
+kCFNumberFormatterDefaultFormat; /* CFString */
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMultiplier; // CFNumber
+kCFNumberFormatterMultiplier; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterPositivePrefix; // CFString
+kCFNumberFormatterPositivePrefix; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterPositiveSuffix; // CFString
+kCFNumberFormatterPositiveSuffix; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterNegativePrefix; // CFString
+kCFNumberFormatterNegativePrefix; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterNegativeSuffix; // CFString
+kCFNumberFormatterNegativeSuffix; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterPerMillSymbol; // CFString
+kCFNumberFormatterPerMillSymbol; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterInternationalCurrencySymbol; // CFString
+kCFNumberFormatterInternationalCurrencySymbol; /* CFString */
 #endif
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED 
 CF_EXPORT const CFStringRef
-kCFNumberFormatterCurrencyGroupingSeparator; // CFString
+kCFNumberFormatterCurrencyGroupingSeparator; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterIsLenient; // CFBoolean
+kCFNumberFormatterIsLenient; /* CFBoolean */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterUseSignificantDigits; // CFBoolean
+kCFNumberFormatterUseSignificantDigits; /* CFBoolean */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMinSignificantDigits; // CFNumber
+kCFNumberFormatterMinSignificantDigits; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMaxSignificantDigits; // CFNumber
+kCFNumberFormatterMaxSignificantDigits; /* CFNumber */
 #endif
 
 
 
-//
-// Creating a Number Formatter
-//
+/*
+ * Creating a Number Formatter
+ */
 CF_EXPORT CFNumberFormatterRef
 CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
   CFNumberFormatterStyle style);
 
-//
-// Configuring a Number Formatter
-//
+/*
+ * Configuring a Number Formatter
+ */
 void
 CFNumberFormatterSetFormat (CFNumberFormatterRef formatter,
   CFStringRef formatString);
@@ -186,9 +186,9 @@ void
 CFNumberFormatterSetProperty (CFNumberFormatterRef formatter,
   CFStringRef key, CFTypeRef value);
 
-//
-// Formatting Values
-//
+/*
+ * Formatting Values
+ */
 CFNumberRef
 CFNumberFormatterCreateNumberFromString (CFAllocatorRef allocator,
   CFNumberFormatterRef formatter, CFStringRef string, CFRange *rangep,
@@ -211,9 +211,9 @@ Boolean
 CFNumberFormatterGetValueFromString (CFNumberFormatterRef formatter,
   CFStringRef string, CFRange *rangep, CFNumberType numberType, void *valuePtr);
 
-//
-// Examining a Number Formatter
-//
+/*
+ * Examining a Number Formatter
+ */
 CFTypeRef
 CFNumberFormatterCopyProperty (CFNumberFormatterRef formatter,
   CFStringRef key);
@@ -227,9 +227,9 @@ CFNumberFormatterGetLocale (CFNumberFormatterRef formatter);
 CFNumberFormatterStyle
 CFNumberFormatterGetStyle (CFNumberFormatterRef formatter);
 
-//
-// Getting the CFNumberFormatter Type ID
-//
+/*
+ * Getting the CFNumberFormatter Type ID
+ */
 CFTypeID
 CFNumberFormatterGetTypeID (void);
 

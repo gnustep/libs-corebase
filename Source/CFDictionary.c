@@ -211,9 +211,6 @@ CFDictionaryGetTypeID (void)
 
 
 
-//
-// CFMutableDictionary
-//
 CFMutableDictionaryRef
 CFDictionaryCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
   const CFDictionaryKeyCallBacks *keyCallBacks,

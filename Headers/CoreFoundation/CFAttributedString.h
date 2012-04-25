@@ -24,26 +24,26 @@
    Boston, MA 02110-1301, USA.
 */
 
+#ifndef __COREFOUNDATION_CFATTRIBUTEDSTIRNG_H__
+#define __COREFOUNDATION_CFATTRIBUTEDSTIRNG_H__ 1
+
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
-
-#ifndef __COREFOUNDATION_CFATTRIBUTEDSTIRNG_H__
-#define __COREFOUNDATION_CFATTRIBUTEDSTIRNG_H__
 
 CF_EXTERN_C_BEGIN
 
 typedef const struct __CFAttributedString * CFAttributedStringRef;
 typedef struct __CFAttributedString * CFMutableAttributedStringRef;
 
-//
-// Getting Attributed String Properties
-//
+/*
+ * Getting Attributed String Properties
+ */
 CF_EXPORT CFTypeID
 CFAttributedStringGetTypeID (void);
 
-//
-// Creating a CFAttributedString
-//
+/*
+ * Creating a CFAttributedString
+ */
 CF_EXPORT CFAttributedStringRef
 CFAttributedStringCreate (CFAllocatorRef alloc, CFStringRef str,
   CFDictionaryRef attribs);
@@ -61,9 +61,9 @@ CFAttributedStringGetLength (CFAttributedStringRef str);
 CF_EXPORT CFStringRef
 CFAttributedStringGetString (CFAttributedStringRef str);
 
-//
-// Accessing Attributes
-//
+/*
+ * Accessing Attributes
+ */
 CF_EXPORT CFTypeRef
 CFAttributedStringGetAttribute (CFAttributedStringRef str, CFIndex loc,
   CFStringRef attrName, CFRange *effRange);
@@ -82,9 +82,9 @@ CFAttributedStringGetAttributesAndLongestEffectiveRange (
   CFAttributedStringRef str, CFIndex loc, CFRange inRange,
   CFRange *longestEffRange);
 
-//
-// Creating a CFMutableAttributedString
-//
+/*
+ * Creating a CFMutableAttributedString
+ */
 CF_EXPORT CFMutableAttributedStringRef
 CFAttributedStringCreateMutable (CFAllocatorRef alloc, CFIndex maxLength);
 
@@ -92,9 +92,9 @@ CF_EXPORT CFMutableAttributedStringRef
 CFAttributedStringCreateMutableCopy (CFAllocatorRef alloc, CFIndex maxLength,
   CFAttributedStringRef str);
 
-//
-// Modifying a CFMutableAttributedString
-//
+/*
+ * Modifying a CFMutableAttributedString
+ */
 CF_EXPORT void
 CFAttributedStringBeginEditing (CFMutableAttributedStringRef str);
 

@@ -25,7 +25,7 @@
 
 #include <CoreFoundation/CFBase.h>
 
-// External String Encodings
+/* External String Encodings */
 enum
 {
   kCFStringEncodingMacJapanese = 1,

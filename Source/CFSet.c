@@ -178,9 +178,6 @@ CFSetGetTypeID (void)
 
 
 
-//
-// CFMutableSet
-//
 CFMutableSetRef
 CFSetCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
   const CFSetCallBacks *callBacks)

@@ -35,15 +35,15 @@
 
 
 
-// GC stuff...
+/* GC stuff... */
 Boolean kCFUseCollectableAllocator = false;
 Boolean (*__CFObjCIsCollectable)(void *) = NULL;
 
-// CFRuntimeClass Table
+/* CFRuntimeClass Table */
 CFRuntimeClass **__CFRuntimeClassTable = NULL;
 void **__CFRuntimeObjCClassTable = NULL;
 UInt32 __CFRuntimeClassTableCount = 0;
-UInt32 __CFRuntimeClassTableSize = 1024;  // Initial size
+UInt32 __CFRuntimeClassTableSize = 1024;  /* Initial size */
 
 static GSMutex _kCFRuntimeTableLock;
 
@@ -83,11 +83,11 @@ struct obj_layout {
 typedef	struct obj_layout *obj;
 /******************************/
 
-// CFNotATypeClass declaration for index 0 of the class table.
+/* CFNotATypeClass declaration for index 0 of the class table. */
 static CFRuntimeClass CFNotATypeClass = 
 {
-  0, // Version
-  "CFNotATypeClass", // Class name
+  0, /* Version */
+  "CFNotATypeClass", /* Class name */
   NULL,
   NULL,
   NULL,
@@ -143,12 +143,12 @@ _CFRuntimeUnregisterClassWithTypeID (CFTypeID typeID)
 CFTypeRef
 _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
                           CFIndex extraBytes, unsigned char *category)
-{ // category is not used and should be NULL.
+{ /* category is not used and should be NULL. */
   CFIndex instSize;
   CFRuntimeClass *cls;
   CFRuntimeBase *new;
   
-  // Return NULL if typeID is unknown.
+  /* Return NULL if typeID is unknown. */
   if (_kCFRuntimeNotATypeID == typeID
       || typeID > __CFRuntimeClassTableCount)
     {
@@ -171,7 +171,7 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
       cls = __CFRuntimeClassTable[typeID];
       if (NULL != cls->init)
         {
-          // Init instance...
+          /* Init instance... */
           cls->init(new);
         }
     }
@@ -206,16 +206,13 @@ _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID)
   obj->_typeID = typeID;
   if (cls->init != NULL)
     {
-      // Init instance...
+      /* Init instance... */
       cls->init(memory);
     }
 }
 
 
 
-//
-// CFType Functions
-//
 CFStringRef
 CFCopyDescription (CFTypeRef cf)
 {
@@ -269,7 +266,7 @@ CFEqual (CFTypeRef cf1, CFTypeRef cf2)
   if (cf1 == NULL || cf2 == NULL)
     return false;
   
-  // Can't compare here if either objects are ObjC objects.
+  /* Can't compare here if either objects are ObjC objects. */
   CF_OBJC_FUNCDISPATCH1(CFGetTypeID(cf1), Boolean, cf1, "isEqual:", cf2);
   CF_OBJC_FUNCDISPATCH1(CFGetTypeID(cf2), Boolean, cf2, "isEqual:", cf1);
   
@@ -344,7 +341,7 @@ CFHash (CFTypeRef cf)
 CFTypeRef
 CFMakeCollectable (CFTypeRef cf)
 {
-// FIXME
+/* FIXME */
   return cf;
 }
 
@@ -462,17 +459,17 @@ void CFInitialize (void) __attribute__((constructor));
 static CFIndex CFInitialized = 0;
 void CFInitialize (void)
 {
-  // Only initialize once.
+  /* Only initialize once. */
   if (GSAtomicCompareAndSwapCFIndex(&CFInitialized, 0, 1) == 1)
     return;
   
-  // Initialize CFRuntimeClassTable
+  /* Initialize CFRuntimeClassTable */
   __CFRuntimeClassTable = (CFRuntimeClass **) calloc (__CFRuntimeClassTableSize,
                             sizeof(CFRuntimeClass *));
   
   GSMutexInitialize (&_kCFRuntimeTableLock);
   
-  // CFNotATypeClass should be at index = 0
+  /* CFNotATypeClass should be at index = 0 */
   _CFRuntimeRegisterClass (&CFNotATypeClass);
   
   CFAllocatorInitialize ();

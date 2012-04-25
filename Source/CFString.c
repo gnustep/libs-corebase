@@ -121,7 +121,7 @@ enum
   _kCFStringIsMutable = (1<<0),
   _kCFStringIsInline  = (1<<1),
   _kCFStringIsUnicode = (1<<2),
-  _kCFStringHasLengthByte = (1<<3), // This is used for Pascal strings
+  _kCFStringHasLengthByte = (1<<3), /* This is used for Pascal strings */
   _kCFStringHasNullByte = (1<<4)
 };
 
@@ -268,13 +268,13 @@ CFStringRef __CFStringMakeConstantString (const char *str)
   
   old = (CFStringRef)CFDictionaryGetValue (static_strings, str);
   
-  // Return the existing string pointer if we have one.
+  /* Return the existing string pointer if we have one. */
   if (NULL != old)
     return old;
   
   GSMutexLock(&static_strings_lock);
-  // Check again in case another thread added this string to the table while
-  // we were waiting on the mutex.
+  /* Check again in case another thread added this string to the table while
+   * we were waiting on the mutex. */
   old = (CFStringRef)CFDictionaryGetValue (static_strings, str);
   if (NULL == old)
     {
@@ -562,7 +562,7 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 *bytes,
        */
       if (encoding == origEncoding && extra != numBytes)
         copy = true;
-      if (copy) // Add space for '\0'
+      if (copy) /* Add space for '\0' */
         extra += encoding == kCFStringEncodingASCII? 1 : sizeof(UniChar);
     }
   else
@@ -664,7 +664,7 @@ CFStringRef
 CFStringCreateWithFileSystemRepresentation (CFAllocatorRef alloc,
   const char *buffer)
 {
-  // FIXME: Need to make sure the system encoding will work here.
+  /* FIXME: Need to make sure the system encoding will work here. */
   return CFStringCreateWithCString(alloc, buffer, CFStringGetSystemEncoding());
 }
 
@@ -772,7 +772,7 @@ CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
   
   strLen = CFStringGetLength (str);
   range = CFRangeMake (0, strLen);
-  len = strLen + 1; // include space for a NULL byte.
+  len = strLen + 1; /* include space for a NULL byte. */
   
   buffer = CFAllocatorAllocate (alloc, len, 0);
   
@@ -926,7 +926,7 @@ Boolean
 CFStringGetFileSystemRepresentation (CFStringRef string, char *buffer,
   CFIndex maxBufLen)
 {
-  // FIXME
+  /* FIXME */
   return CFStringGetCString (string, buffer, maxBufLen,
     CFStringGetSystemEncoding());
 }
@@ -1103,7 +1103,7 @@ CFStringCreateMutable (CFAllocatorRef alloc, CFIndex maxLength)
   new->_allocator = alloc ? alloc : CFAllocatorGetDefault();
   new->_contents = CFAllocatorAllocate (new->_allocator,
     new->_capacity * sizeof(UniChar), 0);
-//   
+  
   CFSTRING_INIT_MUTABLE(new);
   
   return (CFMutableStringRef)new;
@@ -1126,7 +1126,7 @@ CFStringCreateMutableCopy (CFAllocatorRef alloc, CFIndex maxLength,
     capacity = maxLength;
   new = (CFMutableStringRef)CFStringCreateMutable (alloc, capacity);
   
-  // An inline buffer is going to work well here...
+  /* An inline buffer is going to work well here... */
   CFStringInitInlineBuffer (str, &buffer, CFRangeMake(0, textLen));
   contents = (UniChar*)new->_contents;
   idx = 0;
@@ -1147,14 +1147,14 @@ CFStringCreateMutableWithExternalCharactersNoCopy (CFAllocatorRef alloc,
   UniChar *chars, CFIndex numChars, CFIndex capacity,
   CFAllocatorRef externalCharactersAllocator)
 {
-  return NULL; // FIXME
+  return NULL; /* FIXME */
 }
 
 void
 CFStringSetExternalCharactersNoCopy (CFMutableStringRef str, UniChar *chars,
   CFIndex length, CFIndex capacity)
 {
-  return; // FIXME
+  return; /* FIXME */
 }
 
 CFIndex
@@ -1162,7 +1162,7 @@ CFStringFindAndReplace (CFMutableStringRef str, CFStringRef stringToFind,
   CFStringRef replacementString, CFRange rangeToSearch,
   CFOptionFlags compareOptions)
 {
-  return 0; // FIXME
+  return 0; /* FIXME */
 }
 
 void
@@ -1245,7 +1245,7 @@ void
 CFStringPad (CFMutableStringRef str, CFStringRef padString,
   CFIndex length, CFIndex indexIntoPad)
 {
-  if (padString == NULL && length < CFStringGetLength(str)) // truncating
+  if (padString == NULL && length < CFStringGetLength(str)) /* truncating */
     {
       ((UniChar*)str->_contents)[length] = 0x0000;
       str->_count = length;
@@ -1301,7 +1301,7 @@ CFStringReplace (CFMutableStringRef str, CFRange range,
   textLength = CFStringGetLength (str);
   repLength = CFStringGetLength (replacement);
   if (!CFRANGE_CHECK(textLength, range))
-    return; // out of range
+    return; /* out of range */
   
   if (repLength != range.length)
     {
@@ -1406,7 +1406,7 @@ CFStringTrimWhitespace (CFMutableStringRef str)
   while (idx < textLength)
     {
       c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
-      // reset the end point
+      /* reset the end point */
       if (!u_isUWhiteSpace((UChar32)c))
         end = idx;
     }
@@ -1432,7 +1432,7 @@ static void
 CFStringCaseMap (CFMutableStringRef str, CFLocaleRef locale,
   CFOptionFlags flags, CFIndex op)
 {
-  char *localeID = NULL; // FIXME
+  char *localeID = NULL; /* FIXME */
   const UniChar *oldContents;
   CFIndex oldContentsLength;
   CFIndex newLength;
@@ -1463,7 +1463,7 @@ CFStringCaseMap (CFMutableStringRef str, CFLocaleRef locale,
               oldContents, oldContentsLength, localeID, &err);
             break;
           case _kCFStringFold:
-            optFlags = 0; // FIXME
+            optFlags = 0; /* FIXME */
             newLength = u_strFoldCase (mStr->_contents, mStr->_capacity,
               oldContents, oldContentsLength, optFlags, &err);
             break;

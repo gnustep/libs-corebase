@@ -36,10 +36,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-// On *BSD and Linux we have a srandomdev() function which seeds the random 
-// number generator with entropy collected from a variety of sources. On other
-// platforms we don't, so we use some less random data based on the current 
-// time and pid to seed the random number generator.
+/* On *BSD and Linux we have a srandomdev() function which seeds the random 
+ * number generator with entropy collected from a variety of sources. On other
+ * platforms we don't, so we use some less random data based on the current 
+ * time and pid to seed the random number generator.
+ */
 #if defined(__FreeBSD__) \
     || defined(__OpenBSD__) \
     || defined(__DragonFly__) \
@@ -177,13 +178,13 @@ const CFRuntimeClass CFUUIDClass =
 {
   0,
   "CFUUID",
-  NULL, // init
-  NULL, // copy
-  NULL, // dealloc
-  CFUUIDEqual, // equal
-  CFUUIDHash, // hash
-  CFUUIDCopyFormattingDescription, // copyFormattingDesc
-  NULL  // copyDebugDesc
+  NULL, /* init */
+  NULL, /* copy */
+  NULL, /* dealloc */
+  CFUUIDEqual, /* equal */
+  CFUUIDHash, /* hash */
+  CFUUIDCopyFormattingDescription, /* copyFormattingDesc */
+  NULL  /* copyDebugDesc */
 };
 
 void CFUUIDInitialize (void)
@@ -210,10 +211,10 @@ CFUUIDCreate (CFAllocatorRef alloc)
       ((UInt8*)&bytes)[i] = (UInt8)r;
     }
 #endif
-  // Set version
+  /* Set version */
   bytes.byte6 &= 0x0F;
   bytes.byte6 |= 0x40;
-  // Bit 6 must be 0 and 7 must be 1
+  /* Bit 6 must be 0 and 7 must be 1 */
   bytes.byte8 &= 0xBF;
   
   return CFUUIDCreateFromUUIDBytes (alloc, bytes);
@@ -223,7 +224,7 @@ CFUUIDRef
 CFUUIDCreateFromString (CFAllocatorRef alloc, CFStringRef uuidStr)
 {
   CFUUIDBytes bytes;
-  char data[36]; // 36 chars
+  char data[36]; /* 36 chars */
   if (!CFStringGetCString (uuidStr, data, 36, kCFStringEncodingASCII))
     return NULL;
   

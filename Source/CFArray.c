@@ -196,9 +196,6 @@ void CFArrayInitialize (void)
 
 
 
-//
-// CFArray
-//
 #define CFARRAY_SIZE sizeof(struct __CFArray) - sizeof(CFRuntimeBase)
 
 CFArrayRef
@@ -415,9 +412,6 @@ CFArrayGetValues (CFArrayRef array, CFRange range, const void **values)
 
 
 
-//
-// CFMutableArray
-//
 #define DEFAULT_ARRAY_CAPACITY 16
 #define CFMUTABLEARRAY_SIZE sizeof(struct __CFArray) - sizeof(CFRuntimeBase)
 
@@ -612,7 +606,7 @@ CFArrayReplaceValues (CFMutableArrayRef array, CFRange range,
     {
       CFArrayRetainCallBack retain = array->_callBacks->retain;
       const void **current = start;
-      end = current + newCount; // New end...
+      end = current + newCount; /* New end... */
       if (retain)
         {
           while (current < end)

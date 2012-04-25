@@ -30,7 +30,6 @@
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
 
-// CFError implementation didn't show up until OS X 10.5
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 
 #if __OBJC__
@@ -53,9 +52,9 @@ const CFStringRef kCFErrorUnderlyingErrorKey;
 
 
 
-//
-// Creating a CFError
-//
+/*
+ * Creating a CFError
+ */
 CFErrorRef
 CFErrorCreate (CFAllocatorRef allocator, CFStringRef domain, CFIndex code,
   CFDictionaryRef userInfo);
@@ -65,9 +64,9 @@ CFErrorCreateWithUserInfoKeysAndValues (CFAllocatorRef allocator,
   CFStringRef domain, CFIndex code, const void *const *userInfoKeys,
   const void *const *userInfoValues, CFIndex numUserInfoValues);
 
-//
-// Getting Information About an Error
-//
+/*
+ * Getting Information About an Error
+ */
 CFStringRef
 CFErrorGetDomain (CFErrorRef err);
 
@@ -86,9 +85,9 @@ CFErrorCopyFailureReason (CFErrorRef err);
 CFStringRef
 CFErrorCopyRecoverySuggestion (CFErrorRef err);
 
-//
-// Getting the CFError Type ID
-//
+/*
+ * Getting the CFError Type ID
+ */
 CFTypeID
 CFErrorGetTypeID (void);
 

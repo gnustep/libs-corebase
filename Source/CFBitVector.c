@@ -61,7 +61,7 @@ CFBitVectorSetMutable (CFBitVectorRef bv)
 CF_INLINE CFIndex
 CFBitVectorGetByteCount (CFIndex numBits)
 {
-  return (numBits + 7) >> 3; // (numBits + 7) / 8
+  return (numBits + 7) >> 3; /* (numBits + 7) / 8 */
 }
 
 static void
@@ -116,13 +116,13 @@ void CFBitVectorInitialize (void)
 CF_INLINE CFIndex
 CFBitVectorGetByte (CFIndex idx)
 {
-  return idx >> 3; // idx / 8
+  return idx >> 3; /* idx / 8 */
 }
 
 CF_INLINE CFIndex
 CFBitVectorGetBitIndex (CFIndex idx)
 {
-  return idx & 7; // idx % 8
+  return idx & 7; /* idx % 8 */
 }
 
 CF_INLINE UInt8
@@ -147,7 +147,7 @@ CFBitVectorOperation (CFBitVectorRef bv, CFRange range,
   startBit = CFBitVectorGetBitIndex (range.location);
   endBit = CFBitVectorGetBitIndex (range.location + range.length - 1);
   
-  // First byte
+  /* First byte */
   if (curByte == endByte)
     {
       mask = CFBitVectorBitMask (startBit, startBit + endBit);
@@ -160,14 +160,14 @@ CFBitVectorOperation (CFBitVectorRef bv, CFRange range,
     }
   bv->_bytes[curByte] = func (bv->_bytes[curByte], mask, context);
   
-  // Middle bytes
+  /* Middle bytes */
   while (curByte < endByte)
     {
       bv->_bytes[curByte] = func (bv->_bytes[curByte], 0xFF, context);
       ++curByte;
     }
   
-  // Last byte
+  /* Last byte */
   if (multiByte)
     {
       mask = CFBitVectorBitMask (0, endBit);

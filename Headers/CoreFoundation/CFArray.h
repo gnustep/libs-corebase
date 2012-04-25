@@ -65,9 +65,9 @@ CF_EXPORT const CFArrayCallBacks kCFTypeArrayCallBacks;
 
 
 
-//
-// Creating an Array
-//
+/*
+ * Creating an Array
+ */
 CF_EXPORT CFArrayRef
 CFArrayCreate (CFAllocatorRef allocator, const void **values,
   CFIndex numValues, const CFArrayCallBacks *callBacks);
@@ -75,9 +75,9 @@ CFArrayCreate (CFAllocatorRef allocator, const void **values,
 CF_EXPORT CFArrayRef
 CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef theArray);
 
-//
-// Examining an Array
-//
+/*
+ * Examining an Array
+ */
 CF_EXPORT CFIndex
 CFArrayBSearchValues (CFArrayRef theArray, CFRange range, const void *value,
   CFComparatorFunction comparator, void *context);
@@ -105,22 +105,22 @@ CFArrayGetValues (CFArrayRef theArray, CFRange range, const void **values);
 CF_EXPORT const void *
 CFArrayGetValueAtIndex (CFArrayRef theArray, CFIndex idx);
 
-//
-// Applying a Function to Elements
-//
+/*
+ * Applying a Function to Elements
+ */
 CF_EXPORT void
 CFArrayApplyFunction (CFArrayRef theArray, CFRange range,
   CFArrayApplierFunction applier, void *context);
 
-//
-// Getting the CFArray Type ID
-//
+/*
+ * Getting the CFArray Type ID
+ */
 CF_EXPORT CFTypeID
 CFArrayGetTypeID (void);
 
-//
-// CFMutableArray
-//
+/*
+ * CFMutableArray
+ */
 CF_EXPORT void
 CFArrayAppendArray (CFMutableArrayRef theArray, CFArrayRef otherArray,
   CFRange otherRange);

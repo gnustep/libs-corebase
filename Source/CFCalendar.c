@@ -53,7 +53,7 @@ CFCalendarOpenUCalendar (CFCalendarRef cal)
   if (cal->_ucal == NULL)
     {
       char localeIdent[ULOC_FULLNAME_CAPACITY];
-      UniChar *tzIdent = NULL; // FIXME
+      UniChar *tzIdent = NULL; /* FIXME */
       UCalendar *ucal;
       UErrorCode err = U_ZERO_ERROR;
       
@@ -173,7 +173,7 @@ CFCalendarUnitToUCalendarDateFields (CFCalendarUnit unit)
         ret = UCAL_DAY_OF_WEEK_IN_MONTH;
         break;
       case kCFCalendarUnitQuarter:
-        ret = UCAL_MONTH; // FIXME
+        ret = UCAL_MONTH; /* FIXME */
         break;
       default:
         ret = -1;
@@ -305,7 +305,7 @@ CFCalendarCreateWithIdentifier (CFAllocatorRef allocator, CFStringRef ident)
   new->_localeIdent = CFRetain (CFLocaleGetIdentifier(locale));
   CFRelease (locale);
   
-  new->_tzIdent = NULL; // FIXME
+  new->_tzIdent = NULL; /* FIXME */
   
   return new;
 }
@@ -313,13 +313,13 @@ CFCalendarCreateWithIdentifier (CFAllocatorRef allocator, CFStringRef ident)
 CFTimeZoneRef
 CFCalendarCopyTimeZone (CFCalendarRef cal)
 {
-  return NULL; // FIXME
+  return NULL; /* FIXME */
 }
 
 void
 CFCalendarSetTimeZone (CFCalendarRef cal, CFTimeZoneRef tz)
 {
-  // FIXME
+  /* FIXME */
 }
 
 CFStringRef
@@ -417,7 +417,7 @@ CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
             value = va_arg (arg, int) - 1;
             break;
           default:
-            va_arg (arg, int); // Skip
+            va_arg (arg, int); /* Skip */
             continue;
         }
       if (options & kCFCalendarComponentsWrap)
@@ -477,7 +477,7 @@ CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
             field = UCAL_SECOND;
             break;
           default:
-            va_arg (arg, int); // Skip
+            va_arg (arg, int); /* Skip */
             continue;
         }
       ucal_set (cal->_ucal, field, value);
@@ -538,7 +538,7 @@ CFCalendarDecomposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime at,
             value = va_arg (arg, int*);
             break;
           default:
-            va_arg (arg, int*); // Skip
+            va_arg (arg, int*); /* Skip */
         }
       if (value)
         {
@@ -627,7 +627,7 @@ CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startAT,
             value = va_arg (arg, int*);
             break;
           default:
-            va_arg (arg, int*); // Skip
+            va_arg (arg, int*); /* Skip */
             continue;
         }
       
@@ -644,7 +644,7 @@ CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startAT,
           if (millis < end)
             {
               min = max;
-              max <<= 1; // multiply by 2...
+              max <<= 1; /* multiply by 2... */
               if (max < 0)
                 return false;
             }

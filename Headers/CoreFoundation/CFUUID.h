@@ -53,9 +53,9 @@ typedef struct
 
 
 
-//
-// Creating CFUUID Objects
-//
+/*
+ * Creating CFUUID Objects
+ */
 CFUUIDRef
 CFUUIDCreate (CFAllocatorRef alloc);
 
@@ -72,9 +72,9 @@ CFUUIDCreateWithBytes (CFAllocatorRef alloc, UInt8 byte0, UInt8 byte1,
   UInt8 byte13, UInt8 byte14, UInt8 byte15);
 
 
-//
-// Getting Information About CFUUID Objects
-//
+/*
+ * Getting Information About CFUUID Objects
+ */
 CFStringRef
 CFUUIDCreateString (CFAllocatorRef alloc, CFUUIDRef uuid);
 
@@ -87,9 +87,9 @@ CFUUIDGetConstantUUIDWithBytes (CFAllocatorRef alloc, UInt8 byte0, UInt8 byte1,
 CFUUIDBytes
 CFUUIDGetUUIDBytes (CFUUIDRef uuid);
 
-//
-// Getting the CFUUID Type Identifier
-//
+/*
+ * Getting the CFUUID Type Identifier
+ */
 CFTypeID
 CFUUIDGetTypeID (void);
 

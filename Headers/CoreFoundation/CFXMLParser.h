@@ -36,9 +36,9 @@
 
 CF_EXTERN_C_BEGIN
 
-//
-// CFXMLParser
-//
+/*
+ * CFXMLParser
+ */
 typedef struct __CFXMLParser *CFXMLParserRef;
 
 typedef enum CFXMLParserStatusCode CFXMLParserStatusCode;
@@ -162,9 +162,9 @@ CFXMLParserParse (CFXMLParserRef parser);
 
 
 
-//
-// CFXMLTree
-//
+/*
+ * CFXMLTree
+ */
 CF_EXPORT CFXMLTreeRef
 CFXMLTreeCreateFromData (CFAllocatorRef allocator, CFDataRef xmlData,
   CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes);

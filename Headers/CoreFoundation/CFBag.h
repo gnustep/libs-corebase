@@ -67,9 +67,9 @@ CF_EXPORT const CFBagCallBacks kCFTypeBagCallBacks;
 
 
 
-//
-// Creating a bag
-//
+/*
+ * Creating a bag
+ */
 CFBagRef
 CFBagCreate (CFAllocatorRef alloc, const void **values, CFIndex numValues,
   const CFBagCallBacks *callBacks);
@@ -77,9 +77,9 @@ CFBagCreate (CFAllocatorRef alloc, const void **values, CFIndex numValues,
 CFBagRef
 CFBagCreateCopy (CFAllocatorRef alloc, CFBagRef bag);
 
-//
-// Examining a dictionary
-//
+/*
+ * Examining a dictionary
+ */
 Boolean
 CFBagContainsValue (CFBagRef bag, const void *value);
 
@@ -99,23 +99,23 @@ Boolean
 CFBagGetValueIfPresent (CFBagRef bag, const void *candidate,
   const void **value);
 
-//
-// Applying a funcation to a dictionary
-//
+/*
+ * Applying a funcation to a dictionary
+ */
 void
 CFBagApplyFunction (CFBagRef bag, CFBagApplierFunction applier, void *context);
 
-//
-// Getting the CFBag type ID
-//
+/*
+ * Getting the CFBag type ID
+ */
 CFTypeID
 CFBagGetTypeID (void);
 
 
 
-//
-// Creating a Mutable Dictionary
-//
+/*
+ * Creating a Mutable Dictionary
+ */
 CFMutableBagRef
 CFBagCreateMutable (CFAllocatorRef alloc, CFIndex capacity,
   const CFBagCallBacks *callBacks);
@@ -123,9 +123,9 @@ CFBagCreateMutable (CFAllocatorRef alloc, CFIndex capacity,
 CFMutableBagRef
 CFBagCreateMutableCopy (CFAllocatorRef alloc, CFIndex capacity, CFBagRef bag);
 
-//
-// Modifying a Dictionary
-//
+/*
+ * Modifying a Dictionary
+ */
 void
 CFBagAddValue (CFMutableBagRef bag, const void *value);
 

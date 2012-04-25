@@ -78,16 +78,16 @@ typedef enum CFNumberType CFNumberType;
 
 
 
-//
-// Creating a Number
-//
+/*
+ * Creating a Number
+ */
 CF_EXPORT CFNumberRef
 CFNumberCreate (CFAllocatorRef allocator, CFNumberType theType,
   const void *valuePtr);
 
-//
-// Getting Information About Numbers
-//
+/*
+ * Getting Information About Numbers
+ */
 CF_EXPORT CFIndex
 CFNumberGetByteSize (CFNumberRef number);
 
@@ -100,15 +100,15 @@ CFNumberGetValue (CFNumberRef number, CFNumberType theType, void *valuePtr);
 CF_EXPORT Boolean
 CFNumberIsFloatType (CFNumberRef number);
 
-//
-// Comparing Numbers
-//
+/*
+ * Comparing Numbers
+ */
 CF_EXPORT CFComparisonResult
 CFNumberCompare (CFNumberRef number, CFNumberRef otherNumber, void *context);
 
-//
-// Getting the CFNumber Type ID
-//
+/*
+ * Getting the CFNumber Type ID
+ */
 CF_EXPORT CFTypeID
 CFNumberGetTypeID (void);
 

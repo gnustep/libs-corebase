@@ -70,7 +70,7 @@ void CFDateInitialize (void)
 CFComparisonResult
 CFDateCompare (CFDateRef theDate, CFDateRef otherDate, void *context)
 {
-// context is unused!
+/* context is unused! */
   CFAbsoluteTime diff = CFDateGetTimeIntervalSinceDate (theDate, otherDate);
   
   if (diff < 0.0)
@@ -139,13 +139,13 @@ CFAbsoluteTimeToFields (CFAbsoluteTime at, SInt32 *year, SInt8 *month,
   double days, ret = modf (at / 86400.0, &days) * 86400.0;
   
   d = days;
-  y400 = d / 146097; // 400 years
+  y400 = d / 146097; /* 400 years */
   d %= 146097;
-  y100 = d / 36524; // 100 years
+  y100 = d / 36524; /* 100 years */
   d %= 36524;
-  y4 = d / 1461; // 4 years
+  y4 = d / 1461; /* 4 years */
   d %= 1461;
-  y1 = d / 365; // 1 year
+  y1 = d / 365; /* 1 year */
   d %= 365;
   *year = y400 * 400 + y100 * 100 + y4 * 4 + y1 + 2001;
   isLeap = isleap (*year);
@@ -158,7 +158,7 @@ CFAbsoluteTimeToFields (CFAbsoluteTime at, SInt32 *year, SInt8 *month,
     }
   
   if (weekOfYear)
-    *weekOfYear = d / 7 % 52; // FIXME: I don't think this is correct.
+    *weekOfYear = d / 7 % 52; /* FIXME: I don't think this is correct. */
   if (dayOfWeek)
     {
       *dayOfWeek = (int)days % 7;
@@ -327,11 +327,11 @@ CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags)
   Boolean isValid = FALSE;
   
   if (unitFlags | kCFGregorianUnitsYears)
-    isValid = TRUE; // FIXME: What's the test here?
+    isValid = TRUE; /* FIXME: What's the test here? */
   if (unitFlags | kCFGregorianUnitsMonths)
     isValid = ((gdate.month >= 1) && (gdate.month <= 12));
   if (unitFlags | kCFGregorianUnitsDays)
-    isValid = TRUE; // FIXME
+    isValid = TRUE; /* FIXME */
   if (unitFlags | kCFGregorianUnitsHours)
     isValid = ((gdate.hour >= 0) && (gdate.hour < 24));
   if (unitFlags | kCFGregorianUnitsMinutes)

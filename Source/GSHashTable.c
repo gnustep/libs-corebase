@@ -188,7 +188,6 @@ GSHashTableFindBucket (GSHashTableRef table, const void *key)
   idx = hash % capacity;
   matched = buckets[idx].key == NULL || (fEqual ?
     fEqual (key, buckets[idx].key) : key == buckets[idx].key);
-//  printf ("%p[%d of %d] %d", table, table->_count, table->_capacity, idx);
   
   if (!matched)
     {
@@ -200,7 +199,6 @@ GSHashTableFindBucket (GSHashTableRef table, const void *key)
             {
               hash += hash2;
               idx = hash % capacity;
-//              printf (" %d", idx);
             } while (buckets[idx].key != NULL
                     && !fEqual (key, buckets[idx].key));
         }
@@ -210,12 +208,10 @@ GSHashTableFindBucket (GSHashTableRef table, const void *key)
             {
               hash += hash2;
               idx = hash % capacity;
-//              printf (" %d", idx);
             } while (buckets[idx].key != NULL && key != buckets[idx].key);
         }
     }
   
-//  printf("\n");
   return &buckets[idx];
 }
 
@@ -232,7 +228,7 @@ static CFIndex _kGSHashTableSizes[] =
 static CFIndex _kGSHashTableSizesCount =
   sizeof(_kGSHashTableSizes) / sizeof(CFIndex);
 
-// Calculted 80% of values above.
+/* Calculted 80% of values above. */
 static CFIndex _kGSHashTableFilled[] =
 {
   5, 10, 23, 47, 101, 205, 416, 839, 2099, 3360,

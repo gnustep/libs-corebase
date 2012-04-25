@@ -41,7 +41,7 @@ struct __CFAllocator
   CFAllocatorContext _context;
 };
 
-// this will hold the default zone if set with CFAllocatorSetDefault ()
+/* this will hold the default zone if set with CFAllocatorSetDefault () */
 static CFTypeID _kCFAllocatorTypeID = 0;
 static CFAllocatorRef _kCFDefaultAllocator = NULL;
 
@@ -136,7 +136,7 @@ CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorContext *context)
   if (allocator == kCFAllocatorUseContext)
     {
       /* Chicken and egg problem... */
-      return NULL; // FIXME
+      return NULL; /* FIXME */
     }
   else
     {
@@ -225,9 +225,6 @@ CFAllocatorGetTypeID(void)
 
 
 
-//
-// CFNull
-//
 static CFTypeID _kCFNullTypeID;
 
 static const CFRuntimeClass CFNullClass =

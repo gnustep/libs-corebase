@@ -171,7 +171,7 @@ CFDateFormatterSetup (CFDateFormatterRef dfmt)
   udStyle = CFDataFormatterStyleToUDateFormatStyle (dfmt->_dateStyle);
   
   cLocale = CFLocaleGetCStringIdentifier (dfmt->_locale);
-#if 0 // FIXME
+#if 0 /* FIXME */
   uTzIDLength = CFStringGetLength (CFTimeZoneGetName(dfmt->_tz));
   
   if (uTzIDLength > BUFFER_SIZE)
@@ -250,7 +250,7 @@ static void
 CFDateFormatterSetDefaultFormat (CFDateFormatterRef fmt, int prop,
   CFTypeRef value)
 {
-  // Do nothing, this property can't be changed
+  /* Do nothing, this property can't be changed */
 }
 
 static CFTypeRef
@@ -341,7 +341,7 @@ CFDateFormatterSetSymbols (CFDateFormatterRef fmt, int prop, CFTypeRef value)
   CFArrayRef array = (CFArrayRef)value;
   
   count = CFArrayGetCount (array);
-  // Something's wrong if count != # of symbols in ICU.
+  /* Something's wrong if count != # of symbols in ICU. */
   if (count != udat_countSymbols(fmt->_fmt, prop))
     return;
   

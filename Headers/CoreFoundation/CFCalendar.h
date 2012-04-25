@@ -35,9 +35,7 @@
 
 CF_EXTERN_C_BEGIN
 
-/** 
- *
- *  CFCalendar is "toll-free bridged" to NSCalendar.
+/** CFCalendar is "toll-free bridged" to NSCalendar.
  */
 typedef struct __CFCalendar *CFCalendarRef;
 
@@ -63,18 +61,18 @@ enum
   kCFCalendarComponentsWrap = (1UL << 0)
 };
 
-//
-// Creating a Calendar
-//
+/*
+ * Creating a Calendar
+ */
 CFCalendarRef
 CFCalendarCopyCurrent (void);
 
 CFCalendarRef
 CFCalendarCreateWithIdentifier (CFAllocatorRef allocator, CFStringRef ident);
 
-//
-// Calendrical Calculations
-//
+/*
+ * Calendrical Calculations
+ */
 Boolean
 CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
   CFOptionFlags options, const char *componentDesc, ...);
@@ -92,9 +90,9 @@ CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startinAT,
   CFAbsoluteTime resultAT, CFOptionFlags options,
   const char *componentDesc, ...);
 
-//
-// Getting Ranges of Units
-//
+/*
+ * Getting Ranges of Units
+ */
 CFRange
 CFCalendarGetRangeOfUnit (CFCalendarRef cal, CFCalendarUnit smallerUnit,
   CFCalendarUnit biggerUnit, CFAbsoluteTime at);
@@ -109,33 +107,33 @@ CFCalendarGetMaximumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit);
 CFRange
 CFCalendarGetMinimumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit);
 
-//
-// Getting and Setting the Time Zone
-//
+/*
+ * Getting and Setting the Time Zone
+ */
 CFTimeZoneRef
 CFCalendarCopyTimeZone (CFCalendarRef cal);
 
 void
 CFCalendarSetTimeZone (CFCalendarRef cal, CFTimeZoneRef tz);
 
-//
-// Getting the Identifier
-//
+/*
+ * Getting the Identifier
+ */
 CFStringRef
 CFCalendarGetIdentifier (CFCalendarRef cal);
 
-//
-// Getting and Setting the Locale
-//
+/*
+ * Getting and Setting the Locale
+ */
 CFLocaleRef
 CFCalendarCopyLocale (CFCalendarRef cal);
 
 void
 CFCalendarSetLocale (CFCalendarRef cal, CFLocaleRef locale);
 
-//
-// Getting and Setting Day Information
-//
+/*
+ * Getting and Setting Day Information
+ */
 CFIndex
 CFCalendarGetFirstWeekday (CFCalendarRef cal);
 
@@ -148,9 +146,9 @@ CFCalendarGetMinimumDaysInFirstWeek (CFCalendarRef cal);
 void
 CFCalendarSetMinimumDaysInFirstWeek (CFCalendarRef cal, CFIndex mwd);
 
-//
-// Getting the Type ID
-//
+/*
+ * Getting the Type ID
+ */
 CFTypeID
 CFCalendarGetTypeID (void);
 

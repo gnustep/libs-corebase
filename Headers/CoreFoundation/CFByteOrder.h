@@ -28,7 +28,7 @@
 */ 
 
 #ifndef __COREFOUNDATION_CFBYTEORDER_H__
-#define __COREFOUNDATION_CFBYTEORDER_H__
+#define __COREFOUNDATION_CFBYTEORDER_H__ 1
 
 #include <CoreFoundation/CFBase.h>
 

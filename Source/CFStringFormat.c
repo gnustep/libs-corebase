@@ -90,9 +90,9 @@ typedef enum
 
 typedef union
 {
-  SInt64  intValue; // Holds every possible type of integer
+  SInt64  intValue; /* Holds every possible type of integer */
   double  doubleValue;
-  void   *ptrValue; // Includes object pointers
+  void   *ptrValue; /* Includes object pointers */
 } CFFormatArgument;
 
 /* For information only:
@@ -161,7 +161,7 @@ CFFormatUNumberFormatApplySpec (UNumberFormat *fmt, CFFormatSpec *spec)
     }
   else
     {
-      // ICU, by default, pads with '*'
+      /* ICU, by default, pads with '*' */
       UChar attrib[] = { 0x0020, 0x0000 };
       unum_setTextAttribute (fmt, UNUM_PADDING_CHARACTER, attrib, 1, &err);
     }
@@ -250,13 +250,13 @@ CFFormatInteger (CFFormatSpec *spec,
             i = (SInt64)((signed long long)arg->intValue);
             break;
           case CFSizeTLength:
-            i = (SInt64)((size_t)arg->intValue); // Already unsigned
+            i = (SInt64)((size_t)arg->intValue); /* Already unsigned */
             break;
           case CFIntMaxTLength:
             i = (SInt64)((uintmax_t)arg->intValue);
             break;
           case CFPtrDiffTLength:
-            i = (SInt64)((ptrdiff_t)arg->intValue); // Unsigned version?
+            i = (SInt64)((ptrdiff_t)arg->intValue); /* Unsigned version? */
             break;
           default:
             i = (SInt64)((unsigned int)arg->intValue);
@@ -342,7 +342,7 @@ CFFormatScientific (CFFormatSpec *spec,
     }
   
   if (spec->length == CFLongDoubleLength)
-    // FIXME: not really supported
+    /* FIXME: not really supported */
     d = (double)((long double)arg->doubleValue);
   else
     d = arg->doubleValue;
@@ -368,9 +368,9 @@ CFFormatDouble (CFFormatSpec *spec,
   UNumberFormat *fmt;
   UErrorCode err = U_ZERO_ERROR;
   
-  if (d < 0.0001 // exponent < -4
-      || (precision < 1 && 1000000.0 <= d) // exponent > precision
-      || (precision != -1 && d > pow(10.0, (double)precision))) // Same
+  if (d < 0.0001 /* exponent < -4 */
+      || (precision < 1 && 1000000.0 <= d) /* exponent > precision */
+      || (precision != -1 && d > pow(10.0, (double)precision))) /* Same */
     {
       return CFFormatScientific (spec, copyDescFunc, arg, formatOptions);
     }
@@ -440,7 +440,7 @@ CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
         spec->useCaps ? TO_CAP_DIGIT(num) : TO_LOWER_DIGIT(num);
     } while (value != 0);
   
-  while (length < spec->width) // pad
+  while (length < spec->width) /* pad */
     buffer[length++] = '0';
   
   if (spec->flags & CF_FMT_FLAG_ALT)
@@ -452,7 +452,7 @@ CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
   
   left = buffer;
   right = buffer + length;
-  while (left < --right) // reverse
+  while (left < --right) /* reverse */
     {
       tmp = *left;
       *left++ = *right;
@@ -678,11 +678,11 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
         ++current;
       if (current == end)
         break;
-      ++current; // Skip %
+      ++current; /* Skip % */
       ++count;
     }
   
-  count *= 3; // Multiply by 3
+  count *= 3; /* Multiply by 3 */
   typeList = CFAllocatorAllocate (NULL, sizeof(CFArgType) * count, 0);
   is64Bits = CFAllocatorAllocate (NULL, sizeof(Boolean) * count, 0);
   if (typeList == NULL || is64Bits == NULL)
@@ -705,9 +705,9 @@ CFStringFormatCreateArgumentList (UniChar *start, const UniChar *end,
         ++current;
       if (current == end)
         break;
-      ++current; // Skip %
+      ++current; /* Skip % */
       
-      if (*current == '%') // Skip %%
+      if (*current == '%') /* Skip %% */
         {
           ++current;
           continue;
@@ -832,7 +832,7 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
   UniChar *current;
   
   current = start;
-  ++current; // Skip %
+  ++current; /* Skip % */
   
   /* Initialize the spec */
   memset (info, 0, sizeof(CFFormatSpecInfo));
@@ -856,7 +856,7 @@ CFStringFormatParseSpec (UniChar *start, const UniChar *end,
           ++current;
           info->spec.argPos = num - 1;
         }
-      else // Must be a width argument
+      else /* Must be a width argument */
         {
           current = revert;
         }

@@ -217,7 +217,7 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
             CFStringCreateWithCString (alloc, chars, kCFStringEncodingASCII);
           while (*chars != '\0')
             chars++;
-          chars++; // Skip '\0'
+          chars++; /* Skip '\0' */
         }
       
       new->_abbrevs = CFAllocatorAllocate (alloc, sizeof(void*) * idx, 0);
@@ -253,7 +253,7 @@ struct TZFile
   SInt32 time;
   UInt8  type;
   struct _ttinfo ttinfo;
-  char   abbrev[9]; // 9 = max number of characters, ie 'GMT+0100\0'.
+  char   abbrev[9]; /* 9 = max number of characters, ie 'GMT+0100\0'. */
 };
 
 CFTimeZoneRef

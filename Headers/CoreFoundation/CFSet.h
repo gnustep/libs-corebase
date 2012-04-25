@@ -25,7 +25,7 @@
 */ 
 
 #ifndef __COREFOUNDATION_CFSET_H__
-#define __COREFOUNDATION_CFSET_H__
+#define __COREFOUNDATION_CFSET_H__ 1
 
 #include <CoreFoundation/CFBase.h>
 
@@ -67,9 +67,9 @@ CF_EXPORT const CFSetCallBacks kCFTypeSetCallBacks;
 
 
 
-//
-// Creating a set
-//
+/*
+ * Creating a set
+ */
 CFSetRef
 CFSetCreate (CFAllocatorRef alloc, const void **values, CFIndex numValues,
   const CFSetCallBacks *callBacks);
@@ -77,9 +77,9 @@ CFSetCreate (CFAllocatorRef alloc, const void **values, CFIndex numValues,
 CFSetRef
 CFSetCreateCopy (CFAllocatorRef alloc, CFSetRef set);
 
-//
-// Examining a dictionary
-//
+/*
+ * Examining a dictionary
+ */
 Boolean
 CFSetContainsValue (CFSetRef set, const void *value);
 
@@ -99,23 +99,23 @@ Boolean
 CFSetGetValueIfPresent (CFSetRef set, const void *candidate,
   const void **value);
 
-//
-// Applying a funcation to a dictionary
-//
+/*
+ * Applying a funcation to a dictionary
+ */
 void
 CFSetApplyFunction (CFSetRef set, CFSetApplierFunction applier, void *context);
 
-//
-// Getting the CFSet type ID
-//
+/*
+ * Getting the CFSet type ID
+ */
 CFTypeID
 CFSetGetTypeID (void);
 
 
 
-//
-// Creating a Mutable Dictionary
-//
+/*
+ * Creating a Mutable Dictionary
+ */
 CFMutableSetRef
 CFSetCreateMutable (CFAllocatorRef alloc, CFIndex capacity,
   const CFSetCallBacks *callBacks);
@@ -123,9 +123,9 @@ CFSetCreateMutable (CFAllocatorRef alloc, CFIndex capacity,
 CFMutableSetRef
 CFSetCreateMutableCopy (CFAllocatorRef alloc, CFIndex capacity, CFSetRef set);
 
-//
-// Modifying a Dictionary
-//
+/*
+ * Modifying a Dictionary
+ */
 void
 CFSetAddValue (CFMutableSetRef set, const void *value);
 

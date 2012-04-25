@@ -52,7 +52,7 @@ typedef struct
   UConverter *ucnv;
 } _str_encoding;
 
-// The values in this table are best guess.
+/* The values in this table are best guess. */
 static _str_encoding str_encoding_table[] =
 {
   { kCFStringEncodingMacRoman, "macos-0_2-10.2", 10000, NULL },
@@ -359,7 +359,7 @@ CFStringConvertStandardNameToEncoding (const char *name, CFIndex length)
         }
       else if (strncasecmp(name + ISO_LEN, "2022-", 5) == 0)
         {
-          // FIXME
+          /* FIXME */
         }
     }
   else if (strncasecmp(name, WIN_PREFIX, WIN_LEN) == 0)
@@ -386,7 +386,7 @@ CFStringConvertStandardNameToEncoding (const char *name, CFIndex length)
     }
   else if (strncasecmp(name, "EUC-", sizeof("EUC-") - 1) == 0)
     {
-      // FIXME
+      /* FIXME */
     }
   else if (strncasecmp(name, "macintosh", sizeof("macintosh") - 1) == 0)
     {
@@ -603,7 +603,7 @@ CFStringGetMaximumSizeForEncoding (CFIndex length, CFStringEncoding encoding)
 CFStringEncoding
 CFStringGetMostCompatibleMacStringEncoding (CFStringEncoding encoding)
 {
-  return kCFStringEncodingInvalidId; // FIXME
+  return kCFStringEncodingInvalidId; /* FIXME */
 }
 
 CFStringEncoding
@@ -725,7 +725,7 @@ GSStringEncodingFromUnicode (CFStringEncoding encoding, char *dst,
           *bytesNeeded = used;
           if (bytesNeeded && err == U_BUFFER_OVERFLOW_ERROR)
             {
-              char ibuffer[256]; // Arbitrary buffer size
+              char ibuffer[256]; /* Arbitrary buffer size */
               
               targetLimit = ibuffer + 256;
               do
@@ -789,7 +789,7 @@ GSStringEncodingToUnicode (CFStringEncoding encoding, UniChar *dst,
           *bytesNeeded = converted;
           if (err == U_BUFFER_OVERFLOW_ERROR)
             {
-              UniChar ibuffer[256]; // Arbitrary buffer size
+              UniChar ibuffer[256]; /* Arbitrary buffer size */
               
               targetLimit = ibuffer + 256;
               do
