@@ -13,7 +13,6 @@
 	* Source/CFTree.c:
 	* Source/CFDateFormatter.c:
 	* Source/CFStringUtilities.c:
-	* Source/common.mk:
 	* Source/CFXMLNode.c:
 	* Source/CFUUID.c:
 	* Source/CFCharacterSet.c:
