@@ -36,10 +36,10 @@ int main (void)
     "Array sorted correctly.");
   
   n = CFArrayBSearchValues (ma, CFRangeMake(2, len - 2), (const void*)5, comp, NULL);
-  PASS(n == 4, "Index of number 5 is %d.", n);
+  PASS(n == 4, "Index of number 5 is %d.", (int)n);
   
   n = CFArrayBSearchValues (ma, CFRangeMake(0, len), (const void*)6, comp, NULL);
-  PASS(n == 5, "Index of value between values is %d.", n);
+  PASS(n == 5, "Index of value between values is %d.", (int)n);
   
   return 0;
 }

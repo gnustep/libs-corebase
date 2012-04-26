@@ -24,13 +24,13 @@ int main (void)
   str = CFLocaleCopyDisplayNameForPropertyValue (locale,
     kCFLocaleScriptCode,
     CFSTR("pt_BR@calendar=gregorian;collation=traditional;currency=BRL"));
-  PASS_CFEQ(str, NULL, "Display script is correct");
+  PASS(str == NULL, "There is no display name for script");
   CFRelease (str);
   
   str = CFLocaleCopyDisplayNameForPropertyValue (locale,
     kCFLocaleVariantCode,
     CFSTR("pt_BR@calendar=gregorian;collation=traditional;currency=BRL"));
-  PASS_CFEQ(str, NULL, "Display variant is correct");
+  PASS(str == NULL, "There is no display name for variant");
   CFRelease (str);
   
   str = CFLocaleCopyDisplayNameForPropertyValue (locale,

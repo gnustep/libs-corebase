@@ -27,18 +27,20 @@ int main (void)
   
   PASS(CFCalendarGetComponentDifference(cal, at, at + 3600.0, 0, "s", &second),
     "Got component difference.");
-  PASS(second == 3600, "Got seconds component difference correctly.");
+  PASS(second == 3600, "Seconds difference is %d", second);
   
   PASS(CFCalendarGetComponentDifference(cal, at, at + 3663.0,
     kCFCalendarComponentsWrap, "Hms", &hour, &minute, &second),
     "Got wrapped components difference.");
   PASS(hour == 1 && minute == 1 && second == 3,
-    "Got component difference correctly.");
+       "Component difference is %d hour(s), %d minute(s) and %d second(s)",
+       hour, minute, second);
   
   PASS(CFCalendarGetTimeRangeOfUnit (cal, kCFCalendarUnitWeekday, 331365600.0, &at, &ti),
     "Got time range of kCFCalendarUnitWeekday.");
-  PASS(at == 331365600.0, "Got start of week.");
-  PASS(ti == 604800.0, "Time interval is 7 days long.");
+  PASS(at == 331365600.0, "Got start of week (%f).", at);
+  PASS(ti == 604800.0, "Time interval is %d days long (%f).",
+       (int)(ti/86400.0), ti);
   
   CFRelease (cal);
   

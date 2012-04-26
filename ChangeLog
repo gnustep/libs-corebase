@@ -1,3 +1,19 @@
+2012-04-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* ource/CFBinaryHeap.c: Fix bug when removing minimum value.
+	* Tests/CFString/general.m:
+	* Tests/CFCalendar/basic.m:
+	* Tests/CFNumberFormatter/parse.m:
+	* Tests/CFArray/mutablearray.m:
+	* Tests/CFArray/create.m:
+	* Tests/CFBinaryHeap/general.m:
+	* Tests/CFURLAccess/basic.m:
+	* Tests/CFNumber/general.m:
+	* Tests/CFLocale/displayvalues.m:
+	* Tests/CFLocale/values.m:
+	* Tests/CFDateFormatter/basic.m: Fixes for 64-bit system and 
+	more verbose output to help debug.
+
 2012-04-24 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFBag.c:

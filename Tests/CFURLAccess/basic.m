@@ -56,7 +56,7 @@ int main (void)
     NULL, NULL), "Directory was successfully read.");
   contents = CFDictionaryGetValue (dict, kCFURLFileDirectoryContents);
   count = CFArrayGetCount (contents);
-  PASS (count == 2, "There are %d items in the directory.", count);
+  PASS (count == 2, "There are %d items in the directory.", (int)count);
   PASS (CFArrayContainsValue (contents, CFRangeMake (0, count), CFSTR("file1.txt")),
     "Directory has file1.txt");
   PASS (CFArrayContainsValue (contents, CFRangeMake (0, count), CFSTR("file2.txt")),
@@ -64,7 +64,7 @@ int main (void)
   
   CFRelease (dict);
   
-  bytes = CFDataGetBytePtr (data);
+  bytes = (const char*)CFDataGetBytePtr (data);
   PASS (strncmp (bytes, test, strlen(test)) == 0,
     "Content read is the same the content that was written.");
   

@@ -15,10 +15,10 @@ int main (void)
   n = CFArrayGetCount (a);
   PASS(n == ARRAY_SIZE, "CFArray has correct number of values.");
   n = (CFIndex)CFArrayGetCountOfValue (a, CFRangeMake(0, ARRAY_SIZE), (const void*)3);
-  PASS(n == 1, "Found 1 occurence of the %d.", n);
+  PASS(n == 1, "Found 1 occurence of the %d.", (int)n);
   
   n = (CFIndex)CFArrayGetValueAtIndex (a, 1);
-  PASS(n == 2, "Found value.");
+  PASS(n == 2, "Found value at index %d.", (int)n);
   
   CFRelease (a);
   

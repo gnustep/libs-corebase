@@ -22,26 +22,26 @@ int main (void)
   str = CFSTR("16");
   PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt8Type, &int_8) == true, "Got SInt8 value");
-  PASS(int_8 == 16, "SInt8 value is '16'");
+  PASS(int_8 == 16, "SInt8 value is '%d'", (int)int_8);
   
   str = CFSTR("300.0");
   PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt16Type, &int_16) == true, "Got SInt16 value");
-  PASS(int_16 == 300, "SInt16 value is '300'");
+  PASS(int_16 == 300, "SInt16 value is '%d'", (int)int_16);
   CFRelease(nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterCurrencyStyle);
   str = CFSTR("$68456.50");
   PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt32Type, &int_32) == true, "Got SInt32 value");
-  PASS(int_32 == 68456, "SInt32 value is '68456'");
+  PASS(int_32 == 68456, "SInt32 value is '%d'", (int)int_32);
   CFRelease (nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterScientificStyle);
   str = CFSTR("3.15E8");
   PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt64Type, &int_64) == true, "Got SInt64 value");
-  PASS(int_64 == 315000000, "SInt64 value is '315000000'");
+  PASS(int_64 == 315000000, "SInt64 value is '%lld'", (long long)int_64);
   CFRelease (nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterPercentStyle);
@@ -49,7 +49,7 @@ int main (void)
   range = CFRangeMake (1, 5);
   PASS(CFNumberFormatterGetValueFromString (nf, str, &range,
     kCFNumberDoubleType, &d) == true, "Got double value");
-  PASS(d == .234, "Double value is '.234'");
+  PASS(d == .234, "Double value is '%g'", d);
   PASS((range.location == 1 && range.length == 5) , "Parsed complete length");
   CFRelease (nf);
   

@@ -42,28 +42,22 @@ int main (void)
   obj = CFLocaleGetValue (locale, kCFLocaleUsesMetricSystem);
   PASS_CFEQ(obj, kCFBooleanTrue, "Uses metric system"); // FIXME: needs CFBoolean
   obj = CFLocaleGetValue (locale, kCFLocaleCollatorIdentifier);
-  PASS(obj == NULL, "Collator identifier is NULL");
+  PASS_CFEQ(obj, NULL, "Collator identifier is NULL");
   
-  exp = CFStringCreateWithCString (NULL, "“",
-    kCFStringEncodingUTF8);
+  exp = CFStringCreateWithCString (NULL, "“", kCFStringEncodingUTF8);
   obj = CFLocaleGetValue (locale, kCFLocaleQuotationBeginDelimiterKey);
   PASS_CFEQ(obj, exp, "Quotation begin delimiter is correct");
   CFRelease (exp);
-  exp = CFStringCreateWithCString (NULL, "”",
-    kCFStringEncodingUTF8);
+  
+  exp = CFStringCreateWithCString (NULL, "”", kCFStringEncodingUTF8);
   obj = CFLocaleGetValue (locale, kCFLocaleQuotationEndDelimiterKey);
   PASS_CFEQ(obj, exp, "Quotation end delimiter is correct");
   CFRelease (exp);
-  exp = CFStringCreateWithCString (NULL, "‘",
-    kCFStringEncodingUTF8);
-  obj = CFLocaleGetValue (locale,
-    kCFLocaleAlternateQuotationBeginDelimiterKey);
+  
+  exp = CFStringCreateWithCString (NULL, "‘", kCFStringEncodingUTF8);
+  obj = CFLocaleGetValue (locale, kCFLocaleAlternateQuotationBeginDelimiterKey);
   PASS_CFEQ(obj, exp, "Alternate quotation begin delimiter is correct");
-  obj = CFLocaleGetValue (locale,
-    kCFLocaleAlternateQuotationEndDelimiterKey);
-  CFRelease (exp);
-  exp = CFStringCreateWithCString (NULL, "’",
-    kCFStringEncodingUTF8);
+  obj = CFLocaleGetValue (locale, kCFLocaleAlternateQuotationEndDelimiterKey);
   PASS_CFEQ(obj, exp, "Alternate quotation end delimiter is correct");
   CFRelease (exp);
   

@@ -210,6 +210,7 @@ CFBinaryHeapCreateCopy (CFAllocatorRef alloc, CFIndex capacity,
   ret = CFBinaryHeapCreate (alloc, capacity, heap->_callBacks,
     &heap->_context);
   memcpy (ret->_values, heap->_values, sizeof(void*) * heap->_count);
+  ret->_count = heap->_count;
   
   return ret;
 }
@@ -337,7 +338,7 @@ CFBinaryHeapGetValues (CFBinaryHeapRef heap, const void **values)
   while (CFBinaryHeapGetMinimumIfPresent(copy, values))
     {
       values++;
-      CFBinaryHeapRemoveMinimumValue (heap);
+      CFBinaryHeapRemoveMinimumValue (copy);
     }
   CFRelease (copy);
 }
@@ -365,18 +366,21 @@ CFBinaryHeapRemoveMinimumValue (CFBinaryHeapRef heap)
   CFIndex count;
   CFBinaryHeapReleaseCallBack release;
   CFBinaryHeapCompareCallBack compare;
+  const void *last;
   void *info;
   
   release = heap->_callBacks->release;
   if (release)
     release (CFGetAllocator(heap), heap->_values[0]);
+  count = heap->_count;
+  heap->_count -= 1;
   
   compare = heap->_callBacks->compare;
   info = heap->_context.info;
   
   idx = 0;
-  child = (idx << 1) + 1; /* Initialize to left child */
-  count = heap->_count;
+  child = 1; /* Initialize to left child */
+  last = heap->_values[count - 1];
   while (child < count)
     {
       const void *v;
@@ -387,7 +391,7 @@ CFBinaryHeapRemoveMinimumValue (CFBinaryHeapRef heap)
           const void *right;
           
           right = heap->_values[child + 1];
-          if (compare ? compare(v, right, info) == kCFCompareLessThan
+          if (compare ? compare(v, right, info) == kCFCompareGreaterThan
               : v > right)
             {
               v = right;
@@ -399,4 +403,6 @@ CFBinaryHeapRemoveMinimumValue (CFBinaryHeapRef heap)
       idx = child;
       child = (idx << 1) + 1; /* Go to left child */
     }
+  
+  heap->_values[idx] = last;
 }
