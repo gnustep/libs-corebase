@@ -284,9 +284,9 @@ CFTimeZoneCreateWithTimeIntervalFromGMT (CFAllocatorRef alloc,
   tzfile.header.tzh_charcnt[3] = numChars;
   
   name = CFStringCreateWithCString (alloc, tzfile.abbrev,
-    kCFStringEncodingASCII);
+                                    kCFStringEncodingASCII);
   data = CFDataCreateWithBytesNoCopy (alloc, (UInt8*)&tzfile,
-    sizeof(struct TZFile) - (9 - numChars), kCFAllocatorNull);
+    sizeof(struct TZFile) - (10 - numChars), kCFAllocatorNull);
   new = CFTimeZoneCreate (alloc, name, data);
   CFRelease (name);
   CFRelease (data);

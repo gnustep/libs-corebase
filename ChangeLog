@@ -1,3 +1,9 @@
+2012-04-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFTimeZone.c: Pass correct data size.
+	* Tests/CFTimeZone/basic.m: Fix tests.
+	* Tests/CFLocale/values.m: Fix error in previous commit.
+
 2012-04-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFTimeZone.c: Correctly calculate GMT offset for zone name.

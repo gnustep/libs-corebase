@@ -58,6 +58,9 @@ int main (void)
   obj = CFLocaleGetValue (locale, kCFLocaleAlternateQuotationBeginDelimiterKey);
   PASS_CFEQ(obj, exp, "Alternate quotation begin delimiter is correct");
   obj = CFLocaleGetValue (locale, kCFLocaleAlternateQuotationEndDelimiterKey);
+  CFRelease (exp);
+  
+  exp = CFStringCreateWithCString (NULL, "’", kCFStringEncodingUTF8);
   PASS_CFEQ(obj, exp, "Alternate quotation end delimiter is correct");
   CFRelease (exp);
   

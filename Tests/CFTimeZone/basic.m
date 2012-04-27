@@ -12,17 +12,17 @@ int main (void)
   
   tz = CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, 0.0);
   PASS(tz != NULL, "CFTimeZone create successfully.");
-  PASS_CFEQ(CFTimeZoneGetName(tz), CFSTR("GMT+0000"),
+  PASS_CFEQ(CFTimeZoneGetName(tz), CFSTR("GMT+00:00"),
     "CFTimeZone has correct name.");
   
   str = CFTimeZoneCopyAbbreviation (tz, 0.0);
-  PASS_CFEQ(str, CFSTR("GMT+0000"), "Time zone abbreviations are equal.");
+  PASS_CFEQ(str, CFSTR("GMT+00:00"), "Time zone abbreviations are equal.");
   
   ti = CFTimeZoneGetSecondsFromGMT (tz, 0.0);
-  PASS(ti == 0.0, "GMT+0000 offset from GMT is %g", ti);
+  PASS(ti == 0.0, "GMT+00:00 offset from GMT is %g", ti);
   
   at = CFTimeZoneGetNextDaylightSavingTimeTransition (tz, 0.0);
-  PASS(at == 0.0, "Next transition for GMT+0000 is %g", at);
+  PASS(at == 0.0, "Next transition for GMT+00:00 is %g", at);
   
   CFRelease (str);
   CFRelease (tz);
