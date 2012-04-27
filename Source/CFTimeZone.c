@@ -253,7 +253,7 @@ struct TZFile
   SInt32 time;
   UInt8  type;
   struct _ttinfo ttinfo;
-  char   abbrev[9]; /* 9 = max number of characters, ie 'GMT+0100\0'. */
+  char   abbrev[10]; /* 10 = max number of characters, ie 'GMT+01:00\0'. */
 };
 
 CFTimeZoneRef
@@ -273,13 +273,14 @@ CFTimeZoneCreateWithTimeIntervalFromGMT (CFAllocatorRef alloc,
   sign = (ti < 0) ? '-' : '+';
   sec = (SInt32)ti;
   hour = (ti < 0) ? -sec / 3600 : sec / 3600;
+  sec -= ((ti < 0) ? -hour : hour) * 3600;
   min = (ti < 0) ? -sec / 60 : sec / 60;
   
   memset (&tzfile, 0, sizeof(struct TZFile));
   memcpy (tzfile.header.tzh_magic, "TZif", 4);
   tzfile.header.tzh_timecnt[3] = 1;
   tzfile.header.tzh_typecnt[3] = 1;
-  numChars = snprintf (tzfile.abbrev, 9, "GMT%c%02d%02d", sign, hour, min);
+  numChars = snprintf (tzfile.abbrev, 10, "GMT%c%02d:%02d", sign, hour, min);
   tzfile.header.tzh_charcnt[3] = numChars;
   
   name = CFStringCreateWithCString (alloc, tzfile.abbrev,
@@ -489,7 +490,7 @@ CFTimeZoneSetDefault (CFTimeZoneRef tz)
 CFTimeZoneRef
 CFTimeZoneCopySystem (void)
 {
-  return NULL; /* FIXME */
+  return CFTimeZoneCreateWithTimeIntervalFromGMT(NULL, 0.0); /* FIXME */
 }
 
 void

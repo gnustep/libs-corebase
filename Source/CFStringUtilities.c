@@ -79,7 +79,7 @@ CFStringICUCollatorClose (UCollator *collator)
 
 CFRange
 CFStringFind (CFStringRef str, CFStringRef stringToFind,
-  CFStringCompareFlags compareOptions)
+              CFStringCompareFlags compareOptions)
 {
   CFRange ret;
   CFIndex len = CFStringGetLength (str);
@@ -92,7 +92,8 @@ CFStringFind (CFStringRef str, CFStringRef stringToFind,
 
 Boolean
 CFStringFindWithOptions (CFStringRef str, CFStringRef stringToFind,
-  CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result)
+                         CFRange rangeToSearch,
+                         CFStringCompareFlags searchOptions, CFRange *result)
 {
   return CFStringFindWithOptionsAndLocale (str, stringToFind,
     rangeToSearch, searchOptions, NULL, result);
@@ -100,8 +101,10 @@ CFStringFindWithOptions (CFStringRef str, CFStringRef stringToFind,
 
 Boolean
 CFStringFindWithOptionsAndLocale (CFStringRef str,
-  CFStringRef stringToFind, CFRange rangeToSearch,
-  CFStringCompareFlags searchOptions, CFLocaleRef locale, CFRange *result)
+                                  CFStringRef stringToFind,
+                                  CFRange rangeToSearch,
+                                  CFStringCompareFlags searchOptions,
+                                  CFLocaleRef locale, CFRange *result)
 {
   UniChar *pattern;
   UniChar *text;
@@ -113,6 +116,9 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
   UCollator *ucol;
   UStringSearch *usrch;
   UErrorCode err = U_ZERO_ERROR;
+  
+  if (rangeToSearch.length == 0)
+    return false;
   
   alloc = CFAllocatorGetDefault ();
   textLength = CFStringGetLength (stringToFind);
@@ -128,7 +134,7 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
   
   ucol = CFStringICUCollatorOpen (searchOptions, locale);
   usrch = usearch_openFromCollator (text, textLength, pattern, patternLength,
-    ucol, NULL, &err);
+                                    ucol, NULL, &err);
   if (U_FAILURE(err))
     return false;
   
@@ -152,7 +158,7 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
   CFStringICUCollatorClose (ucol);
   
   if (result)
-    *result = CFRangeMake (start, end);
+    *result = CFRangeMake (start + rangeToSearch.location, end);
   
   CFAllocatorDeallocate (alloc, pattern);
   CFAllocatorDeallocate (alloc, text);
@@ -164,7 +170,7 @@ CFStringHasPrefix (CFStringRef str, CFStringRef prefix)
 {
   CFIndex len = CFStringGetLength (str);
   return CFStringFindWithOptionsAndLocale (str, prefix, CFRangeMake(0, len),
-    kCFCompareAnchored, NULL, NULL);
+                                           kCFCompareAnchored, NULL, NULL);
 }
 
 Boolean
@@ -177,11 +183,11 @@ CFStringHasSuffix (CFStringRef str, CFStringRef suffix)
 
 CFComparisonResult
 CFStringCompare (CFStringRef str1, CFStringRef str2,
-  CFStringCompareFlags compareOptions)
+                 CFStringCompareFlags compareOptions)
 {
   CFIndex len = CFStringGetLength (str1);
   return CFStringCompareWithOptionsAndLocale (str1, str2, CFRangeMake(0, len),
-    compareOptions, NULL);
+                                              compareOptions, NULL);
 }
 
 CFComparisonResult
@@ -189,7 +195,7 @@ CFStringCompareWithOptions (CFStringRef str1, CFStringRef str2,
   CFRange rangeToCompare, CFStringCompareFlags compareOptions)
 {
   return CFStringCompareWithOptionsAndLocale (str1, str2, rangeToCompare,
-    compareOptions, NULL);
+                                              compareOptions, NULL);
 }
 
 CFComparisonResult
@@ -267,8 +273,8 @@ CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
   CFStringRef str, CFStringRef separator)
 {
   /* This is basically a port of -componentsSeparatedByString: */
+  CFIndex end;
   CFRange search;
-  CFRange complete;
   CFRange found;
   CFStringRef tmp;
   CFArrayRef ret;
@@ -277,18 +283,18 @@ CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
   array = CFArrayCreateMutable (alloc, 0, &kCFTypeArrayCallBacks);
 
   search = CFRangeMake (0, CFStringGetLength(str));
-  complete = search;
+  end = search.length;
   while (CFStringFindWithOptions(str, separator, search, 0, &found))
   {
     CFRange current;
-    current = CFRangeMake (search.location, found.location);
+    current = CFRangeMake (search.location, found.location - search.location);
     
     tmp = CFStringCreateWithSubstring(alloc, str, current);
     CFArrayAppendValue (array, tmp);
     CFRelease (tmp);
 
-    search = CFRangeMake (search.location + found.location + found.length,
-      complete.length - search.location - found.location - found.length);
+    search = CFRangeMake (found.location + found.length,
+                          end - found.location - found.length);
   }
   
   /* Add the last search string range */

@@ -1,6 +1,12 @@
 2012-04-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
-	* ource/CFBinaryHeap.c: Fix bug when removing minimum value.
+	* Source/CFTimeZone.c: Correctly calculate GMT offset for zone name.
+	* Source/CFDateFormatter.c: Reset formatter before using it.
+	* Source/CFStringUtilities.c: Fix bug in find utility.
+
+2012-04-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFBinaryHeap.c: Fix bug when removing minimum value.
 	* Tests/CFString/general.m:
 	* Tests/CFCalendar/basic.m:
 	* Tests/CFNumberFormatter/parse.m:
