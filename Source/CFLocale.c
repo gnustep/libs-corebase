@@ -718,8 +718,10 @@ CFLocaleGetValue (CFLocaleRef locale,
     }
   
   if (result != NULL)
-    CFDictionaryAddValue (locale->_components, key, result);
-  CFRelease (result);
+    {
+      CFDictionaryAddValue (locale->_components, key, result);
+      CFRelease (result);
+    }
   
   return result;
 }

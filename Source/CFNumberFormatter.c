@@ -435,6 +435,7 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
       new->_defaultFormat = CFStringCreateWithCharacters (allocator,
         ubuffer, len);
     }
+  new->_format = CFRetain (new->_defaultFormat);
   
   return new;
 }

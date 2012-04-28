@@ -1,5 +1,11 @@
 2012-04-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFRuntime.c: Fix incompatibility in retain/release.
+	* Source/CFLocale.c:
+	* Source/CFNumberFormatter.c: Do not release NULL pointer.
+
+2012-04-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFTimeZone.c: Correctly generate time zone data.
 	* Source/CFCalendar.c: Use CFTimeZone when opening a new calendar.
 	* Tests/CFCalendar/basic.m:

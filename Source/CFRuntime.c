@@ -105,8 +105,6 @@ _CFRuntimeRegisterClass (const CFRuntimeClass * const cls)
   GSMutexLock (&_kCFRuntimeTableLock);
   if(__CFRuntimeClassTableCount >= __CFRuntimeClassTableSize)
     {
-      /* FIXME NSLog (@"CoreBase class table is full, cannot register class %s",
-        cls->className); */
       GSMutexUnlock (&_kCFRuntimeTableLock);
       return _kCFRuntimeNotATypeID;
     }
@@ -285,24 +283,15 @@ CFEqual (CFTypeRef cf1, CFTypeRef cf2)
 CFAllocatorRef
 CFGetAllocator (CFTypeRef cf)
 {
-  if (cf == NULL)
-    return NULL;
+  if (CF_IS_OBJC(CFGetTypeID(cf), cf) || ((CFRuntimeBase*)cf)->_flags.ro)
+    return kCFAllocatorSystemDefault;
   
-  /* FIXME: This will crash for any ObjC objects.  Need to check for
-      this case before returning the allocator. */
-  
-  if (!((CFRuntimeBase*)cf)->_flags.ro)
-    return ((obj)cf)[-1].allocator;
-  
-  return kCFAllocatorSystemDefault;
+  return ((obj)cf)[-1].allocator;
 }
 
 CFIndex
 CFGetRetainCount (CFTypeRef cf)
 {
-  if (cf == NULL)
-    return 0;
-  
   CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFIndex, cf, "retainCount");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
@@ -326,9 +315,6 @@ CFHash (CFTypeRef cf)
 {
   CFRuntimeClass *cls;
   
-  if (cf == NULL)
-    return 0;
-  
   CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFHashCode, cf, "hash");
   
   cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
@@ -348,9 +334,6 @@ CFMakeCollectable (CFTypeRef cf)
 void
 CFRelease (CFTypeRef cf)
 {
-  if (cf == NULL)
-    return;
-  
   CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), void, cf, "release");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
@@ -373,9 +356,6 @@ CFRelease (CFTypeRef cf)
 CFTypeRef
 CFRetain (CFTypeRef cf)
 {
-  if (cf == NULL)
-    return NULL;
-  
   CF_OBJC_FUNCDISPATCH0(CFGetTypeID(cf), CFTypeRef, cf, "retain");
   
   if (!((CFRuntimeBase*)cf)->_flags.ro)
