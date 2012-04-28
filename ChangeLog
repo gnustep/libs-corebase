@@ -1,5 +1,13 @@
 2012-04-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFTimeZone.c: Correctly generate time zone data.
+	* Source/CFCalendar.c: Use CFTimeZone when opening a new calendar.
+	* Tests/CFCalendar/basic.m:
+	* Tests/CFLocale/displayvalues.m:
+	* Tests/CFURL/create.m: Fix tests.
+
+2012-04-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFTimeZone.c: Pass correct data size.
 	* Tests/CFTimeZone/basic.m: Fix tests.
 	* Tests/CFLocale/values.m: Fix error in previous commit.

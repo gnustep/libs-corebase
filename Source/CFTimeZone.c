@@ -280,6 +280,7 @@ CFTimeZoneCreateWithTimeIntervalFromGMT (CFAllocatorRef alloc,
   memcpy (tzfile.header.tzh_magic, "TZif", 4);
   tzfile.header.tzh_timecnt[3] = 1;
   tzfile.header.tzh_typecnt[3] = 1;
+  tzfile.ttinfo.offset = CFSwapInt32HostToBig((SInt32)ti);
   numChars = snprintf (tzfile.abbrev, 10, "GMT%c%02d:%02d", sign, hour, min);
   tzfile.header.tzh_charcnt[3] = numChars;
   

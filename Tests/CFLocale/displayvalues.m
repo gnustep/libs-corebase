@@ -25,13 +25,11 @@ int main (void)
     kCFLocaleScriptCode,
     CFSTR("pt_BR@calendar=gregorian;collation=traditional;currency=BRL"));
   PASS(str == NULL, "There is no display name for script");
-  CFRelease (str);
   
   str = CFLocaleCopyDisplayNameForPropertyValue (locale,
     kCFLocaleVariantCode,
     CFSTR("pt_BR@calendar=gregorian;collation=traditional;currency=BRL"));
   PASS(str == NULL, "There is no display name for variant");
-  CFRelease (str);
   
   str = CFLocaleCopyDisplayNameForPropertyValue (locale,
     kCFLocaleCalendarIdentifier,

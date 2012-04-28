@@ -7,16 +7,20 @@
 int main (void)
 {
   CFCalendarRef cal;
+  CFTimeZoneRef tz;
   CFAbsoluteTime at = 0.0;
   CFTimeInterval ti= 0.0;
   int year, month, hour, minute, second;
   
   cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
-  // FIXME: Need to specify a CFTimeZone but it is currently unsupported.
+  tz = CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, -3600.0);
+  CFCalendarSetTimeZone (cal, tz);
+  CFRelease (tz);
+  
   PASS(CFCalendarComposeAbsoluteTime(cal, &at, "yMd", 2011, 7, 8),
     "Absolute time composed.");
   testHopeful = true;
-  PASS(at == 331794000.0, "Absolute time composed correctly.");
+  PASS(at == 331779600.0, "Absolute time composed correctly (%f).", at);
   testHopeful = false;
   
   PASS(CFCalendarDecomposeAbsoluteTime(cal, at, "yMH", &year, &month, &hour),
@@ -36,10 +40,10 @@ int main (void)
        "Component difference is %d hour(s), %d minute(s) and %d second(s)",
        hour, minute, second);
   
-  PASS(CFCalendarGetTimeRangeOfUnit (cal, kCFCalendarUnitWeekday, 331365600.0, &at, &ti),
+  PASS(CFCalendarGetTimeRangeOfUnit (cal, kCFCalendarUnitWeekday, 331365601.0, &at, &ti),
     "Got time range of kCFCalendarUnitWeekday.");
-  PASS(at == 331365600.0, "Got start of week (%f).", at);
-  PASS(ti == 604800.0, "Time interval is %d days long (%f).",
+  PASS(at == 331365600.0, "Got start of weekday (%f).", at);
+  PASS(ti == 86400.0, "Time interval is %d day(s) long (%f).",
        (int)(ti/86400.0), ti);
   
   CFRelease (cal);
