@@ -1,3 +1,8 @@
+2012-05-01 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFAttributedString.c: Implement CFAttributedStringCreate().
+	* Tests/CFAttributedString/: Add simple tests.
+
 2012-04-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.c: Fix incompatibility in retain/release.
