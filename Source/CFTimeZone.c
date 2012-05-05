@@ -32,6 +32,8 @@
 #include "CoreFoundation/CFDate.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFTimeZone.h"
+#include "CoreFoundation/CFURL.h"
+#include "CoreFoundation/CFURLAccess.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "GSPrivate.h"
 #include "tzfile.h"
@@ -73,7 +75,7 @@ static GSMutex _kCFTimeZoneCacheLock;
 static CFMutableDictionaryRef _kCFTimeZoneCache = NULL;
 static CFTimeZoneRef _kCFTimeZoneDefault = NULL;
 static CFTimeZoneRef _kCFTimeZoneSystem = NULL;
-static CFDictionaryRef _kCFTimeZoneAbbreviations = NULL;
+static CFDictionaryRef _kCFTimeZoneAbbreviationDictionary = NULL;
 
 static void
 CFTimeZoneFinalize (CFTypeRef cf)
@@ -156,7 +158,7 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   if (bytes > endOfBytes)
     return NULL;
   
-  if (memcmp(header->tzh_magic, TZ_MAGIC, sizeof(TZ_MAGIC)) != 0)
+  if (memcmp(header->tzh_magic, TZ_MAGIC, 4) != 0)
     return NULL;
   tzh_timecnt = (SInt32)CFSwapInt32BigToHost (*(UInt32*)header->tzh_timecnt);
   tzh_typecnt = (SInt32)CFSwapInt32BigToHost (*(UInt32*)header->tzh_typecnt);
@@ -295,12 +297,51 @@ CFTimeZoneCreateWithTimeIntervalFromGMT (CFAllocatorRef alloc,
   return new;
 }
 
-
 CFTimeZoneRef
 CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
   Boolean tryAbbrev)
 {
-  return NULL; /* FIXME */
+  CFURLRef tzdir;
+  CFURLRef path;
+  CFDataRef data;
+  CFTimeZoneRef new;
+  
+  if (tryAbbrev)
+    {
+      CFDictionaryRef abbrevs;
+      CFStringRef nonAbbrev;
+      
+      abbrevs = CFTimeZoneCopyAbbreviationDictionary ();
+      if (CFDictionaryGetValueIfPresent (abbrevs, name, (const void**)&nonAbbrev))
+        {
+          name = nonAbbrev;
+        }
+      
+      CFRelease (abbrevs);
+    }
+  
+  tzdir = CFURLCreateWithFileSystemPathRelativeToBase (alloc, CFSTR(TZDIR),
+                                                       kCFURLPOSIXPathStyle,
+                                                       true, NULL);
+  path = CFURLCreateWithFileSystemPathRelativeToBase (alloc, name,
+                                                      kCFURLPOSIXPathStyle,
+                                                      false, tzdir);
+  CFRelease (tzdir);
+  
+  if (CFURLCreateDataAndPropertiesFromResource (alloc, path, &data, NULL,
+                                                NULL, NULL))
+    {
+      new = CFTimeZoneCreate (alloc, name, data);
+      CFRelease (data);
+    }
+  else
+    {
+      new = NULL;
+    }
+  
+  CFRelease (path);
+  
+  return new;
 }
 
 CFStringRef
@@ -417,6 +458,7 @@ CFStringRef
 CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
   CFLocaleRef locale)
 {
+#if HAVE_ICU
   UniChar localizedName[BUFFER_SIZE];
   UniChar zoneID[BUFFER_SIZE];
   char cLocale[ULOC_FULLNAME_CAPACITY];
@@ -453,6 +495,8 @@ CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
       default: /* Covers kCFTimeZoneNameStyleStandard */
         ucaltype = UCAL_STANDARD;
     }
+  CFStringGetCString (CFLocaleGetIdentifier(locale), cLocale,
+                      ULOC_FULLNAME_CAPACITY, kCFStringEncodingASCII);
   len = ucal_getTimeZoneDisplayName (ucal, ucaltype, cLocale,
     localizedName, BUFFER_SIZE, &err);
   if (len > BUFFER_SIZE)
@@ -462,6 +506,9 @@ CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
   ucal_close (ucal);
   
   return ret;
+#else
+  return NULL;
+#endif
 }
 
 CFTimeZoneRef
@@ -512,6 +559,11 @@ CFTimeZoneCopyKnownNames (void)
   return NULL; /* FIXME */
 }
 
+const char *_kCFTimeZoneAbbreviations[] =
+{
+  
+};
+
 CFDictionaryRef
 CFTimeZoneCopyAbbreviationDictionary (void)
 {
@@ -522,8 +574,8 @@ void
 CFTimeZoneSetAbbreviationDictionary (CFDictionaryRef dict)
 {
   GSMutexLock (&_kCFTimeZoneLock);
-  if (_kCFTimeZoneAbbreviations != NULL)
-    CFRelease (_kCFTimeZoneAbbreviations);
-  _kCFTimeZoneAbbreviations = (CFDictionaryRef)CFRetain (dict);
+  if (_kCFTimeZoneAbbreviationDictionary != NULL)
+    CFRelease (_kCFTimeZoneAbbreviationDictionary);
+  _kCFTimeZoneAbbreviationDictionary = (CFDictionaryRef)CFRetain (dict);
   GSMutexUnlock (&_kCFTimeZoneLock);
 }

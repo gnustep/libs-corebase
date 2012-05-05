@@ -661,6 +661,7 @@ ac_user_opts='
 enable_option_checking
 enable_objc_bridge
 with_icu
+with_zoneinfo_dir
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1292,6 +1293,8 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --without-icu           Do not build with International Components for
                           Unicode (ICU) support.
+  --with-zoneinfo-dir=PATH 
+                          Directory path of the Time zone object files.
 
 Some influential environment variables:
   CC          C compiler command
@@ -4455,6 +4458,45 @@ done
 $as_echo "@%:@define HAVE_ICU 1" >>confdefs.h
 
 fi
+
+#---
+# Check for zoneinfo directory
+#---
+
+@%:@ Check whether --with-zoneinfo-dir was given.
+if test "${with_zoneinfo_dir+set}" = set; then :
+  withval=$with_zoneinfo_dir; 
+else
+  with_zoneinfo_dir=undef
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking zoneinfo directory" >&5
+$as_echo_n "checking zoneinfo directory... " >&6; }
+if test "$with_zoneinfo_dir" = "undef"; then
+  # Try to find the a time zone database directory
+  if test -d "/usr/share/zoneinfo"; then
+    with_zoneinfo_dir='/usr/share/zoneinfo'
+  elif test -d "/usr/lib/zoneinfo"; then
+    with_zoneinfo_dir='/usr/lib/zoneinfo'
+  elif test -d "/usr/local/share/zoneinfo"; then
+    with_zoneinfo_dir='/usr/local/share/zoneinfo'
+  elif test -d "/usr/local/lib/zoneinfo"; then
+    with_zoneinfo_dir='/usr/local/lib/zoneinfo'
+  elif test -d "/etc/zoneinfo"; then
+    with_zoneinfo_dir='/etc/zoneinfo'
+  elif test -d "/usr/local/etc/zoneinfo"; then
+    with_zoneinfo_dir='/usr/local/etc/zoneinfo'
+  fi
+elif test "$with_zoneinfo_dir" = "no" || test ! -d "$with_zoneinfo_dir"; then
+  as_fn_error $? "Please specify a valid zoneinfo directory." "$LINENO" 5
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_zoneinfo_dir" >&5
+$as_echo "$with_zoneinfo_dir" >&6; }
+
+cat >>confdefs.h <<_ACEOF
+@%:@define TZDIR "$with_zoneinfo_dir"
+_ACEOF
+
 
 ac_config_files="$ac_config_files Source/GNUmakefile"
 

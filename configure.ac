@@ -81,8 +81,39 @@ if test "$with_icu" = "yes"; then
   fi
   
   AC_CHECK_HEADERS([unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/ucal.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/usearch.h])
-  AC_DEFINE(HAVE_ICU, 1, [Define to 1 if you have International Components for Unicode.])
+  AC_DEFINE(HAVE_ICU, 1,
+            [Define to 1 if you have International Components for Unicode.])
 fi
+
+#---
+# Check for zoneinfo directory
+#---
+AC_ARG_WITH([zoneinfo-dir],
+  [AS_HELP_STRING([--with-zoneinfo-dir=PATH],
+    [Directory path of the Time zone object files.])],
+  [], [with_zoneinfo_dir=undef])
+AC_MSG_CHECKING([zoneinfo directory])
+if test "$with_zoneinfo_dir" = "undef"; then
+  # Try to find the a time zone database directory
+  if test -d "/usr/share/zoneinfo"; then
+    with_zoneinfo_dir='/usr/share/zoneinfo'
+  elif test -d "/usr/lib/zoneinfo"; then
+    with_zoneinfo_dir='/usr/lib/zoneinfo'
+  elif test -d "/usr/local/share/zoneinfo"; then
+    with_zoneinfo_dir='/usr/local/share/zoneinfo'
+  elif test -d "/usr/local/lib/zoneinfo"; then
+    with_zoneinfo_dir='/usr/local/lib/zoneinfo'
+  elif test -d "/etc/zoneinfo"; then
+    with_zoneinfo_dir='/etc/zoneinfo'
+  elif test -d "/usr/local/etc/zoneinfo"; then
+    with_zoneinfo_dir='/usr/local/etc/zoneinfo'
+  fi
+elif test "$with_zoneinfo_dir" = "no" || test ! -d "$with_zoneinfo_dir"; then
+  AC_MSG_ERROR([Please specify a valid zoneinfo directory.])
+fi
+AC_MSG_RESULT($with_zoneinfo_dir)
+AC_DEFINE_UNQUOTED(TZDIR, ["$with_zoneinfo_dir"],
+                   [Define to the directory contain time zone object files.])
 
 AC_CONFIG_FILES([Source/GNUmakefile])
 

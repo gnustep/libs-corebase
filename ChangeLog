@@ -1,3 +1,12 @@
+2012-05-05 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* configure:
+	* configure.ac: Add test for zoneinfo directory.
+	* Source/tzfile.h: Remove TZDIR define.
+	* Source/config.h.in: Add TZDIR define based on configure's findings.
+	* Source/CFTimeZone.c: Search for 
+	* Tests/CFTimeZone/general.m: Added a few new tests to CFTimeZone.
+
 2012-05-01 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFAttributedString.c: Implement CFAttributedStringCreate().
