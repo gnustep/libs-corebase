@@ -13,11 +13,11 @@ int main (void)
   num1 = CFNumberCreate (NULL, kCFNumberIntType, &i32);
   PASS(num1 != NULL, "CFNumberCreate() returns non-NULL");
   PASS(CFNumberGetType(num1) == kCFNumberSInt32Type,
-    "Integer is converted to SInt32(%d).", CFNumberGetType(num1));
+    "Integer is converted to SInt32(%d).", (int)CFNumberGetType(num1));
   
   num2 = CFNumberCreate (NULL, kCFNumberCharType, &i8);
   PASS(CFNumberGetType(num2) == kCFNumberSInt32Type,
-    "Char is converted to SInt32(%d).", CFNumberGetType(num2));
+    "Char is converted to SInt32(%d).", (int)CFNumberGetType(num2));
   
   PASS(CFNumberGetValue(num1, kCFNumberSInt8Type, &i8),
     "Integer converted to SInt8.");
@@ -32,11 +32,11 @@ int main (void)
   
   num1 = CFNumberCreate (NULL, kCFNumberShortType, &i16);
   PASS(CFNumberGetType(num1) == kCFNumberSInt32Type,
-    "Short is converted to SInt32(%d).", CFNumberGetType(num1));
+    "Short is converted to SInt32(%d).", (int)CFNumberGetType(num1));
   
   num2 = CFNumberCreate (NULL, kCFNumberFloatType, &f);
   PASS(CFNumberGetType(num2) == kCFNumberFloat64Type,
-    "Float is converted to Float64(%d).", CFNumberGetType(num2));
+    "Float is converted to Float64(%d).", (int)CFNumberGetType(num2));
   
   PASS(CFNumberGetValue(num1, kCFNumberFloatType, &f),
     "Short converted to float.");

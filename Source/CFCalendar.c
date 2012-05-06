@@ -74,7 +74,7 @@ CFCalendarOpenUCalendar (CFCalendarRef cal)
         tzLen = BUFFER_SIZE;
       CFStringGetCharacters (cal->_tzIdent, CFRangeMake(0, tzLen), tzIdent);
       
-      ucal = ucal_open (tzIdent, 0, localeIdent, UCAL_TRADITIONAL, &err);
+      ucal = ucal_open (tzIdent, tzLen, localeIdent, UCAL_TRADITIONAL, &err);
       
       cal->_ucal = ucal;
     }
@@ -732,7 +732,6 @@ Boolean
 CFCalendarGetTimeRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit,
   CFAbsoluteTime at, CFAbsoluteTime *startp, CFTimeInterval *tip)
 {
-  int32_t min;
   double start;
   double end;
   UCalendar *ucal;
@@ -747,39 +746,44 @@ CFCalendarGetTimeRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit,
   if (U_FAILURE(err))
     return false;
   
-  min = ucal_getLimit(ucal, field, UCAL_ACTUAL_MINIMUM, &err);
-  
   /* Clear lower fields */
   switch (field)
     {
       case UCAL_ERA:
-        ucal_clearField (ucal, UCAL_YEAR);
+        ucal_set (ucal, UCAL_YEAR,
+                  ucal_getLimit(ucal, UCAL_YEAR, UCAL_ACTUAL_MINIMUM, &err));
       case UCAL_YEAR:
-        ucal_clearField (ucal, UCAL_MONTH);
+        ucal_set (ucal, UCAL_MONTH,
+                  ucal_getLimit(ucal, UCAL_MONTH, UCAL_ACTUAL_MINIMUM, &err));
       case UCAL_MONTH:
-        ucal_clearField (ucal, UCAL_DATE);
+        ucal_set (ucal, UCAL_DATE,
+                  ucal_getLimit(ucal, UCAL_DATE, UCAL_ACTUAL_MINIMUM, &err));
       case UCAL_DATE:
       case UCAL_DAY_OF_YEAR:
       case UCAL_DAY_OF_WEEK:
       case UCAL_DAY_OF_WEEK_IN_MONTH:
-        ucal_clearField (ucal, UCAL_HOUR_OF_DAY);
+        ucal_set (ucal, UCAL_HOUR_OF_DAY,
+                  ucal_getLimit(ucal, UCAL_HOUR_OF_DAY, UCAL_ACTUAL_MINIMUM, &err));
       case UCAL_HOUR_OF_DAY:
-        ucal_clearField (ucal, UCAL_MINUTE);
+        ucal_set (ucal, UCAL_MINUTE,
+                  ucal_getLimit(ucal, UCAL_MINUTE, UCAL_ACTUAL_MINIMUM, &err));
       case UCAL_MINUTE:
-        ucal_clearField (ucal, UCAL_SECOND);
+        ucal_set (ucal, UCAL_SECOND,
+                  ucal_getLimit(ucal, UCAL_SECOND, UCAL_ACTUAL_MINIMUM, &err));
       default:
         break;
     }
   
-  ucal_set (ucal, field, min);
   start = UDATE_TO_ABSOLUTETIME(ucal_getMillis (cal->_ucal, &err));
-  ucal_add (ucal, field, 1, &err);
-  end = UDATE_TO_ABSOLUTETIME(ucal_getMillis (cal->_ucal, &err));
   
   if (startp)
     *startp = start;
   if (tip)
-    *tip = end - start;
+    {
+      ucal_add (ucal, field, 1, &err);
+      end = UDATE_TO_ABSOLUTETIME(ucal_getMillis (cal->_ucal, &err));
+      *tip = end - start;
+    }
   
   if (U_FAILURE(err))
     return false;

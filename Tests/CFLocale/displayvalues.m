@@ -21,6 +21,12 @@ int main (void)
   PASS_CFEQ(str, CFSTR("Brazil"), "Display country is correct");
   CFRelease (str);
   
+  /* Test if this is what OS X is doing instead of above! */
+  str = CFLocaleCopyDisplayNameForPropertyValue (locale, kCFLocaleCountryCode,
+                                                 CFSTR("BR"));
+  PASS_CFEQ(str, CFSTR("Brazil"), "Display country is correct");
+  CFRelease (str);
+  
   str = CFLocaleCopyDisplayNameForPropertyValue (locale,
     kCFLocaleScriptCode,
     CFSTR("pt_BR@calendar=gregorian;collation=traditional;currency=BRL"));

@@ -1,5 +1,6 @@
 #include <CoreFoundation/CFBinaryHeap.h>
 #include "../CFTesting.h"
+#include <string.h>
 
 #define ARRAY_SIZE 6
 const CFIndex array[ARRAY_SIZE] = { 7, 10, 5, 10, 25, 1 };

@@ -1,5 +1,6 @@
 #include "CoreFoundation/CFArray.h"
 #include "../CFTesting.h"
+#include <string.h>
 
 #define ARRAY_SIZE 5
 const CFIndex array[ARRAY_SIZE] = { 5, 2, 3, 4, 1 };

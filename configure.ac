@@ -107,8 +107,11 @@ if test "$with_zoneinfo_dir" = "undef"; then
     with_zoneinfo_dir='/etc/zoneinfo'
   elif test -d "/usr/local/etc/zoneinfo"; then
     with_zoneinfo_dir='/usr/local/etc/zoneinfo'
+  else
+    with_zoneinfo_dir='no'
   fi
-elif test "$with_zoneinfo_dir" = "no" || test ! -d "$with_zoneinfo_dir"; then
+fi
+if test "$with_zoneinfo_dir" = "no" || test ! -d "$with_zoneinfo_dir"; then
   AC_MSG_ERROR([Please specify a valid zoneinfo directory.])
 fi
 AC_MSG_RESULT($with_zoneinfo_dir)

@@ -1,3 +1,16 @@
+2012-05-06 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* configure.ac: Display error if zoneinfo directory cannot be found.
+	* Source/CFCalendar.c: Fix CFCalendarGetTimeRangeOfUnit().
+	* Tests/CFArray/mutablearray.m:
+	* Tests/CFAttributedString/general.m:
+	* Tests/CFBinaryHeap/general.m: Avoid compiler warnings.
+	* Tests/CFCalendar/basic.m:
+	* Tests/CFNumberFormatter/parse.m:
+	* Tests/CFNumber/general.m:
+	* Tests/CFLocale/displayvalues.m:
+	* Tests/CFURL/create.m: Fix tests based on results from OS X.
+
 2012-05-05 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* configure:

@@ -38,7 +38,7 @@ int main (void)
   CFRelease (nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterScientificStyle);
-  str = CFSTR("3.15E8");
+  str = CFSTR("3.15E+8");
   PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt64Type, &int_64) == true, "Got SInt64 value");
   PASS(int_64 == 315000000, "SInt64 value is '%lld'", (long long)int_64);
@@ -49,7 +49,7 @@ int main (void)
   range = CFRangeMake (1, 5);
   PASS(CFNumberFormatterGetValueFromString (nf, str, &range,
     kCFNumberDoubleType, &d) == true, "Got double value");
-  PASS(d == .234, "Double value is '%g'", d);
+  PASS(d == 0.234, "Double value is '%g'", d);
   PASS((range.location == 1 && range.length == 5) , "Parsed complete length");
   CFRelease (nf);
   

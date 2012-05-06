@@ -4,7 +4,7 @@
 int main (void)
 {
   CFAttributedStringRef str;
-  CFDictionaryRef attribs;
+  CFMutableDictionaryRef attribs;
   CFDictionaryRef attrOut;
   CFRange r;
   

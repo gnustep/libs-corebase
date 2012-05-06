@@ -42,7 +42,7 @@ int main (void)
   
   PASS(CFCalendarGetTimeRangeOfUnit (cal, kCFCalendarUnitWeekday, 331365601.0, &at, &ti),
     "Got time range of kCFCalendarUnitWeekday.");
-  PASS(at == 331365600.0, "Got start of weekday (%f).", at);
+  PASS(at == 331347600.0, "Got start of weekday (%f).", at);
   PASS(ti == 86400.0, "Time interval is %d day(s) long (%f).",
        (int)(ti/86400.0), ti);
   

@@ -68,9 +68,9 @@ int main (void)
     "Strict path of http://www.w3.org/silly-file-name is silly-file-name");
   CFRelease (str);
   str = CFURLCopyResourceSpecifier (url);
-  PASS_CFEQ(str, CFSTR("query#fragment"),
+  PASS_CFEQ(str, CFSTR("?query#fragment"),
     "Resource specifier of http://www.w3.org/silly-file-name?query#fragment is"
-    " query#fragment");
+    " ?query#fragment");
   CFRelease(str);
   str = CFURLCopyQueryString (url, NULL);
   PASS_CFEQ(str, CFSTR("query"), "Query of "
