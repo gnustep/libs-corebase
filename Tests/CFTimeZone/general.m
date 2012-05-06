@@ -10,6 +10,7 @@ int main (void)
   CFStringRef str;
   CFLocaleRef loc;
   CFDictionaryRef dict;
+  CFDictionaryRef abbrevDump;
   CFAbsoluteTime at;
   CFTimeInterval ti;
   
@@ -60,8 +61,12 @@ int main (void)
   dict = CFDictionaryCreateMutable (NULL, 0,
                                     &kCFCopyStringDictionaryKeyCallBacks,
                                     &kCFTypeDictionaryValueCallBacks);
-  PASS_CFEQ(CFTimeZoneCopyAbbreviationDictionary(), dict,
-            "Dump abbreviation dictionary.");
+  abbrevDump = CFTimeZoneCopyAbbreviationDictionary();
+  if (abbrevDump)
+    {
+      PASS_CFEQ(abbrevDump, dict, "Dump abbreviation dictionary.");
+      CFRelease (abbrevDump);
+    }
   CFRelease (dict);
   
   return 0;
