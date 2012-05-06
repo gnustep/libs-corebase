@@ -22,6 +22,9 @@ int main (void)
     kCFURLPOSIXPathStyle, true);
   PASS (CFURLWriteDataAndPropertiesToResource (dir, NULL, NULL, NULL),
     "Directory was successfully created.");
+  CFURLRef tmp = CFURLCopyAbsoluteURL (dir);
+  PASS_CFEQ (CFURLGetString(tmp), CFSTR(""), "Absolute path to TestDir/.");
+  CFRelease (tmp);
   
   file1 = CFURLCreateWithFileSystemPath (NULL, CFSTR("TestDir/file1.txt"),
     kCFURLPOSIXPathStyle, false);
