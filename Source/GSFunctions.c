@@ -39,7 +39,7 @@ GSBSearch (const void *array, const void *key, CFRange range, CFIndex size,
   mid = min;
   max = min + range.length;
   
-  while (max >= min)
+  while (max > min)
     {
       CFComparisonResult r;
       

@@ -1,5 +1,16 @@
 2012-05-06 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/GSFunctions.c: (GSBSearch) Return index of array item
+	including value.
+	* Source/CFTimeZone.c: Adapt to this change and fix time 
+	calculation bug.
+	* Tests/CFTimeZone/general.m: Fix tests.
+	* Source/CFAttributedString.c: Added code to copy and create
+	mutable instances.
+	* Tests/CFAttributedString/general.m: Added more tests.
+
+2012-05-06 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* configure.ac: Display error if zoneinfo directory cannot be found.
 	* Source/CFCalendar.c: Fix CFCalendarGetTimeRangeOfUnit().
 	* Tests/CFArray/mutablearray.m:

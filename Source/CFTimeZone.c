@@ -375,7 +375,7 @@ CFTimeZoneCopyAbbreviation (CFTimeZoneRef tz, CFAbsoluteTime at)
   TransInfo tmp;
   CFIndex idx;
   
-  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  tmp.transition = (SInt32)(at + kCFAbsoluteTimeIntervalSince1970);
   idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
     sizeof(TransInfo), CFTimeZoneComparator, NULL);
   
@@ -391,7 +391,7 @@ CFTimeZoneGetDaylightSavingTimeOffset (CFTimeZoneRef tz, CFAbsoluteTime at)
   CFIndex idx;
   CFTimeInterval ret;
   
-  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  tmp.transition = (SInt32)(at + kCFAbsoluteTimeIntervalSince1970);
   idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
     sizeof(TransInfo), CFTimeZoneComparator, NULL);
   
@@ -417,7 +417,7 @@ CFTimeZoneIsDaylightSavingTime (CFTimeZoneRef tz, CFAbsoluteTime at)
   TransInfo tmp;
   CFIndex idx;
   
-  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  tmp.transition = (SInt32)(at + kCFAbsoluteTimeIntervalSince1970);
   idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
     sizeof(TransInfo), CFTimeZoneComparator, NULL);
   
@@ -430,7 +430,7 @@ CFTimeZoneGetSecondsFromGMT (CFTimeZoneRef tz, CFAbsoluteTime at)
   TransInfo tmp;
   CFIndex idx;
   
-  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  tmp.transition = (SInt32)(at + kCFAbsoluteTimeIntervalSince1970);
   idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
     sizeof(TransInfo), CFTimeZoneComparator, NULL);
   
@@ -444,12 +444,12 @@ CFTimeZoneGetNextDaylightSavingTimeTransition (CFTimeZoneRef tz,
   TransInfo tmp;
   CFIndex idx;
   
-  tmp.transition = (SInt32)(at - kCFAbsoluteTimeIntervalSince1970);
+  tmp.transition = (SInt32)(at + kCFAbsoluteTimeIntervalSince1970);
   idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
     sizeof(TransInfo), CFTimeZoneComparator, NULL);
   
-  return tz->_transitions[idx].transition == 0 ? 0 :
-    tz->_transitions[idx].transition + kCFAbsoluteTimeIntervalSince1970;
+  return (idx + 1 >= tz->_transCount) ? 0.0 :
+    tz->_transitions[idx + 1].transition - kCFAbsoluteTimeIntervalSince1970;
 }
 
 #define BUFFER_SIZE 256

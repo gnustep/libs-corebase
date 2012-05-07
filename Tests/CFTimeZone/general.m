@@ -31,9 +31,9 @@ int main (void)
   PASS_CFEQ(str, CFSTR("Europe/Rome"), "'Europe/Rome' time zone created.");
   
   at = CFTimeZoneGetSecondsFromGMT (tz, 1000000.0);
-  PASS(at == 7200.0,
+  PASS(at == 3600.0,
        "Offset from GMT at 1000000 seconds from absolute epoch is '%f'", at);
-  PASS(CFTimeZoneIsDaylightSavingTime (tz, 1000000.0) == true,
+  PASS(CFTimeZoneIsDaylightSavingTime (tz, 1000000.0) == false,
        "On daylight saving time at 1000000 seconds from absolute epoch.");
   
   loc = CFLocaleCreate (NULL, CFSTR("en_GB"));
@@ -54,7 +54,7 @@ int main (void)
        "Daylight Saving time offset at 0 second from absolute epoch is '%f'.", ti);
   
   at = CFTimeZoneGetNextDaylightSavingTimeTransition (tz, 1000000.0);
-  PASS(at == 45874800.0, "Next daylight saving transition is at '%f'.", at);
+  PASS(at == 39229200.0, "Next daylight saving transition is at '%f'.", at);
   
   CFRelease (tz);
   
