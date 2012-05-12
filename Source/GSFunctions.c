@@ -43,16 +43,23 @@ GSBSearch (const void *array, const void *key, CFRange range, CFIndex size,
     {
       CFComparisonResult r;
       
-      mid = (min + max) / 2;
+      mid = (min + max) >> 1;
       cur = ((const UInt8*)array) + (mid * size);
       r = comp (key, cur, ctxt);
       if (r == kCFCompareLessThan)
-        max = mid - 1;
+        {
+          max = mid - 1;
+        }
       else if (r == kCFCompareGreaterThan)
-        min = mid + 1;
+        {
+          min = mid + 1;
+        }
       else
-        break;
+        {
+          min = mid + 1;
+          break;
+        }
     }
   
-  return mid;
+  return min - 1;
 }

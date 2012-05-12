@@ -1,3 +1,9 @@
+2012-05-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GSFunctions.c: Fixed bug in GSBSearch ().
+	* Source/CFAttributedString.c: Implemented mutable attributed strings.
+	* Tests/CFAttributedString/mutable.m: New tests.
+
 2012-05-06 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GSFunctions.c: (GSBSearch) Return index of array item
