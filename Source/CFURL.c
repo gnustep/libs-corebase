@@ -362,7 +362,7 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
       
       ranges[kCFURLComponentQuery - 1] = CFRangeMake (start, idx - start - 1);
       if (resourceSpecifierStart == kCFNotFound)
-        resourceSpecifierStart = start;
+        resourceSpecifierStart = start - 1;
     }
   
   /* Fragment component */
@@ -376,7 +376,7 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
       
       ranges[kCFURLComponentFragment - 1] = CFRangeMake (start, idx-start-1);
       if (resourceSpecifierStart == kCFNotFound)
-        resourceSpecifierStart = start;
+        resourceSpecifierStart = start - 1;
     }
   
   if (c != 0x0000)

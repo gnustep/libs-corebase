@@ -1,5 +1,10 @@
 2012-05-11 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFURL.c: Correctly set resource specifier location.
+	* Tests/CFURL/create.m: Add test.
+
+2012-05-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/GSFunctions.c: Fixed bug in GSBSearch ().
 	* Source/CFAttributedString.c: Implemented mutable attributed strings.
 	* Tests/CFAttributedString/mutable.m: New tests.

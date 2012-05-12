@@ -46,7 +46,7 @@ int main (void)
     "Copied path is not resolved against base.");
   CFRelease (str);
   str = CFURLCopyResourceSpecifier (url2);
-  PASS(str == NULL, "Resource specifier of relative url is additional/string");
+  PASS(str == NULL, "Resource specifier of relative url is NULL");
   
   CFRelease (url);
   CFRelease (url2);
@@ -89,6 +89,9 @@ int main (void)
   PASS_CFEQ(str, CFSTR("type=test"), "Parameter string for "
     "http://www.w3.org/silly;type=test");
   CFRelease(str);
+  str = CFURLCopyResourceSpecifier (url);
+  PASS(str == NULL, "Resource specifier of http://www.w3.org/silly;type=test"
+    " is NULL.");
   
   CFRelease(url);
   
