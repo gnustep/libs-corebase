@@ -50,7 +50,7 @@ int main (void)
   CFRelease (loc);
   
   ti = CFTimeZoneGetDaylightSavingTimeOffset (tz, 0.0);
-  PASS(ti == 3600.0,
+  PASS(ti == 0.0,
        "Daylight Saving time offset at 0 second from absolute epoch is '%f'.", ti);
   
   at = CFTimeZoneGetNextDaylightSavingTimeTransition (tz, 1000000.0);

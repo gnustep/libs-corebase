@@ -90,8 +90,9 @@ int main (void)
     "http://www.w3.org/silly;type=test");
   CFRelease(str);
   str = CFURLCopyResourceSpecifier (url);
-  PASS(str == NULL, "Resource specifier of http://www.w3.org/silly;type=test"
-    " is NULL.");
+  PASS_CFEQ(str, CFSTR(";type=test"),
+            "Resource specifier of http://www.w3.org/silly;type=test is ;test=test.");
+  CFRelease(str);
   
   CFRelease(url);
   

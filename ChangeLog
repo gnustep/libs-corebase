@@ -1,3 +1,11 @@
+2012-05-16 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFLocale.c:
+	* Source/CFURL.c:
+	* Tests/CFLocale/displayvalues.m:
+	* Tests/CFTimeZone/general.m:
+	* Tests/CFURL/create.m: CoreFoundation compatibility fixes.
+
 2012-05-11 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFURL.c: Correctly set resource specifier location.

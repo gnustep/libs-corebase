@@ -292,7 +292,7 @@ CFLocaleCopyIdentifierProperty (CFLocaleRef loc, const void *context)
   if (U_FAILURE(err) || length <= 0)
     result = NULL;
   else
-    result = CFStringCreateWithCString (NULL, buffer, kCFStringEncodingUTF8);
+    result = CFStringCreateWithCString (NULL, buffer, kCFStringEncodingASCII);
   
   return result;
 }
@@ -320,7 +320,7 @@ CFLocaleCopyKeyword (CFLocaleRef loc, const void *context)
       else
         {
           result = CFStringCreateWithCString (NULL, buffer,
-            kCFStringEncodingUTF8);
+            kCFStringEncodingASCII);
         }
     
     }
@@ -349,7 +349,7 @@ CFLocaleCopyCalendar (CFLocaleRef locale, const void *context)
     ULOC_KEYWORDS_CAPACITY, &err);
   if (U_SUCCESS(err) && len > 0)
     calId = CFStringCreateWithCString (allocator, buffer,
-      kCFStringEncodingUTF8);
+      kCFStringEncodingASCII);
   else
     calId = kCFGregorianCalendar;
   
@@ -526,7 +526,7 @@ CFLocaleCopyAvailableLocaleIdentifiers (void)
     {
       const char *str = uloc_getAvailable (idx);
       CFStringRef cfStr = CFStringCreateWithCString (kCFAllocatorSystemDefault,
-        str, kCFStringEncodingUTF8);
+        str, kCFStringEncodingASCII);
       CFArrayAppendValue (mArray, cfStr);
       CFRelease (cfStr);
     }
@@ -552,7 +552,7 @@ CFLocaleCreateArrayWithCodes (const char *const *codes)
   for (idx = 0 ; codes[idx] ; ++idx)
     {
       str = CFStringCreateWithCString (kCFAllocatorSystemDefault,
-        codes[idx], kCFStringEncodingUTF8);
+        codes[idx], kCFStringEncodingASCII);
       CFArrayAppendValue (mArray, str);
       CFRelease (str);
     }
@@ -632,43 +632,79 @@ CFLocaleCopyDisplayNameForPropertyValue (CFLocaleRef displayLocale,
                                          CFStringRef key,
                                          CFStringRef value)
 {
+  CFStringRef ident;
+  CFIndex cvaluelen;
+  char displocale[ULOC_FULLNAME_CAPACITY];
   char locale[ULOC_FULLNAME_CAPACITY];
-  char valueBuffer[BUFFER_SIZE];
+  char cvalue[ULOC_KEYWORDS_CAPACITY]; /* Can't be larger than this */
   UChar buffer[BUFFER_SIZE];
   int32_t len;
   UErrorCode err = U_ZERO_ERROR;
   
-  if (!CFStringGetCString (displayLocale->_identifier, locale,
-      ULOC_FULLNAME_CAPACITY, kCFStringEncodingUTF8))
+  ident = CFLocaleGetIdentifier (displayLocale);
+  if (!CFStringGetCString (ident, displocale, ULOC_FULLNAME_CAPACITY,
+                           kCFStringEncodingASCII)
+     || !CFStringGetCString (value, cvalue, ULOC_KEYWORDS_CAPACITY,
+                             kCFStringEncodingASCII))
     return NULL;
   
-  if (!CFStringGetCString (value, valueBuffer, BUFFER_SIZE,
-      kCFStringEncodingUTF8))
-    return NULL;
-  
-#define GET_DISPLAY_VALUE(value, func) \
-  len = func (value, locale, buffer, BUFFER_SIZE, &err)
+  cvaluelen = CFStringGetLength (value);
+  if (cvaluelen > ULOC_KEYWORDS_CAPACITY)
+    cvaluelen = ULOC_KEYWORDS_CAPACITY;
+#define GET_DISPLAY_VALUE(loc, func) \
+  len = func (loc, displocale, buffer, BUFFER_SIZE, &err)
   if (key == kCFLocaleIdentifier)
-    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayName);
+    {
+      GET_DISPLAY_VALUE(cvalue, uloc_getDisplayName);
+    }
   else if (key == kCFLocaleLanguageCode)
-    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayLanguage);
+    {
+      GET_DISPLAY_VALUE(cvalue, uloc_getDisplayLanguage);
+    }
   else if (key == kCFLocaleCountryCode)
-    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayCountry);
+    {
+      strncpy (locale, "en_", sizeof("en_"));
+      strncat (locale, cvalue, cvaluelen);
+      GET_DISPLAY_VALUE(locale, uloc_getDisplayCountry);
+    }
   else if (key == kCFLocaleScriptCode)
-    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayScript);
+    {
+      strncpy (locale, "en_", sizeof("en_"));
+      strncat (locale, cvalue, cvaluelen);
+      strncat (locale, "_US", sizeof("_US"));
+      GET_DISPLAY_VALUE(locale, uloc_getDisplayScript);
+    }
   else if (key == kCFLocaleVariantCode)
-    GET_DISPLAY_VALUE(valueBuffer, uloc_getDisplayVariant);
+    {
+      strncpy (locale, "en_US_", sizeof("en_US_"));
+      strncat (locale, cvalue, cvaluelen);
+      GET_DISPLAY_VALUE(locale, uloc_getDisplayVariant);
+    }
   else if (key == kCFLocaleCalendarIdentifier)
-    len = uloc_getDisplayKeywordValue (valueBuffer, ICU_CALENDAR_KEY, locale,
-      buffer, BUFFER_SIZE, &err);
+    {
+      strncpy (locale, "en_US@calendar=", sizeof("en_US@calendar="));
+      strncat (locale, cvalue, cvaluelen);
+      len = uloc_getDisplayKeywordValue (locale, ICU_CALENDAR_KEY, displocale,
+                                         buffer, BUFFER_SIZE, &err);
+    }
   else if (key == kCFLocaleCollationIdentifier)
-    len = uloc_getDisplayKeywordValue (valueBuffer, ICU_COLLATION_KEY, locale,
-      buffer, BUFFER_SIZE, &err);
+    {
+      strncpy (locale, "en_US@collation=", sizeof("en_US@collation="));
+      strncat (locale, cvalue, cvaluelen);
+      len = uloc_getDisplayKeywordValue (locale, ICU_COLLATION_KEY, displocale,
+                                         buffer, BUFFER_SIZE, &err);
+    }
   else if (key == kCFLocaleCurrencyCode)
-    len = uloc_getDisplayKeywordValue (valueBuffer, ICU_CURRENCY_KEY, locale,
-      buffer, BUFFER_SIZE, &err);
+    {
+      strncpy (locale, "en_US@currency=", sizeof("en_US@currency="));
+      strncat (locale, cvalue, cvaluelen);
+      len = uloc_getDisplayKeywordValue (locale, ICU_CURRENCY_KEY, displocale,
+                                         buffer, BUFFER_SIZE, &err);
+    }
   else
-    len = 0;
+    {
+      len = 0;
+    }
   
   if (U_SUCCESS(err) && len > 0)
     return CFStringCreateWithCharacters (NULL, buffer, len);
@@ -748,7 +784,7 @@ CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
   else
     {
       if (!CFStringGetCString(localeIdent, buffer, ULOC_FULLNAME_CAPACITY,
-             kCFStringEncodingUTF8))
+             kCFStringEncodingASCII))
         return NULL;
       cLocale = buffer;
     }
@@ -758,7 +794,7 @@ CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
     return NULL;
   
   return CFStringCreateWithCString (allocator, canonical,
-    kCFStringEncodingUTF8);
+    kCFStringEncodingASCII);
 }
 
 CFStringRef
@@ -772,7 +808,7 @@ CFLocaleCreateCanonicalLanguageIdentifierFromString (CFAllocatorRef allocator,
   UErrorCode err = U_ZERO_ERROR;
   
   if (!CFStringGetCString(localeIdent, cLocale, ULOC_FULLNAME_CAPACITY,
-         kCFStringEncodingUTF8))
+         kCFStringEncodingASCII))
     return NULL;
   
   uloc_canonicalize (cLocale, canonical, BUFFER_SIZE, &err);
@@ -781,7 +817,7 @@ CFLocaleCreateCanonicalLanguageIdentifierFromString (CFAllocatorRef allocator,
     return NULL;
   
   result =
-    CFStringCreateWithCString (allocator, lang, kCFStringEncodingUTF8);
+    CFStringCreateWithCString (allocator, lang, kCFStringEncodingASCII);
   
   return result;
 }
@@ -793,7 +829,7 @@ CFLocaleAddKeyValuePairToDictionary (CFMutableDictionaryRef dict,
   if (U_SUCCESS(error) && length > 0)
     {
       CFStringRef value = CFStringCreateWithCString (NULL, str,
-        kCFStringEncodingUTF8);
+        kCFStringEncodingASCII);
       CFDictionaryAddValue (dict, key, value);
       CFRelease (value);
     }
@@ -812,7 +848,7 @@ CFLocaleCreateComponentsFromLocaleIdentifier (CFAllocatorRef allocator,
   UErrorCode err = U_ZERO_ERROR;
   
   if (!CFStringGetCString (localeIdent, locale, ULOC_FULLNAME_CAPACITY,
-      kCFStringEncodingUTF8))
+      kCFStringEncodingASCII))
     return NULL;
   
   /* Using capacity = 7 because that's the most amount of keys we'll have:
@@ -904,8 +940,7 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
   CFStringAppendFormat (locale, NULL, CFSTR("%@%s%@%s%@%s%@"), lang,
     TEST_CODE(hasScript, script), TEST_CODE(hasCountry, country),
     TEST_CODE(hasVariant, variant));
-#undef TEST_CODE
-  /* Use uloc_setKeywordValue() here since libicu is a required library. */
+  
   if (CFDictionaryGetValueIfPresent(dictionary, kCFLocaleCalendarIdentifier,
       (const void **)&keyword))
     {
@@ -958,7 +993,7 @@ CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode (CFAllocatorRef allocator,
     return NULL;
   
   result =
-    CFStringCreateWithCString (allocator, buffer, kCFStringEncodingUTF8);
+    CFStringCreateWithCString (allocator, buffer, kCFStringEncodingASCII);
   
   return result;
 }
@@ -971,7 +1006,7 @@ CFLocaleGetLanguageCharacterDirection (CFStringRef isoLangCode)
   UErrorCode err = U_ZERO_ERROR;
   
   if (!CFStringGetCString (isoLangCode, buffer, BUFFER_SIZE - 1,
-      kCFStringEncodingUTF8))
+      kCFStringEncodingASCII))
     return kCFLocaleLanguageDirectionUnknown;
   
   result = uloc_getCharacterOrientation (buffer, &err);
@@ -989,7 +1024,7 @@ CFLocaleGetLanguageLineDirection (CFStringRef isoLangCode)
   UErrorCode err = U_ZERO_ERROR;
   
   if (!CFStringGetCString (isoLangCode, buffer, BUFFER_SIZE - 1,
-      kCFStringEncodingUTF8))
+      kCFStringEncodingASCII))
     return kCFLocaleLanguageDirectionUnknown;
   
   result = uloc_getLineOrientation (buffer, &err);
@@ -1004,7 +1039,7 @@ CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier (CFStringRef localeIdent)
 {
   char buffer[BUFFER_SIZE];
   if (CFStringGetCString (localeIdent, buffer, BUFFER_SIZE - 1,
-      kCFStringEncodingUTF8))
+      kCFStringEncodingASCII))
     return uloc_getLCID (buffer);
   return 0;
 }

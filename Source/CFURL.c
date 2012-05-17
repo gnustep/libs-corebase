@@ -349,6 +349,8 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
       ranges[kCFURLComponentParameterString - 1] =
         CFRangeMake (start, idx - start - 1);
       ranges[kCFURLComponentPath - 1].length += idx - start;
+      if (resourceSpecifierStart == kCFNotFound)
+        resourceSpecifierStart = start - 1;
     }
   
   /* Query component */
