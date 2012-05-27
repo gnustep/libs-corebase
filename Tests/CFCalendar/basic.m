@@ -1,6 +1,7 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFDate.h"
 #include "CoreFoundation/CFCalendar.h"
+#include "CoreFoundation/CFTimeZone.h"
 #include "Testing.h"
 #include "../CFTesting.h"
 
