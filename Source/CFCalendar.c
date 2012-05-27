@@ -251,7 +251,6 @@ CFCalendarCopyCurrent (void)
           cal = CFCalendarCreateWithIdentifier (NULL, calIdent);
           CFCalendarSetLocale (cal, locale);
           
-          CFRelease (calIdent);
           CFRelease (locale);
           _kCFCalendarCurrent = cal;
         }

@@ -1,5 +1,18 @@
 2012-05-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFTimeZone.c:
+	* Source/CFURL.c:
+	* Source/CFString.c:
+	* Source/CFCalendar.c:
+	* Source/CFAttributedString.c:
+	* Source/CFLocale.c:
+	* Source/CFDateFormatter.c:
+	* Source/CFXMLParser.c:
+	* Source/CFURLAccess.c: Fix some bugs found by static analyzer.
+	* Source/NSCFError.m: Avoid compiler warnings.
+
+2012-05-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/NSCFType.m: Remove unneede call to Objective-C runtime.
 	* Source/CFCalendar.c:
 	* Source/CFLocale.c:

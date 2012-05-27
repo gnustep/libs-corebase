@@ -131,6 +131,7 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   SInt32 tzh_timecnt;
   SInt32 tzh_typecnt;
   SInt32 tzh_charcnt;
+  UInt32 *tmp;
   struct __CFTimeZone *new;
   CFTimeZoneRef old;
   
@@ -147,7 +148,7 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   /* Verify we haven't created a timezone with this name already. */
   old = (CFTimeZoneRef)CFDictionaryGetValue (_kCFTimeZoneCache, name);
   if (old != NULL)
-    return old;
+    return CFRetain (old);
   
   /* Do some basic checks before we try anything else. */
   bytes = CFDataGetBytePtr (data);
@@ -160,15 +161,15 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   
   if (memcmp(header->tzh_magic, TZ_MAGIC, 4) != 0)
     return NULL;
-  tzh_timecnt = (SInt32)CFSwapInt32BigToHost (*(UInt32*)header->tzh_timecnt);
-  tzh_typecnt = (SInt32)CFSwapInt32BigToHost (*(UInt32*)header->tzh_typecnt);
-  tzh_charcnt = (SInt32)CFSwapInt32BigToHost (*(UInt32*)header->tzh_charcnt);
+  tmp = (UInt32*)header->tzh_timecnt;
+  tzh_timecnt = (SInt32)CFSwapInt32BigToHost (*tmp);
+  tmp = (UInt32*)header->tzh_typecnt;
+  tzh_typecnt = (SInt32)CFSwapInt32BigToHost (*tmp);
+  tmp = (UInt32*)header->tzh_typecnt;
+  tzh_charcnt = (SInt32)CFSwapInt32BigToHost (*tmp);
   /* Make sure we're not above any of the maximums. */
-  if (tzh_timecnt > TZ_MAX_TIMES)
-    return NULL;
-  if (tzh_typecnt > TZ_MAX_TYPES)
-    return NULL;
-  if (tzh_charcnt > TZ_MAX_CHARS)
+  if (tzh_timecnt > TZ_MAX_TIMES || tzh_typecnt > TZ_MAX_TYPES
+      || tzh_charcnt > TZ_MAX_CHARS)
     return NULL;
   
   new = (struct __CFTimeZone*)_CFRuntimeCreateInstance (alloc,
@@ -197,7 +198,6 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
       charsEnd = chars + tzh_charcnt;
       
       /* Transition times and information */
-      new->_transitions = trans;
       new->_transCount = tzh_timecnt;
       for (idx = 0 ; idx < tzh_timecnt ; ++idx)
         {
@@ -239,7 +239,7 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
         {
           GSMutexUnlock(&_kCFTimeZoneCacheLock);
           CFRelease ((CFTimeZoneRef)new);
-          return old;
+          return CFRetain (old);
         }
       CFDictionaryAddValue (_kCFTimeZoneCache, name, (const void *)new);
       old = (CFTimeZoneRef)new;

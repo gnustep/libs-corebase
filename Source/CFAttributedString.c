@@ -358,7 +358,7 @@ CFAttributedStringCreateWithSubstring (CFAllocatorRef alloc,
   CFAttributedStringReplaceString (tmp, range,
                                    CFAttributedStringGetString (str));
   
-  cur = r.location;
+  cur = range.location;
   do
     {
       CFDictionaryRef attribs;

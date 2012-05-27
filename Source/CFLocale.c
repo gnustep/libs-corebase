@@ -203,10 +203,12 @@ CFArrayCreateArrayWithUEnumeration (UEnumeration *en)
     {
       CFStringRef string;
       
-      if (U_FAILURE(err))
-        continue;
-      string = CFStringCreateWithCharacters (NULL, current, (CFIndex)len);
-      CFArrayAppendValue (mArray, string);
+      if (U_SUCCESS(err))
+        {
+          string = CFStringCreateWithCharacters (NULL, current, (CFIndex)len);
+          CFArrayAppendValue (mArray, string);
+          CFRelease (string);
+        }
     }
   
   /* Close it UEnumeration here so it doesn't get leaked. */
@@ -816,16 +818,16 @@ CFLocaleCreateCanonicalLanguageIdentifierFromString (CFAllocatorRef allocator,
 
 static void
 CFLocaleAddKeyValuePairToDictionary (CFMutableDictionaryRef dict,
-  CFStringRef key, char *str, int32_t length, UErrorCode error)
+  CFStringRef key, char *str, int32_t length, UErrorCode *error)
 {
-  if (U_SUCCESS(error) && length > 0)
+  if (U_SUCCESS(*error) && length > 0)
     {
       CFStringRef value = CFStringCreateWithCString (NULL, str,
         kCFStringEncodingASCII);
       CFDictionaryAddValue (dict, key, value);
       CFRelease (value);
     }
-  error = U_ZERO_ERROR;
+  *error = U_ZERO_ERROR;
 }
 
 CFDictionaryRef
@@ -851,34 +853,34 @@ CFLocaleCreateComponentsFromLocaleIdentifier (CFAllocatorRef allocator,
   
   len = uloc_getLanguage (locale, buffer, ULOC_KEYWORDS_CAPACITY, &err);
   CFLocaleAddKeyValuePairToDictionary (dict, kCFLocaleLanguageCode, buffer,
-    len, err);
+    len, &err);
 
   len = uloc_getCountry (locale, buffer, ULOC_KEYWORDS_CAPACITY, &err);
   CFLocaleAddKeyValuePairToDictionary (dict, kCFLocaleCountryCode, buffer,
-    len, err);
+    len, &err);
 
   len = uloc_getScript (locale, buffer, ULOC_KEYWORDS_CAPACITY, &err);
   CFLocaleAddKeyValuePairToDictionary (dict, kCFLocaleScriptCode, buffer,
-    len, err);
+    len, &err);
 
   len = uloc_getVariant (locale, buffer, ULOC_KEYWORDS_CAPACITY, &err);
   CFLocaleAddKeyValuePairToDictionary (dict, kCFLocaleVariantCode, buffer,
-    len, err);
+    len, &err);
   
   len = uloc_getKeywordValue (locale, ICU_CALENDAR_KEY, buffer,
     ULOC_KEYWORDS_CAPACITY, &err);
   CFLocaleAddKeyValuePairToDictionary (dict, kCFLocaleCalendarIdentifier,
-    buffer, len, err);
+    buffer, len, &err);
   
   len = uloc_getKeywordValue (locale, ICU_COLLATION_KEY, buffer,
     ULOC_KEYWORDS_CAPACITY, &err);
   CFLocaleAddKeyValuePairToDictionary (dict, kCFLocaleCollationIdentifier,
-    buffer, len, err);
+    buffer, len, &err);
   
   len = uloc_getKeywordValue (locale, ICU_CURRENCY_KEY, buffer,
     ULOC_KEYWORDS_CAPACITY, &err);
   CFLocaleAddKeyValuePairToDictionary (dict, kCFLocaleCurrencyCode, buffer,
-    len, err);
+    len, &err);
   
   result = CFDictionaryCreateCopy (allocator, (CFDictionaryRef)dict);
   CFRelease(dict);
@@ -958,7 +960,6 @@ CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
       else
         CFStringAppend (locale, CFSTR(";"));
       CFStringAppendFormat (locale, NULL, CFSTR("currency=%@"), keyword);
-      separated = true;
     }
   
   ret = CFStringCreateCopy (allocator, locale);

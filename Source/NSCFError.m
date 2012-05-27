@@ -45,7 +45,7 @@
 {
   RELEASE(self);
   
-  return CFErrorCreate (NULL, domain, code, userInfo);
+  return (NSCFError*)CFErrorCreate (NULL, domain, code, userInfo);
 }
 
 - (NSString *) localizedDescription

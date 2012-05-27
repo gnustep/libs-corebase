@@ -462,17 +462,25 @@ void CFStringInitialize (void)
 void
 CFShow (CFTypeRef obj)
 {
-  CFStringRef str = CFCopyDescription (obj);
+  CFStringRef str;
   const char *out;
   char buffer[256];
   
-  out = CFStringGetCStringPtr (str, kCFStringEncodingASCII);
-  if (out == NULL)
+  str = CFCopyDescription (obj);
+  if (str)
     {
-      CFStringGetCString (str, buffer, 256, kCFStringEncodingASCII);
-      out = buffer;
+      out = CFStringGetCStringPtr (str, kCFStringEncodingASCII);
+      if (out == NULL)
+        {
+          if (CFStringGetCString (str, buffer, 256, kCFStringEncodingASCII))
+            out = buffer;
+        }
+      CFRelease (str);
     }
-  
+  else
+    {
+      out = NULL;
+    }
   fprintf (stderr, "%s\n", out);
 }
 

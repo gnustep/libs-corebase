@@ -210,6 +210,7 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
                           str = CFStringCreateWithFileSystemRepresentation (
                             alloc, entry->d_name);
                           CFArrayAppendValue (tmp, str);
+                          CFRelease (str);
                         }
                     }
                   closedir (dir);
@@ -301,6 +302,7 @@ CFURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc, CFURLRef url,
     }
   else if (CFStringCompare (scheme, CFSTR ("file"), 0) == kCFCompareEqualTo)
     {
+      CFRelease (scheme);
       return CFFileURLCreateDataAndPropertiesFromResource (alloc, url,
                                                            resourceData,
                                                            properties,
@@ -317,7 +319,8 @@ CFURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc, CFURLRef url,
       error = kCFURLUnknownSchemeError;
     }
   
-  CFRelease (scheme);
+  if (scheme)
+    CFRelease (scheme);
   if (errorCode)
     *errorCode = error;
   
@@ -325,21 +328,21 @@ CFURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc, CFURLRef url,
 }
 
 CFTypeRef
-CFURLCreatePropertyFromResource (CFAllocatorRef alloc,
-                                 CFURLRef url,
+CFURLCreatePropertyFromResource (CFAllocatorRef alloc, CFURLRef url,
                                  CFStringRef property, SInt32 * errorCode)
 {
   CFDictionaryRef dict;
   CFArrayRef array;
-  CFTypeRef ret;
+  CFTypeRef ret = NULL;
   
   array = CFArrayCreate (alloc, (const void **) &property, 1, NULL);
-  if (CFURLCreateDataAndPropertiesFromResource
-      (alloc, url, NULL, &dict, array, errorCode) == false)
-    return NULL;
-  ret = CFRetain (CFDictionaryGetValue (dict, property));
+  if (CFURLCreateDataAndPropertiesFromResource (alloc, url, NULL, &dict,
+      array, errorCode) == true)
+    {
+      ret = CFRetain (CFDictionaryGetValue (dict, property));
+      CFRelease (dict);
+    }
   CFRelease (array);
-  CFRelease (dict);
   
   return ret;
 }
@@ -362,6 +365,7 @@ CFURLDestroyResource (CFURLRef url, SInt32 * errorCode)
       if (!CFURLGetFileSystemRepresentation
           (url, true, (UInt8 *) path, PATH_MAX))
         {
+          CFRelease (scheme);
           if (errorCode)
             *errorCode = kCFURLUnknownError;
           return false;
@@ -388,7 +392,9 @@ CFURLDestroyResource (CFURLRef url, SInt32 * errorCode)
       error = kCFURLUnknownSchemeError;
     }
   
-  CFRelease (scheme);
+  if (scheme)
+    CFRelease (scheme);
+  
   if (error < 0)
     {
       if (errorCode)
@@ -418,9 +424,9 @@ CFURLWriteDataAndPropertiesToResource (CFURLRef url,
     {
       char path[PATH_MAX];
       int mode;
-      if (!CFURLGetFileSystemRepresentation
-          (url, true, (UInt8 *) path, PATH_MAX))
+      if (!CFURLGetFileSystemRepresentation (url, true, (UInt8*)path, PATH_MAX))
         {
+          CFRelease (scheme);
           if (errorCode)
             *errorCode = kCFURLUnknownError;
           return false;
@@ -476,7 +482,8 @@ CFURLWriteDataAndPropertiesToResource (CFURLRef url,
       error = kCFURLUnknownSchemeError;
     }
   
-  CFRelease (scheme);
+  if (scheme)
+    CFRelease (scheme);
   if (error < 0)
     {
       if (errorCode)

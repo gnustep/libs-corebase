@@ -1017,6 +1017,7 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
       tmp = CFStringCreateMutableCopy (alloc, 0, CFSTR("file://localhost"));
       CFStringAppend (tmp, path);
       
+      CFRelease (path);
       path = (CFStringRef)tmp;
       baseURL = NULL;
     }
@@ -1029,9 +1030,6 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
       CFRetain (baseURL);
     }
   
-  /* We don't need to worry about percent escapes since there won't be
-   * any for the file system path.  We pass 0 for the encoding.
-   */
   ret = CFURLCreate_internal (alloc, path, baseURL, kCFStringEncodingUTF8);
   if (ret)
     CFURLSetIsFileSystemPath (ret);
@@ -1121,6 +1119,7 @@ CFURLCopyFileSystemPath (CFURLRef url, CFURLPathStyle style)
       /* Check for len == 1 in case the path is simply '/' */
       if (len > 1 && CFStringGetCharacterAtIndex(fsPath, len - 1) == '/')
         {
+          CFRelease (tmp);
           tmp = CFStringCreateWithSubstring (alloc, fsPath,
             CFRangeMake(0, len - 1));
           CFRelease (fsPath);
@@ -1134,18 +1133,18 @@ CFURLCopyFileSystemPath (CFURLRef url, CFURLPathStyle style)
             break;
           case kCFURLHFSPathStyle:
             {
-              CFStringRef tmp;
-              tmp = CFURLCreateHFSStylePath (CFGetAllocator(url), fsPath);
+              CFStringRef t;
+              t = CFURLCreateHFSStylePath (CFGetAllocator(url), fsPath);
               CFRelease (fsPath);
-              fsPath = tmp;
+              fsPath = t;
             }
             break;
           case kCFURLWindowsPathStyle:
             {
-              CFStringRef tmp;
-              tmp = CFURLCreateWindowsStylePath (CFGetAllocator(url), fsPath);
+              CFStringRef t;
+              t = CFURLCreateWindowsStylePath (CFGetAllocator(url), fsPath);
               CFRelease (fsPath);
-              fsPath = tmp;
+              fsPath = t;
             }
             break;
           default:

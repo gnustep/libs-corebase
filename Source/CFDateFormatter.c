@@ -230,6 +230,7 @@ CFDateFormatterSetCalendarName (CFDateFormatterRef fmt, int prop,
   CFRelease (fmt->_locale);
   fmt->_locale = CFLocaleCreate (NULL, locale);
   CFRelease (locale);
+  CFRelease (mDict);
   
   CFDateFormatterSetup (fmt);
 }

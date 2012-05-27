@@ -225,9 +225,6 @@ CFXMLTreeCreateFromDataWithError (CFAllocatorRef allocator, CFDataRef xmlData,
           *errorDict = dict;
         }
       
-      new = CFXMLParserGetDocument (parser);
-      if (new)
-        CFRelease (new);
       new = NULL;
     }
   CFRelease (parser);
@@ -268,16 +265,9 @@ CFXMLTreeCreateWithDataFromURL (CFAllocatorRef allocator, CFURLRef dataSource,
   parser = CFXMLParserCreateWithDataFromURL (allocator, dataSource,
     parseOptions, versionOfNodes, &callBacks, &context);
   if (CFXMLParserParse(parser))
-    {
-      new = CFXMLParserGetDocument (parser);
-    }
+    new = (CFXMLTreeRef)CFRetain (CFXMLParserGetDocument (parser));
   else
-    {
-      new = CFXMLParserGetDocument (parser);
-      if (new)
-        CFRelease (new);
-      new = NULL;
-    }
+    new = NULL;
   CFRelease (parser);
   
   return new;
