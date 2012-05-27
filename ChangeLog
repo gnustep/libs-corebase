@@ -1,3 +1,19 @@
+2012-05-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSCFType.m: Remove unneede call to Objective-C runtime.
+	* Source/CFCalendar.c:
+	* Source/CFLocale.c:
+	* Source/CFDateFormatter.c:
+	* Source/CFStringUtilities.c:
+	* Source/CFNumberFormatter.c:
+	* Source/GSPrivate.h: Modify function to get the locale as a C string.
+	* Source/CFArray.c: Allocate the correct amount of memory.
+	* Tests/CFTree/basic.m: Fix premature call to release.
+	* Tests/CFURL/create.m: Mark test as hopeful.
+	* configure.ac:
+	* configure: Remove option to build without ICU.
+	* autom4te.cache/: Remove.
+
 2012-05-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFLocale.c:

@@ -38,18 +38,19 @@
 
 
 CF_INLINE UCollator *
-CFStringICUCollatorOpen (CFStringCompareFlags options, CFLocaleRef locale)
+CFStringICUCollatorOpen (CFStringCompareFlags options, CFLocaleRef loc)
 {
-  const char *localeID;
+  const char *cLocale;
+  char buffer[ULOC_FULLNAME_CAPACITY];
   UCollator *ret;
   UErrorCode err = U_ZERO_ERROR;
   
-  if (locale != NULL && (options & kCFCompareLocalized))
-    localeID = CFLocaleGetCStringIdentifier (locale);
+  if (loc != NULL && (options & kCFCompareLocalized))
+    cLocale = CFLocaleGetCStringIdentifier (loc, buffer, ULOC_FULLNAME_CAPACITY);
   else
-    localeID = NULL;
+    cLocale = NULL;
   
-  ret = ucol_open (localeID, &err);
+  ret = ucol_open (cLocale, &err);
   if (options)
     {
       if (options & kCFCompareCaseInsensitive)

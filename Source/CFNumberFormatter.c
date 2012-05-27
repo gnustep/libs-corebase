@@ -389,18 +389,19 @@ _kCFNumberFormatterPropertiesSize = sizeof(_kCFNumberFormatterProperties) /
 
 
 CFNumberFormatterRef
-CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
+CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef loc,
   CFNumberFormatterStyle style)
 {
   struct __CFNumberFormatter *new;
   const char *cLocale;
+  char buffer[ULOC_FULLNAME_CAPACITY];
   int32_t len;
   UChar ubuffer[BUFFER_SIZE];
   UErrorCode err = U_ZERO_ERROR;
   
-  if (locale == NULL)
-    locale = CFLocaleGetSystem ();
-  cLocale = CFLocaleGetCStringIdentifier (locale);
+  if (loc == NULL)
+    loc = CFLocaleGetSystem ();
+  cLocale = CFLocaleGetCStringIdentifier (loc, buffer, ULOC_FULLNAME_CAPACITY);
   
   new = (struct __CFNumberFormatter *)_CFRuntimeCreateInstance (allocator,
     CFNumberFormatterGetTypeID(),
@@ -416,7 +417,7 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
       CFRelease (new);
       return NULL;
     }
-  new->_locale = CFRetain(locale);
+  new->_locale = CFRetain(loc);
   new->_style = style;
   
   if (style == kCFNumberFormatterNoStyle)

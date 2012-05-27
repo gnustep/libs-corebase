@@ -37,7 +37,7 @@ int main (void)
   
   CFRelease (attribs);
   CFRelease (str);
-  CFRelease (str2);
+  //CFRelease (str2);
   
   return 0;
 }

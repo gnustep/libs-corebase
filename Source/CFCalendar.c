@@ -315,7 +315,7 @@ CFCalendarCreateWithIdentifier (CFAllocatorRef allocator, CFStringRef ident)
   CFRelease (locale);
   
   tz = CFTimeZoneCopyDefault ();
-  new->_tzIdent = CFTimeZoneGetName (tz);
+  new->_tzIdent = CFRetain (CFTimeZoneGetName (tz));
   CFRelease (tz);
   
   return new;

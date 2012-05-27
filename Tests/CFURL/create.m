@@ -46,7 +46,9 @@ int main (void)
     "Copied path is not resolved against base.");
   CFRelease (str);
   str = CFURLCopyResourceSpecifier (url2);
+  testHopeful = YES;
   PASS(str == NULL, "Resource specifier of relative url is NULL");
+  testHopeful = NO;
   
   CFRelease (url);
   CFRelease (url2);

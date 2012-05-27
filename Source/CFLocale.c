@@ -173,18 +173,16 @@ ICUToCFLocaleOrientation (ULayoutType layout)
     }
 }
 
-CF_INLINE const char *
-CFLocaleGetCStringIdentifier_inline (CFLocaleRef locale)
-{
-  /* This works because CFLocaleCreateCanonicalIdentifierFromString()
-   * outputs ASCII characters. */
-  return CFStringGetCStringPtr (locale->_identifier, kCFStringEncodingASCII);
-}
-
 const char *
-CFLocaleGetCStringIdentifier (CFLocaleRef locale)
+CFLocaleGetCStringIdentifier (CFLocaleRef locale, char *buf, CFIndex maxlen)
 {
-  return CFLocaleGetCStringIdentifier_inline (locale);
+  CFStringRef ident;
+  
+  ident = CFLocaleGetIdentifier (locale);
+  if (CFStringGetCString (ident, buf, maxlen, kCFStringEncodingASCII))
+    return (const char *)buf;
+    
+  return NULL;
 }
 
 static CFArrayRef
@@ -224,10 +222,11 @@ CFLocaleCopyMeasurementSystem (CFLocaleRef loc, const void *context)
 {
   CFTypeRef result;
   UMeasurementSystem ums;
+  char buffer[ULOC_FULLNAME_CAPACITY];
   const char *cLocale;
   UErrorCode err = U_ZERO_ERROR;
   
-  cLocale = CFLocaleGetCStringIdentifier_inline (loc);
+  cLocale = CFLocaleGetCStringIdentifier (loc, buffer, ULOC_FULLNAME_CAPACITY);
   ums = ulocdata_getMeasurementSystem (cLocale, &err);
   if (CFEqual(*((CFTypeRef*)context), kCFLocaleMeasurementSystem))
     {
@@ -283,73 +282,38 @@ CFLocaleCopyIdentifierProperty (CFLocaleRef loc, const void *context)
   CFTypeRef result;
   const char *cLocale;
   char buffer[ULOC_FULLNAME_CAPACITY];
+  char prop[ULOC_FULLNAME_CAPACITY];
   int32_t length;
   int32_t (*func)(const char*, char*, int32_t, UErrorCode*) = context;
   UErrorCode err = U_ZERO_ERROR;
   
-  cLocale = CFLocaleGetCStringIdentifier_inline (loc);
-  length = (*func)(cLocale, buffer, ULOC_FULLNAME_CAPACITY, &err);
+  cLocale = CFLocaleGetCStringIdentifier (loc, buffer, ULOC_FULLNAME_CAPACITY);
+  length = (*func)(cLocale, prop, ULOC_FULLNAME_CAPACITY, &err);
   if (U_FAILURE(err) || length <= 0)
     result = NULL;
   else
-    result = CFStringCreateWithCString (NULL, buffer, kCFStringEncodingASCII);
+    result = CFStringCreateWithCString (NULL, prop, kCFStringEncodingASCII);
   
   return result;
 }
 
 static CFTypeRef
-CFLocaleCopyKeyword (CFLocaleRef loc, const void *context)
-{
-  CFTypeRef result = NULL;
-  const char *cLocale;
-  char buffer[BUFFER_SIZE];
-  UErrorCode err = U_ZERO_ERROR;
-  
-  cLocale = CFLocaleGetCStringIdentifier_inline (loc);
-  if (uloc_getKeywordValue (cLocale, context, buffer,
-      BUFFER_SIZE, &err) > 0 && U_SUCCESS(err))
-    {
-      if (context == (const void*)ICU_CALENDAR_KEY)
-        {
-          char *calIdent = buffer;
-          if (strncmp(calIdent, "gregorian", sizeof("gregorian")-1) == 0)
-            result = kCFGregorianCalendar;
-          else
-            result = NULL;
-        }
-      else
-        {
-          result = CFStringCreateWithCString (NULL, buffer,
-            kCFStringEncodingASCII);
-        }
-    
-    }
-  else
-    {
-      if (context == (const void*)ICU_CALENDAR_KEY)
-        result = kCFGregorianCalendar;
-    }
-  
-  return result;
-}
-
-static CFTypeRef
-CFLocaleCopyCalendar (CFLocaleRef locale, const void *context)
+CFLocaleCopyCalendar (CFLocaleRef loc, const void *context)
 {
   CFTypeRef result;
   CFStringRef calId;
-  CFAllocatorRef allocator = CFGetAllocator (locale);
+  CFAllocatorRef allocator = CFGetAllocator (loc);
   int len;
   const char *cLocale;
   char buffer[ULOC_KEYWORDS_CAPACITY];
+  char cal[ULOC_KEYWORDS_CAPACITY];
   UErrorCode err = U_ZERO_ERROR;
   
-  cLocale = CFLocaleGetCStringIdentifier_inline (locale);
-  len = uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, buffer,
-    ULOC_KEYWORDS_CAPACITY, &err);
+  cLocale = CFLocaleGetCStringIdentifier (loc, buffer, ULOC_FULLNAME_CAPACITY);
+  len = uloc_getKeywordValue (cLocale, ICU_CALENDAR_KEY, cal,
+                              ULOC_KEYWORDS_CAPACITY, &err);
   if (U_SUCCESS(err) && len > 0)
-    calId = CFStringCreateWithCString (allocator, buffer,
-      kCFStringEncodingASCII);
+    calId = CFStringCreateWithCString (allocator, cal, kCFStringEncodingASCII);
   else
     calId = kCFGregorianCalendar;
   
@@ -360,26 +324,54 @@ CFLocaleCopyCalendar (CFLocaleRef locale, const void *context)
 }
 
 static CFTypeRef
+CFLocaleCopyKeyword (CFLocaleRef loc, const void *context)
+{
+  CFTypeRef result = NULL;
+  const char *cLocale;
+  char buffer[ULOC_FULLNAME_CAPACITY];
+  char value[BUFFER_SIZE];
+  UErrorCode err = U_ZERO_ERROR;
+  
+  if (context == (const void*)ICU_CALENDAR_KEY)
+    {
+      CFCalendarRef cal;
+      
+      cal = (CFCalendarRef)CFLocaleCopyCalendar (loc, NULL);
+      result = CFRetain (CFCalendarGetIdentifier (cal));
+      CFRelease (cal);
+      return result;
+    }
+  
+  cLocale = CFLocaleGetCStringIdentifier (loc, buffer, ULOC_FULLNAME_CAPACITY);
+  if (uloc_getKeywordValue (cLocale, context, value, BUFFER_SIZE, &err) > 0
+      && U_SUCCESS(err))
+    {
+      result = CFStringCreateWithCString (NULL, value, kCFStringEncodingASCII);
+    }
+  
+  return result;
+}
+
+static CFTypeRef
 CFLocaleCopyDelimiter (CFLocaleRef loc, const void *context)
 {
   const char *cLocale;
+  char buffer[ULOC_FULLNAME_CAPACITY];
   UniChar ubuffer[BUFFER_SIZE];
   CFIndex length;
-  CFTypeRef result;
   ULocaleData *uld;
   UErrorCode err = U_ZERO_ERROR;
   
-  cLocale = CFLocaleGetCStringIdentifier_inline (loc);
+  cLocale = CFLocaleGetCStringIdentifier (loc, buffer, ULOC_FULLNAME_CAPACITY);
   uld = ulocdata_open (cLocale, &err);
   
   length = ulocdata_getDelimiter (uld, (ULocaleDataDelimiterType)context,
-    ubuffer, BUFFER_SIZE, &err);
+                                  ubuffer, BUFFER_SIZE, &err);
   
   if (U_FAILURE(err))
     return NULL;
   
-  result = CFStringCreateWithCharacters (NULL, ubuffer, length);
-  return result;
+  return CFStringCreateWithCharacters (NULL, ubuffer, length);
 }
 
 static CFTypeRef

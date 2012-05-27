@@ -304,7 +304,7 @@ void
 CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
 
 const char *
-CFLocaleGetCStringIdentifier (CFLocaleRef locale);
+CFLocaleGetCStringIdentifier (CFLocaleRef locale, char *buf, CFIndex maxlen);
 
 void
 GSRuntimeConstantInit (CFTypeRef cf, CFTypeID typeID);

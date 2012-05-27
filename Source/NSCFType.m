@@ -48,12 +48,10 @@ void NSCFInitialize (void)
       
       __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
                                     sizeof(Class));
-      NSCFTypeClass = objc_getClass("NSCFType");
-      CFInitialize ();
+
       while (i < __CFRuntimeClassTableCount)
         __CFRuntimeObjCClassTable[i++] = NSCFTypeClass;
       
-      /* This would need to be done in NSNull, but will be here for now. */
       CFRuntimeBridgeClass (CFNullGetTypeID(), "NSNull");
       CFRuntimeBridgeClass (CFArrayGetTypeID(), "NSCFArray");
       CFRuntimeBridgeClass (CFDataGetTypeID(), "NSCFData");

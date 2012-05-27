@@ -413,7 +413,7 @@ CFArrayGetValues (CFArrayRef array, CFRange range, const void **values)
 
 
 #define DEFAULT_ARRAY_CAPACITY 16
-#define CFMUTABLEARRAY_SIZE sizeof(struct __CFArray) - sizeof(CFRuntimeBase)
+#define CFMUTABLEARRAY_SIZE sizeof(struct __CFMutableArray) - sizeof(CFRuntimeBase)
 
 CF_INLINE void
 CFArrayCheckCapacityAndGrow (CFMutableArrayRef array, CFIndex newCapacity)
@@ -471,9 +471,9 @@ CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
     return NULL;
   
   if (CF_IS_OBJC(_kCFArrayTypeID, array))
-	  callbacks = &kCFTypeArrayCallBacks;
-	else
-	  callbacks = array->_callBacks;
+    callbacks = &kCFTypeArrayCallBacks;
+  else
+    callbacks = array->_callBacks;
   
   new = CFArrayCreateMutable (allocator, capacity, callbacks);
   if (new)

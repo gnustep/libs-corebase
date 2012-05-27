@@ -660,7 +660,6 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_objc_bridge
-with_icu
 with_zoneinfo_dir
 '
       ac_precious_vars='build_alias
@@ -1291,10 +1290,7 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --without-icu           Do not build with International Components for
-                          Unicode (ICU) support.
-  --with-zoneinfo-dir=PATH
-                          Directory path of the Time zone object files.
+  --with-zoneinfo-dir=DIR Directory of the Time zone object files.
 
 Some influential environment variables:
   CC          C compiler command
@@ -4371,15 +4367,11 @@ fi
 # Check for ICU
 #---
 ICU_MIN_VERSION='4.0'
-
-# Check whether --with-icu was given.
-if test "${with_icu+set}" = set; then :
-  withval=$with_icu;
-else
-  with_icu=yes
-fi
-
-if test "$with_icu" = "yes"; then
+#AC_ARG_WITH([icu],
+#  [AS_HELP_STRING([--without-icu],
+#    [Do not build with International Components for Unicode (ICU) support.])],
+#  [], [with_icu=yes])
+#if test "$with_icu" = "yes"; then
   # Adapted from icu.m4 in GNUstep-base
   # Extract the first word of "icu-config", so it can be a program name with args.
 set dummy icu-config; ac_word=$2
@@ -4457,7 +4449,7 @@ done
 
 $as_echo "#define HAVE_ICU 1" >>confdefs.h
 
-fi
+#fi
 
 #---
 # Check for zoneinfo directory
@@ -4486,8 +4478,11 @@ if test "$with_zoneinfo_dir" = "undef"; then
     with_zoneinfo_dir='/etc/zoneinfo'
   elif test -d "/usr/local/etc/zoneinfo"; then
     with_zoneinfo_dir='/usr/local/etc/zoneinfo'
+  else
+    with_zoneinfo_dir='no'
   fi
-elif test "$with_zoneinfo_dir" = "no" || test ! -d "$with_zoneinfo_dir"; then
+fi
+if test "$with_zoneinfo_dir" = "no" || test ! -d "$with_zoneinfo_dir"; then
   as_fn_error $? "Please specify a valid zoneinfo directory." "$LINENO" 5
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_zoneinfo_dir" >&5

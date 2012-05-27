@@ -57,11 +57,11 @@ fi
 # Check for ICU
 #---
 ICU_MIN_VERSION='4.0'
-AC_ARG_WITH([icu],
-  [AS_HELP_STRING([--without-icu],
-    [Do not build with International Components for Unicode (ICU) support.])],
-  [], [with_icu=yes])
-if test "$with_icu" = "yes"; then
+#AC_ARG_WITH([icu],
+#  [AS_HELP_STRING([--without-icu],
+#    [Do not build with International Components for Unicode (ICU) support.])],
+#  [], [with_icu=yes])
+#if test "$with_icu" = "yes"; then
   # Adapted from icu.m4 in GNUstep-base
   AC_PATH_PROG(ICU_CONFIG, icu-config, [no])
   if test "$ICU_CONFIG" = "no"; then
@@ -83,14 +83,14 @@ if test "$with_icu" = "yes"; then
   AC_CHECK_HEADERS([unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/ucal.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/usearch.h])
   AC_DEFINE(HAVE_ICU, 1,
             [Define to 1 if you have International Components for Unicode.])
-fi
+#fi
 
 #---
 # Check for zoneinfo directory
 #---
 AC_ARG_WITH([zoneinfo-dir],
-  [AS_HELP_STRING([--with-zoneinfo-dir=PATH],
-    [Directory path of the Time zone object files.])],
+  [AS_HELP_STRING([--with-zoneinfo-dir=DIR],
+    [Directory of the Time zone object files.])],
   [], [with_zoneinfo_dir=undef])
 AC_MSG_CHECKING([zoneinfo directory])
 if test "$with_zoneinfo_dir" = "undef"; then
