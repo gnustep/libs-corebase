@@ -48,7 +48,7 @@ void NSCFInitialize (void)
       
       __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
                                     sizeof(Class));
-      NSCFTypeClass = [NSCFType class];
+      NSCFTypeClass = objc_getClass("NSCFType");
       CFInitialize ();
       while (i < __CFRuntimeClassTableCount)
         __CFRuntimeObjCClassTable[i++] = NSCFTypeClass;
