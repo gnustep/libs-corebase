@@ -82,18 +82,7 @@
 #define GSMutexUnlock(x) pthread_mutex_unlock(x)
 #define GSMutexDestroy(x) pthraed_mutex_destroy(x)
 
-#if defined(__FreeBSD__)
-
-#include <sys/types.h>
-#include <machine/atomic.h>
-#define GSAtomicIncrementCFIndex(ptr) atomic_fetchadd_long ((ptr), 1)
-#define GSAtomicDecrementCFIndex(ptr) atomic_fetchadd_long ((ptr), -1)
-#define GSAtomicCompareAndSwapCFIndex(ptr, oldv, newv) \
-  atomic_cmpset_long((ptr), (oldv), (newv))
-#define GSAtomicCompareAndSwapPointer(ptr, oldv, newv) \
-  atomic_cmpset_ptr((ptr), (oldv), (newv))
-
-#elif defined(__llvm__) \
+#if defined(__llvm__) \
       || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
 
 #define GSAtomicIncrementCFIndex(ptr) __sync_add_and_fetch((long*)(ptr), 1)
