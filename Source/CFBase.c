@@ -214,7 +214,7 @@ CFAllocatorSetDefault(CFAllocatorRef allocator)
 void
 CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context)
 {
-  context = (CFAllocatorContext*)&(allocator->_context);
+  memcpy (context, &(allocator->_context), sizeof(CFAllocatorContext));
 }
 
 CFTypeID

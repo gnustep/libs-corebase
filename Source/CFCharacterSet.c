@@ -237,6 +237,25 @@ static const UniChar *predefinedSets[] =
   newline
 };
 
+static const CFIndex predefinedSetsSize[] =
+{
+  sizeof(control) / sizeof(UniChar),
+  sizeof(whitespace) / sizeof(UniChar),
+  sizeof(whitespace_newline) / sizeof(UniChar),
+  sizeof(decimal_digit) / sizeof(UniChar),
+  sizeof(letter) / sizeof(UniChar),
+  sizeof(lowercase_letter) / sizeof(UniChar),
+  sizeof(uppercase_letter) / sizeof(UniChar),
+  sizeof(non_base) / sizeof(UniChar),
+  sizeof(decomposable) / sizeof(UniChar),
+  sizeof(alpha_numeric) / sizeof(UniChar),
+  sizeof(punctuation) / sizeof(UniChar),
+  sizeof(illegal) / sizeof(UniChar),
+  sizeof(capitalized_letter) / sizeof(UniChar),
+  sizeof(symbol) / sizeof(UniChar),
+  sizeof(newline) / sizeof(UniChar)
+};
+
 CFCharacterSetRef
 CFCharacterSetGetPredefined (CFCharacterSetPredefinedSet setIdentifier)
 {
@@ -248,8 +267,8 @@ CFCharacterSetGetPredefined (CFCharacterSetPredefinedSet setIdentifier)
       if (_kCFPredefinedCharacterSets == NULL)
         {
           /* No need to set callbacks. */
-          _kCFPredefinedCharacterSets =
-            CFDictionaryCreateMutable (NULL, 15, NULL, NULL);
+          _kCFPredefinedCharacterSets = CFDictionaryCreateMutable (NULL, 15,
+            NULL, &kCFTypeDictionaryValueCallBacks);
         }
       GSMutexUnlock (&_kCFPredefinedCharacterSetLock);
     }
@@ -266,8 +285,11 @@ CFCharacterSetGetPredefined (CFCharacterSetPredefinedSet setIdentifier)
         {
           UErrorCode err = U_ZERO_ERROR;
           ret->_uset = uset_openPattern (predefinedSets[setIdentifier - 1],
-            sizeof(predefinedSets[setIdentifier - 1]) / sizeof(UniChar), &err);
+                                         predefinedSetsSize[setIdentifier - 1],
+                                         &err);
           uset_freeze (ret->_uset);
+          CFDictionaryAddValue (_kCFPredefinedCharacterSets,
+                                (const void*)setIdentifier, ret);
         }
       GSMutexUnlock (&_kCFPredefinedCharacterSetLock);
     }

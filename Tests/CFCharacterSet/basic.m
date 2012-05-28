@@ -29,5 +29,13 @@ int main (void)
   
   CFRelease (charset);
   
+  charset = CFCharacterSetGetPredefined (kCFCharacterSetWhitespace);
+  PASS(CFCharacterSetIsCharacterMember(charset, ' ') == true,
+    "Whitespace character set includes ' '.");
+  PASS(CFCharacterSetIsCharacterMember(charset, '5') == false,
+    "Whitespace character set does not includes '5'.");
+  
+  CFRelease (charset);
+  
   return 0;
 }

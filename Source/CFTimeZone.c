@@ -165,7 +165,7 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   tzh_timecnt = (SInt32)CFSwapInt32BigToHost (*tmp);
   tmp = (UInt32*)header->tzh_typecnt;
   tzh_typecnt = (SInt32)CFSwapInt32BigToHost (*tmp);
-  tmp = (UInt32*)header->tzh_typecnt;
+  tmp = (UInt32*)header->tzh_charcnt;
   tzh_charcnt = (SInt32)CFSwapInt32BigToHost (*tmp);
   /* Make sure we're not above any of the maximums. */
   if (tzh_timecnt > TZ_MAX_TIMES || tzh_typecnt > TZ_MAX_TYPES

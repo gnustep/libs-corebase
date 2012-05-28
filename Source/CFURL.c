@@ -142,7 +142,7 @@ CFURLHash (CFTypeRef cf)
 }
 
 static CFStringRef
-CFURLFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
+CFURLCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
 {
   CFStringRef str;
   CFURLRef url = CFURLCopyAbsoluteURL ((CFURLRef)cf);
@@ -162,7 +162,7 @@ static const CFRuntimeClass CFURLClass =
   CFURLFinalize,
   CFURLEqual,
   CFURLHash,
-  CFURLFormattingDesc,
+  CFURLCopyFormattingDesc,
   NULL
 };
 
@@ -786,6 +786,7 @@ CFURLCreateAbsoluteURLWithBytes (CFAllocatorRef alloc,
       url = tmp;
     }
   
+  CFRelease (str);
   return url;
 }
 
@@ -1098,61 +1099,60 @@ CFURLCreateWindowsStylePath (CFAllocatorRef alloc, CFStringRef path)
 CFStringRef
 CFURLCopyFileSystemPath (CFURLRef url, CFURLPathStyle style)
 {
-  CFStringRef fsPath;
+  CFStringRef urlStr;
+  CFStringRef path;
   CFAllocatorRef alloc;
-  CFRange range;
+  CFRange r;
   
-  range = url->_ranges[kCFURLComponentPath - 1];
-  if (range.location == kCFNotFound)
+  r = url->_ranges[kCFURLComponentPath - 1];
+  if (r.location == kCFNotFound)
     return NULL;
   
   alloc = CFGetAllocator(url);
-  fsPath = CFStringCreateWithSubstring (alloc, url->_urlString, range);
-  if (fsPath)
+  urlStr = url->_urlString;
+  
+  if (r.length > 1)
     {
       CFStringRef tmp;
-      CFIndex len;
       
-      tmp = CFURLCreateStringByReplacingPercentEscapesUsingEncoding (alloc,
-        fsPath, CFSTR(""), url->_encoding);
-      len = CFStringGetLength (fsPath);
-      /* Check for len == 1 in case the path is simply '/' */
-      if (len > 1 && CFStringGetCharacterAtIndex(fsPath, len - 1) == '/')
-        {
-          CFRelease (tmp);
-          tmp = CFStringCreateWithSubstring (alloc, fsPath,
-            CFRangeMake(0, len - 1));
-          CFRelease (fsPath);
-          fsPath = tmp;
-        }
-      
-      switch (style)
-        {
-          case kCFURLPOSIXPathStyle:
-            /* Do nothing. */
-            break;
-          case kCFURLHFSPathStyle:
-            {
-              CFStringRef t;
-              t = CFURLCreateHFSStylePath (CFGetAllocator(url), fsPath);
-              CFRelease (fsPath);
-              fsPath = t;
-            }
-            break;
-          case kCFURLWindowsPathStyle:
-            {
-              CFStringRef t;
-              t = CFURLCreateWindowsStylePath (CFGetAllocator(url), fsPath);
-              CFRelease (fsPath);
-              fsPath = t;
-            }
-            break;
-          default:
-            break;
-        }
+      if (CFStringGetCharacterAtIndex(urlStr, r.location + r.length - 1) == '/')
+        r.length -= 1;
+      tmp = CFStringCreateWithSubstring (alloc, urlStr, r);
+      path = CFURLCreateStringByReplacingPercentEscapesUsingEncoding (alloc,
+        tmp, CFSTR(""), url->_encoding);
+      CFRelease (tmp);
+    }
+  else
+    {
+      path = CFSTR("/");
     }
   
-  return fsPath;
+  switch (style)
+    {
+      case kCFURLPOSIXPathStyle:
+        /* Do nothing. */
+        break;
+      case kCFURLHFSPathStyle:
+        {
+          CFStringRef t;
+          t = CFURLCreateHFSStylePath (CFGetAllocator(url), path);
+          CFRelease (path);
+          path = t;
+        }
+        break;
+      case kCFURLWindowsPathStyle:
+        {
+          CFStringRef t;
+          t = CFURLCreateWindowsStylePath (CFGetAllocator(url), path);
+          CFRelease (path);
+          path = t;
+        }
+        break;
+      default:
+        break;
+    }
+  
+  return path;
 }
 
 CFStringRef

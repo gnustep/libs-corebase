@@ -1,3 +1,11 @@
+2012-05-28 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFTimeZone.c: Avoid memory leak.
+	* Source/CFURL.c: Correctly copy file system path.
+	* Source/CFBase.c: Do a memory copy of the context.
+	* Source/CFCharacterSet.c: Correctly calculate string length.
+	* Tests/CFCharacterSet/basic.m: New tests.
+
 2012-05-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFTimeZone.c:
