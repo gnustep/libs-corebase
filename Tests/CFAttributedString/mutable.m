@@ -65,8 +65,9 @@ int main (void)
   CFRelease (attrib1);
   CFRelease (attrib2);
   CFRelease (attrib3);
-  //CFRelease (mstr);
+  CFRelease (mstr);
   CFRelease (str);
   
   return 0;
 }
+

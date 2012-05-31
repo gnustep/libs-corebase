@@ -158,7 +158,7 @@ CFAttributedStringGetBlankAttribute (void)
       GSMutexUnlock (&_kCFAttributedStringBlankAttributeLock);
     }
   
-  return _kCFAttributedStringBlankAttribute;
+  return CFAttributedStringCacheAttribute (_kCFAttributedStringBlankAttribute);
 }
 
 static CFComparisonResult
@@ -698,7 +698,7 @@ CFAttributedStringReplaceString (CFMutableAttributedStringRef str,
   CFStringReplace ((CFMutableStringRef)str->_string, range, repl);
   idxS = CFAttributedStringArrayGetIndex (str, range.location, NULL);
   idxE = CFAttributedStringArrayGetIndex (str,
-                                          range.location + range.length - 1,
+                                          range.location + range.length,
                                           NULL);
   RemoveAttributesAtIndex (str, CFRangeMake (idxS, idxE - idxS));
   
