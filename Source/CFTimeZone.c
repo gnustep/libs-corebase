@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -70,7 +70,6 @@ struct __CFTimeZone
 
 static CFTypeID _kCFTimeZoneTypeID = 0;
 
-static GSMutex _kCFTimeZoneLock;
 static GSMutex _kCFTimeZoneCacheLock;
 static CFMutableDictionaryRef _kCFTimeZoneCache = NULL;
 static CFTimeZoneRef _kCFTimeZoneDefault = NULL;
@@ -108,7 +107,6 @@ static CFRuntimeClass CFTimeZoneClass =
 void CFTimeZoneInitialize (void)
 {
   _kCFTimeZoneTypeID = _CFRuntimeRegisterClass (&CFTimeZoneClass);
-  GSMutexInitialize (&_kCFTimeZoneLock);
   GSMutexInitialize (&_kCFTimeZoneCacheLock);
 }
 
@@ -256,7 +254,7 @@ struct TZFile
   UInt8  type;
   struct _ttinfo ttinfo;
   char   abbrev[10]; /* 10 = max number of characters, ie 'GMT+01:00\0'. */
-};
+} __attribute__((packed));
 
 CFTimeZoneRef
 CFTimeZoneCreateWithTimeIntervalFromGMT (CFAllocatorRef alloc,
@@ -514,43 +512,52 @@ CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
 CFTimeZoneRef
 CFTimeZoneCopyDefault (void)
 {
-  CFTimeZoneRef ret;
-  
-  GSMutexLock (&_kCFTimeZoneLock);
   if (_kCFTimeZoneDefault == NULL)
-    _kCFTimeZoneDefault = CFRetain (CFTimeZoneCopySystem());
-  ret = CFRetain (_kCFTimeZoneDefault);
-  GSMutexUnlock (&_kCFTimeZoneLock);
+    {
+      CFTimeZoneRef new;
+      new = CFTimeZoneCopySystem(); /* FIXME */
+      if (GSAtomicCompareAndSwapPointer(&_kCFTimeZoneDefault, NULL, new) != NULL)
+        CFRelease (new);
+    }
   
-  return ret;
+  return CFRetain (_kCFTimeZoneDefault);
 }
 
 void
 CFTimeZoneSetDefault (CFTimeZoneRef tz)
 {
-  GSMutexLock (&_kCFTimeZoneLock);
-  if (_kCFTimeZoneDefault != NULL)
-    CFRelease (_kCFTimeZoneDefault);
-  _kCFTimeZoneDefault = CFRetain (tz);
-  GSMutexUnlock (&_kCFTimeZoneLock);
+  CFTimeZoneRef old;
+  old = GSAtomicCompareAndSwapPointer(&_kCFTimeZoneDefault,
+                                      _kCFTimeZoneDefault, CFRetain (tz));
+  if (old != NULL)
+    CFRelease (old);
 }
 
 CFTimeZoneRef
 CFTimeZoneCopySystem (void)
 {
-  return CFTimeZoneCreateWithTimeIntervalFromGMT(NULL, 0.0); /* FIXME */
+  if (_kCFTimeZoneSystem == NULL)
+    {
+      CFTimeZoneRef new;
+      new = CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, 0.0); /* FIXME */
+      if (GSAtomicCompareAndSwapPointer(&_kCFTimeZoneSystem, NULL, new) != NULL)
+        CFRelease (new);
+    }
+  
+  return CFRetain (_kCFTimeZoneSystem);
 }
 
 void
 CFTimeZoneResetSystem (void)
 {
-  GSMutexLock (&_kCFTimeZoneLock);
   if (_kCFTimeZoneSystem != NULL)
     {
-      CFRelease (_kCFTimeZoneSystem);
-      _kCFTimeZoneSystem = NULL;
+      CFTimeZoneRef old;
+      old = GSAtomicCompareAndSwapPointer(&_kCFTimeZoneSystem,
+                                          _kCFTimeZoneSystem, NULL);
+      if (old != NULL)
+        CFRelease (old);
     }
-  GSMutexUnlock (&_kCFTimeZoneLock);
 }
 
 CFArrayRef
@@ -559,23 +566,251 @@ CFTimeZoneCopyKnownNames (void)
   return NULL; /* FIXME */
 }
 
-const char *_kCFTimeZoneAbbreviations[] =
+static const char *_kCFTimeZoneAbbreviationKeys[] =
 {
-  
+  "ACDT",
+  "ACST",
+  "ADT",
+  "AEDT",
+  "AEST",
+  "AFT",
+  "AKDT",
+  "AKST",
+  "AMT",
+  "ART",
+  "AST",
+  "AWDT",
+  "AWST",
+  "AZOST",
+  "AZT",
+  "BDT",
+  "BIOT",
+  "BOT",
+  "BRT",
+  "BST",
+  "BTT",
+  "CAT",
+  "CCT",
+  "CDT",
+  "CEDT",
+  "CEST",
+  "CET",
+  "CHADT",
+  "CHAST",
+  "CLST",
+  "CLT",
+  "COT",
+  "CST",
+  "CT",
+  "CVT",
+  "CXT",
+  "EAST",
+  "EAT",
+  "ECT",
+  "EDT",
+  "EEDT",
+  "EEST",
+  "EET",
+  "EST",
+  "FET",
+  "FJT",
+  "FKST",
+  "FKT",
+  "GALT",
+  "GET",
+  "GFT",
+  "GIT",
+  "GST",
+  "GYT",
+  "HADT",
+  "HAST",
+  "HKT",
+  "HST",
+  "ICT",
+  "IRKT",
+  "IRST",
+  "IST",
+  "JST",
+  "KRAT",
+  "KST",
+  "MAGT",
+  "MDT",
+  "MSD",
+  "MSK",
+  "MST",
+  "MYT",
+  "NDT",
+  "NPT",
+  "NST",
+  "NZDT",
+  "NZST",
+  "PDT",
+  "PETT",
+  "PKT",
+  "PST",
+  "SAMT",
+  "SGT",
+  "SST",
+  "TAHT",
+  "THA",
+  "UYST",
+  "UYT",
+  "VET",
+  "VLAT",
+  "WAT",
+  "WEDT",
+  "WEST",
+  "WET",
+  "YAKT",
+  "YEKT"
 };
+
+static const char *_kCFTimeZoneAbbreviationValues[] =
+{
+  /* ACDT */  "Australia/Adelaide",
+  /* ACST */  "Australia/Adelaide",
+  /* ADT */   "America/Halifax",
+  /* AEDT */  "Australia/Sydney",
+  /* AEST */  "Australia/Sydney",
+  /* AFT */   "Asia/Kabul",
+  /* AKDT */  "America/Juneau",
+  /* AKST */  "America/Juneau",
+  /* AMT */   "Asia/Yakutsk",
+  /* ART */   "America/Argentina/Buenos_Aires",
+  /* AST */   "America/Halifax",
+  /* AWDT */  "Australia/Perth",
+  /* AWST */  "Australia/Perth",
+  /* AZOST */ "Atlantic/Azores",
+  /* AZT */   "Asia/Baku",
+  /* BDT */   "Asia/Dhaka",
+  /* BIOT */  "Indian/Chagos",
+  /* BOT */   "America/La_Paz",
+  /* BRT */   "America/Sao_Paulo",
+  /* BST */   "Europe/London",
+  /* BTT */   "Asia/Thimphu",
+  /* CAT */   "Africa/Harare",
+  /* CCT */   "Indian/Cocos",
+  /* CDT */   "America/Chicago",
+  /* CEDT */  "Europe/Paris",
+  /* CEST */  "Europe/Paris",
+  /* CET */   "Europe/Paris",
+  /* CHADT */ "Pacific/Chatham",
+  /* CHAST */ "Pacific/Chatham",
+  /* CLST */  "America/Santiago",
+  /* CLT */   "America/Santiago",
+  /* COT */   "America/Bogota",
+  /* CST */   "America/Chicago",
+  /* CT */    "Asia/Shanghai",
+  /* CVT */   "Atlantic/Cape_Verde",
+  /* CXT */   "Indian/Christmas",
+  /* EAST */  "Pacific/Easter",
+  /* EAT */   "Africa/Addis_Ababa",
+  /* ECT */   "America/Guayaquil",
+  /* EDT */   "America/New_York",
+  /* EEDT */  "Europe/Istanbul",
+  /* EEST */  "Europe/Istanbul",
+  /* EET */   "Europe/Istanbul",
+  /* EST */   "America/New_York",
+  /* FET */   "Europe/Kaliningrad",
+  /* FJT */   "Pacific/Fiji",
+  /* FKST */  "Atlantic/Stanley",
+  /* FKT */   "Atlantic/Stanley",
+  /* GALT */  "Pacific/Galapagos",
+  /* GET */   "Asia/Tbilisi",
+  /* GFT */   "America/Cayenne",
+  /* GIT */   "Pacific/Gambier",
+  /* GST */   "Asia/Dubai",
+  /* GYT */   "America/Guyana",
+  /* HADT */  "America/Adak",
+  /* HAST */  "America/Adak",
+  /* HKT */   "Asia/Hong_Kong",
+  /* HST */   "Pacific/Honolulu",
+  /* ICT */   "Asia/Bangkok",
+  /* IRKT */  " Asia/Irkutsk",
+  /* IRST */  "Asia/Tehran",
+  /* IST */   "Asia/Calcutta",
+  /* JST */   "Asia/Tokyo",
+  /* KRAT */  "Asia/Krasnoyarsk",
+  /* KST */   "Asia/Seoul",
+  /* MAGT */  "Asia/Magadan",
+  /* MDT */   "America/Denver",
+  /* MSD */   "Europe/Moscow",
+  /* MSK */   "Europe/Moscow",
+  /* MST */   "America/Denver",
+  /* MYT */   "Asia/Kuala_Lumpur",
+  /* NDT */   "America/St_Johns",
+  /* NPT */   "Asia/Kathmandu",
+  /* NST */   "America/St_Johns",
+  /* NZDT */  "Pacific/Auckland",
+  /* NZST */  "Pacific/Auckland",
+  /* PDT */   "America/Los_Angeles",
+  /* PETT */  "Asia/Kamchatka",
+  /* PKT */   "Asia/Karachi",
+  /* PST */   "America/Los_Angeles",
+  /* SAMT */  "Europe/Samara",
+  /* SGT */   "Asia/Singapore",
+  /* SST */   "Pacific/Pago_Pago",
+  /* TAHT */  "Pacific/Tahiti",
+  /* THA */   "Asia/Bangkok",
+  /* UYST */  "America/Montevideo",
+  /* UYT */   "America/Montevideo",
+  /* VET */   "America/Caracas",
+  /* VLAT */  "Asia/Vladivostok",
+  /* WAT */   "Africa/Lagos",
+  /* WEDT */  "Europe/Lisbon",
+  /* WEST */  "Europe/Lisbon",
+  /* WET */   "Europe/Lisbon",
+  /* YAKT */  "Asia/Yakutsk",
+  /* YEKT */  "Asia/Yekaterinburg"
+};
+
+static const CFIndex _kCFTimeZoneAbbreviationsSize =
+  sizeof(_kCFTimeZoneAbbreviationKeys) / sizeof(void*);
 
 CFDictionaryRef
 CFTimeZoneCopyAbbreviationDictionary (void)
 {
-  return NULL; /* FIXME */
+  if (_kCFTimeZoneAbbreviationDictionary == NULL)
+    {
+      CFIndex i;
+      CFMutableDictionaryRef dict;
+      CFDictionaryRef new;
+      
+      dict = CFDictionaryCreateMutable (NULL, _kCFTimeZoneAbbreviationsSize,
+                                        &kCFCopyStringDictionaryKeyCallBacks,
+                                        &kCFTypeDictionaryValueCallBacks);
+      i = 0;
+      while (i < _kCFTimeZoneAbbreviationsSize)
+        {
+          CFStringRef abbrev;
+          CFStringRef fullname;
+          
+          abbrev =
+            __CFStringMakeConstantString (_kCFTimeZoneAbbreviationKeys[i]);
+          fullname =
+            __CFStringMakeConstantString (_kCFTimeZoneAbbreviationValues[i]);
+          CFDictionaryAddValue (dict, abbrev, fullname);
+          i++;
+        }
+      new = CFDictionaryCreateCopy (NULL, dict);
+      CFRelease (dict);
+      
+      if (GSAtomicCompareAndSwapPointer(&_kCFTimeZoneAbbreviationDictionary,
+          NULL, new) != NULL)
+        CFRelease (new);
+    }
+  
+  return CFRetain (_kCFTimeZoneAbbreviationDictionary);
 }
 
 void
 CFTimeZoneSetAbbreviationDictionary (CFDictionaryRef dict)
 {
-  GSMutexLock (&_kCFTimeZoneLock);
-  if (_kCFTimeZoneAbbreviationDictionary != NULL)
-    CFRelease (_kCFTimeZoneAbbreviationDictionary);
-  _kCFTimeZoneAbbreviationDictionary = (CFDictionaryRef)CFRetain (dict);
-  GSMutexUnlock (&_kCFTimeZoneLock);
+  CFDictionaryRef old;
+  old = GSAtomicCompareAndSwapPointer(&_kCFTimeZoneAbbreviationDictionary,
+                                      _kCFTimeZoneAbbreviationDictionary,
+                                      CFDictionaryCreateCopy (NULL, dict));
+  if (old != NULL)
+    CFRelease (old);
 }
+

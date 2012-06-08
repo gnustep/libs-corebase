@@ -1,3 +1,10 @@
+2012-06-07 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/ GSHashTable.c: Correctly hash keys when a hash function
+	is provided.
+	* Source/CFTimeZone.c: Implement abbreviation dictionary.
+	* Tests/CFTimeZone/general.m: Uncomment abbreviation dictionary test.
+
 2012-05-28 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFTimeZone.c: Avoid memory leak.

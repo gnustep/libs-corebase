@@ -157,17 +157,17 @@ GSHashTableRemoveKeyValuePair (GSHashTableRef table,
 }
 
 CF_INLINE CFHashCode
-GSHashPointer2 (const void *value)
+GSHash2 (CFHashCode value)
 {
 /* Knuth's hash function.  We add the 1 to make sure the answer is never
  * zero.
  */
 #if defined(__LP64__) || defined(_WIN64)
 /* 64-bit operating systems */
-  return (CFHashCode)((((UInt64)value >> 3)) * 2654435761UL) + 1;
+  return (CFHashCode)(((UInt64)value + 1) * 2654435761UL);
 #else
 /* 32-bit operating systems */
-  return (CFHashCode)((((UInt32)value >> 3)) * 2654435761UL) + 1;
+  return (CFHashCode)(((UInt32)value + 1) * 2654435761UL);
 #endif
 }
 
@@ -191,7 +191,7 @@ GSHashTableFindBucket (GSHashTableRef table, const void *key)
   
   if (!matched)
     {
-      CFHashCode hash2 = GSHashPointer2 (key);
+      CFHashCode hash2 = GSHash2 (hash);
       
       if (fEqual)
         {

@@ -9,12 +9,9 @@ int main (void)
   CFTimeZoneRef tz;
   CFStringRef str;
   CFLocaleRef loc;
-  CFDictionaryRef dict;
-  CFDictionaryRef abbrevDump;
   CFAbsoluteTime at;
   CFTimeInterval ti;
   
-  /* FIXME: Need CFTimeZoneCopyAbbreviationDictionary
   tz = CFTimeZoneCreateWithName (NULL, CFSTR("CST"), false);
   PASS(tz == NULL,
        "Time zone named 'CST' is not found if abbreviations are not searched.");
@@ -22,9 +19,9 @@ int main (void)
   PASS(tz != NULL,
        "Time zone named 'CST' was found when abbreviations were searched");
   str = CFTimeZoneGetName (tz);
-  PASS_CFEQ(str, CFSTR("US/Central"), "Time zone name is 'US/Central'");
+  PASS_CFEQ(str, CFSTR("America/Chicago"), "Time zone name is 'US/Central'");
   
-  CFRelease (tz);*/
+  CFRelease (tz);
   
   tz = CFTimeZoneCreateWithName (NULL, CFSTR("Europe/Rome"), false);
   str = CFTimeZoneGetName (tz);
@@ -57,17 +54,6 @@ int main (void)
   PASS(at == 7174800.0, "Next daylight saving transition is at '%f'.", at);
   
   CFRelease (tz);
-  
-  dict = CFDictionaryCreateMutable (NULL, 0,
-                                    &kCFCopyStringDictionaryKeyCallBacks,
-                                    &kCFTypeDictionaryValueCallBacks);
-  abbrevDump = CFTimeZoneCopyAbbreviationDictionary();
-  if (abbrevDump)
-    {
-      PASS_CFEQ(abbrevDump, dict, "Dump abbreviation dictionary.");
-      CFRelease (abbrevDump);
-    }
-  CFRelease (dict);
   
   return 0;
 }
