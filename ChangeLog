@@ -1,3 +1,9 @@
+2012-06-08 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFCharacterSet.c: Avoid memory leak.
+	* Source/CFString.c: Simplify constant string generation.
+	* Source/CFTimeZone.c: Fix bug in CFTimeZoneGetDaylightSavingTimeOffset().
+
 2012-06-07 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/ GSHashTable.c: Correctly hash keys when a hash function

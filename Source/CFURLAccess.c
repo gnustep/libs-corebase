@@ -295,7 +295,6 @@ CFURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc, CFURLRef url,
   SInt32 error;
   
   scheme = CFURLCopyScheme (url);
-  error = 0;
   if (scheme == NULL)
     {
       error = kCFURLImproperArgumentsError;

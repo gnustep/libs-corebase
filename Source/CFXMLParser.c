@@ -178,7 +178,7 @@ CFXMLTreeCreateFromDataWithError (CFAllocatorRef allocator, CFDataRef xmlData,
     versionOfNodes, &callBacks, &context);
   if (CFXMLParserParse(parser))
     {
-      new = CFXMLParserGetDocument (parser);
+      new = (CFXMLTreeRef)CFRetain (CFXMLParserGetDocument (parser));
     }
   else
     {

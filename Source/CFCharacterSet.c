@@ -290,6 +290,7 @@ CFCharacterSetGetPredefined (CFCharacterSetPredefinedSet setIdentifier)
           uset_freeze (ret->_uset);
           CFDictionaryAddValue (_kCFPredefinedCharacterSets,
                                 (const void*)setIdentifier, ret);
+          CFRelease (ret);
         }
       GSMutexUnlock (&_kCFPredefinedCharacterSetLock);
     }

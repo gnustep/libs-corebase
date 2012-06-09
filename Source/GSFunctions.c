@@ -36,7 +36,6 @@ GSBSearch (const void *array, const void *key, CFRange range, CFIndex size,
   const void *cur;
   
   min = range.location;
-  mid = min;
   max = min + range.length;
   
   while (max > min)

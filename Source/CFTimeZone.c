@@ -389,22 +389,20 @@ CFTimeZoneGetDaylightSavingTimeOffset (CFTimeZoneRef tz, CFAbsoluteTime at)
   CFIndex idx;
   CFTimeInterval ret;
   
+  if (tz->_transCount <= 1)
+    return 0.0; /* No DST, so no DST offset. */
+  
   tmp.transition = (SInt32)(at + kCFAbsoluteTimeIntervalSince1970);
   idx = GSBSearch (tz->_transitions, &tmp, CFRangeMake(0, tz->_transCount),
     sizeof(TransInfo), CFTimeZoneComparator, NULL);
   
-  if (tz->_transCount <= 1)
-    return 0.0; /* No DST, so no DST offset. */
-  
-  /* We always check against the previous GMT offset since the index returned
-   * might be at the end of the array.
-   */
   cur = &(tz->_transitions[idx]);
-  prev = &(tz->_transitions[idx - 1]);
-  if (cur->offset > prev->offset)
+  idx = idx > 0 ? idx - 1 : idx + 1;
+  prev = &(tz->_transitions[idx]);
+  if (cur->isDST && cur->offset > prev->offset)
     ret = (CFTimeInterval)(cur->offset - prev->offset);
   else
-    ret = (CFTimeInterval)(prev->offset - cur->offset);
+    ret = 0.0;
   
   return ret;
 }

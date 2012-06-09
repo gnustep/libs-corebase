@@ -228,30 +228,8 @@ static CFMutableDictionaryRef static_strings;
 /*
  * Hack to allocated CFStrings uniquely without compiler support.
  */
-CF_INLINE CFStringRef
-CFStringCreateStaticString (const char *str)
-{
-  struct __CFString *new_constant_string;
-  
-  new_constant_string =
-    CFAllocatorAllocate (NULL, sizeof(struct __CFString), 0);
-  assert (new_constant_string);
-  
-  /* Using _CFRuntimeInitStaticInstance() guarantees that any CFRetain or
-   * CFRelease calls on object will be a no-op.
-   */
-  _CFRuntimeInitStaticInstance (new_constant_string, _kCFStringTypeID);
-  new_constant_string->_contents = (void*)str;
-  new_constant_string->_count = strlen (str);
-  new_constant_string->_hash = 0;
-  new_constant_string->_deallocator = NULL;
-  
-  return (CFStringRef)new_constant_string;
-}
-
 CFStringRef __CFStringMakeConstantString (const char *str)
 {
-  CFStringRef new;
   CFStringRef old;
   
   if (static_strings == NULL)
@@ -278,12 +256,25 @@ CFStringRef __CFStringMakeConstantString (const char *str)
   old = (CFStringRef)CFDictionaryGetValue (static_strings, str);
   if (NULL == old)
     {
-      new = CFStringCreateStaticString (str);
-      CFDictionaryAddValue (static_strings, str, (const void *)new);
-      old = new;
+      struct __CFString *new_const_str;
+      
+      new_const_str = CFAllocatorAllocate (NULL, sizeof(struct __CFString), 0);
+      assert (new_const_str);
+      
+      /* Using _CFRuntimeInitStaticInstance() guarantees that any CFRetain or
+       * CFRelease calls on object will be a no-op.
+       */
+      _CFRuntimeInitStaticInstance (new_const_str, _kCFStringTypeID);
+      new_const_str->_contents = (void*)str;
+      new_const_str->_count = strlen (str);
+      new_const_str->_hash = 0;
+      new_const_str->_deallocator = NULL;
+      
+      CFDictionaryAddValue (static_strings, str, (const void *)new_const_str);
+      old = new_const_str;
     }
-  
   GSMutexUnlock(&static_strings_lock);
+  
   return old;
 }
 
