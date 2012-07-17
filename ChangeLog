@@ -1,5 +1,14 @@
 2012-06-08 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* configure.ac:
+	* configure: Use gnustep-config to find include directories.
+	* COPYING:
+	* COPYING.LIB:
+	* INSTALL:
+	* README: Add distribution files.
+
+2012-06-08 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFCharacterSet.c: Avoid memory leak.
 	* Source/CFString.c: Simplify constant string generation.
 	* Source/CFTimeZone.c: Fix bug in CFTimeZoneGetDaylightSavingTimeOffset().

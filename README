@@ -1,0 +1,51 @@
+1 README
+********
+
+The GNUstep CoreBase Library is a library of general-purpose,
+non-graphical C objects.  For example, it includes types for strings,
+collections, byte streams, typed coders, invocations, notifications,
+notification dispatchers, moments in time, network ports, and event loops.
+
+It provides functionality that aims to implement the non-graphical
+portion of Apple's CoreFoundation framework.
+
+1.1 Initial reading
+===================
+
+The files `INSTALL' or `GNUstep-HOWTO' (from the web site) gives
+instructions for installing the library.
+
+1.2 License
+===========
+
+The GNUstep libraries and library resources are covered under the GNU
+Lesser General Public License.  This means you can use these libraries in
+any program (even non-free programs). If you distribute the libraries along
+with your program, you must make the improvements you have made to the
+libraries freely available. You should read the COPYING.LIB file for
+more information. All files in the 'Source', 'Headers' directories
+are covered under the GNU LGPL.
+
+GNUstep test programs, and other files are covered under the
+GNU General Public License. This means if you make changes to these
+programs, you cannot charge a fee, other than distribution fees, for others
+to use the program. You should read the COPYING file for more information.
+All files in the 'Test', directory is covered under the GPL.
+
+1.3 How can you help?
+=====================
+
+* Give us feedback!  Tell us what you like; tell us what you think
+could be better.
+
+Please log bug reports on the GNUstep project page
+`http://savannah.gnu.org/bugs/?group=gnustep' or send bug reports
+to <bug-gnustep@gnu.org>.
+
+Happy hacking!
+
+   Copyright (C) 2005 Free Software Foundation
+
+   Copying and distribution of this file, with or without modification,
+   are permitted in any medium without royalty provided the copyright
+   notice and this notice are preserved.

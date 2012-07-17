@@ -34,6 +34,55 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([floor getcwd gettimeofday memmove memset mkdir modf pow rmdir strncasecmp])
 
 #---
+# Check for GNUstep-config
+#---
+AC_PATH_PROG(GNUSTEP_CONFIG, [gnustep-config], [no])
+if test "$GNUSTEP_CONFIG" != "no"; then
+  if test -z "$LIBRARY_COMBO"; then
+    LIBRARY_COMBO=`GNUSTEP_CONFIG --variable=LIBRARY_COMBO`
+  fi
+  if test -z "$GNUSTEP_IS_FLATTENED"; then
+    GNUSTEP_IS_FLATTENED=`GNUSTEP_CONFIG --variable=GNUSTEP_IS_FLATTENED`
+  fi
+  
+  GNUSTEP_LDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_SYSTEM_LIBRARIES`
+  GNUSTEP_HDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_SYSTEM_HEADERS`
+  if test "$GNUSTEP_IS_FLATTENED" = "no"; then
+    GNUSTEP_LDIR="$GNUSTEP_LDIR/$obj_dir"
+    GNUSTEP_HDIR="$GNUSTEP_HDIR/$LIBRARY_COMBO"
+  fi
+  if test -f "$GNUSTEP_HDIR/objc/runtime.h"; then
+    GNUSTEP_LDFLAGS="-L$GNUSTEP_LDIR"
+    GNUSTEP_CPPFLAGS="-I$GNUSTEP_HDIR"
+  fi
+  
+  GNUSTEP_LDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_NETWORK_LIBRARIES`
+  GNUSTEP_HDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_NETWORK_HEADERS`
+  if test "$GNUSTEP_IS_FLATTENED" = "no"; then
+    GNUSTEP_LDIR="$GNUSTEP_LDIR/$obj_dir"
+    GNUSTEP_HDIR="$GNUSTEP_HDIR/$LIBRARY_COMBO"
+  fi
+  if test -f "$GNUSTEP_HDIR/objc/runtime.h"; then
+    GNUSTEP_LDFLAGS="-L$GNUSTEP_LDIR"
+    GNUSTEP_CPPFLAGS="-I$GNUSTEP_HDIR"
+  fi
+  
+  GNUSTEP_LDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_LOCAL_LIBRARIES`
+  GNUSTEP_HDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_LOCAL_HEADERS`
+  if test "$GNUSTEP_IS_FLATTENED" = "no"; then
+    GNUSTEP_LDIR="$GNUSTEP_LDIR/$obj_dir"
+    GNUSTEP_HDIR="$GNUSTEP_HDIR/$LIBRARY_COMBO"
+  fi
+  if test -f "$GNUSTEP_HDIR/objc/runtime.h"; then
+    GNUSTEP_LDFLAGS="-L$GNUSTEP_LDIR"
+    GNUSTEP_CPPFLAGS="-I$GNUSTEP_HDIR"
+  fi
+  
+  LDFLAGS="$LDFLAGS $GNUSTEP_LDFLAGS"
+  CPPFLAGS="$CPPFLAGS $GNUSTEP_CPPFLAGS"
+fi
+
+#---
 # Check for the Objective-C runtime
 #---
 AC_ARG_ENABLE([objc-bridge],
