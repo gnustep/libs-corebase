@@ -24,3 +24,6 @@ PACKAGE_NAME = gnustep-corebase
 SUBPROJECTS = Source Tests
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make
+
+-include Makefile.postamble
+
