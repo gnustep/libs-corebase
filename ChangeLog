@@ -1,4 +1,12 @@
-2012-06-08 Stefan Bidigaray <stefanbidi@gmail.com>
+2012-07-17 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/config.h.in:
+	* configure.ac:
+	* configure: Correctly detect libobjc2 on some systems.
+	* Source/CFLocal.c: Don't search past the end of the _kCFLocaleValues
+	array.
+
+2012-07-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* configure.ac:
 	* configure: Use gnustep-config to find include directories.

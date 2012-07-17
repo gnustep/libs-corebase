@@ -307,7 +307,7 @@ CFLocaleCopyCalendar (CFLocaleRef loc, const void *context)
   CFAllocatorRef allocator = CFGetAllocator (loc);
   int len;
   const char *cLocale;
-  char buffer[ULOC_KEYWORDS_CAPACITY];
+  char buffer[ULOC_FULLNAME_CAPACITY];
   char cal[ULOC_KEYWORDS_CAPACITY];
   UErrorCode err = U_ZERO_ERROR;
   
@@ -724,25 +724,26 @@ CFLocaleGetValue (CFLocaleRef locale,
   if (CFDictionaryGetValueIfPresent(locale->_components, key, &result))
     return result;
   
-  for (idx = 0 ; idx < _kCFLocaleValuesSize && !found ; ++idx)
+  for (idx = 0 ; idx < _kCFLocaleValuesSize ; ++idx)
     {
       if (key == *(_kCFLocaleValues[idx].value))
         {
           result = (_kCFLocaleValues[idx].copy)(locale,
             _kCFLocaleValues[idx].context);
           found = true;
+          break;
         }
     }
   
   if (found == false)
     {
-      for (idx = 0 ; idx < _kCFLocaleValuesSize && !found ; ++idx)
+      for (idx = 0 ; idx < _kCFLocaleValuesSize ; ++idx)
         {
           if (CFEqual(key, *(_kCFLocaleValues[idx].value)))
             {
               result = (_kCFLocaleValues[idx].copy)(locale,
                 _kCFLocaleValues[idx].context);
-              found = true;
+              break;
             }
         }
     }

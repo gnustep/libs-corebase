@@ -24,6 +24,9 @@
 /* Define to 1 if you have the `objc' library (-lobjc). */
 #undef HAVE_LIBOBJC
 
+/* Define to 1 if you have the `objc2' library (-lobjc2). */
+#undef HAVE_LIBOBJC2
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 

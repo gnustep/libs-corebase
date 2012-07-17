@@ -86,7 +86,7 @@ fi
 # Check for the Objective-C runtime
 #---
 AC_ARG_ENABLE([objc-bridge],
-  [AS_HELP_STRING([--disable-objc-brdige],
+  [AS_HELP_STRING([--disable-objc-bridge],
     [Disables the Objective-C toll-free bridge mechanism.])],
   [enable_objc_bridge=$enableval], [enable_objc_bridge=yes])
 if test "$enable_objc_bridge" = "yes"; then
@@ -98,7 +98,10 @@ if test "$enable_objc_bridge" = "yes"; then
   
   AC_CHECK_LIB(objc, objc_getClass)
   if test "$ac_cv_lib_objc_getClass" = "no"; then
-    AC_MSG_ERROR([Objective-C library not found!  Use --disable-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library.])
+    AC_CHECK_LIB(objc2, objc_getClass)
+    if test "$ac_cv_lib_objc2_getClass" = "no"
+      AC_MSG_ERROR([Objective-C library not found!  Use --disable-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library.])
+    fi
   fi
 fi
 
