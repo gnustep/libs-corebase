@@ -1,5 +1,13 @@
 2012-07-17 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* configure.ac:
+	* configure: Fix typo.
+	* Source/GSPrivate.h: Define ObjC macros for libobjc2, too.
+	* Tests/CFString/create.m: Fix for big endian machines.
+	* Tests/CFNumber/general.m: Be more verbose.
+
+2012-07-17 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/config.h.in:
 	* configure.ac:
 	* configure: Correctly detect libobjc2 on some systems.

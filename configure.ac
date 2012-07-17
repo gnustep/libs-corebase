@@ -34,6 +34,26 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([floor getcwd gettimeofday memmove memset mkdir modf pow rmdir strncasecmp])
 
 #---
+# Check for pthread
+#---
+AC_MSG_CHECKING([for pthread])
+AC_LANG_CONFTEST([AC_LANG_PROGRAM([[#include <pthread.h>]],
+                                  [[pthread_mutex_t mutex;]])])
+${CC} -pthread conftest.c -o conftest.o > /dev/null 2>&1
+if test $? -eq 0; then
+  LIBS="$LIBS-pthread "
+  AC_MSG_RESULT([yes])
+else
+  ${CC} -lpthread conftest.c -o conftest.o > /dev/null 2>&1
+  if test $? -eq 0; then
+    LIBS="$LIBS-lpthread "
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
+  fi
+fi
+
+#---
 # Check for GNUstep-config
 #---
 AC_PATH_PROG(GNUSTEP_CONFIG, [gnustep-config], [no])
@@ -97,9 +117,9 @@ if test "$enable_objc_bridge" = "yes"; then
   fi
   
   AC_CHECK_LIB(objc, objc_getClass)
-  if test "$ac_cv_lib_objc_getClass" = "no"; then
+  if test "$ac_cv_lib_objc_objc_getClass" = "no"; then
     AC_CHECK_LIB(objc2, objc_getClass)
-    if test "$ac_cv_lib_objc2_getClass" = "no"; then
+    if test "$ac_cv_lib_objc2_objc_getClass" = "no"; then
       AC_MSG_ERROR([Objective-C library not found!  Use --disable-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library.])
     fi
   fi
@@ -126,7 +146,7 @@ ICU_MIN_VERSION='4.0'
   if test "$found" = "1"; then
     AC_MSG_RESULT(yes)
     ICU_LIBS=`$ICU_CONFIG --ldflags-libsonly`
-    LIBS="$LIBS$ICU_LIBS"
+    LIBS="$LIBS$ICU_LIBS "
   else
     AC_MSG_RESULT(no)
     AC_MSG_ERROR([Could not find ICU $ICU_MIN_VERSION or later])
@@ -173,3 +193,4 @@ AC_DEFINE_UNQUOTED(TZDIR, ["$with_zoneinfo_dir"],
 AC_CONFIG_FILES([Source/GNUmakefile])
 
 AC_OUTPUT
+

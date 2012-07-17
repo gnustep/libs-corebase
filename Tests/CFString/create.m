@@ -13,7 +13,7 @@ int main (void)
   
   str1 = CFStringCreateWithBytes (NULL, (const UInt8*)"OK", 2, kCFStringEncodingASCII, false);
   
-  str2 = CFStringCreateWithBytes (NULL, (const UInt8*)ubuffer, 2 * sizeof(UniChar), kCFStringEncodingUTF16LE, false);
+  str2 = CFStringCreateWithBytes (NULL, (const UInt8*)ubuffer, 2 * sizeof(UniChar), kCFStringEncodingUTF16, false);
   
   PASS_CFEQ(str1, str2, "Unicode and C-string are equal.");
   

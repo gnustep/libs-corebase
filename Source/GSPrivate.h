@@ -314,7 +314,7 @@ GSRuntimeConstantInit (CFTypeRef cf, CFTypeID typeID);
 
 
 
-#if HAVE_LIBOBJC
+#if HAVE_LIBOBJC || HAVE_LIBOBJC2
 
 #define BOOL OBJC_BOOL
 #include <objc/runtime.h>
