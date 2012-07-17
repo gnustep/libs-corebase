@@ -99,7 +99,7 @@ if test "$enable_objc_bridge" = "yes"; then
   AC_CHECK_LIB(objc, objc_getClass)
   if test "$ac_cv_lib_objc_getClass" = "no"; then
     AC_CHECK_LIB(objc2, objc_getClass)
-    if test "$ac_cv_lib_objc2_getClass" = "no"
+    if test "$ac_cv_lib_objc2_getClass" = "no"; then
       AC_MSG_ERROR([Objective-C library not found!  Use --disable-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library.])
     fi
   fi
