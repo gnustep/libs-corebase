@@ -3,9 +3,9 @@
 
 int main (void)
 {
-  int i32 = -5;
-  short i16 = 6;
-  char i8 = 7;
+  signed int i32 = -5;
+  signed short i16 = 6;
+  signed char i8 = 7;
   float f = 3.4;
   Float64 f64;
   CFNumberRef num1, num2;
