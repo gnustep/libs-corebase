@@ -34,75 +34,6 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([floor getcwd gettimeofday memmove memset mkdir modf pow rmdir strncasecmp])
 
 #---
-# Check for pthread
-#---
-AC_MSG_CHECKING([for pthread])
-AC_LANG_CONFTEST([AC_LANG_PROGRAM([[#include <pthread.h>]],
-                                  [[pthread_mutex_t mutex;]])])
-${CC} -pthread conftest.c -o conftest.o > /dev/null 2>&1
-if test $? -eq 0; then
-  LIBS="$LIBS-pthread "
-  AC_MSG_RESULT([yes])
-else
-  ${CC} -lpthread conftest.c -o conftest.o > /dev/null 2>&1
-  if test $? -eq 0; then
-    LIBS="$LIBS-lpthread "
-    AC_MSG_RESULT([yes])
-  else
-    AC_MSG_RESULT([no])
-  fi
-fi
-
-#---
-# Check for GNUstep-config
-#---
-AC_PATH_PROG(GNUSTEP_CONFIG, [gnustep-config], [no])
-if test "$GNUSTEP_CONFIG" != "no"; then
-  if test -z "$LIBRARY_COMBO"; then
-    LIBRARY_COMBO=`GNUSTEP_CONFIG --variable=LIBRARY_COMBO`
-  fi
-  if test -z "$GNUSTEP_IS_FLATTENED"; then
-    GNUSTEP_IS_FLATTENED=`GNUSTEP_CONFIG --variable=GNUSTEP_IS_FLATTENED`
-  fi
-  
-  GNUSTEP_LDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_SYSTEM_LIBRARIES`
-  GNUSTEP_HDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_SYSTEM_HEADERS`
-  if test "$GNUSTEP_IS_FLATTENED" = "no"; then
-    GNUSTEP_LDIR="$GNUSTEP_LDIR/$obj_dir"
-    GNUSTEP_HDIR="$GNUSTEP_HDIR/$LIBRARY_COMBO"
-  fi
-  if test -f "$GNUSTEP_HDIR/objc/runtime.h"; then
-    GNUSTEP_LDFLAGS="-L$GNUSTEP_LDIR"
-    GNUSTEP_CPPFLAGS="-I$GNUSTEP_HDIR"
-  fi
-  
-  GNUSTEP_LDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_NETWORK_LIBRARIES`
-  GNUSTEP_HDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_NETWORK_HEADERS`
-  if test "$GNUSTEP_IS_FLATTENED" = "no"; then
-    GNUSTEP_LDIR="$GNUSTEP_LDIR/$obj_dir"
-    GNUSTEP_HDIR="$GNUSTEP_HDIR/$LIBRARY_COMBO"
-  fi
-  if test -f "$GNUSTEP_HDIR/objc/runtime.h"; then
-    GNUSTEP_LDFLAGS="-L$GNUSTEP_LDIR"
-    GNUSTEP_CPPFLAGS="-I$GNUSTEP_HDIR"
-  fi
-  
-  GNUSTEP_LDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_LOCAL_LIBRARIES`
-  GNUSTEP_HDIR=`$GNUSTEP_CONFIG --variable=GNUSTEP_LOCAL_HEADERS`
-  if test "$GNUSTEP_IS_FLATTENED" = "no"; then
-    GNUSTEP_LDIR="$GNUSTEP_LDIR/$obj_dir"
-    GNUSTEP_HDIR="$GNUSTEP_HDIR/$LIBRARY_COMBO"
-  fi
-  if test -f "$GNUSTEP_HDIR/objc/runtime.h"; then
-    GNUSTEP_LDFLAGS="-L$GNUSTEP_LDIR"
-    GNUSTEP_CPPFLAGS="-I$GNUSTEP_HDIR"
-  fi
-  
-  LDFLAGS="$LDFLAGS $GNUSTEP_LDFLAGS"
-  CPPFLAGS="$CPPFLAGS $GNUSTEP_CPPFLAGS"
-fi
-
-#---
 # Check for the Objective-C runtime
 #---
 AC_ARG_ENABLE([objc-bridge],
@@ -110,17 +41,22 @@ AC_ARG_ENABLE([objc-bridge],
     [Disables the Objective-C toll-free bridge mechanism.])],
   [enable_objc_bridge=$enableval], [enable_objc_bridge=yes])
 if test "$enable_objc_bridge" = "yes"; then
-  AC_PROG_OBJC
-  AC_CHECK_HEADER(objc/runtime.h)
-  if test "$ac_cv_header_objc_runtime_h" = "no"; then
-    AC_MSG_ERROR([Could not find the Objective-C runtime header.])
-  fi
-  
-  AC_CHECK_LIB(objc, objc_getClass)
-  if test "$ac_cv_lib_objc_objc_getClass" = "no"; then
-    AC_CHECK_LIB(objc2, objc_getClass)
-    if test "$ac_cv_lib_objc2_objc_getClass" = "no"; then
-      AC_MSG_ERROR([Objective-C library not found!  Use --disable-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library.])
+  AC_PATH_PROG(GNUSTEP_CONFIG, [gnustep-config], [no])
+  if test "$GNUSTEP_CONFIG" != "no"; then
+    OBJC_LIBS=`$GNUSTEP_CONFIG --objc-libs`
+    LIBS="$LIBS $OBJC_LIBS"
+  else
+    AC_CHECK_HEADER(objc/runtime.h)
+    if test "$ac_cv_header_objc_runtime_h" = "no"; then
+      AC_MSG_ERROR([Could not find the Objective-C runtime header.])
+    fi
+    
+    AC_CHECK_LIB(objc, objc_getClass)
+    if test "$ac_cv_lib_objc_objc_getClass" = "no"; then
+      AC_CHECK_LIB(objc2, objc_getClass)
+      if test "$ac_cv_lib_objc2_objc_getClass" = "no"; then
+        AC_MSG_ERROR([Objective-C library not found!  Use --disable-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library.])
+      fi
     fi
   fi
 fi
@@ -146,7 +82,7 @@ ICU_MIN_VERSION='4.0'
   if test "$found" = "1"; then
     AC_MSG_RESULT(yes)
     ICU_LIBS=`$ICU_CONFIG --ldflags-libsonly`
-    LIBS="$LIBS$ICU_LIBS "
+    LIBS="$LIBS $ICU_LIBS"
   else
     AC_MSG_RESULT(no)
     AC_MSG_ERROR([Could not find ICU $ICU_MIN_VERSION or later])
