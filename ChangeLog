@@ -1,3 +1,8 @@
+2012-07-19 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStringFormat.c: Always format floating numbers and
+	endianness problem in character formatting.
+
 2012-07-17 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* configure.ac:

@@ -25,6 +25,7 @@
 */
 
 #include "CoreFoundation/CFRuntime.h"
+#include "CoreFoundation/CFByteOrder.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFNumberFormatter.h"
 #include "GSPrivate.h"
@@ -72,7 +73,6 @@ typedef enum
 
 typedef enum
 {
-  CFUnknownType = -1,
   CFUnsignedType = 0,
   CFIntegerType,
   CFFloatType,
@@ -85,7 +85,8 @@ typedef enum
   CFCharType,
   CFUCharType,
   CFPointerType,
-  CFObjectType
+  CFObjectType,
+  CFUnknownType = 0xFF
 } CFArgType;
 
 typedef union
@@ -283,7 +284,7 @@ CFFormatFloat (CFFormatSpec *spec,
   UNumberFormat *fmt;
   UErrorCode err = U_ZERO_ERROR;
   
-  fmt = unum_open (UNUM_DECIMAL, NULL, 0, NULL, NULL, &err);
+  fmt = unum_open (UNUM_DECIMAL, NULL, 0, "en_US_POSIX", NULL, &err);
   if (U_FAILURE(err))
     return NULL;
   
@@ -325,7 +326,7 @@ CFFormatScientific (CFFormatSpec *spec,
   UNumberFormat *fmt;
   UErrorCode err = U_ZERO_ERROR;
   
-  fmt = unum_open (UNUM_DECIMAL, NULL, 0, NULL, NULL, &err);
+  fmt = unum_open (UNUM_DECIMAL, NULL, 0, "en_US_POSIX", NULL, &err);
   if (U_FAILURE(err))
     return NULL;
   
@@ -376,7 +377,7 @@ CFFormatDouble (CFFormatSpec *spec,
     }
   
   /* Very similar to CFFormatInteger() */
-  fmt = unum_open (UNUM_DECIMAL, NULL, 0, NULL, NULL, &err);
+  fmt = unum_open (UNUM_DECIMAL, NULL, 0, "en_US_POSIX", NULL, &err);
   if (U_FAILURE(err))
     return NULL;
   
@@ -591,10 +592,14 @@ CFFormatChar (CFFormatSpec *spec,
               CFFormatArgument *arg,
               CFDictionaryRef formatOptions)
 {
+  UInt8 intValue;
+  
   if (spec->length == CFLongLength)
     return CFFormatUChar (spec, copyDescFunc, arg, formatOptions);
+  
+  intValue = (UInt8)arg->intValue;
   return CFStringCreateWithBytes (CFAllocatorGetDefault(),
-    (const UInt8*)&arg->intValue, 1, CFStringGetSystemEncoding(), false);
+    (const UInt8*)&intValue, 1, CFStringGetSystemEncoding(), false);
 }
 
 static CFStringRef
