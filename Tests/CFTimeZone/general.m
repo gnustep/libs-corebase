@@ -35,10 +35,12 @@ int main (void)
   
   loc = CFLocaleCreate (NULL, CFSTR("en_GB"));
   
+  testHopeful = YES;
   str = CFTimeZoneCopyLocalizedName (tz, kCFTimeZoneNameStyleStandard, loc);
   PASS_CFEQ(str, CFSTR("Central European Time"),
             "Standard localized name is correct.");
   CFRelease (str);
+  testHopeful = NO;
   
   str = CFTimeZoneCopyLocalizedName (tz, kCFTimeZoneNameStyleShortStandard, loc);
   PASS_CFEQ(str, CFSTR("CET"), "Short standard localized name is correct.");

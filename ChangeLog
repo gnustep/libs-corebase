@@ -1,3 +1,7 @@
+2012-07-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStringFormat.c: Use pointer value when formatting a pointer.
+
 2012-07-19 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFStringFormat.c: Always format floating numbers and

@@ -228,7 +228,7 @@ CFFormatInteger (CFFormatSpec *spec,
             i = (SInt64)((intmax_t)arg->intValue);
             break;
           case CFPtrDiffTLength:
-            i = (SInt64)((ptrdiff_t)arg->intValue);
+            i = (SInt64)((ptrdiff_t)arg->ptrValue);
             break;
           default:
             i = (SInt64)((int)arg->intValue);
@@ -425,7 +425,7 @@ CFFormatUInt64ToString (CFFormatSpec *spec, CFFormatArgument *arg, UInt8 base)
         value = (uintmax_t)arg->intValue;
         break;
       case CFPtrDiffTLength:
-        value = (ptrdiff_t)arg->intValue;
+        value = (ptrdiff_t)arg->ptrValue;
         break;
       default:
         value = (UInt64)arg->intValue;
