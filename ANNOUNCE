@@ -1,0 +1,45 @@
+1 ANNOUNCE
+**********
+
+This is version 0.1 of CoreBase.
+
+1.1 What is CoreBase?
+=================
+
+The GNUstep CoreBase Library is a library of general-purpose,
+non-graphical C objects.  For example, it includes types for strings,
+collections, byte streams, typed coders, invocations, notifications,
+notification dispatchers, moments in time, network ports, and event loops.
+
+It provides functionality that aims to implement the non-graphical
+portion of Apple's CoreFoundation framework.
+
+1.2 Noteworthy changes 
+==========================================
+
+   * Initial release
+
+1.3 How can I get support for this software?
+============================================
+
+You may wish to use the GNUstep discussion mailing list for general
+questions and discussion.  Look at the GNUstep Web Pages for more
+information regarding GNUstep resources `http://www.gnustep.org/'
+
+1.4 Where can you get it?  How can you compile it?
+==================================================
+
+You can download sources and rpms (for some machines) from
+`ftp://ftp.gnustep.org/pub/gnustep/dev-libs'.
+
+1.5 Where do I send bug reports?
+================================
+
+Bug reports can be sent to <bug-gnustep@gnu.org>.
+
+1.6 Obtaining GNU Software
+==========================
+
+Check out the GNUstep web site. (`http://www.gnustep.org/'), and the
+GNU web site. (`http://www.gnu.org/')
+

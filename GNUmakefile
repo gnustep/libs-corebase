@@ -20,6 +20,10 @@ endif
 include $(GNUSTEP_MAKEFILES)/common.make
 
 PACKAGE_NAME = gnustep-corebase
+SVN_MODULE_NAME = corebase
+SVN_BASE_URL = svn+ssh://svn.gna.org/svn/gnustep/libs
+
+include ./Version
 
 SUBPROJECTS = Source Tests
 
