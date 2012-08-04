@@ -137,8 +137,8 @@ CFXMLParserCreate (CFAllocatorRef alloc, CFDataRef xmlData,
       if (context)
         {
           memcpy (&new->_context, context, sizeof(CFXMLParserContext));
-          if (new->context.retain)
-            new->context.retain (new->context.info);
+          if (new->_context.retain)
+            new->_context.retain (new->_context.info);
         }
     }
   
