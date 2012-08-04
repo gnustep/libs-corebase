@@ -37,8 +37,8 @@ struct __CFXMLNode
   CFRuntimeBase _parent;
   CFXMLNodeTypeCode _type;
   CFStringRef   _string;
-  void         *_info;
   CFIndex       _version;
+  void         *_info;
 };
 
 static CFTypeID _kCFXMLNodeTypeID = 0;

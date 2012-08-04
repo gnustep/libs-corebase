@@ -1,3 +1,9 @@
+2012-08-04 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFXMLNode.c: Rearrange __CFXMLNode structure.
+	* Source/CFXMLParser.c: Implement CFXMLParserClass and
+	CFXMLParserCreate().
+
 2012-07-26 Adam Fedor <fedor@gnu.org>
 
 	* Version 0.1
