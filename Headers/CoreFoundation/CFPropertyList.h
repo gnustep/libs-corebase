@@ -26,11 +26,13 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFData.h>
+#include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFStream.h>
 
 #ifndef __COREFOUNDATION_CFPROPERTYLIST_H__
 #define __COREFOUNDATION_CFPROPERTYLIST_H__
 
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 typedef enum CFPropertyListFormat CFPropertyListFormat;
 enum CFPropertyListFormat
 {
@@ -38,8 +40,8 @@ enum CFPropertyListFormat
    kCFPropertyListXMLFormat_v1_0 = 100,
    kCFPropertyListBinaryFormat_v1_0 = 200
 };
+#endif
 
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 typedef enum CFPropertyListMutabilityOptions CFPropertyListMutabilityOptions;
 enum CFPropertyListMutabilityOptions
 {
@@ -47,7 +49,6 @@ enum CFPropertyListMutabilityOptions
    kCFPropertyListMutableContainers = 1,
    kCFPropertyListMutableContainersAndLeaves = 2
 };
-#endif
 
 #if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 enum
@@ -61,25 +62,54 @@ enum
 
 
 
-CFPropertyListRef
+CF_EXPORT CFPropertyListRef
 CFPropertyListCreateDeepCopy (CFAllocatorRef allocator,
                               CFPropertyListRef propertyList,
                               CFOptionFlags mutabilityOption);
 
-/* Function marked as obsolete as of 10.6 */
-CFPropertyListRef
+#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+CF_EXPORT CFDataRef
+CFPropertyListCreateData (CFAllocatorRef allocator,
+                          CFPropertyListRef propertyList,
+                          CFPropertyListFormat format, CFOptionFlags options,
+                          CFErrorRef *error);
+
+CF_EXPORT CFPropertyListRef
+CFPropertyListCreateWithData (CFAllocatorRef allocator, CFDataRef data,
+                              CFOptionFlags options,
+                              CFPropertyListFormat *format,
+                              CFErrorRef *error);
+
+CF_EXPORT CFPropertyListRef
+CFPropertyListCreateWithStream (CFAllocatorRef allocator,
+                                CFReadStreamRef stream,
+                                CFIndex streamLength, CFOptionFlags options,
+                                CFPropertyListFormat *format,
+                                CFErrorRef *error);
+
+CF_EXPORT CFIndex
+CFPropertyListWrite (CFPropertyListRef propertyList, CFWriteStreamRef stream,
+                     CFPropertyListFormat format, CFOptionFlags options,
+                     CFErrorRef *error);
+#endif
+
+#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+CF_EXPORT Boolean
+CFPropertyListIsValid (CFPropertyListRef plist, CFPropertyListFormat format);
+#endif
+
+/* The following function are marked as obsolete as of 10.6 */
+CF_EXPORT CFPropertyListRef
 CFPropertyListCreateFromXMLData (CFAllocatorRef allocator, CFDataRef xmlData,
                                  CFOptionFlags mutabilityOption,
                                  CFStringRef *errorString);
 
-/* Function marked as obsolete as of 10.6 */
-CFDataRef
+CF_EXPORT CFDataRef
 CFPropertyListCreateXMLData (CFAllocatorRef allocator,
                              CFPropertyListRef propertyList);
 
 #if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
-/* Function is marked as obsolete as of 10.6 */
-CFPropertyListRef
+CF_EXPORT CFPropertyListRef
 CFPropertyListCreateFromStream (CFAllocatorRef allocator,
                                 CFReadStreamRef stream,
                                 CFIndex streamLength,
@@ -87,41 +117,11 @@ CFPropertyListCreateFromStream (CFAllocatorRef allocator,
                                 CFPropertyListFormat *format,
                                 CFStringRef *errorString);
 
-Boolean
-CFPropertyListIsValid (CFPropertyListRef plist, CFPropertyListFormat format);
-
-/* Function is marked as obsolete as of 10.6 */
-CFIndex
+CF_EXPORT CFIndex
 CFPropertyListWriteToStream (CFPropertyListRef propertyList,
                              CFWriteStreamRef stream,
                              CFPropertyListFormat format,
                              CFStringRef *errorString);
-#endif
-
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
-CFDataRef
-CFPropertyListCreateData (CFAllocatorRef allocator,
-                          CFPropertyListRef propertyList,
-                          CFPropertyListFormat format, CFOptionFlags options,
-                          CFErrorRef *error);
-
-CFPropertyListRef
-CFPropertyListCreateWithData (CFAllocatorRef allocator, CFDataRef data,
-                              CFOptionFlags options,
-                              CFPropertyListFormat *format,
-                              CFErrorRef *error);
-
-CFPropertyListRef
-CFPropertyListCreateWithStream (CFAllocatorRef allocator,
-                                CFReadStreamRef stream,
-                                CFIndex streamLength, CFOptionFlags options,
-                                CFPropertyListFormat *format,
-                                CFErrorRef *error);
-
-CFIndex
-CFPropertyListWrite (CFPropertyListRef propertyList, CFWriteStreamRef stream,
-                     CFPropertyListFormat format, CFOptionFlags options,
-                     CFErrorRef *error);
 #endif
 
 #endif /* __COREFOUNDATION_CFPROPERTYLIST_H__ */

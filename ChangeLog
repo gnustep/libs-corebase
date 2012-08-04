@@ -1,5 +1,12 @@
 2012-08-04 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CFPropertyList.h:
+	* Source/CFPropertyList.m: Replace ObjC wrapper with a C implementation.
+	* Source/CFPropertyList.c: Stub implementation for CFPropertyList.
+	functions.
+
+2012-08-04 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFXMLNode.c: Rearrange __CFXMLNode structure.
 	* Source/CFXMLParser.c: Implement CFXMLParserClass and
 	CFXMLParserCreate().
