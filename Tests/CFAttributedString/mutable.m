@@ -22,10 +22,10 @@ int main (void)
                                   (CFDictionaryRef)attrib1);
   
   mstr = CFAttributedStringCreateMutableCopy (NULL, 0, str);
-  PASS (mstr != NULL, "Mutable attributed string was created.");
+  PASS_CF(mstr != NULL, "Mutable attributed string was created.");
   
   curAttrib = CFAttributedStringGetAttributes (str, 10, &r);
-  PASS (r.location == 0 && r.length == 17, "Attribute range is (%d, %d).",
+  PASS_CF(r.location == 0 && r.length == 17, "Attribute range is (%d, %d).",
         (int)r.location, (int)r.length);
   PASS_CFEQ (curAttrib, attrib1, "First set of attributes are the same.");
   
@@ -40,11 +40,11 @@ int main (void)
   CFDictionaryAddValue (attrib2, keys[0], values[0]);
   
   curAttrib = CFAttributedStringGetAttributes (mstr, 10, &r);
-  PASS (r.location == 5 && r.length == 10, "Attribute range is (%d, %d).",
+  PASS_CF(r.location == 5 && r.length == 10, "Attribute range is (%d, %d).",
         (int)r.location, (int)r.length);
   PASS_CFEQ (curAttrib, attrib2, "Second set of attributes are the same.");
   curAttrib = CFAttributedStringGetAttributes (mstr, 16, &r);
-  PASS (r.location == 15 && r.length == 2, "Attribute range is (%d, %d).",
+  PASS_CF(r.location == 15 && r.length == 2, "Attribute range is (%d, %d).",
         (int)r.location, (int)r.length);
   PASS_CFEQ (curAttrib, attrib1, "Previous attributes are adjusted.");
   
@@ -56,7 +56,7 @@ int main (void)
                                 &kCFTypeDictionaryValueCallBacks);
   CFAttributedStringSetAttributes (mstr, CFRangeMake (10, 7), attrib3, true);
   curAttrib = CFAttributedStringGetAttributes (mstr, 11, &r);
-  PASS (r.location == 10 && r.length == 7, "Attribute range is (%d, %d).",
+  PASS_CF(r.location == 10 && r.length == 7, "Attribute range is (%d, %d).",
         (int)r.location, (int)r.length);
   PASS_CFEQ (curAttrib, attrib3, "Third set of attributes are the same.");
   

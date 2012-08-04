@@ -21,26 +21,26 @@ int main (void)
   CFIndex buf[ARRAY_SIZE + 1];
   
   a = CFArrayCreate (NULL, (const void**)&array, ARRAY_SIZE, NULL);
-  PASS(a != NULL, "CFArray created.");
+  PASS_CF(a != NULL, "CFArray created.");
   
   ma = CFArrayCreateMutableCopy (NULL, 6, a);
-  PASS(ma != NULL, "CFMutableArray created.");
+  PASS_CF(ma != NULL, "CFMutableArray created.");
   
   n = 7;
   CFArrayAppendValue (ma, (const void*)n);
   len = CFArrayGetCount ((CFArrayRef)ma);
-  PASS(len == ARRAY_SIZE + 1, "CFMutableArray has correct number of values.");
+  PASS_CF(len == ARRAY_SIZE + 1, "CFMutableArray has correct number of values.");
   
   CFArraySortValues (ma, CFRangeMake(0, len), comp, NULL);
   CFArrayGetValues (ma, CFRangeMake(0, len), (const void**)buf);
-  PASS(memcmp(buf, sorted, sizeof(CFIndex) * ARRAY_SIZE) == 0,
+  PASS_CF(memcmp(buf, sorted, sizeof(CFIndex) * ARRAY_SIZE) == 0,
     "Array sorted correctly.");
   
   n = CFArrayBSearchValues (ma, CFRangeMake(2, len - 2), (const void*)5, comp, NULL);
-  PASS(n == 4, "Index of number 5 is %d.", (int)n);
+  PASS_CF(n == 4, "Index of number 5 is %d.", (int)n);
   
   n = CFArrayBSearchValues (ma, CFRangeMake(0, len), (const void*)6, comp, NULL);
-  PASS(n == 5, "Index of value between values is %d.", (int)n);
+  PASS_CF(n == 5, "Index of value between values is %d.", (int)n);
   
   return 0;
 }

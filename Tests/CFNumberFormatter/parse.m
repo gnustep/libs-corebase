@@ -20,37 +20,37 @@ int main (void)
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterNoStyle);
   str = CFSTR("16");
-  PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
+  PASS_CF(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt8Type, &int_8) == true, "Got SInt8 value");
-  PASS(int_8 == 16, "SInt8 value is '%d'", (int)int_8);
+  PASS_CF(int_8 == 16, "SInt8 value is '%d'", (int)int_8);
   
   str = CFSTR("300.0");
-  PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
+  PASS_CF(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt16Type, &int_16) == true, "Got SInt16 value");
-  PASS(int_16 == 300, "SInt16 value is '%d'", (int)int_16);
+  PASS_CF(int_16 == 300, "SInt16 value is '%d'", (int)int_16);
   CFRelease(nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterCurrencyStyle);
   str = CFSTR("$68456.50");
-  PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
+  PASS_CF(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt32Type, &int_32) == true, "Got SInt32 value");
-  PASS(int_32 == 68456, "SInt32 value is '%d'", (int)int_32);
+  PASS_CF(int_32 == 68456, "SInt32 value is '%d'", (int)int_32);
   CFRelease (nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterScientificStyle);
   str = CFSTR("3.15E+8");
-  PASS(CFNumberFormatterGetValueFromString (nf, str, NULL,
+  PASS_CF(CFNumberFormatterGetValueFromString (nf, str, NULL,
     kCFNumberSInt64Type, &int_64) == true, "Got SInt64 value");
-  PASS(int_64 == 315000000, "SInt64 value is '%lld'", (long long)int_64);
+  PASS_CF(int_64 == 315000000, "SInt64 value is '%lld'", (long long)int_64);
   CFRelease (nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterPercentStyle);
   str = CFSTR("123.4%");
   range = CFRangeMake (1, 5);
-  PASS(CFNumberFormatterGetValueFromString (nf, str, &range,
+  PASS_CF(CFNumberFormatterGetValueFromString (nf, str, &range,
     kCFNumberDoubleType, &d) == true, "Got double value");
-  PASS(d == 0.234, "Double value is '%g'", d);
-  PASS((range.location == 1 && range.length == 5) , "Parsed complete length");
+  PASS_CF(d == 0.234, "Double value is '%g'", d);
+  PASS_CF((range.location == 1 && range.length == 5) , "Parsed complete length");
   CFRelease (nf);
   
   return 0;

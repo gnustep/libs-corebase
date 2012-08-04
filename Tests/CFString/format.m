@@ -1,5 +1,4 @@
 #include "CoreFoundation/CFString.h"
-#include "Testing.h"
 #include "../CFTesting.h"
 
 int main (void)

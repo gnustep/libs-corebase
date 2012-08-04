@@ -1,5 +1,10 @@
 2012-08-04 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Tests/CFTesting.h: Implement a version of pass() and PASS() so
+	that testing of Corebase types are not dependent of ObjC classes.
+
+2012-08-04 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CFPropertyList.h:
 	* Source/CFPropertyList.m: Replace ObjC wrapper with a C implementation.
 	* Source/CFPropertyList.c: Stub implementation for CFPropertyList.

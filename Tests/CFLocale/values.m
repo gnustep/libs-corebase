@@ -30,9 +30,9 @@ int main (void)
   obj = CFLocaleGetValue (locale, kCFLocaleCountryCode);
   PASS_CFEQ(obj, CFSTR("BR"), "Country code is 'BR'");
   obj = CFLocaleGetValue (locale, kCFLocaleScriptCode);
-  PASS(obj == NULL, "No script code for locale");
+  PASS_CF(obj == NULL, "No script code for locale");
   obj = CFLocaleGetValue (locale, kCFLocaleVariantCode);
-  PASS(obj == NULL, "No variant code for locale");
+  PASS_CF(obj == NULL, "No variant code for locale");
   obj = CFLocaleGetValue (locale, kCFLocaleCalendarIdentifier);
   PASS_CFEQ(obj, CFSTR("gregorian"), "Calendar is 'gregorian'");
   obj = CFLocaleGetValue (locale, kCFLocaleCalendar);

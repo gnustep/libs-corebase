@@ -9,16 +9,16 @@ int main (void)
   CFStringRef str;
   
   url = CFURLCreateWithString (NULL, CFSTR("http://www.gnustep.org"), NULL);
-  PASS(url != NULL, "URL created.");
+  PASS_CF(url != NULL, "URL created.");
   url2 = CFURLCopyAbsoluteURL (url);
-  PASS(url == url2, "Absolute URL of an absolute URL are the same.");
+  PASS_CF(url == url2, "Absolute URL of an absolute URL are the same.");
   
   CFRelease (url);
   CFRelease (url2);
   
   url = CFURLCreateWithString (NULL,
     CFSTR("http://user:password@www.w3.org:5/silly-file-path/"), NULL);
-  PASS(CFURLCanBeDecomposed(url) == true,
+  PASS_CF(CFURLCanBeDecomposed(url) == true,
     "http://user:password@www.w3.org:5/silly-file-path/ path can be decomposed");
   str = CFURLCopyPath (url);
   PASS_CFEQ(str, CFSTR("/silly-file-path/"), "Path of "
@@ -33,11 +33,11 @@ int main (void)
     "http://user:password@www.w3.org:5/silly-file-path/ is password");
   CFRelease (str);
   str = CFURLCopyResourceSpecifier (url);
-  PASS(str == NULL,
+  PASS_CF(str == NULL,
     "resourceSpecifier of http://www.w3.org/silly-file-path/ is NULL");
   
   url2 = CFURLCreateWithString (NULL, CFSTR("additional/string"), url);
-  PASS(CFURLCanBeDecomposed(url2) == true,
+  PASS_CF(CFURLCanBeDecomposed(url2) == true,
     "additional/string path can be decomposed since base URL is decomposable");
   str = CFURLGetString (url2);
   PASS_CFEQ(str, CFSTR("additional/string"), "String is additional/string");
@@ -46,16 +46,16 @@ int main (void)
     "Copied path is not resolved against base.");
   CFRelease (str);
   str = CFURLCopyResourceSpecifier (url2);
-  testHopeful = YES;
-  PASS(str == NULL, "Resource specifier of relative url is NULL");
-  testHopeful = NO;
+  testHopeful = true;
+  PASS_CF(str == NULL, "Resource specifier of relative url is NULL");
+  testHopeful = false;
   
   CFRelease (url);
   CFRelease (url2);
   
   url = CFURLCreateWithString (NULL,
     CFSTR("http://www.w3.org/silly-file-name?query#fragment"), NULL);
-  PASS(CFURLCanBeDecomposed(url) == true,
+  PASS_CF(CFURLCanBeDecomposed(url) == true,
     "http://www.w3.org/silly-file-name?query#fragment path can be decomposed");
   str = CFURLCopyScheme (url);
   PASS_CFEQ(str, CFSTR("http"),
@@ -99,7 +99,7 @@ int main (void)
   CFRelease(url);
   
   url = CFURLCreateWithString (NULL, CFSTR("this isn't a URL"), NULL);
-  PASS(url == NULL, "URL with 'this isn't a URL' returns NULL");
+  PASS_CF(url == NULL, "URL with 'this isn't a URL' returns NULL");
   
   return 0;
 }

@@ -1,5 +1,4 @@
 #include "CoreFoundation/CFString.h"
-#include "Testing.h"
 #include "../CFTesting.h"
 
 int main (void)
@@ -8,10 +7,10 @@ int main (void)
   CFIndex num;
   
   num = CFStringGetMaximumSizeForEncoding (4, kCFStringEncodingUTF16);
-  PASS (num == 8, "Maximum size for 4 UTF-16 characters is 8 bytes.");
+  PASS_CF(num == 8, "Maximum size for 4 UTF-16 characters is 8 bytes.");
   
   num = CFStringGetMaximumSizeForEncoding (4, kCFStringEncodingUTF8);
-  PASS (num == 12, "Maximum size for 4 UTF-8 characters is 12 bytes.");
+  PASS_CF(num == 12, "Maximum size for 4 UTF-8 characters is 12 bytes.");
   
   str = CFStringConvertEncodingToIANACharSetName (kCFStringEncodingUTF16);
   PASS_CFEQ (str, CFSTR("UTF-16"), "Correctly converts to IANA Char Set.");

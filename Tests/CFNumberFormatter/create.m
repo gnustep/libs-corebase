@@ -12,7 +12,7 @@ int main (void)
   
   locale = CFLocaleCreate (NULL, CFSTR("en_GB"));
   fmt = CFNumberFormatterCreate (NULL, locale, kCFNumberFormatterNoStyle);
-  PASS(fmt != NULL, "CFNumberFormatterCreate() return non-nil");
+  PASS_CF(fmt != NULL, "CFNumberFormatterCreate() return non-nil");
   str = CFNumberFormatterCopyProperty (fmt,
     kCFNumberFormatterDefaultFormat);
   PASS_CFEQ(str, CFSTR("#"), "Default no-style format same as cocoa");
@@ -52,7 +52,7 @@ int main (void)
   CFRelease (fmt);
   
   fmt = CFNumberFormatterCreate (NULL, NULL, kCFNumberFormatterSpellOutStyle);
-  PASS(fmt != NULL,
+  PASS_CF(fmt != NULL,
     "CFNumberFormatterCreate() return non-nil for system locale");
   
   CFRelease ((CFTypeRef)locale);

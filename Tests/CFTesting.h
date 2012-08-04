@@ -1,14 +1,50 @@
+#include <stdio.h>
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFString.h>
 
-#include "Testing.h"
-
 #define CFTEST_BUFFER_SIZE 1024
+
+static Boolean testPassed = true;
+static Boolean testHopeful = false;
+
+static void cfpass(int passed, const char *format, ...)  __attribute__((unused)) __attribute__ ((format(printf, 2, 3)));
+static void cfpass(int passed, const char *format, ...)
+{
+  va_list args;
+  va_start(args, format);
+
+  if (passed)
+    {
+      fprintf(stderr, "Passed test:     ");
+      testPassed = true;
+    }
+#if	!defined(TESTDEV)
+  else if (true == testHopeful)
+    {
+      fprintf(stderr, "Dashed hope:     ");
+      testPassed = false;
+    }
+#endif
+  else
+    {
+      fprintf(stderr, "Failed test:     ");
+      testPassed = false;
+    }
+  vfprintf(stderr, format, args);
+  fprintf(stderr, "\n");
+  va_end(args);
+#if	defined(FAILFAST)
+  if (false == testPassed && false == testHopeful)
+    {
+      exit(1);	// Abandon testing now.
+    }
+#endif
+}
 
 #define PASS_CFEQ(cf1__, cf2__, testFormat__, ...) do \
 { \
-  pass((CFEqual((CFTypeRef)(cf1__), (CFTypeRef)(cf2__)) ? YES : NO), "%s:%d ... " testFormat__, __FILE__, __LINE__, ## __VA_ARGS__); \
-  if (NO == testPassed) \
+  cfpass((CFEqual((CFTypeRef)(cf1__), (CFTypeRef)(cf2__)) ? true : false), "%s:%d ... " testFormat__, __FILE__, __LINE__, ## __VA_ARGS__); \
+  if (false == testPassed) \
     { \
       CFStringRef str1__; \
       CFStringRef str2__; \
@@ -30,8 +66,8 @@
 
 #define PASS_CFNEQ(cf1__, cf2__, testFormat__, ...) do \
 { \
-  pass((CFEqual((CFTypeRef)(cf1__), (CFTypeRef)(cf2__)) ? NO : YES), "%s:%d ... " testFormat__, __FILE__, __LINE__, ## __VA_ARGS__); \
-  if (NO == testPassed) \
+  cfpass((CFEqual((CFTypeRef)(cf1__), (CFTypeRef)(cf2__)) ? false : true), "%s:%d ... " testFormat__, __FILE__, __LINE__, ## __VA_ARGS__); \
+  if (false == testPassed) \
     { \
       CFStringRef str1__; \
       CFStringRef str2__; \
@@ -50,3 +86,9 @@
         expr); \
     } \
 } while (0)
+
+#define PASS_CF(exp__, testFormat__, ...) do \
+{ \
+  cfpass(exp__, "%s:%d ... " testFormat__, __FILE__, __LINE__, ## __VA_ARGS__); \
+} while (0)
+

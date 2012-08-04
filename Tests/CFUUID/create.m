@@ -1,6 +1,5 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFUUID.h"
-#include "Testing.h"
 #include "../CFTesting.h"
 
 int main (void)
@@ -10,7 +9,7 @@ int main (void)
   CFUUIDRef uuid2;
   
   uuid1 = CFUUIDCreate (NULL);
-  PASS (uuid1 != NULL, "CFUUIDCreate() returns non-NULL.");
+  PASS_CF(uuid1 != NULL, "CFUUIDCreate() returns non-NULL.");
   if (uuid1 == NULL)
     return 1;
   
@@ -19,7 +18,7 @@ int main (void)
   CFRelease(uuid2);
   
   str = CFUUIDCreateString (NULL, uuid1);
-  PASS (str != NULL, "CFUUIDCreateString() returns non-NULL.");
+  PASS_CF(str != NULL, "CFUUIDCreateString() returns non-NULL.");
   
   CFRelease (uuid1);
   CFRelease (str);

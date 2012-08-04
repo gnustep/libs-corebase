@@ -17,13 +17,13 @@ int main (void)
   
   str = CFAttributedStringCreate (NULL, CFSTR("This is a string!"),
                                   (CFDictionaryRef)attribs);
-  PASS (str != NULL
+  PASS_CF(str != NULL
         && CFEqual(CFAttributedStringGetString(str), CFSTR("This is a string!"))
         && CFAttributedStringGetLength(str) == 17,
         "Attributed string was correctly created.");
   
   attrOut = CFAttributedStringGetAttributes (str, 2, &r);
-  PASS (r.location == 0 && r.length == 17, "Attribute range is (%d, %d).",
+  PASS_CF(r.location == 0 && r.length == 17, "Attribute range is (%d, %d).",
         (int)r.location, (int)r.length);
   PASS_CFEQ (attrOut, attribs, "Attributes are the same.");
   
@@ -31,7 +31,7 @@ int main (void)
   PASS_CFEQ (str, str2, "Copied attributed string is equal.");
   
   attrOut = CFAttributedStringGetAttributes (str, 10, &r);
-  PASS (r.location == 0 && r.length == 17, "Copied attribute range is (%d, %d).",
+  PASS_CF(r.location == 0 && r.length == 17, "Copied attribute range is (%d, %d).",
         (int)r.location, (int)r.length);
   PASS_CFEQ (attrOut, attribs, "Copied attributes are the same.");
   

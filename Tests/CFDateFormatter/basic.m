@@ -25,10 +25,10 @@ int main (void)
     "Absolute time can be formatted using full date style.");
   CFRelease(str);
   
-  PASS(CFDateFormatterGetAbsoluteTimeFromString (fmt,
+  PASS_CF(CFDateFormatterGetAbsoluteTimeFromString (fmt,
        CFSTR("Montag, 1. Januar 2011 23:00"), NULL, &at),
        "Absolute time gotten for 2/1/2003");
-  PASS(at == 315612000.0,
+  PASS_CF(at == 315612000.0,
     "Absolute time for Montag, 1. Januar 2011 23:00 is %f", at);
   
   CFRelease(fmt);
@@ -40,11 +40,11 @@ int main (void)
     "Absolute time can be formatted using no date style.");
   CFRelease(str);
   
-  PASS(CFDateFormatterGetAbsoluteTimeFromString (fmt,
+  PASS_CF(CFDateFormatterGetAbsoluteTimeFromString (fmt,
                                                  CFSTR("20050403 02:01 vorm."),
                                                  NULL, &at),
     "Absolute time gotten for 20050403 02:01 vorm.");
-  PASS(at == 134186460.0,
+  PASS_CF(at == 134186460.0,
     "Absolute time for 20050403 02:01 vorm. is %f", at);
   
   CFRelease(fmt);

@@ -1,6 +1,5 @@
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFTimeZone.h"
-#include "Testing.h"
 #include "../CFTesting.h"
 
 int main (void)
@@ -11,7 +10,7 @@ int main (void)
   CFAbsoluteTime at;
   
   tz = CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, 0.0);
-  PASS(tz != NULL, "CFTimeZone create successfully.");
+  PASS_CF(tz != NULL, "CFTimeZone create successfully.");
   PASS_CFEQ(CFTimeZoneGetName(tz), CFSTR("GMT+00:00"),
     "CFTimeZone has correct name.");
   
@@ -19,10 +18,10 @@ int main (void)
   PASS_CFEQ(str, CFSTR("GMT+00:00"), "Time zone abbreviations are equal.");
   
   ti = CFTimeZoneGetSecondsFromGMT (tz, 0.0);
-  PASS(ti == 0.0, "GMT+00:00 offset from GMT is %g", ti);
+  PASS_CF(ti == 0.0, "GMT+00:00 offset from GMT is %g", ti);
   
   at = CFTimeZoneGetNextDaylightSavingTimeTransition (tz, 0.0);
-  PASS(at == 0.0, "Next transition for GMT+00:00 is %g", at);
+  PASS_CF(at == 0.0, "Next transition for GMT+00:00 is %g", at);
   
   CFRelease (str);
   CFRelease (tz);

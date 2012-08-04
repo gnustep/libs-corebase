@@ -10,20 +10,20 @@ int main (void)
   CFIndex n;
   
   a = CFArrayCreate (NULL, (const void**)&array, ARRAY_SIZE, NULL);
-  PASS(a != NULL, "CFArray created.");
+  PASS_CF(a != NULL, "CFArray created.");
   
   n = CFArrayGetCount (a);
-  PASS(n == ARRAY_SIZE, "CFArray has correct number of values.");
+  PASS_CF(n == ARRAY_SIZE, "CFArray has correct number of values.");
   n = (CFIndex)CFArrayGetCountOfValue (a, CFRangeMake(0, ARRAY_SIZE), (const void*)3);
-  PASS(n == 1, "Found 1 occurence of the %d.", (int)n);
+  PASS_CF(n == 1, "Found 1 occurence of the %d.", (int)n);
   
   n = (CFIndex)CFArrayGetValueAtIndex (a, 1);
-  PASS(n == 2, "Found value at index %d.", (int)n);
+  PASS_CF(n == 2, "Found value at index %d.", (int)n);
   
   CFRelease (a);
   
   a = CFArrayCreate (NULL, NULL, 0, NULL);
-  PASS (a != NULL, "An array with no values return non-NULL.");
+  PASS_CF(a != NULL, "An array with no values return non-NULL.");
   
   return 0;
 }

@@ -187,7 +187,7 @@ int main (void)
   
   pt = GSPointCreate (NULL, 0, 0);
   PASS_CFEQ((CFTypeRef)pt, (CFTypeRef)kGSPointOrigin, "Points are equal");
-  PASS(CFHash((CFTypeRef)pt) == CFHash((CFTypeRef)kGSPointOrigin),
+  PASS_CF(CFHash((CFTypeRef)pt) == CFHash((CFTypeRef)kGSPointOrigin),
        "Points have same hash code.");
   PASS_CFEQ(CFCopyDescription((CFTypeRef)pt), CFSTR("(0, 0)"),
             "Description is correct.");
@@ -196,17 +196,17 @@ int main (void)
   
   // Test the toll-free bridge mechanism
   bpt = [[GSPoint alloc] initWithX: 0 Y: 0];
-  PASS(bpt != nil, "-initWithX:Y: returns non-nil");
+  PASS_CF(bpt != nil, "-initWithX:Y: returns non-nil");
   PASS_CFEQ(pt, bpt, "CF object and ObjC object are the same");
   PASS_CFEQ(CFCopyDescription((CFTypeRef)bpt), CFSTR("(0, 0)"),
             "ObjC returns same description as CF object");
   
-  START_SET("Retain/Release Tests")
+/*  START_SET("Retain/Release Tests")
     RETAIN((id)pt);
     CFRetain(bpt);
     CFRelease((CFTypeRef)pt);
     RELEASE(bpt);
-  END_SET("Retain/Release Tests")
+  END_SET("Retain/Release Tests") */
   
   RELEASE(bpt);
   CFRelease((CFTypeRef)pt);

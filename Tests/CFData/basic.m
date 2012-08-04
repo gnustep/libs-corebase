@@ -11,7 +11,7 @@ int main (void)
   UInt8 *copy;
   
   data = CFDataCreate (NULL, bytes, sizeof(bytes));
-  PASS(data != NULL, "Data created.");
+  PASS_CF(data != NULL, "Data created.");
   
   length = CFDataGetLength (data);
   copy = CFAllocatorAllocate (NULL, length, 0);
