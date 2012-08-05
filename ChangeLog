@@ -1,3 +1,8 @@
+2012-08-05 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFDictionary.c: Implement CFDictionaryApplyFunction().
+	* Source/GSHashTable.c: Reduce count when key-value pair is removed.
+
 2012-08-04 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Tests/CFTesting.h: Implement a version of pass() and PASS() so

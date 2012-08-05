@@ -658,6 +658,7 @@ GSHashTableRemoveValue (GSHashTableRef table, const void *key)
   else if (bucket->count == 1)
     {
       GSHashTableRemoveKeyValuePair (table, bucket);
+      table->_count -= 1;
     }
 }
 
