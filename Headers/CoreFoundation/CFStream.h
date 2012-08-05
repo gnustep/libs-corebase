@@ -29,6 +29,7 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFError.h>
+#include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFURL.h>
 
 typedef struct CFWriteStream *CFWriteStreamRef;

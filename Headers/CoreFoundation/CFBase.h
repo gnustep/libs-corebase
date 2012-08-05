@@ -294,7 +294,7 @@ CF_EXPORT const double kCFCoreFoundationVersionNumber;
 /*
  *CFPropertyList
  */
-typedef struct CFPropertyList *CFPropertyListRef;
+typedef CFTypeRef CFPropertyListRef;
 
 /*
  * CFString

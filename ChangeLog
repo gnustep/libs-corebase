@@ -1,5 +1,14 @@
 2012-08-05 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Headers/CoreFoundation/CoreFoundation.h: Include CFPropertyList.h
+	and CFStream.h.
+	* Headers/CoreFoundation/CFRunLoop.h: Protect against multiple inclusion.
+	* Headers/CoreFoundation/CFBase.h: Fix CFPropertyListRef definition.
+	* Headers/CoreFoundation/CFStream.h: Include CFRunLoop.h.
+	* Source/GNUmakefile.in: Install CFPropertyList.h and CFStream.h.
+
+2012-08-05 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFDictionary.c: Implement CFDictionaryApplyFunction().
 	* Source/GSHashTable.c: Reduce count when key-value pair is removed.
 
