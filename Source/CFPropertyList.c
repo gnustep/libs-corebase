@@ -30,8 +30,134 @@
 #include "CoreFoundation/CFDate.h"
 #include "CoreFoundation/CFDictionary.h"
 #include "CoreFoundation/CFNumber.h"
+#include "CoreFoundation/CFSet.h"
 #include "CoreFoundation/CFString.h"
-//#include "CoreFoundation/CFStream.h"
+#include "CoreFoundation/CFStream.h"
+
+static CFTypeID _kCFArrayTypeID = 0;
+static CFTypeID _kCFBooleanTypeID = 0;
+static CFTypeID _kCFDataTypeID = 0;
+static CFTypeID _kCFDateTypeID = 0;
+static CFTypeID _kCFDictionaryTypeID = 0;
+static CFTypeID _kCFNumberTypeID = 0;
+static CFTypeID _kCFStringTypeID = 0;
+static Boolean  _kCFPropertyListTypeIDsInitialized = false;
+
+struct CFPListContext
+{
+  Boolean  isValid;
+  CFPropertyListFormat fmt;
+  CFMutableSetRef set; /* Used to check for cycles */
+};
+
+static void
+CFPropertyListInitTypeIDs (void)
+{
+  if (_kCFPropertyListTypeIDsInitialized)
+    return;
+  
+  _kCFPropertyListTypeIDsInitialized = true;
+  _kCFArrayTypeID = CFArrayGetTypeID ();
+  _kCFBooleanTypeID = CFBooleanGetTypeID ();
+  _kCFDataTypeID = CFDataGetTypeID ();
+  _kCFDateTypeID = CFDateGetTypeID ();
+  _kCFDictionaryTypeID = CFDictionaryGetTypeID ();
+  _kCFNumberTypeID = CFNumberGetTypeID ();
+  _kCFStringTypeID = CFStringGetTypeID ();
+}
+
+static Boolean
+CFPListTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
+                    CFMutableSetRef set);
+
+static void
+CFArrayIsValidFunction (const void *value, void *context)
+{
+  struct CFPListContext *ctx = (struct CFPListContext*)context;
+  
+  if (ctx->isValid)
+    ctx->isValid = value && CFPListTypeIsValid (value, ctx->fmt, ctx->set);
+}
+
+static void
+CFDictionaryIsValidFunction (const void *key, const void *value,
+                             void *context)
+{
+  struct CFPListContext *ctx = (struct CFPListContext*)context;
+  
+  if (ctx->isValid)
+    {
+      ctx->isValid = key
+                     && (CFGetTypeID (key) == _kCFStringTypeID)
+                     && value
+                     && CFPListTypeIsValid (value, ctx->fmt, ctx->set);
+    }
+}
+
+static Boolean
+CFPListTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
+                    CFMutableSetRef set)
+{
+  CFTypeID typeID;
+  
+  CFPropertyListInitTypeIDs ();
+  typeID = CFGetTypeID (plist);
+  if (typeID == _kCFDataTypeID || typeID == _kCFStringTypeID)
+    return true;
+  if (fmt != kCFPropertyListOpenStepFormat)
+    {
+      /* These are not supported by the OPENSTEP property list format. */
+      if (typeID == _kCFBooleanTypeID
+          || typeID == _kCFDateTypeID
+          || typeID == _kCFNumberTypeID)
+        return true;
+    }
+  
+  /* Check for cycles */
+  if (CFSetContainsValue (set, plist))
+    return false;
+  
+  CFSetAddValue (set, plist);
+  if (typeID == _kCFArrayTypeID)
+    {
+      CFRange range;
+      struct CFPListContext ctx;
+      
+      range = CFRangeMake (0, CFArrayGetCount(plist));
+      ctx.isValid = true;
+      ctx.fmt = fmt;
+      ctx.set = set;
+      CFArrayApplyFunction (plist, range, CFArrayIsValidFunction, &ctx);
+      CFSetRemoveValue (set, plist);
+      
+      return ctx.isValid;
+    }
+  else if (typeID == _kCFDictionaryTypeID)
+    {
+      struct CFPListContext ctx;
+      
+      ctx.isValid = true;
+      ctx.fmt = fmt;
+      ctx.set = set;
+      CFDictionaryApplyFunction (plist, CFDictionaryIsValidFunction, &ctx);
+      CFSetRemoveValue (set, plist);
+      
+      return ctx.isValid;
+    }
+  
+  return false;
+}
+
+Boolean
+CFPropertyListIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt)
+{
+  CFMutableSetRef set;
+  Boolean ret;
+  set = CFSetCreateMutable (NULL, 0, &kCFTypeSetCallBacks);
+  ret = CFPListTypeIsValid (plist, fmt, set);
+  CFRelease (set);
+  return ret;
+}
 
 CFPropertyListRef
 CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef pList,
@@ -72,11 +198,7 @@ CFPropertyListWrite (CFPropertyListRef pList, CFWriteStreamRef stream,
   return 0;
 }
 
-Boolean
-CFPropertyListIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt)
-{
-  return false;
-}
+
 
 /* The following functions are marked as obsolete as of Mac OS X 10.6.  They
  * will be implemented here as wrappers around the new functions.
@@ -84,8 +206,8 @@ CFPropertyListIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt)
 CFDataRef
 CFPropertyListCreateXMLData (CFAllocatorRef alloc, CFPropertyListRef pList)
 {
-  return CFPropertyListCreateData(alloc, pList, kCFPropertyListXMLFormat_v1_0,
-                                  0, NULL);
+  return CFPropertyListCreateData (alloc, pList, kCFPropertyListXMLFormat_v1_0,
+                                   0, NULL);
 }
 
 CFIndex

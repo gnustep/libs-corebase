@@ -29,6 +29,7 @@ libgnustep-corebase_C_FILES = \
   CFLocale.c \
   CFNumber.c \
   CFNumberFormatter.c \
+  CFPropertyList.c \
   CFRuntime.c \
   CFSet.c \
   CFString.c \

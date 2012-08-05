@@ -1,5 +1,11 @@
 2012-08-05 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/GNUmakefile.in: Include CFPropertyList.c in build.
+	* Source/CFPropertyList.c: Implement CFPropertyListIsValid().
+	* Tests/CFPropertyList/validate.m: Tests for CFPropertyListIsValid().
+
+2012-08-05 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Headers/CoreFoundation/CoreFoundation.h: Include CFPropertyList.h
 	and CFStream.h.
 	* Headers/CoreFoundation/CFRunLoop.h: Protect against multiple inclusion.
