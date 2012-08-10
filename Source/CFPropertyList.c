@@ -208,7 +208,19 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
       cnt = CFArrayGetCount (plist);
       if (opts == kCFPropertyListImmutable)
         {
+          CFIndex i;
+          CFTypeRef *values;
+          CFArrayRef array;
+          CFRange range;
           
+          values = CFAllocatorAllocate (alloc, cnt * sizeof(CFTypeRef), 0);
+          range = CFRangeMake (0, cnt);
+          CFArrayGetValues (plist, range, values);
+          for (i = 0 ; i < cnt ; ++i)
+            values[i] = CFPropertyListCreateDeepCopy (alloc, values[i], opts);
+          array = CFArrayCreate (alloc, values, cnt, &kCFTypeArrayCallBacks);
+          for (i = 0 ; i < cnt ; ++i)
+            CFRelease (values[i]);
         }
       else
         {
@@ -231,7 +243,21 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
       cnt = CFDictionaryGetCount (plist);
       if (opts == kCFPropertyListImmutable)
         {
+          CFIndex i;
+          CFTypeRef *keys;
+          CFTypeRef *values;
+          CFDictionaryRef dict;
           
+          keys = CFAllocatorAllocate (alloc, 2 * cnt * sizeof(CFTypeRef), 0);
+          values = keys + cnt;
+          CFDictionaryGetKeysAndValues (plist, keys, values);
+          for (i = 0 ; i < cnt ; ++i)
+            values[i] = CFPropertyListCreateDeepCopy (alloc, values[i], opts);
+          dict = CFDictionaryCreate (alloc, keys, values, cnt,
+                                     &kCFCopyStringDictionaryKeyCallBacks,
+                                     &kCFTypeDictionaryValueCallBacks);
+          for (i = 0 ; i < cnt ; ++i)
+            CFRelease (values[i]);
         }
       else
         {
