@@ -1,5 +1,13 @@
 2012-08-05 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFDate.c: Added copy, equal and hash functions.
+	* Source/CFNumber.c: Added copy function.
+	* Source/CFPropertyList.c: Implement CFPropertyListCreateDeepCopy().
+	* Source/GSPrivate.h:
+	* Source/CFRuntime.c: Added a function to copy CFTypeRefs.
+
+2012-08-05 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/GNUmakefile.in: Include CFPropertyList.c in build.
 	* Source/CFPropertyList.c: Implement CFPropertyListIsValid().
 	* Tests/CFPropertyList/validate.m: Tests for CFPropertyListIsValid().

@@ -34,6 +34,8 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStream.h"
 
+#include "GSPrivate.h"
+
 static CFTypeID _kCFArrayTypeID = 0;
 static CFTypeID _kCFBooleanTypeID = 0;
 static CFTypeID _kCFDataTypeID = 0;
@@ -43,7 +45,7 @@ static CFTypeID _kCFNumberTypeID = 0;
 static CFTypeID _kCFStringTypeID = 0;
 static Boolean  _kCFPropertyListTypeIDsInitialized = false;
 
-struct CFPListContext
+struct CFPListIsValidContext
 {
   Boolean  isValid;
   CFPropertyListFormat fmt;
@@ -73,7 +75,7 @@ CFPListTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
 static void
 CFArrayIsValidFunction (const void *value, void *context)
 {
-  struct CFPListContext *ctx = (struct CFPListContext*)context;
+  struct CFPListIsValidContext *ctx = (struct CFPListIsValidContext*)context;
   
   if (ctx->isValid)
     ctx->isValid = value && CFPListTypeIsValid (value, ctx->fmt, ctx->set);
@@ -83,7 +85,7 @@ static void
 CFDictionaryIsValidFunction (const void *key, const void *value,
                              void *context)
 {
-  struct CFPListContext *ctx = (struct CFPListContext*)context;
+  struct CFPListIsValidContext *ctx = (struct CFPListIsValidContext*)context;
   
   if (ctx->isValid)
     {
@@ -121,7 +123,7 @@ CFPListTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
   if (typeID == _kCFArrayTypeID)
     {
       CFRange range;
-      struct CFPListContext ctx;
+      struct CFPListIsValidContext ctx;
       
       range = CFRangeMake (0, CFArrayGetCount(plist));
       ctx.isValid = true;
@@ -134,7 +136,7 @@ CFPListTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
     }
   else if (typeID == _kCFDictionaryTypeID)
     {
-      struct CFPListContext ctx;
+      struct CFPListIsValidContext ctx;
       
       ctx.isValid = true;
       ctx.fmt = fmt;
@@ -159,11 +161,122 @@ CFPropertyListIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt)
   return ret;
 }
 
+struct CFPListCopyContext
+{
+  CFOptionFlags  opts;
+  CFAllocatorRef alloc;
+  CFTypeRef      container;
+};
+
+static void
+CFArrayCopyFunction (const void *value, void *context)
+{
+  CFPropertyListRef newValue;
+  struct CFPListCopyContext *ctx = (struct CFPListCopyContext*)context;
+  CFMutableArrayRef array = (CFMutableArrayRef)ctx->container;
+  
+  newValue = CFPropertyListCreateDeepCopy (ctx->alloc, value, ctx->opts);
+  CFArrayAppendValue (array, newValue);
+  CFRelease (newValue);
+}
+
+static void
+CFDictionaryCopyFunction (const void *key, const void *value,
+                          void *context)
+{
+  CFPropertyListRef newValue;
+  struct CFPListCopyContext *ctx = (struct CFPListCopyContext*)context;
+  CFMutableDictionaryRef dict = (CFMutableDictionaryRef)ctx->container;
+  
+  newValue = CFPropertyListCreateDeepCopy (ctx->alloc, value, ctx->opts);
+  CFDictionaryAddValue (dict, key, newValue);
+  CFRelease (newValue);
+}
+
 CFPropertyListRef
-CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef pList,
+CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
                               CFOptionFlags opts)
 {
-  return NULL;
+  CFPropertyListRef copy;
+  CFTypeID typeID;
+  
+  typeID = CFGetTypeID (plist);
+  if (typeID == _kCFArrayTypeID)
+    {
+      CFIndex cnt;
+      
+      cnt = CFArrayGetCount (plist);
+      if (opts == kCFPropertyListImmutable)
+        {
+          
+        }
+      else
+        {
+          struct CFPListCopyContext ctx;
+          CFMutableArrayRef array;
+          CFRange range;
+          
+          array = CFArrayCreateMutable (alloc, cnt, &kCFTypeArrayCallBacks);
+          ctx.opts = opts;
+          ctx.alloc = alloc;
+          ctx.container = (CFTypeRef)array;
+          range = CFRangeMake (0, cnt);
+          CFArrayApplyFunction (array, range, CFArrayCopyFunction, &ctx);
+        }
+    }
+  else if (typeID == _kCFDictionaryTypeID)
+    {
+      CFIndex cnt;
+      
+      cnt = CFDictionaryGetCount (plist);
+      if (opts == kCFPropertyListImmutable)
+        {
+          
+        }
+      else
+        {
+          struct CFPListCopyContext ctx;
+          CFMutableDictionaryRef dict;
+          
+          dict = CFDictionaryCreateMutable (alloc, cnt,
+                                            &kCFCopyStringDictionaryKeyCallBacks,
+                                            &kCFTypeDictionaryValueCallBacks);
+          ctx.opts = opts;
+          ctx.alloc = alloc;
+          ctx.container = (CFTypeRef)dict;
+          CFDictionaryApplyFunction (dict, CFDictionaryCopyFunction, &ctx);
+        }
+    }
+  else if (typeID == _kCFStringTypeID)
+    {
+      if (opts == kCFPropertyListMutableContainersAndLeaves)
+        copy = CFStringCreateMutableCopy (alloc, 0, plist);
+      else
+        copy = CFStringCreateCopy (alloc, plist);
+    }
+  else if (typeID == _kCFDataTypeID)
+    {
+      if (opts == kCFPropertyListMutableContainersAndLeaves)
+        copy = CFDataCreateMutableCopy (alloc, 0, plist);
+      else
+        copy = CFDataCreateCopy (alloc, plist);
+    }
+  else if (typeID == _kCFBooleanTypeID)
+    {
+      /* CFBoolean instances are singletons */
+      return plist;
+    }
+  else if (typeID == _kCFDateTypeID || typeID == _kCFNumberTypeID)
+    {
+      /* Take advantage of the runtime functions. */
+      return GSTypeCreateCopy (alloc, plist, typeID);
+    }
+  else
+    {
+      copy = NULL;
+    }
+  
+  return copy;
 }
 
 CFPropertyListRef

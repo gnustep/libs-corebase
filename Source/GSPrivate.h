@@ -102,6 +102,9 @@ CFIndex
 GSBSearch (const void *array, const void *key, CFRange range, CFIndex size,
   CFComparatorFunction comp, void *ctxt);
 
+CFTypeRef
+GSTypeCreateCopy (CFAllocatorRef alloc, CFTypeRef cf, CFTypeID typeID);
+
 /* All three of these function are taken from Thomas Wang's website
  * (http://www.concentric.net/~Ttwang/tech/inthash.htm).  As far as I know,
  * these algorithm are in the public domain.
