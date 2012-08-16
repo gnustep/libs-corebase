@@ -1,3 +1,9 @@
+2012-08-16 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStream.m: Delete.
+	* Source/CFStream.c: Add CFStream skeleton.
+	* Source/GNUmakefile: Include CFStream.c to build.
+
 2012-08-09 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFDate.c: Added copy, equal and hash functions.

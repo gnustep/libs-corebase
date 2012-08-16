@@ -32,6 +32,7 @@ libgnustep-corebase_C_FILES = \
   CFPropertyList.c \
   CFRuntime.c \
   CFSet.c \
+  CFStream.c \
   CFString.c \
   CFStringEncoding.c \
   CFStringFormat.c \

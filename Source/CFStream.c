@@ -1,9 +1,9 @@
-/* CFStream.m
+/* CFStream.c
    
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2012 Free Software Foundation, Inc.
    
    Written by: Stefan Bidigaray
-   Date: January, 2010
+   Date: August, 2012
    
    This file is part of GNUstep CoreBase Library.
    
@@ -24,84 +24,31 @@
    Boston, MA 02110-1301, USA.
 */
 
-#import <Foundation/NSStream.h>
-#import <Foundation/NSHost.h>
-#import <Foundation/NSURL.h>
-
+#include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFStream.h"
 
-void
-_CFStreamClose (CFTypeRef stream)
+CFTypeID
+CFWriteStreamGetTypeID (void)
 {
-  [(NSStream *)stream close];
+  return 0;
 }
 
-CFErrorRef
-_CFStreamCopyError (CFTypeRef stream)
+CFTypeID
+CFReadStreamGetTypeID (void)
 {
-  return (CFErrorRef)CFRetain([(NSStream *)stream streamError]);
+  return 0;
 }
-
-CFTypeRef
-_CFStreamCopyProperty (CFTypeRef stream, CFStringRef propertyName)
-{
-  return CFRetain([(NSStream *)stream propertyForKey: (NSString *)propertyName]);
-}
-
-Boolean
-_CFStreamSetProperty (CFTypeRef stream, CFStringRef propertyName,
-                      CFTypeRef propertyValue)
-{
-  return (Boolean)[(NSStream *)stream setProperty: (id)propertyValue
-                                           forKey: (NSString *)propertyName];
-}
-
-CFStreamError
-_CFStreamGetError (CFTypeRef stream)
-{
-  // FIXME
-  return (CFStreamError){0, 0};
-}
-
-CFStreamStatus
-_CFStreamGetStatus (CFTypeRef stream)
-{
-  return [(NSStream *)stream streamStatus];
-}
-
-Boolean
-_CFStreamOpen (CFTypeRef stream)
-{
-  [(NSStream *)stream open];
-  return (_CFStreamGetStatus (stream) == kCFStreamStatusOpen ? TRUE : FALSE);
-}
-
-void
-_CFStreamScheduleInRunLoop (CFTypeRef stream, CFRunLoopRef runLoop,
-                              CFStringRef runLoopMode)
-{
-  [(NSStream *)stream scheduleInRunLoop: (NSRunLoop *)runLoop
-                                forMode: (NSString *)runLoopMode];
-}
-
-void
-_CFStreamUnscheduleFromRunLoop (CFTypeRef stream, CFRunLoopRef runLoop,
-                               CFStringRef runLoopMode)
-{
-  [(NSStream *)stream removeFromRunLoop: (NSRunLoop *)runLoop
-                                forMode: (NSString *)runLoopMode];
-}
-
-
 
 void
 CFStreamCreateBoundPair (CFAllocatorRef alloc, CFReadStreamRef *readStream,
-                         CFWriteStreamRef *writeStream, CFIndex transferBufferSize)
+                         CFWriteStreamRef *writeStream,
+                         CFIndex transferBufferSize)
 {
   // FIXME
 }
 
-/*void
+/*
+void
 CFStreamCreatePairWithPeerSocketSignature (CFAllocatorRef alloc,
                                            const CFSocketSignature *signature,
                                            CFReadStreamRef *readStream,
@@ -118,15 +65,13 @@ CFStreamCreatePairWithSocket (CFAllocatorRef alloc, CFSocketNativeHandle sock,
   // FIXME
 }
 */
+
 void
 CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
                                     UInt32 port, CFReadStreamRef *readStream,
                                     CFWriteStreamRef *writeStream)
 {
-  [NSStream getStreamsToHost: [NSHost hostWithName: (NSString *)host]
-                        port: (NSUInteger)port
-                 inputStream: (NSInputStream **)readStream
-                outputStream: (NSOutputStream **)writeStream];
+  
 }
 
 
@@ -134,32 +79,31 @@ CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
 Boolean
 CFWriteStreamCanAcceptBytes (CFWriteStreamRef stream)
 {
-  return (Boolean)[(NSOutputStream *)stream hasSpaceAvailable];
+  return false;
 }
 
 void
 CFWriteStreamClose (CFWriteStreamRef stream)
 {
-  _CFStreamClose (stream);
+  
 }
 
 CFErrorRef
 CFWriteStreamCopyError (CFWriteStreamRef stream)
 {
-  return _CFStreamCopyError (stream);
+  return NULL;
 }
 
 CFTypeRef
 CFWriteStreamCopyProperty (CFWriteStreamRef stream, CFStringRef propertyName)
 {
-  return _CFStreamCopyProperty (stream, propertyName);
+  return NULL;
 }
 
 CFWriteStreamRef
 CFWriteStreamCreateWithAllocatedBuffers (CFAllocatorRef alloc,
                                          CFAllocatorRef bufferAllocator)
 {
-  // FIXME: ???
   return NULL;
 }
 
@@ -167,42 +111,32 @@ CFWriteStreamRef
 CFWriteStreamCreateWithBuffer (CFAllocatorRef alloc, UInt8 *buffer,
                                CFIndex bufferCapacity)
 {
-  return (CFWriteStreamRef)[[NSOutputStream alloc]
-                             initToBuffer: buffer
-                                 capacity: (NSUInteger)bufferCapacity];
+  return NULL;
 }
 
 CFWriteStreamRef
 CFWriteStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
 {
-  // FIXME: there's nothing in -base to set the append option at a later time.
-  return (CFWriteStreamRef)[[NSOutputStream alloc]
-                             initToFileAtPath: [(NSURL *)fileURL absoluteString]
-                                       append: NO];
+  return NULL;
 }
 
 CFStreamError
 CFWriteStreamGetError (CFWriteStreamRef stream)
 {
-  return _CFStreamGetError (stream);
+  CFStreamError error = { 0, 0 };
+  return error;
 }
 
 CFStreamStatus
 CFWriteStreamGetStatus (CFWriteStreamRef stream)
 {
-  return _CFStreamGetStatus (stream);
-}
-
-CFTypeID
-CFWriteStreamGetTypeID (void)
-{
-  return (CFTypeID)[NSOutputStream class];
+  return kCFStreamStatusError;
 }
 
 Boolean
 CFWriteStreamOpen (CFWriteStreamRef stream)
 {
-  return _CFStreamOpen (stream);
+  return false;
 }
 
 void
@@ -210,7 +144,7 @@ CFWriteStreamScheduleWithRunLoop (CFWriteStreamRef stream,
                                   CFRunLoopRef runLoop,
                                   CFStringRef runLoopMode)
 {
-  _CFStreamScheduleInRunLoop (stream, runLoop, runLoopMode);
+  ;
 }
 
 Boolean
@@ -218,15 +152,14 @@ CFWriteStreamSetClient (CFWriteStreamRef stream, CFOptionFlags streamEvents,
                         CFWriteStreamClientCallBack clientCB,
                         CFStreamClientContext *clientContext)
 {
-  // FIXME
-  return FALSE;
+  return false;
 }
 
 Boolean
 CFWriteStreamSetProperty (CFWriteStreamRef stream, CFStringRef propertyName,
                           CFTypeRef propertyValue)
 {
-  return _CFStreamSetProperty (stream, propertyName, propertyValue);
+  return false;
 }
 
 void
@@ -234,15 +167,14 @@ CFWriteStreamUnscheduleFromRunLoop (CFWriteStreamRef stream,
                                     CFRunLoopRef runLoop,
                                     CFStringRef runLoopMode)
 {
-  _CFStreamUnscheduleFromRunLoop (stream, runLoop, runLoopMode);
+  
 }
 
 CFIndex
 CFWriteStreamWrite (CFWriteStreamRef stream, const UInt8 *buffer,
                     CFIndex bufferLength)
 {
-  return (CFIndex)[(NSOutputStream *)stream write: buffer
-                                        maxLength: (NSUInteger)bufferLength];
+  return 0;
 }
 
 
@@ -250,86 +182,78 @@ CFWriteStreamWrite (CFWriteStreamRef stream, const UInt8 *buffer,
 void
 CFReadStreamClose (CFReadStreamRef stream)
 {
-  [(NSInputStream *)stream close];
+  
 }
 
 CFErrorRef
 CFReadStreamCopyError (CFReadStreamRef stream)
 {
-  return (CFErrorRef)[(NSInputStream *)stream streamError];
+  return NULL;
 }
 
 CFTypeRef
 CFReadStreamCopyProperty (CFReadStreamRef stream, CFStringRef propertyName)
 {
-  return _CFStreamCopyProperty (stream, propertyName);
+  return NULL;
 }
 
 CFReadStreamRef
 CFReadStreamCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
-                                   CFIndex length, CFAllocatorRef bytesDeallocator)
+                                   CFIndex length,
+                                   CFAllocatorRef bytesDeallocator)
 {
-  // FIXME
   return NULL;
 }
 
 CFReadStreamRef
 CFReadStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
 {
-  return (CFReadStreamRef)[[NSInputStream alloc]
-                           initWithFileAtPath: [(NSURL *)fileURL absoluteString]];
+  return NULL;
 }
 
 const UInt8 *
 CFReadStreamGetBuffer (CFReadStreamRef stream, CFIndex maxBytesToRead,
                        CFIndex *numBytesRead)
 {
-  // FIXME: docs are  bit confusing
   return NULL;
 }
 
 CFStreamError
 CFReadStreamGetError (CFReadStreamRef stream)
 {
-  return _CFStreamGetError (stream);
+  CFStreamError error = { 0, 0 };
+  return error;
 }
 
 CFStreamStatus
 CFReadStreamGetStatus (CFReadStreamRef stream)
 {
-  return (CFStreamStatus)[(NSInputStream *)stream streamStatus];
-}
-
-CFTypeID
-CFReadStreamGetTypeID (void)
-{
-  return (CFTypeID)[NSInputStream class];
+  return kCFStreamStatusError;
 }
 
 Boolean
 CFReadStreamHasBytesAvailable (CFReadStreamRef stream)
 {
-  return [(NSInputStream *)stream hasBytesAvailable];
+  return false;
 }
 
 Boolean
 CFReadStreamOpen (CFReadStreamRef stream)
 {
-  return _CFStreamOpen (stream);
+  return false;
 }
 
 CFIndex
 CFReadStreamRead (CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength)
 {
-  return (CFIndex)[(NSInputStream *)stream read: buffer
-                                      maxLength: (NSUInteger)bufferLength];
+  return 0;
 }
 
 void
 CFReadStreamScheduleWithRunLoop (CFReadStreamRef stream, CFRunLoopRef runLoop,
                                  CFStringRef runLoopMode)
 {
-  _CFStreamScheduleInRunLoop (stream, runLoop, runLoopMode);
+  
 }
 
 Boolean
@@ -337,21 +261,20 @@ CFReadStreamSetClient (CFReadStreamRef stream, CFOptionFlags streamEvents,
                        CFReadStreamClientCallBack clientCB,
                        CFStreamClientContext *clientContext)
 {
-  // FIXME
-  return FALSE;
+  return false;
 }
 
 Boolean
 CFReadStreamSetProperty (CFReadStreamRef stream, CFStringRef propertyName,
                          CFTypeRef propertyValue)
 {
-  return _CFStreamSetProperty (stream, propertyName, propertyValue);
+  return false;
 }
 
 void
 CFReadStreamUnscheduleFromRunLoop (CFReadStreamRef stream, CFRunLoopRef runLoop,
                                    CFStringRef runLoopMode)
 {
-  _CFStreamUnscheduleFromRunLoop (stream, runLoop, runLoopMode);
+  
 }
 

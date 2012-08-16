@@ -26,6 +26,7 @@
 
 #include "CoreFoundation/CFPropertyList.h"
 #include "CoreFoundation/CFArray.h"
+#include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFData.h"
 #include "CoreFoundation/CFDate.h"
 #include "CoreFoundation/CFDictionary.h"
@@ -310,7 +311,20 @@ CFPropertyListCreateWithData (CFAllocatorRef alloc, CFDataRef data,
                               CFOptionFlags opts, CFPropertyListFormat *fmt,
                               CFErrorRef *error)
 {
-  return NULL;
+  const UInt8 *bytes;
+  CFIndex length;
+  CFReadStreamRef stream;
+  CFPropertyListRef plist;
+  
+  bytes = CFDataGetBytePtr (data);
+  length = CFDataGetLength (data);
+  stream = CFReadStreamCreateWithBytesNoCopy (alloc, bytes, length,
+                                              kCFAllocatorNull);
+  plist = CFPropertyListCreateWithStream (alloc, stream, length, opts,
+                                          fmt, error);
+  CFRelease (stream);
+  
+  return plist;
 }
 
 CFPropertyListRef
@@ -322,15 +336,22 @@ CFPropertyListCreateWithStream (CFAllocatorRef alloc, CFReadStreamRef stream,
 }
 
 CFDataRef
-CFPropertyListCreateData (CFAllocatorRef alloc, CFPropertyListRef pList,
+CFPropertyListCreateData (CFAllocatorRef alloc, CFPropertyListRef plist,
                           CFPropertyListFormat fmt, CFOptionFlags opts,
                           CFErrorRef *error)
 {
-  return NULL;
+  CFDataRef data;
+  CFWriteStreamRef stream;
+  
+  stream = CFWriteStreamCreateWithAllocatedBuffers (alloc, alloc);
+  CFPropertyListWrite (plist, stream, fmt, opts, error);
+  data = CFWriteStreamCopyProperty (stream, kCFStreamPropertyDataWritten);
+  
+  return data;
 }
 
 CFIndex
-CFPropertyListWrite (CFPropertyListRef pList, CFWriteStreamRef stream,
+CFPropertyListWrite (CFPropertyListRef plist, CFWriteStreamRef stream,
                      CFPropertyListFormat fmt, CFOptionFlags opts,
                      CFErrorRef *error)
 {
@@ -343,20 +364,20 @@ CFPropertyListWrite (CFPropertyListRef pList, CFWriteStreamRef stream,
  * will be implemented here as wrappers around the new functions.
  */
 CFDataRef
-CFPropertyListCreateXMLData (CFAllocatorRef alloc, CFPropertyListRef pList)
+CFPropertyListCreateXMLData (CFAllocatorRef alloc, CFPropertyListRef plist)
 {
-  return CFPropertyListCreateData (alloc, pList, kCFPropertyListXMLFormat_v1_0,
+  return CFPropertyListCreateData (alloc, plist, kCFPropertyListXMLFormat_v1_0,
                                    0, NULL);
 }
 
 CFIndex
-CFPropertyListWriteToStream (CFPropertyListRef pList, CFWriteStreamRef stream,
+CFPropertyListWriteToStream (CFPropertyListRef plist, CFWriteStreamRef stream,
                              CFPropertyListFormat fmt, CFStringRef *errStr)
 {
   CFIndex ret;
   CFErrorRef err = NULL;
   
-  ret = CFPropertyListWrite (pList, stream, fmt, 0, &err);
+  ret = CFPropertyListWrite (plist, stream, fmt, 0, &err);
   if (err)
     {
       if (errStr)
