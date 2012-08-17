@@ -1,5 +1,12 @@
 2012-08-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Header/CoreFoundation/CFRunLoop.h:
+	* Source/GNUmakefile.in:
+	* Source/CFRunLoop.c:
+	* Source/CFRuntime.c: Add CFRunLoop skeleton.
+
+2012-08-16 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFStream.m: Delete.
 	* Source/CFStream.c: Add CFStream skeleton.
 	* Source/GNUmakefile: Include CFStream.c to build.

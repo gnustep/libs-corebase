@@ -437,6 +437,7 @@ extern void CFLocaleInitialize (void);
 extern void CFNullInitialize (void);
 extern void CFNumberInitialize (void);
 extern void CFNumberFormatterInitialize (void);
+extern void CFRunLoopInitialize (void);
 extern void CFSetInitialize (void);
 extern void CFStringInitialize (void);
 extern void CFStringEncodingInitialize (void);
@@ -484,6 +485,7 @@ void CFInitialize (void)
   CFNullInitialize ();
   CFNumberInitialize ();
   CFNumberFormatterInitialize ();
+  CFRunLoopInitialize ();
   CFSetInitialize ();
   CFStringInitialize ();
   CFStringEncodingInitialize ();

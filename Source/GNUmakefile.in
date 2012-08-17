@@ -30,6 +30,7 @@ libgnustep-corebase_C_FILES = \
   CFNumber.c \
   CFNumberFormatter.c \
   CFPropertyList.c \
+  CFRunLoop.c \
   CFRuntime.c \
   CFSet.c \
   CFStream.c \
