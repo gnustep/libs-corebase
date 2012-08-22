@@ -727,7 +727,7 @@ GSStringEncodingFromUnicode (CFStringEncoding encoding, char *dst,
             {
               char ibuffer[256]; /* Arbitrary buffer size */
               
-              targetLimit = ibuffer + 256;
+              targetLimit = ibuffer + 255;
               do
                 {
                   target = ibuffer;
@@ -791,7 +791,7 @@ GSStringEncodingToUnicode (CFStringEncoding encoding, UniChar *dst,
             {
               UniChar ibuffer[256]; /* Arbitrary buffer size */
               
-              targetLimit = ibuffer + 256;
+              targetLimit = ibuffer + 255;
               do
                 {
                   target = ibuffer;
