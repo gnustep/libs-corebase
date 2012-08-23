@@ -45,6 +45,7 @@ if test "$enable_objc_bridge" = "yes"; then
   if test "$GNUSTEP_CONFIG" != "no"; then
     OBJC_LIBS=`$GNUSTEP_CONFIG --objc-libs`
     LIBS="$LIBS $OBJC_LIBS"
+    AC_DEFINE(HAVE_LIBOBJC, 1)
   else
     AC_CHECK_HEADER(objc/runtime.h)
     if test "$ac_cv_header_objc_runtime_h" = "no"; then

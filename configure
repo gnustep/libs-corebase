@@ -4073,6 +4073,8 @@ fi
   if test "$GNUSTEP_CONFIG" != "no"; then
     OBJC_LIBS=`$GNUSTEP_CONFIG --objc-libs`
     LIBS="$LIBS $OBJC_LIBS"
+    $as_echo "#define HAVE_LIBOBJC 1" >>confdefs.h
+
   else
     ac_fn_c_check_header_mongrel "$LINENO" "objc/runtime.h" "ac_cv_header_objc_runtime_h" "$ac_includes_default"
 if test "x$ac_cv_header_objc_runtime_h" = xyes; then :
