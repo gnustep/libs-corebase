@@ -778,6 +778,7 @@ GSStringEncodingToUnicode (CFStringEncoding encoding, UniChar *dst,
           
           ucnv_toUnicode (ucnv, &bomStart, bomStart + 1, &source, sourceLimit,
             NULL, false, &err);
+          err = U_ZERO_ERROR;
         }
       
       ucnv_toUnicode (ucnv, &target, targetLimit, &source, sourceLimit, NULL,
