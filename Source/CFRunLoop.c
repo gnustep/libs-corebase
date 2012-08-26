@@ -180,7 +180,7 @@ CFRunLoopCopyCurrentMode (CFRunLoopRef rl)
   return NULL;
 }
 
-#if defined(__has_feature) && __has_feature(blocks)
+#if __BLOCKS__
 void
 CFRunLoopPerformBlock (CFRunLoopRef rl, CFTypeRef mode, void (^block)(void))
 {
