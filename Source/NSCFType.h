@@ -28,11 +28,12 @@
 #define __NSCFTYPE_H__
 
 #import <Foundation/NSObject.h>
+#import <GNUstepBase/GSObjCRuntime.h>
 
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFRuntime.h"
 
-extern Class *__CFRuntimeObjCClassTable;
+extern void **__CFRuntimeObjCClassTable;
 
 void NSCFInitialize (void);
 
@@ -50,19 +51,18 @@ CFRuntimeSetInstanceISA (CFTypeRef cf, Class cls)
 
 /* This is NSCFType, the ObjC class that all non-bridged CF types belong to.
  */
-@interface NSCFType : NSObject
-{
-  /* NSCFType's ivar layout must match CFRuntimeBase.
-   */
-  int16_t _typeID;
-  struct
-    {
-      int16_t ro:       1; // 0 = read-write object
-      int16_t unused:   7;
-      int16_t reserved: 8;
-    } _flags;
+#define NSCFTYPE_VARS { \
+  /* NSCFType's ivar layout must match CFRuntimeBase. */ \
+  int16_t _typeID; \
+  struct \
+    { \
+      int16_t ro:       1; \
+      int16_t unused:   7; \
+      int16_t reserved: 8; \
+    } _flags; \
 }
-
+@interface NSCFType : NSObject
+NSCFTYPE_VARS
 - (CFTypeID) _cfTypeID;
 @end
 

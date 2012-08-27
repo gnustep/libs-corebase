@@ -30,12 +30,18 @@
 #include "CoreFoundation/CFArray.h"
 
 @interface NSCFArray : NSMutableArray
+NSCFTYPE_VARS
 @end
 
 @implementation NSCFArray
 + (void) load
 {
   NSCFInitialize ();
+}
+
++ (void) initialize
+{
+  GSObjCAddClassBehavior (self, [NSCFType class]);
 }
 
 - (NSUInteger) count

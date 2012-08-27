@@ -33,12 +33,18 @@
 /* NSCFData inherits from NSMutableData and doesn't have any ivars
    because it is only an ObjC wrapper around CFData. */
 @interface NSCFData : NSMutableData
+NSCFTYPE_VARS
 @end
 
 @implementation NSCFData
 + (void) load
 {
   NSCFInitialize ();
+}
+
++ (void) initialize
+{
+  GSObjCAddClassBehavior (self, [NSCFType class]);
 }
 
 - (const void *) bytes
@@ -94,9 +100,5 @@
     (CFIndex)length);
 }
 
-- (CFTypeID) _cfTypeID
-{
-  return CFDataGetTypeID ();
-}
 @end
 
