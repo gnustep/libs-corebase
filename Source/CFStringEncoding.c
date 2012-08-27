@@ -14,7 +14,7 @@
 
    This library is disibuted in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -773,11 +773,15 @@ GSStringEncodingToUnicode (CFStringEncoding encoding, UniChar *dst,
       
       if (isExternalRepresentation)
         {
+          const char *tmpSrc;
           UniChar bom[1];
           UniChar *bomStart = bom;
           
-          ucnv_toUnicode (ucnv, &bomStart, bomStart + 1, &source, sourceLimit,
-            NULL, false, &err);
+          tmpSrc = source;
+          ucnv_toUnicode (ucnv, &bomStart, bomStart + 1, &tmpSrc, sourceLimit,
+                          NULL, false, &err);
+          if (bom[0] == UTF16_BOM)
+            source = tmpSrc;
           err = U_ZERO_ERROR;
         }
       
