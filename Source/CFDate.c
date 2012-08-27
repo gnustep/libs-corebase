@@ -44,15 +44,35 @@ struct __CFDate
 const CFTimeInterval kCFAbsoluteTimeIntervalSince1970 = 978307200.0;
 const CFTimeInterval kCFAbsoluteTimeIntervalSince1904 = 3061152000.0;
 
+static CFTypeRef
+CFDateCreateCopy (CFAllocatorRef alloc, CFTypeRef cf)
+{
+  CFDateRef date = (CFDateRef)cf;
+  return CFDateCreate (alloc, date->_absTime);
+}
+
+static Boolean
+CFDateEqual (CFTypeRef cf1, CFTypeRef cf2)
+{
+  return CFDateCompare ((CFDateRef)cf1, (CFDateRef)cf2, NULL)
+    == kCFCompareEqualTo;
+}
+
+static CFHashCode
+CFDateHash (CFTypeRef cf)
+{
+  return (CFHashCode)((CFDateRef)cf)->_absTime;
+}
+
 static const CFRuntimeClass CFDateClass =
 {
   0,
   "CFDate",
   NULL,
+  CFDateCreateCopy,
   NULL,
-  NULL,
-  NULL,
-  NULL,
+  CFDateEqual,
+  CFDateHash,
   NULL,
   NULL
 };

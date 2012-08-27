@@ -130,9 +130,22 @@ CFDictionaryCreateCopy (CFAllocatorRef allocator, CFDictionaryRef dict)
 
 void
 CFDictionaryApplyFunction (CFDictionaryRef dict,
-  CFDictionaryApplierFunction applier, void *context)
+                           CFDictionaryApplierFunction applier, void *context)
 {
+  CFIndex i;
+  CFIndex cnt;
+  const void **keys;
+  const void **values;
+  CFAllocatorRef alloc;
   
+  cnt = CFDictionaryGetCount (dict);
+  alloc = CFGetAllocator(dict);
+  keys = CFAllocatorAllocate (alloc, cnt * 2 * sizeof(void*), 0);
+  values = keys + cnt;
+  CFDictionaryGetKeysAndValues (dict, keys, values);
+  
+  for (i = 0; i < cnt; i++)
+    applier (keys[i], values[i], context);
 }
 
 Boolean

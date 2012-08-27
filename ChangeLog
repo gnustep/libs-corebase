@@ -1,3 +1,13 @@
+2012-08-09 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFDate.c: Added copy, equal and hash functions.
+	* Source/CFNumber.c: Added copy function.
+
+2012-08-05 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFDictionary.c: Implement CFDictionaryApplyFunction().
+	* Source/GSHashTable.c: Reduce count when key-value pair is removed.
+
 2012-07-26 Adam Fedor <fedor@gnu.org>
 
 	* Version 0.1

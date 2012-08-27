@@ -142,6 +142,19 @@ const CFNumberRef kCFNumberPositiveInfinity = (CFNumberRef)&_kCFNumberPosInf;
 
 static CFTypeID _kCFNumberTypeID = 0;
 
+static CFTypeRef
+CFNumberCopy (CFAllocatorRef alloc, CFTypeRef cf)
+{
+  CFNumberRef num;
+  CFNumberType type;
+  UInt8 bytes[sizeof(double)];
+  
+  num = (CFNumberRef)cf;
+  type = CFNumberGetType (num);
+  CFNumberGetValue (num, type, (void*)bytes);
+  return CFNumberCreate (alloc, type, (void*)bytes);
+}
+
 static CFStringRef
 CFNumberCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
 {
@@ -160,7 +173,7 @@ static CFRuntimeClass CFNumberClass =
   0,
   "CFNumber",
   NULL,
-  NULL,
+  CFNumberCopy,
   NULL,
   NULL,
   NULL,
