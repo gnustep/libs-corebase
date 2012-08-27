@@ -312,6 +312,9 @@ CFLocaleGetCStringIdentifier (CFLocaleRef locale, char *buf, CFIndex maxlen);
 void
 GSRuntimeConstantInit (CFTypeRef cf, CFTypeID typeID);
 
+void
+GSRuntimeDeallocateInstance (CFTypeRef cf);
+
 #define GS_MAX(a,b) (a > b ? a : b)
 #define GS_MIN(a,b) (a < b ? a : b)
 

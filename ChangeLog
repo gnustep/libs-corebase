@@ -1,3 +1,13 @@
+2012-08-27 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GSPrivate.h:
+	* Source/CFRuntime.c: Add a private deallocation function.
+	* Source/NSCFArray.m:
+	* Source/NSCFData.m:
+	* Source/NSCFError.m:
+	* Source/NSCFString.m:
+	* Source/NSCFType.m: Implement -dealloc.
+
 2012-08-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Header/CoreFoundation/CFRunLoop.h:

@@ -36,12 +36,18 @@
 /* NSCFString inherits from NSMutableString and doesn't have any ivars
    because it is only an ObjC wrapper around CFString. */
 @interface NSCFString : NSMutableString
+NSCFTYPE_VARS
 @end
 
 @implementation NSCFString
 + (void) load
 {
   NSCFInitialize ();
+}
+
++ (void) initialize
+{
+  GSObjCAddClassBehavior (self, [NSCFType class]);
 }
 
 - (id) initWithBytes: (const void*) bytes
@@ -563,9 +569,5 @@
   CFStringReplaceAll (self, aString);
 }
 
-- (CFTypeID) _cfTypeID
-{
-  return CFStringGetTypeID ();
-}
 @end
 

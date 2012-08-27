@@ -341,14 +341,8 @@ CFRelease (CFTypeRef cf)
       CFIndex result = GSAtomicDecrementCFIndex (&(((obj)cf)[-1].retained));
       if (result < 0)
         {
-          CFRuntimeClass *cls;
           assert (result == -1);
-          
-          cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
-          
-          if (cls->finalize)
-            cls->finalize (cf);
-          CFAllocatorDeallocate (CFGetAllocator(cf), (void*)&((obj)cf)[-1]);
+          GSRuntimeDeallocateInstance (cf);
         }
     }
 }
@@ -394,6 +388,17 @@ GSTypeCreateCopy (CFAllocatorRef alloc, CFTypeRef cf, CFTypeID typeID)
 }
 
 
+
+void
+GSRuntimeDeallocateInstance (CFTypeRef cf)
+{
+  CFRuntimeClass *cls;
+  cls = __CFRuntimeClassTable[CFGetTypeID(cf)];
+  
+  if (cls->finalize)
+    cls->finalize (cf);
+  CFAllocatorDeallocate (CFGetAllocator(cf), (void*)&((obj)cf)[-1]);
+}
 
 static CFTypeRef GSRuntimeConstantTable[512];
 static CFIndex GSRuntimeConstantTableSize = 0;

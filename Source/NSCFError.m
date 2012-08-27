@@ -31,12 +31,18 @@
 #include "CoreFoundation/CFError.h"
 
 @interface NSCFError : NSError
+NSCFTYPE_VARS
 @end
 
 @implementation NSCFError
 + (void) load
 {
   NSCFInitialize ();
+}
+
++ (void) initialize
+{
+  GSObjCAddClassBehavior (self, [NSCFType class]);
 }
 
 - (id) initWithDomain: (NSString*) domain
@@ -88,9 +94,5 @@
   return CFErrorCopyUserInfo (self);
 }
 
-- (CFTypeID) _cfTypeID
-{
-  return CFErrorGetTypeID ();
-}
 @end
 

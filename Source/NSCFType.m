@@ -28,6 +28,7 @@
 
 #include "CoreFoundation/CoreFoundation.h"
 #include "NSCFType.h"
+#include "GSPrivate.h"
 
 extern void CFInitialize (void);
 extern UInt32 __CFRuntimeClassTableSize;
@@ -46,7 +47,7 @@ void NSCFInitialize (void)
     {
       CFIndex i = 0;
       
-      __CFRuntimeObjCClassTable = (Class *) calloc (__CFRuntimeClassTableSize,
+      __CFRuntimeObjCClassTable = calloc (__CFRuntimeClassTableSize,
                                     sizeof(Class));
 
       while (i < __CFRuntimeClassTableCount)
@@ -79,6 +80,11 @@ void NSCFInitialize (void)
 {
   NSCFTypeClass = self;
   NSCFInitialize ();
+}
+
+- (void) dealloc
+{
+  GSRuntimeDeallocateInstance (self);
 }
 
 - (id) retain
