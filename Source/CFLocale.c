@@ -254,13 +254,13 @@ struct _kCFNumberFormatterProperty
   CFNumberFormatterStyle style;
 };
 
-struct _kCFNumberFormatterProperty decimalSep =
+static struct _kCFNumberFormatterProperty decimalSep =
   { &kCFNumberFormatterDecimalSeparator, kCFNumberFormatterDecimalStyle };
-struct _kCFNumberFormatterProperty groupingSep =
+static struct _kCFNumberFormatterProperty groupingSep =
   { &kCFNumberFormatterGroupingSeparator, kCFNumberFormatterDecimalStyle };
-struct _kCFNumberFormatterProperty currencySym =
+static struct _kCFNumberFormatterProperty currencySym =
   { &kCFNumberFormatterCurrencySymbol, kCFNumberFormatterCurrencyStyle };
-struct _kCFNumberFormatterProperty currecyCode =
+static struct _kCFNumberFormatterProperty currecyCode =
   { &kCFNumberFormatterCurrencyCode, kCFNumberFormatterCurrencyStyle };
 
 static CFTypeRef
