@@ -26,11 +26,20 @@
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFRunLoop.h"
+#include "CoreFoundation/CFArray.h"
+#include "CoreFoundation/CFSet.h"
+#include "GSPrivate.h"
+
+/* From NSDate.m in GNUstep-base */
+#define DISTANT_FUTURE	63113990400.0
 
 static CFTypeID _kCFRunLoopTypeID = 0;
 static CFTypeID _kCFRunLoopSourceTypeID = 0;
 static CFTypeID _kCFRunLoopObserverTypeID = 0;
-static CFTypeID _kCFRunLoopTimeTypeID = 0;
+static CFTypeID _kCFRunLoopTimerTypeID = 0;
+
+CONST_STRING_DECL(kCFRunLoopDefaultMode, "kCFRunLoopDefaultMode");
+CONST_STRING_DECL(kCFRunLoopCommonModes, "kCFRunLoopCommonModes");
 
 static CFRuntimeClass CFRunLoopClass =
 {
@@ -90,10 +99,8 @@ CFRunLoopInitialize (void)
   _kCFRunLoopTypeID = _CFRuntimeRegisterClass (&CFRunLoopClass);
   _kCFRunLoopSourceTypeID = _CFRuntimeRegisterClass (&CFRunLoopSourceClass);
   _kCFRunLoopObserverTypeID = _CFRuntimeRegisterClass (&CFRunLoopObserverClass);
-  _kCFRunLoopTimeTypeID = _CFRuntimeRegisterClass (&CFRunLoopTimerClass);
+  _kCFRunLoopTimerTypeID = _CFRuntimeRegisterClass (&CFRunLoopTimerClass);
 }
-
-
 
 CFTypeID
 CFRunLoopGetTypeID (void)
@@ -116,8 +123,27 @@ CFRunLoopObserverGetTypeID (void)
 CFTypeID
 CFRunLoopTimerGetTypeID (void)
 {
-  return _kCFRunLoopTimeTypeID;
+  return _kCFRunLoopTimerTypeID;
 }
+
+
+
+struct GSRunLoopContext
+{
+  CFStringRef mode;
+  CFMutableArrayRef timers;
+  CFMutableSetRef observers;
+  CFMutableSetRef sources0;
+  CFMutableSetRef sources1; /* This is only a place holder for now. */
+};
+
+struct __CFRunLoop
+{
+  CFRuntimeBase     parent;
+  CFStringRef       _mode;
+  CFMutableArrayRef _commonModes;
+  CFMutableSetRef   _contexts;
+};
 
 CFRunLoopRef
 CFRunLoopGetCurrent (void)
@@ -134,7 +160,11 @@ CFRunLoopGetMain (void)
 void
 CFRunLoopRun (void)
 {
-  return;
+  SInt32 code;
+  do
+    {
+      code = CFRunLoopRunInMode (kCFRunLoopDefaultMode, DISTANT_FUTURE, false);
+    } while (code != kCFRunLoopRunFinished || code != kCFRunLoopRunStopped);
 }
 
 SInt32
@@ -188,6 +218,18 @@ CFRunLoopPerformBlock (CFRunLoopRef rl, CFTypeRef mode, void (^block)(void))
 }
 #endif
 
+
+
+struct __CFRunLoopSource
+{
+  CFRuntimeBase parent;
+  GSMutex       _lock;
+  CFIndex       _order;
+  Boolean       _isSignaled;
+  Boolean       _isValid;
+  CFRunLoopSourceContext _context; /* FIXME: Handle version 1 contexts */
+};
+
 void
 CFRunLoopAddSource (CFRunLoopRef rl, CFRunLoopSourceRef source,
                     CFStringRef mode)
@@ -209,24 +251,53 @@ CFRunLoopRemoveSource (CFRunLoopRef rl, CFRunLoopSourceRef source,
   return;
 }
 
+#define CFRUNLOOPSOURCE_SIZE \
+  sizeof(struct __CFRunLoopSource) - sizeof(CFRuntimeBase)
+
 CFRunLoopSourceRef
 CFRunLoopSourceCreate (CFAllocatorRef  alloc, CFIndex order,
                        CFRunLoopSourceContext *context)
 {
-  return NULL;
+  CFRunLoopSourceRef new;
+  
+  new = (CFRunLoopSourceRef)_CFRuntimeCreateInstance (alloc,
+                                                      _kCFRunLoopSourceTypeID,
+                                                      CFRUNLOOPSOURCE_SIZE,
+                                                      0);
+  if (new)
+    {
+      GSMutexInitialize (&(new->_lock));
+      new->_order = order;
+      if (context)
+        {
+          switch (context->version)
+            {
+              case 0:
+                new->_context = *context;
+                if (context->retain)
+                  new->_context.info = (void*)context->retain (context->info);
+                break;
+              case 1:
+                /* FIXME */
+                break;
+            }
+        }
+    }
+  
+  return new;
 }
 
 void
 CFRunLoopSourceGetContext (CFRunLoopSourceRef source,
                            CFRunLoopSourceContext *context)
 {
-  return;
+  *context = source->_context;
 }
 
 CFIndex
 CFRunLoopSourceGetOrder (CFRunLoopSourceRef source)
 {
-  return 0;
+  return source->_order;
 }
 
 void
@@ -238,7 +309,7 @@ CFRunLoopSourceInvalidate (CFRunLoopSourceRef source)
 Boolean
 CFRunLoopSourceIsValid (CFRunLoopSourceRef source)
 {
-  return false;
+  return source->_isValid;
 }
 
 void
@@ -246,6 +317,20 @@ CFRunLoopSourceSignal (CFRunLoopSourceRef source)
 {
   return;
 }
+
+
+
+struct __CFRunLoopObserver
+{
+  CFRuntimeBase parent;
+  GSMutex       _lock;
+  CFOptionFlags _activities;
+  CFIndex       _order;
+  Boolean       _repeats;
+  Boolean       _isValid;
+  CFRunLoopObserverCallBack _callback;
+  CFRunLoopObserverContext  _context;
+};
 
 void
 CFRunLoopAddObserver (CFRunLoopRef rl, CFRunLoopObserverRef observer,
@@ -268,38 +353,62 @@ CFRunLoopRemoveObserver (CFRunLoopRef rl, CFRunLoopObserverRef observer,
   return;
 }
 
+#define CFRUNLOOPOBSERVER_SIZE \
+  sizeof(struct __CFRunLoopObserver) - sizeof(CFRuntimeBase)
+
 CFRunLoopObserverRef
 CFRunLoopObserverCreate (CFAllocatorRef  alloc, CFOptionFlags activities,
                          Boolean repeats, CFIndex order,
-                         CFRunLoopObserverCallBack  callback,
+                         CFRunLoopObserverCallBack callback,
                          CFRunLoopObserverContext *context)
 {
-  return NULL;
+  CFRunLoopObserverRef new;
+  
+  new = (CFRunLoopObserverRef)_CFRuntimeCreateInstance (alloc,
+                                                        _kCFRunLoopObserverTypeID,
+                                                        CFRUNLOOPOBSERVER_SIZE,
+                                                        0);
+  if (new)
+    {
+      GSMutexInitialize (&(new->_lock));
+      new->_activities = activities;
+      new->_repeats = repeats;
+      new->_order = order;
+      new->_callback = callback;
+      if (context)
+        {
+          new->_context = *context;
+          if (context->retain)
+            new->_context.info = (void*)context->retain (context->info);
+        }
+    }
+  
+  return new;
 }
 
 Boolean
 CFRunLoopObserverDoesRepeat (CFRunLoopObserverRef observer)
 {
-  return false;
+  return observer->_repeats;
 }
 
 CFOptionFlags
 CFRunLoopObserverGetActivities (CFRunLoopObserverRef observer)
 {
-  return 0;
+  return observer->_activities;
 }
 
 void
 CFRunLoopObserverGetContext (CFRunLoopObserverRef observer,
                              CFRunLoopObserverContext *context)
 {
-  return;
+  *context = observer->_context;
 }
 
 CFIndex
 CFRunLoopObserverGetOrder (CFRunLoopObserverRef observer)
 {
-  return 0;
+  return observer->_order;
 }
 
 void
@@ -311,8 +420,22 @@ CFRunLoopObserverInvalidate (CFRunLoopObserverRef observer)
 Boolean
 CFRunLoopObserverIsValid (CFRunLoopObserverRef observer)
 {
-  return false;
+  return observer->_isValid;
 }
+
+
+
+struct __CFRunLoopTimer
+{
+  CFRuntimeBase  base;
+  GSMutex        _lock;
+  CFAbsoluteTime _nextFireDate;
+  CFTimeInterval _interval;
+  CFIndex        _order;
+  Boolean        _isValid;
+  CFRunLoopTimerCallBack _callback;
+  CFRunLoopTimerContext  _context;
+};
 
 void
 CFRunLoopAddTimer (CFRunLoopRef rl, CFRunLoopTimerRef timer,
@@ -341,44 +464,69 @@ CFRunLoopContainsTimer (CFRunLoopRef rl, CFRunLoopTimerRef timer,
   return false;
 }
 
+#define CFRUNLOOPTIMER_SIZE \
+  sizeof(struct __CFRunLoopTimer) - sizeof(CFRuntimeBase)
+
 CFRunLoopTimerRef
 CFRunLoopTimerCreate (CFAllocatorRef  alloc, CFAbsoluteTime fireDate,
                       CFTimeInterval interval, CFOptionFlags flags,
                       CFIndex order, CFRunLoopTimerCallBack  callback,
                       CFRunLoopTimerContext *context)
 {
-  return NULL;
+  CFRunLoopTimerRef new;
+  
+  new = (CFRunLoopTimerRef)_CFRuntimeCreateInstance (alloc,
+                                                     _kCFRunLoopTimerTypeID,
+                                                     CFRUNLOOPTIMER_SIZE,
+                                                     0);
+  if (new)
+    {
+      GSMutexInitialize (&(new->_lock));
+      new->_nextFireDate = fireDate;
+      new->_interval = interval;
+      // flags is ignored
+      new->_order = order;
+      new->_callback = callback;
+      if (context)
+        {
+          new->_context = *context;
+          if (context->retain)
+            new->_context.info = (void*)context->retain (context->info);
+        }
+    }
+  
+  return new;
 }
 
 Boolean
 CFRunLoopTimerDoesRepeat (CFRunLoopTimerRef timer)
 {
-  return false;
+  return (timer->_interval > 0.0);
 }
 
 void
 CFRunLoopTimerGetContext (CFRunLoopTimerRef timer,
                           CFRunLoopTimerContext *context)
 {
-  return;
+  *context = timer->_context;
 }
 
 CFTimeInterval
 CFRunLoopTimerGetInterval (CFRunLoopTimerRef timer)
 {
-  return 0.0;
+  return timer->_interval;
 }
 
 CFAbsoluteTime
 CFRunLoopTimerGetNextFireDate (CFRunLoopTimerRef timer)
 {
-  return 0.0;
+  return timer->_nextFireDate;
 }
 
 CFIndex
 CFRunLoopTimerGetOrder (CFRunLoopTimerRef timer)
 {
-  return 0;
+  return timer->_order;
 }
 
 void
@@ -390,12 +538,12 @@ CFRunLoopTimerInvalidate (CFRunLoopTimerRef timer)
 Boolean
 CFRunLoopTimerIsValid (CFRunLoopTimerRef timer)
 {
-  return false;
+  return timer->_isValid;
 }
 
 void
 CFRunLoopTimerSetNextFireDate (CFRunLoopTimerRef timer,
-                                CFAbsoluteTime fireDate)
+                               CFAbsoluteTime fireDate)
 {
   return;
 }

@@ -37,6 +37,7 @@
 /* Need the next few includes so we can initialize the string constants */
 #include "CoreFoundation/CFError.h"
 #include "CoreFoundation/CFDateFormatter.h"
+#include "CoreFoundation/CFRunLoop.h"
 #include "CoreFoundation/CFURLAccess.h"
 #include "CoreFoundation/CFXMLParser.h"
 
@@ -432,6 +433,9 @@ void CFStringInitialize (void)
     _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterMaxSignificantDigits,
     _kCFStringTypeID);
+  
+  GSRuntimeConstantInit (kCFRunLoopCommonModes, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFRunLoopDefaultMode, _kCFStringTypeID);
   
   GSRuntimeConstantInit (kCFXMLTreeErrorDescription, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFXMLTreeErrorLineNumber, _kCFStringTypeID);

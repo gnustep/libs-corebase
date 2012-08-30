@@ -1,3 +1,9 @@
+2012-08-30 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRunLoop.h: Add missing bits.
+	* Source/CFString.c: Initialize CFRunLooop contant strings.
+	* Source/CFRunLoop.c: Implement create functions.
+
 2012-08-27 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/GSPrivate.h:

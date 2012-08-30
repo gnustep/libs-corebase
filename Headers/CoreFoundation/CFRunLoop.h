@@ -51,6 +51,18 @@ enum CFRunLoopActivity
   kCFRunLoopAllActivities = 0x0FFFFFFFU
 };
 
+enum
+{
+  kCFRunLoopRunFinished =      1,
+  kCFRunLoopRunStopped =       2,
+  kCFRunLoopRunTimedOut =      3,
+  kCFRunLoopRunHandledSource = 4
+};
+
+
+CF_EXPORT const CFStringRef kCFRunLoopCommonModes;
+CF_EXPORT const CFStringRef kCFRunLoopDefaultMode;
+
 /*
  * Callbacks
  */
