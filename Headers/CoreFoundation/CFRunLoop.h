@@ -24,7 +24,11 @@
    Boston, MA 02110-1301, USA.
 */
 
+#ifndef __COREFOUNDATION_CFRUNLOOP_H__
+#define __COREFOUNDATION_CFRUNLOOP_H__
+
 typedef struct __CFRunLoopSource * CFRunLoopSourceRef;
 
 typedef struct CFRunLoop *CFRunLoopRef;
 
+#endif /* __COREFOUNDATION_CFRUNLOOP_H__ */
