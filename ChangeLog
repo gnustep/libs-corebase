@@ -1,3 +1,7 @@
+2012-09-03 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRunLoop.c: Implement add, remove and search functions.
+
 2012-08-30 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRunLoop.h: Add missing bits.

@@ -32,6 +32,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unicode/ucnv.h>
 #include <unicode/ustring.h>
 
