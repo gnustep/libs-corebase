@@ -1,7 +1,7 @@
 1 ANNOUNCE
 **********
 
-This is version 0.1 of CoreBase.
+This is version 0.1.1 of CoreBase.
 
 1.1 What is CoreBase?
 =================
@@ -17,7 +17,7 @@ portion of Apple's CoreFoundation framework.
 1.2 Noteworthy changes 
 ==========================================
 
-   * Initial release
+   * Bug fixes
 
 1.3 How can I get support for this software?
 ============================================
