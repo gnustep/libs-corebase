@@ -1,3 +1,10 @@
+2012-09-04 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CoreFoundation.h:
+	* Headers/CoreFoundation/CFSocket.h:
+	* Source/GNUmakefile.in:
+	* Source/CFSocket.c: Add CFSocket skeleton.
+
 2012-09-03 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRunLoop.c: Implement add, remove and search functions.

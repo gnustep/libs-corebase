@@ -33,6 +33,7 @@ libgnustep-corebase_C_FILES = \
   CFRunLoop.c \
   CFRuntime.c \
   CFSet.c \
+  CFSocket.c \
   CFStream.c \
   CFString.c \
   CFStringEncoding.c \
@@ -72,6 +73,7 @@ libgnustep-corebase_HEADER_FILES = \
   CFRunLoop.h \
   CFRuntime.h \
   CFSet.h \
+  CFSocket.h \
   CFStream.h \
   CFString.h \
   CFStringEncodingExt.h \
