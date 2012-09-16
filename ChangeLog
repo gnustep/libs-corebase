@@ -1,3 +1,8 @@
+2012-09-16 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSCFType.m: Call the CoreBase initialization code before
+	trying to initialize the bridged classes.
+
 2012-09-04 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CoreFoundation.h:

@@ -47,6 +47,8 @@ void NSCFInitialize (void)
     {
       CFIndex i = 0;
       
+      /* Make sure CoreBase is initialized before bridging */
+      CFInitialize ();
       __CFRuntimeObjCClassTable = calloc (__CFRuntimeClassTableSize,
                                     sizeof(Class));
 
