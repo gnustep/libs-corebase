@@ -35,7 +35,12 @@ CF_EXTERN_C_BEGIN
 
 typedef struct __CFSocket * CFSocketRef;
 
+#if defined(_WIN32)
+#include <winsock2.h>
+typedef SOCKET CFSocketNativeHandle;
+#else
 typedef int CFSocketNativeHandle;
+#endif
 
 typedef struct CFSocketContext CFSocketContext;
 struct CFSocketContext
