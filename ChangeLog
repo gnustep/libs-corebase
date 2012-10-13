@@ -1,3 +1,12 @@
+2012-10-12 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFSocket.c: Implement CopyAddress functions.
+
+2012-10-09 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Headers/CoreFoundation/CFSocket.h: Use winsock on Windows.
+	* Source/CFSocket.c: Implement Create and Address functions.
+
 2012-09-16 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Headers/CoreFoundation/CFSocket.h: Use winsock on Windows.

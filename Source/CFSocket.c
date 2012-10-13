@@ -36,7 +36,14 @@
 
 #if defined(_WIN32)
 #include <winsock2.h>
+typedef socklen_t int;
 #define EINPROGRESS WSAEINPROGRESS
+
+CF_INLINE int
+CFSocketGetLastError (void)
+{
+  return WSAGetLastError ();
+}
 #else
 #include <sys/select.h>
 #include <sys/time.h>
@@ -44,10 +51,32 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <unistd.h>
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
 #endif
+
+#define closesocket(x) close(x)
+
+CF_INLINE int
+CFSocketGetLastError (void)
+{
+  return errno;
+}
 #endif
+
+struct __CFSocket
+{
+  CFRuntimeBase    parent;
+  GSMutex          _lock;
+  CFSocketNativeHandle _socket;
+  CFOptionFlags    _opts;
+  CFOptionFlags    _cbTypes;
+  CFSocketCallBack _callback;
+  CFSocketContext  _ctx;
+  CFDataRef        _address;
+  CFDataRef        _peerAddress;
+};
 
 static CFTypeID _kCFSocketTypeID = 0;
 static CFMutableDictionaryRef _kCFSocketObjects = NULL;
@@ -58,6 +87,11 @@ CFSocketFinalize (CFTypeRef cf)
 {
   CFSocketRef s = (CFSocketRef)cf;
   
+  closesocket (s->_socket);
+  if (s->_address)
+    CFRelease (s->_address);
+  if (s->_peerAddress)
+    CFRelease (s->_peerAddress);
 }
 
 static CFRuntimeClass CFSocketClass =
@@ -80,28 +114,8 @@ CFSocketInitialize (void)
   GSMutexInitialize (&_kCFSocketObjectsLock);
 }
 
-CF_INLINE int
-CFSocketGetLastError (void)
-{
-#if defined(_WIN32)
-  return WSAGetLastError ();
-#else
-  return errno;
-#endif
-}
 
 
-
-struct __CFSocket
-{
-  CFRuntimeBase    parent;
-  CFSocketNativeHandle _socket;
-  CFOptionFlags    _opts;
-  CFOptionFlags    _cbTypes;
-  CFSocketCallBack _callback;
-  CFSocketContext  _ctx;
-  CFDataRef        _address;
-};
 
 CFTypeID
 CFSocketGetTypeID (void)
@@ -259,13 +273,43 @@ CFSocketCreateConnectedToSocketSignature (CFAllocatorRef alloc,
 CFDataRef
 CFSocketCopyAddress (CFSocketRef s)
 {
-  return NULL;
+  CFDataRef ret = NULL;
+  
+  GSMutexLock (&s->_lock);
+  if (s->_address == NULL)
+    {
+      struct sockaddr addr;
+      socklen_t addrlen;
+      getsockname (s->_socket, &addr, &addrlen);
+      s->_address = CFDataCreate (CFGetAllocator (s), (const UInt8*)&addr,
+                                  (CFIndex)addrlen);
+    }
+  if (s->_address != NULL)
+    ret = CFRetain (s->_address);
+  GSMutexUnlock (&s->_lock);
+  
+  return ret;
 }
 
 CFDataRef
 CFSocketCopyPeerAddress (CFSocketRef s)
 {
-  return NULL;
+  CFDataRef ret = NULL;
+  
+  GSMutexLock (&s->_lock);
+  if (s->_address == NULL)
+    {
+      struct sockaddr addr;
+      socklen_t addrlen;
+      getpeername (s->_socket, &addr, &addrlen);
+      s->_address = CFDataCreate (CFGetAllocator (s), (const UInt8*)&addr,
+                                  (CFIndex)addrlen);
+    }
+  if (s->_address != NULL)
+    ret = CFRetain (s->_address);
+  GSMutexUnlock (&s->_lock);
+  
+  return ret;
 }
 
 CFSocketError
@@ -374,7 +418,7 @@ CFSocketGetSocketFlags (CFSocketRef s)
 void
 CFSocketSetSocketFlags (CFSocketRef s, CFOptionFlags flags)
 {
-  return;
+  s->_opts = flags;
 }
 
 CFSocketError
@@ -382,13 +426,6 @@ CFSocketSendData (CFSocketRef s, CFDataRef address, CFDataRef data,
                   CFTimeInterval timeout)
 {
   return kCFSocketError;
-}
-
-CFRunLoopSourceRef
-CFSocketCreateRunLoopSource (CFAllocatorRef alloc, CFSocketRef s,
-                             CFIndex order)
-{
-  return NULL;
 }
 
 void
@@ -401,6 +438,13 @@ Boolean
 CFSocketIsValid (CFSocketRef s)
 {
   return false;
+}
+
+CFRunLoopSourceRef
+CFSocketCreateRunLoopSource (CFAllocatorRef alloc, CFSocketRef s,
+                             CFIndex order)
+{
+  return NULL;
 }
 
 
