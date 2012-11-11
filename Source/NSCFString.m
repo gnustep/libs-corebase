@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -27,11 +27,13 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSString.h>
+#import <Foundation/NSData.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSLocale.h>
 
 #include "NSCFType.h"
 #include "CoreFoundation/CFString.h"
+#include "GSPrivate.h"
 
 /* NSCFString inherits from NSMutableString and doesn't have any ivars
    because it is only an ObjC wrapper around CFString. */
@@ -40,6 +42,10 @@ NSCFTYPE_VARS
 @end
 
 @implementation NSCFString
+
+/* Class variables */
+static NSStringEncoding *nsencodings = NULL;
+
 + (void) load
 {
   NSCFInitialize ();
@@ -288,17 +294,26 @@ NSCFTYPE_VARS
 
 - (NSString*) capitalizedString
 {
-  return nil;// FIXME
+  CFMutableStringRef copy;
+  copy = CFStringCreateMutableCopy (NULL, 0, self);
+  CFStringCapitalize (copy, NULL);
+  return (NSString*) AUTORELEASE(copy);
 }
 
 - (NSString*) lowercaseString
 {
-  return nil; // FIXME
+  CFMutableStringRef copy;
+  copy = CFStringCreateMutableCopy (NULL, 0, self);
+  CFStringLowercase (copy, NULL);
+  return (NSString*)AUTORELEASE(copy);
 }
 
 - (NSString*) uppercaseString
 {
-  return nil; // FIXME
+  CFMutableStringRef copy;
+  copy = CFStringCreateMutableCopy (NULL, 0, self);
+  CFStringUppercase (copy, NULL);
+  return (NSString*)AUTORELEASE(copy);
 }
 
 - (const char*) cString
@@ -309,8 +324,7 @@ NSCFTYPE_VARS
 - (const char*) cStringUsingEncoding: (NSStringEncoding) encoding
 {
   CFStringEncoding enc = CFStringConvertNSStringEncodingToEncoding (encoding);
-  const char *cstr =
-    CFStringGetCStringPtr (self, enc);
+  const char *cstr = CFStringGetCStringPtr (self, enc);
   if (!cstr)
     return NULL; // FIXME
   return cstr;
@@ -326,7 +340,7 @@ NSCFTYPE_VARS
 
 - (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding) encoding
 {
-  return 0; // FIXME
+  return [self lengthOfBytesUsingEncoding: encoding];
 }
 
 - (NSUInteger) maximumLengthOfBytesUsingEncoding: (NSStringEncoding) encoding
@@ -337,7 +351,7 @@ NSCFTYPE_VARS
 
 - (NSUInteger) cStringLength
 {
-  return 0; // FIXME
+  return [self lengthOfBytesUsingEncoding: NSASCIIStringEncoding];
 }
 
 - (float) floatValue
@@ -411,21 +425,40 @@ NSCFTYPE_VARS
 - (BOOL) getFileSystemRepresentation: (char*) buffer
                            maxLength: (NSUInteger) size
 {
-  return (BOOL)CFStringGetFileSystemRepresentation (self,
-    buffer, size);
+  return (BOOL)CFStringGetFileSystemRepresentation (self, buffer, size);
 }
 
 - (NSString*) substringWithRange: (NSRange) aRange
 {
   CFRange cfRange = CFRangeMake (aRange.location, aRange.length);
-  return (NSString*)CFStringCreateWithSubstring (NULL, self,
-    cfRange);
+  return (NSString*)CFStringCreateWithSubstring (NULL, self, cfRange);
 }
 
 + (NSStringEncoding*) availableStringEncodings
 {
-  // FIXME ???
-  return NULL;
+  if (!nsencodings)
+  {
+    int count = 0, i;
+    
+    const CFStringEncoding* encodings;
+    NSStringEncoding* converted;
+    
+    encodings = CFStringGetListOfAvailableEncodings();
+    for (i = 0; encodings[i] != 0; i++)
+      count++;
+    
+    converted = (NSStringEncoding*)
+      CFAllocatorAllocate (kCFAllocatorSystemDefault,
+                           (count+1) * sizeof(NSStringEncoding), 0);
+    
+    for (i = 0; i < count; i++)
+      converted[i] = CFStringConvertEncodingToNSStringEncoding(encodings[i]);
+    
+    if (GSAtomicCompareAndSwapPointer (&nsencodings, NULL, converted) != NULL)
+      CFAllocatorDeallocate (kCFAllocatorSystemDefault, converted);
+  }
+  
+  return nsencodings;
 }
 
 + (NSString*) localizedNameOfStringEncoding: (NSStringEncoding) encoding
@@ -446,8 +479,7 @@ NSCFTYPE_VARS
 
 - (const char*) lossyCString
 {
-  // FIXME
-  return NULL;
+  return [self cString]; // FIXME
 }
 
 - (NSString*) stringByAddingPercentEscapesUsingEncoding: (NSStringEncoding)e
@@ -459,7 +491,10 @@ NSCFTYPE_VARS
                            withString: (NSString*)padString
                       startingAtIndex: (NSUInteger)padIndex
 {
-  return nil; // FIXME: Use CFStringPad()
+  CFMutableStringRef copy;
+  copy = CFStringCreateMutableCopy(NULL, 0, self);
+  CFStringPad(copy, padString, newLength, padIndex);
+  return copy;
 }
 
 - (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e
@@ -570,4 +605,5 @@ NSCFTYPE_VARS
 }
 
 @end
+
 

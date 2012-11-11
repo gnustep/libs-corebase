@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -56,31 +56,31 @@ void *NSCFTypeClass = NULL;
 #ifdef ALIGN
 #undef ALIGN
 #endif
-#define	ALIGN __alignof__(double)
+#define ALIGN __alignof__(double)
 
 /*
- *	Define a structure to hold information that is held locally
- *	(before the start) in each object.
+ *        Define a structure to hold information that is held locally
+ *        (before the start) in each object.
  */
 struct obj_layout_unpadded {
   CFAllocatorRef allocator;
   CFIndex        retained;
 };
-#define	UNP sizeof(struct obj_layout_unpadded)
+#define UNP sizeof(struct obj_layout_unpadded)
 
 /*
- *	Now do the REAL version - using the other version to determine
- *	what padding (if any) is required to get the alignment of the
- *	structure correct.
+ *        Now do the REAL version - using the other version to determine
+ *        what padding (if any) is required to get the alignment of the
+ *        structure correct.
  */
 struct obj_layout {
 #if !defined(_MSC_VER)
-  char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
+  char        padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
 #endif
   CFAllocatorRef allocator;
   CFIndex        retained;
 };
-typedef	struct obj_layout *obj;
+typedef        struct obj_layout *obj;
 /******************************/
 
 /* CFNotATypeClass declaration for index 0 of the class table. */
@@ -297,7 +297,7 @@ CFGetRetainCount (CFTypeRef cf)
   if (!((CFRuntimeBase*)cf)->_flags.ro)
     return ((obj)cf)[-1].retained + 1;
   
-  return 1;
+  return UINT_MAX;
 }
 
 CFTypeID

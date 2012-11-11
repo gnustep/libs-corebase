@@ -1,3 +1,11 @@
+2012-11-11 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFRuntime.c:
+	* Source/NSCFType.m:
+	* Source/NSCFString.m: Apply modified version of Lubos Dolezel's
+	patch.
+	* Tests/CFString/objc_bridge.m: Tests for toll-free bridge.
+
 2012-10-12 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFSocket.c: Implement CopyAddress functions.
