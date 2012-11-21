@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -28,6 +28,8 @@
 #define __COREFOUNDATION_CFDATE_H__
 
 #include <CoreFoundation/CFBase.h>
+
+CF_EXTERN_C_BEGIN
 
 #ifdef __OBJC__
 @class NSDate;
@@ -84,52 +86,54 @@ CF_EXPORT const CFTimeInterval kCFAbsoluteTimeIntervalSince1904;
 /*
  * Time Utilities
  */
-CFAbsoluteTime
+CF_EXPORT CFAbsoluteTime
 CFAbsoluteTimeAddGregorianUnits (CFAbsoluteTime at, CFTimeZoneRef tz,
   CFGregorianUnits units);
 
-CFAbsoluteTime
+CF_EXPORT CFAbsoluteTime
 CFAbsoluteTimeGetCurrent (void);
 
-SInt32
+CF_EXPORT SInt32
 CFAbsoluteTimeGetDayOfWeek (CFAbsoluteTime at, CFTimeZoneRef tz);
 
-SInt32
+CF_EXPORT SInt32
 CFAbsoluteTimeGetDayOfYear (CFAbsoluteTime at, CFTimeZoneRef tz);
 
-CFGregorianUnits
+CF_EXPORT CFGregorianUnits
 CFAbsoluteTimeGetDifferenceAsGregorianUnits (CFAbsoluteTime at1,
   CFAbsoluteTime at2, CFTimeZoneRef tz, CFOptionFlags unitFlags);
 
-CFGregorianDate
+CF_EXPORT CFGregorianDate
 CFAbsoluteTimeGetGregorianDate (CFAbsoluteTime at, CFTimeZoneRef tz);
 
-SInt32
+CF_EXPORT SInt32
 CFAbsoluteTimeGetWeekOfYear (CFAbsoluteTime at, CFTimeZoneRef tz);
 
-CFAbsoluteTime
+CF_EXPORT CFAbsoluteTime
 CFGregorianDateGetAbsoluteTime (CFGregorianDate gdate, CFTimeZoneRef tz);
 
-Boolean
+CF_EXPORT Boolean
 CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags);
 
 /*
  * CFDate Functions
  */
-CFComparisonResult
+CF_EXPORT CFComparisonResult
 CFDateCompare (CFDateRef theDate, CFDateRef otherDate, void *context);
 
-CFDateRef
+CF_EXPORT CFDateRef
 CFDateCreate (CFAllocatorRef allocator, CFAbsoluteTime at);
 
-CFAbsoluteTime
+CF_EXPORT CFAbsoluteTime
 CFDateGetAbsoluteTime (CFDateRef theDate);
 
-CFTimeInterval
+CF_EXPORT CFTimeInterval
 CFDateGetTimeIntervalSinceDate (CFDateRef theDate, CFDateRef otherDate);
 
-CFTypeID
+CF_EXPORT CFTypeID
 CFDateGetTypeID (void);
+
+CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFDATE_H__ */
 

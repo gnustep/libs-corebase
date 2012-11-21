@@ -38,6 +38,7 @@
 #include "CoreFoundation/CFError.h"
 #include "CoreFoundation/CFDateFormatter.h"
 #include "CoreFoundation/CFRunLoop.h"
+#include "CoreFoundation/CFStream.h"
 #include "CoreFoundation/CFURLAccess.h"
 #include "CoreFoundation/CFXMLParser.h"
 
@@ -436,6 +437,15 @@ void CFStringInitialize (void)
   
   GSRuntimeConstantInit (kCFRunLoopCommonModes, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFRunLoopDefaultMode, _kCFStringTypeID);
+  
+  GSRuntimeConstantInit (kCFStreamPropertyDataWritten, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStreamPropertySocketNativeHandle, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStreamPropertySocketRemoteHostName,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStreamPropertySocketRemotePortNumber,
+    _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStreamPropertyAppendToFile, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStreamPropertyFileCurrentOffset, _kCFStringTypeID);
   
   GSRuntimeConstantInit (kCFXMLTreeErrorDescription, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFXMLTreeErrorLineNumber, _kCFStringTypeID);

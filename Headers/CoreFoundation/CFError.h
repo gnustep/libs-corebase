@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -30,6 +30,8 @@
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
 
+CF_EXTERN_C_BEGIN
+
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
 
 #if __OBJC__
@@ -39,27 +41,27 @@ typedef NSError * CFErrorRef;
 typedef const struct __CFError * CFErrorRef;
 #endif
 
-const CFStringRef kCFErrorDomainPOSIX;
-const CFStringRef kCFErrorDomainOSStatus;
-const CFStringRef kCFErrorDomainMach;
-const CFStringRef kCFErrorDomainCocoa;
+CF_EXPORT const CFStringRef kCFErrorDomainPOSIX;
+CF_EXPORT const CFStringRef kCFErrorDomainOSStatus;
+CF_EXPORT const CFStringRef kCFErrorDomainMach;
+CF_EXPORT const CFStringRef kCFErrorDomainCocoa;
 
-const CFStringRef kCFErrorLocalizedDescriptionKey;
-const CFStringRef kCFErrorLocalizedFailureReasonKey;
-const CFStringRef kCFErrorLocalizedRecoverySuggestionKey;
-const CFStringRef kCFErrorDescriptionKey;
-const CFStringRef kCFErrorUnderlyingErrorKey;
+CF_EXPORT const CFStringRef kCFErrorLocalizedDescriptionKey;
+CF_EXPORT const CFStringRef kCFErrorLocalizedFailureReasonKey;
+CF_EXPORT const CFStringRef kCFErrorLocalizedRecoverySuggestionKey;
+CF_EXPORT const CFStringRef kCFErrorDescriptionKey;
+CF_EXPORT const CFStringRef kCFErrorUnderlyingErrorKey;
 
 
 
 /*
  * Creating a CFError
  */
-CFErrorRef
+CF_EXPORT CFErrorRef
 CFErrorCreate (CFAllocatorRef allocator, CFStringRef domain, CFIndex code,
   CFDictionaryRef userInfo);
 
-CFErrorRef
+CF_EXPORT CFErrorRef
 CFErrorCreateWithUserInfoKeysAndValues (CFAllocatorRef allocator,
   CFStringRef domain, CFIndex code, const void *const *userInfoKeys,
   const void *const *userInfoValues, CFIndex numUserInfoValues);
@@ -67,31 +69,33 @@ CFErrorCreateWithUserInfoKeysAndValues (CFAllocatorRef allocator,
 /*
  * Getting Information About an Error
  */
-CFStringRef
+CF_EXPORT CFStringRef
 CFErrorGetDomain (CFErrorRef err);
 
-CFIndex
+CF_EXPORT CFIndex
 CFErrorGetCode (CFErrorRef err);
 
-CFDictionaryRef
+CF_EXPORT CFDictionaryRef
 CFErrorCopyUserInfo (CFErrorRef err);
 
-CFStringRef
+CF_EXPORT CFStringRef
 CFErrorCopyDescription (CFErrorRef err);
 
-CFStringRef
+CF_EXPORT CFStringRef
 CFErrorCopyFailureReason (CFErrorRef err);
 
-CFStringRef
+CF_EXPORT CFStringRef
 CFErrorCopyRecoverySuggestion (CFErrorRef err);
 
 /*
  * Getting the CFError Type ID
  */
-CFTypeID
+CF_EXPORT CFTypeID
 CFErrorGetTypeID (void);
 
 #endif /* MAC_OS_X_VERSION_10_5 */
+
+CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFERROR_H__ */
 

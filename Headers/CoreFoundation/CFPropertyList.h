@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -24,13 +24,15 @@
    Boston, MA 02110-1301, USA.
 */
 
+#ifndef __COREFOUNDATION_CFPROPERTYLIST_H__
+#define __COREFOUNDATION_CFPROPERTYLIST_H__
+
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFStream.h>
 
-#ifndef __COREFOUNDATION_CFPROPERTYLIST_H__
-#define __COREFOUNDATION_CFPROPERTYLIST_H__
+CF_EXTERN_C_BEGIN
 
 #if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 typedef enum CFPropertyListFormat CFPropertyListFormat;
@@ -124,5 +126,6 @@ CFPropertyListWriteToStream (CFPropertyListRef propertyList,
                              CFStringRef *errorString);
 #endif
 
-#endif /* __COREFOUNDATION_CFPROPERTYLIST_H__ */
+CF_EXTERN_C_END
 
+#endif /* __COREFOUNDATION_CFPROPERTYLIST_H__ */

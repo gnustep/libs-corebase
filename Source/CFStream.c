@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -26,6 +26,19 @@
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFStream.h"
+#include "GSPrivate.h"
+
+CONST_STRING_DECL(kCFStreamPropertyDataWritten, "kCFStreamPropertyDataWritten");
+CONST_STRING_DECL(kCFStreamPropertySocketNativeHandle,
+  "kCFStreamPropertySocketNativeHandle");
+CONST_STRING_DECL(kCFStreamPropertySocketRemoteHostName,
+  "kCFStreamPropertySocketRemoteHostName");
+CONST_STRING_DECL(kCFStreamPropertySocketRemotePortNumber,
+  "kCFStreamPropertySocketRemotePortNumber");
+CONST_STRING_DECL(kCFStreamPropertyAppendToFile,
+  "kCFStreamPropertyAppendToFile");
+CONST_STRING_DECL(kCFStreamPropertyFileCurrentOffset,
+  "kCFStreamPropertyFileCurrentOffset");
 
 CFTypeID
 CFWriteStreamGetTypeID (void)
