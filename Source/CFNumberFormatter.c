@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -410,8 +410,9 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef loc,
   if (new == NULL)
     return NULL;
   
-  /* Good news, UNumberFormatStyle and NSNumberFormatterStyle match. */
-  new->_fmt = unum_open (style, NULL, 0, cLocale, NULL, &err);
+  /* Good news, UNumberFormatStyle and NS/CFNumberFormatterStyle match. */
+  new->_fmt = unum_open ((UNumberFormatStyle )style, NULL, 0, cLocale,
+                         NULL, &err);
   if (U_FAILURE(err))
     {
       CFRelease (new);

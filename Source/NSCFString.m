@@ -256,7 +256,7 @@ static NSStringEncoding *nsencodings = NULL;
       return [super compare: string options: mask range: compareRange
         locale: locale];
     }
-  return CFStringCompareWithOptionsAndLocale (self,
+  return (NSComparisonResult)CFStringCompareWithOptionsAndLocale (self,
      string, cfRange, (CFStringCompareFlags)mask,
     (CFLocaleRef)locale);
 }

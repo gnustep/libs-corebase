@@ -52,8 +52,7 @@ CF_EXPORT const CFStringRef kCFURLHTTPStatusLine; /* CFString */
 /*
  * Error Codes
  */
-typedef enum CFURLError CFURLError;
-enum CFURLError
+typedef enum
 {
   kCFURLUnknownError =                 -10,
   kCFURLUnknownSchemeError =           -11,
@@ -64,7 +63,7 @@ enum CFURLError
   kCFURLUnknownPropertyKeyError =      -16,
   kCFURLPropertyKeyUnavailableError =  -17,
   kCFURLTimeoutError =                 -18
-};
+} CFURLError;
 
 CF_EXPORT Boolean
 CFURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc, CFURLRef url,

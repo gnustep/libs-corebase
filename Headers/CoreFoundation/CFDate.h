@@ -66,7 +66,7 @@ struct CFGregorianUnits
   double seconds;
 };
 
-enum CFGregorianUnitFlags
+typedef enum
 {
   kCFGregorianUnitsYears = (1 << 0),
   kCFGregorianUnitsMonths = (1 << 1),
@@ -75,8 +75,7 @@ enum CFGregorianUnitFlags
   kCFGregorianUnitsMinutes = (1 << 4),
   kCFGregorianUnitsSeconds = (1 << 5),
   kCFGregorianAllUnits = 0x00FFFFFF
-};
-typedef enum CFGregorianUnitFlags CFGregorianUnitFlags;
+} CFGregorianUnitFlags;
 
 CF_EXPORT const CFTimeInterval kCFAbsoluteTimeIntervalSince1970;
 CF_EXPORT const CFTimeInterval kCFAbsoluteTimeIntervalSince1904;

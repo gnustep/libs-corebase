@@ -14,7 +14,7 @@
 
    This library is disibuted in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -223,7 +223,8 @@ CFStringCompareWithOptionsAndLocale (CFStringRef str1,
   CFStringGetCharacters (str2, CFRangeMake(0, length2), string2);
   
   ucol = CFStringICUCollatorOpen (compareOptions, locale);
-  ret = ucol_strcoll (ucol, string2, length2, string1, length1);
+  ret = (CFComparisonResult)ucol_strcoll (ucol, string2, length2, string1,
+                                          length1);
   CFStringICUCollatorClose (ucol);
   
   CFAllocatorDeallocate (alloc, string1);

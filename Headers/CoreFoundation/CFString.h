@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -53,7 +53,7 @@ typedef UInt32 CFStringEncoding;
 /*
  * Constants
  */
-enum CFStringCompareFlags
+typedef enum
 {
   kCFCompareCaseInsensitive = 1,
   kCFCompareBackwards = 4,
@@ -66,8 +66,7 @@ enum CFStringCompareFlags
   kCFCompareWidthInsensitive = 256,
   kCFCompareForcedOrdering = 512
 #endif
-};
-typedef enum CFStringCompareFlags CFStringCompareFlags;
+} CFStringCompareFlags;
 
 enum CFStringBuiltInEncodings
 {
@@ -401,14 +400,13 @@ CFStringGetPascalStringPtr (CFStringRef theString, CFStringEncoding encoding);
  *  @{
  */
 #if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
-enum CFStringNormalizationForm
+typedef enum
 {
   kCFStringNormalizationFormD = 0,
   kCFStringNormalizationFormKD = 1,
   kCFStringNormalizationFormC = 2,
   kCFStringNormalizationFormKC = 3
-};
-typedef enum CFStringNormalizationForm CFStringNormalizationForm;
+} CFStringNormalizationForm;
 #endif
 
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED

@@ -43,7 +43,7 @@ AC_ARG_ENABLE([objc-bridge],
 if test "$enable_objc_bridge" = "yes"; then
   AC_PATH_PROG(GNUSTEP_CONFIG, [gnustep-config], [no])
   if test "$GNUSTEP_CONFIG" != "no"; then
-    OBJC_LIBS=`$GNUSTEP_CONFIG --objc-libs`
+    OBJC_LIBS=`$GNUSTEP_CONFIG --base-libs`
     LIBS="$LIBS $OBJC_LIBS"
     AC_DEFINE(HAVE_LIBOBJC, 1)
   else

@@ -61,8 +61,7 @@ struct CFSocketSignature
   CFDataRef address;
 };
 
-typedef enum CFSocketCallBackType CFSocketCallBackType;
-enum CFSocketCallBackType
+typedef enum
 {
   kCFSocketNoCallBack =      0,
   kCFSocketReadCallBack =    1,
@@ -73,7 +72,7 @@ enum CFSocketCallBackType
   ,
   kCFSocketWriteCallBack =   8
 #endif
-};
+} CFSocketCallBackType;
 
 #if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
 enum
@@ -89,13 +88,12 @@ enum
 };
 #endif
 
-typedef enum CFSocketError CFSocketError;
-enum CFSocketError
+typedef enum
 {
   kCFSocketSuccess =  0,
   kCFSocketError =   -1,
   kCFSocketTimeout = -2
-};
+} CFSocketError;
 
 typedef void (*CFSocketCallBack) (CFSocketRef s,
                                   CFSocketCallBackType callbackType,

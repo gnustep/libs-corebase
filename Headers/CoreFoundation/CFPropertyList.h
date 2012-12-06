@@ -35,22 +35,20 @@
 CF_EXTERN_C_BEGIN
 
 #if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
-typedef enum CFPropertyListFormat CFPropertyListFormat;
-enum CFPropertyListFormat
+typedef enum
 {
    kCFPropertyListOpenStepFormat = 1,
    kCFPropertyListXMLFormat_v1_0 = 100,
    kCFPropertyListBinaryFormat_v1_0 = 200
-};
+} CFPropertyListFormat;
 #endif
 
-typedef enum CFPropertyListMutabilityOptions CFPropertyListMutabilityOptions;
-enum CFPropertyListMutabilityOptions
+typedef enum
 {
    kCFPropertyListImmutable = 0,
    kCFPropertyListMutableContainers = 1,
    kCFPropertyListMutableContainersAndLeaves = 2
-};
+} CFPropertyListMutabilityOptions;
 
 #if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
 enum

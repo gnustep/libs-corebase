@@ -39,8 +39,7 @@ typedef struct __CFRunLoopSource * CFRunLoopSourceRef;
 typedef struct __CFRunLoopObserver * CFRunLoopObserverRef;
 typedef struct __CFRunLoopTimer * CFRunLoopTimerRef;
 
-typedef enum CFRunLoopActivity CFRunLoopActivity;
-enum CFRunLoopActivity
+typedef enum
 {
   kCFRunLoopEntry =         (1 << 0),
   kCFRunLoopBeforeTimers =  (1 << 1),
@@ -49,7 +48,7 @@ enum CFRunLoopActivity
   kCFRunLoopAfterWaiting =  (1 << 6),
   kCFRunLoopExit =          (1 << 7),
   kCFRunLoopAllActivities = 0x0FFFFFFFU
-};
+} CFRunLoopActivity;
 
 enum
 {

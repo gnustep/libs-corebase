@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -223,13 +223,12 @@ CFRangeMake(CFIndex location, CFIndex length)
 }
 
 /* Returned by comparison functions */
-typedef CFIndex CFComparisonResult;
-enum
+typedef enum
 {
     kCFCompareLessThan = -1,
     kCFCompareEqualTo = 0,
     kCFCompareGreaterThan = 1
-};
+} CFComparisonResult;
 
 /* Return when a value is not found */
 enum
@@ -331,7 +330,7 @@ typedef CFIndex     (*CFAllocatorPreferredSizeCallBack)(CFIndex size,
   CFOptionFlags hint, void *info);
 typedef const void* (*CFAllocatorRetainCallBack)(const void *info);
 typedef void        (*CFAllocatorReleaseCallBack)(const void *info);
-typedef CFStringRef	(*CFAllocatorCopyDescriptionCallBack)(const void *info);
+typedef CFStringRef        (*CFAllocatorCopyDescriptionCallBack)(const void *info);
 
 struct _CFAllocatorContext
 {
@@ -342,7 +341,7 @@ struct _CFAllocatorContext
   CFAllocatorCopyDescriptionCallBack copyDescription;
   CFAllocatorAllocateCallBack        allocate;
   CFAllocatorReallocateCallBack      reallocate;
-  CFAllocatorDeallocateCallBack	     deallocate;
+  CFAllocatorDeallocateCallBack             deallocate;
   CFAllocatorPreferredSizeCallBack   preferredSize;
 };
 typedef struct _CFAllocatorContext CFAllocatorContext;

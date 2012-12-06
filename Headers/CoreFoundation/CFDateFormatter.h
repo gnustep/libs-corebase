@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -37,15 +37,14 @@ CF_EXTERN_C_BEGIN
 
 typedef struct __CFDateFormatter *CFDateFormatterRef;
 
-typedef enum _CFDateFormatterStyle CFDateFormatterStyle;
-enum _CFDateFormatterStyle
+typedef enum _CFDateFormatterStyle
 {
   kCFDateFormatterNoStyle = 0,
   kCFDateFormatterShortStyle = 1,
   kCFDateFormatterMediumStyle = 2,
   kCFDateFormatterLongStyle = 3,
   kCFDateFormatterFullStyle = 4
-};
+} CFDateFormatterStyle;
 
 CF_EXPORT const CFStringRef kCFDateFormatterIsLenient; /* CFBoolean */
 CF_EXPORT const CFStringRef kCFDateFormatterTimeZone; /* CFTimeZone */

@@ -41,8 +41,7 @@ CF_EXTERN_C_BEGIN
  */
 typedef struct __CFXMLParser *CFXMLParserRef;
 
-typedef enum CFXMLParserStatusCode CFXMLParserStatusCode;
-enum CFXMLParserStatusCode
+typedef enum
 {
   kCFXMLStatusParseNotBegun =                -2,
   kCFXMLStatusParseInProgress =              -1,
@@ -62,10 +61,9 @@ enum CFXMLParserStatusCode
   kCFXMLErrorMalformedCharacterReference =   13,
   kCFXMLErrorMalformedParsedCharacterData =  14,
   kCFXMLErrorNoData =                        15
-};
+} CFXMLParserStatusCode;
 
-typedef enum CFXMLParserOptions CFXMLParserOptions;
-enum CFXMLParserOptions
+typedef enum
 {
   kCFXMLParserValidateDocument =        (1<<0),
   kCFXMLParserSkipMetaData =            (1<<1),
@@ -75,7 +73,7 @@ enum CFXMLParserOptions
   kCFXMLParserAddImpliedAttributes =    (1<<5),
   kCFXMLParserAllOptions =          0x00FFFFFF,
   kCFXMLParserNoOptions =                    0
-};
+} CFXMLParserOptions;
 
 typedef void *(*CFXMLParserCreateXMLStructureCallBack) (CFXMLParserRef parser,
   CFXMLNodeRef nodeDesc, void *info);

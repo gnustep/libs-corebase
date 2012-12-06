@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -50,7 +50,7 @@ CF_EXPORT const CFNumberRef kCFNumberNaN;
 CF_EXPORT const CFNumberRef kCFNumberNegativeInfinity;
 CF_EXPORT const CFNumberRef kCFNumberPositiveInfinity;
 
-enum CFNumberType
+typedef enum
 {
   kCFNumberSInt8Type = 1,
   kCFNumberSInt16Type = 2,
@@ -73,8 +73,7 @@ enum CFNumberType
 #else
   kCFNumberMaxType = 14
 #endif
-};
-typedef enum CFNumberType CFNumberType;
+} CFNumberType;
 
 
 

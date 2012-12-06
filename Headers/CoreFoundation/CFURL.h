@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -51,17 +51,15 @@ typedef CFOptionFlags CFURLBookmarkResolutionOptions;
 /*
  * Constants
  */
-typedef enum CFURLPathStyle CFURLPathStyle;
-enum CFURLPathStyle
+typedef enum
 {
   kCFURLPOSIXPathStyle =   0,
   kCFURLHFSPathStyle =     1,
   kCFURLWindowsPathStyle = 2
-};
+} CFURLPathStyle;
 
 #if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
-typedef enum CFURLComponentType CFURLComponentType;
-enum CFURLComponentType
+typedef enum
 {
   kCFURLComponentScheme =            1,
   kCFURLComponentNetLocation =       2,
@@ -75,7 +73,7 @@ enum CFURLComponentType
   kCFURLComponentParameterString =  10,
   kCFURLComponentQuery =            11,
   kCFURLComponentFragment =         12
-};
+} CFURLComponentType;
 #endif
 
 #if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED

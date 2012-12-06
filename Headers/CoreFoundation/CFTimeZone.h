@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -39,14 +39,13 @@ CF_EXTERN_C_BEGIN
 CF_EXPORT const CFStringRef kCFTimeZoneSystemTimeZoneDidChangeNotification;
 
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
-typedef CFIndex CFTimeZoneNameStyle;
-enum
+typedef enum
 {
   kCFTimeZoneNameStyleStandard,
   kCFTimeZoneNameStyleShortStandard,
   kCFTimeZoneNameStyleDaylightSaving,
   kCFTimeZoneNameStyleShortDaylightSaving
-};
+} CFTimeZoneNameStyle;
 #endif
 
 

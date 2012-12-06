@@ -6,7 +6,7 @@ GCC_VERSION=4.0.0
 
 # The version number of this release.
 MAJOR_VERSION=0
-MINOR_VERSION=1
+MINOR_VERSION=2
 # numeric value should match above
 VERSION_NUMBER=1
 GNUSTEP_COREBASE_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}

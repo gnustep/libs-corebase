@@ -14,7 +14,7 @@
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
@@ -62,8 +62,7 @@ enum
   kCFNumberFormatterPadAfterSuffix  = 3
 };
 
-typedef CFIndex CFNumberFormatterRoundingMode;
-enum
+typedef enum
 {
   kCFNumberFormatterRoundCeiling  = 0,
   kCFNumberFormatterRoundFloor    = 1,
@@ -72,10 +71,9 @@ enum
   kCFNumberFormatterRoundHalfEven = 4,
   kCFNumberFormatterRoundHalfDown = 5,
   kCFNumberFormatterRoundHalfUp   = 6
-};
+} CFNumberFormatterRoundingMode;
 
-typedef CFIndex CFNumberFormatterStyle;
-enum
+typedef enum
 {
   kCFNumberFormatterNoStyle         = 0,
   kCFNumberFormatterDecimalStyle    = 1,
@@ -83,87 +81,58 @@ enum
   kCFNumberFormatterPercentStyle    = 3,
   kCFNumberFormatterScientificStyle = 4,
   kCFNumberFormatterSpellOutStyle   = 5
-};
+} CFNumberFormatterStyle;
 
+CF_EXPORT const CFStringRef kCFNumberFormatterCurrencyCode; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterDecimalSeparator; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterCurrencyCode; /* CFString */
+  kCFNumberFormatterCurrencyDecimalSeparator; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterDecimalSeparator; /* CFString */
+  kCFNumberFormatterAlwaysShowDecimalSeparator; /* CFBoolean */
+CF_EXPORT const CFStringRef kCFNumberFormatterGroupingSeparator; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterCurrencyDecimalSeparator; /* CFString */
+  kCFNumberFormatterUseGroupingSeparator; /* CFBoolean */
+CF_EXPORT const CFStringRef kCFNumberFormatterPercentSymbol; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterZeroSymbol; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterNaNSymbol; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterInfinitySymbol; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterMinusSign; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterPlusSign; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterCurrencySymbol; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterExponentSymbol; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterMinIntegerDigits; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterMaxIntegerDigits; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterMinFractionDigits; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterMaxFractionDigits; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterGroupingSize; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterAlwaysShowDecimalSeparator; /* CFBoolean */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterGroupingSeparator; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterUseGroupingSeparator; /* CFBoolean */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterPercentSymbol; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterZeroSymbol; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterNaNSymbol; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterInfinitySymbol; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterMinusSign; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterPlusSign; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterCurrencySymbol; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterExponentSymbol; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterMinIntegerDigits; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterMaxIntegerDigits; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterMinFractionDigits; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterMaxFractionDigits; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterGroupingSize; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterSecondaryGroupingSize; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterRoundingMode; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterRoundingIncrement; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterFormatWidth; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterPaddingPosition; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterPaddingCharacter; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterDefaultFormat; /* CFString */
+  kCFNumberFormatterSecondaryGroupingSize; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterRoundingMode; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterRoundingIncrement; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterFormatWidth; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterPaddingPosition; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterPaddingCharacter; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterDefaultFormat; /* CFString */
 #if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+CF_EXPORT const CFStringRef kCFNumberFormatterMultiplier; /* CFNumber */
+CF_EXPORT const CFStringRef kCFNumberFormatterPositivePrefix; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterPositiveSuffix; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterNegativePrefix; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterNegativeSuffix; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterPerMillSymbol; /* CFString */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMultiplier; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterPositivePrefix; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterPositiveSuffix; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterNegativePrefix; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterNegativeSuffix; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterPerMillSymbol; /* CFString */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterInternationalCurrencySymbol; /* CFString */
+  kCFNumberFormatterInternationalCurrencySymbol; /* CFString */
 #endif
 #if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED 
 CF_EXPORT const CFStringRef
-kCFNumberFormatterCurrencyGroupingSeparator; /* CFString */
+  kCFNumberFormatterCurrencyGroupingSeparator; /* CFString */
+CF_EXPORT const CFStringRef kCFNumberFormatterIsLenient; /* CFBoolean */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterIsLenient; /* CFBoolean */
+  kCFNumberFormatterUseSignificantDigits; /* CFBoolean */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterUseSignificantDigits; /* CFBoolean */
+  kCFNumberFormatterMinSignificantDigits; /* CFNumber */
 CF_EXPORT const CFStringRef
-kCFNumberFormatterMinSignificantDigits; /* CFNumber */
-CF_EXPORT const CFStringRef
-kCFNumberFormatterMaxSignificantDigits; /* CFNumber */
+  kCFNumberFormatterMaxSignificantDigits; /* CFNumber */
 #endif
 
 

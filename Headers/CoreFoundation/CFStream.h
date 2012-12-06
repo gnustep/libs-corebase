@@ -62,7 +62,7 @@ struct CFStreamClientContext
 };
 typedef struct CFStreamClientContext CFStreamClientContext;
 
-enum _CFStreamStatus
+typedef enum
 {
   kCFStreamStatusNotOpen = 0,
   kCFStreamStatusOpening,
@@ -72,17 +72,15 @@ enum _CFStreamStatus
   kCFStreamStatusAtEnd,
   kCFStreamStatusClosed,
   kCFStreamStatusError
-};
-typedef enum _CFStreamStatus CFStreamStatus;
+} CFStreamStatus;
 
 /* Deprecated  */
-enum _CFStreamErrorDomain
+typedef enum
 {
   kCFStreamErrorDomainCustom = -1,
   kCFStreamErrorDomainPOSIX = 1,
   kCFStreamErrorDomainMacOSStatus
-};
-typedef enum _CFStreamErrorDomain CFStreamErrorDomain;
+} CFStreamErrorDomain;
 
 
 struct _CFStreamError
@@ -92,7 +90,7 @@ struct _CFStreamError
 };
 typedef struct _CFStreamError CFStreamError;
 
-enum _CFStreamEventType
+typedef enum
 {
   kCFStreamEventNone = 0,
   kCFStreamEventOpenCompleted = 1,
@@ -100,8 +98,7 @@ enum _CFStreamEventType
   kCFStreamEventCanAcceptBytes = 4,
   kCFStreamEventErrorOccurred = 8,
   kCFStreamEventEndEncountered = 16
-};
-typedef enum _CFStreamEventType CFStreamEventType;
+} CFStreamEventType;
 
 typedef void (*CFWriteStreamClientCallBack) (CFWriteStreamRef stream,
   CFStreamEventType eventType, void *clientCallBackInfo);

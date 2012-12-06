@@ -37,23 +37,21 @@ CF_EXTERN_C_BEGIN
 
 typedef const struct __CFXMLNode *CFXMLNodeRef;
 
-typedef enum CFXMLEntityTypeCode CFXMLEntityTypeCode;
-enum CFXMLEntityTypeCode
+typedef enum
 {
   kCFXMLEntityTypeParameter =      0,
   kCFXMLEntityTypeParsedInternal = 1,
   kCFXMLEntityTypeParsedExternal = 2,
   kCFXMLEntityTypeUnparsed =       3,
   kCFXMLEntityTypeCharacter =      4
-};
+} CFXMLEntityTypeCode;
 
 enum
 {
   kCFXMLNodeCurrentVersion = 1
 };
 
-typedef enum CFXMLNodeTypeCode CFXMLNodeTypeCode;
-enum CFXMLNodeTypeCode
+typedef enum
 {
   kCFXMLNodeTypeDocument =                  1,
   kCFXMLNodeTypeElement =                   2,
@@ -70,7 +68,7 @@ enum CFXMLNodeTypeCode
   kCFXMLNodeTypeNotation =                 13,
   kCFXMLNodeTypeElementTypeDeclaration =   14,
   kCFXMLNodeTypeAttributeListDeclaration = 15
-};
+} CFXMLNodeTypeCode;
 
 typedef struct CFXMLExternalID CFXMLExternalID;
 struct CFXMLExternalID
