@@ -252,7 +252,7 @@ GSStringGetFileSystemEncoding (void)
 #endif
 }
 
-#if __BIG_ENDIAN__
+#if WORDS_BIGENDIAN
 #define UTF16_ENCODING kCFStringEncodingUTF16BE
 #define UTF16_BOM_HI 0xFE
 #define UTF16_BOM_LO 0xFF
@@ -265,9 +265,7 @@ GSStringGetFileSystemEncoding (void)
 
 /* This function converts a Unicode string to a specified encoding.
  * It returns the number of bytes consumed.
- * If you need to know how many characters were consumed, you must compare
- * the value of *src before the function call to the one after the function
- * has returned.
+ * This function will adjusts the value of src.
  * WARNING: Never tell this function to convert to kCFStringEncodingUTF16
  * because it will add a BOM even if one already exists, regardless of
  * isExternalRepresentation.
@@ -279,9 +277,7 @@ GSStringEncodingFromUnicode (CFStringEncoding encoding, char *dst,
 
 /* This function converts a Unicode string to a specified encoding.
  * It return the number of characters converted.
- * If you need to know how many bytes were consumed, you must compare
- * the value of *src before the function call to the one after the function
- * has returned.
+ * This function adjusts the value of src.
  * WARNING: Never tell this function to convert from kCFStringEncodingUTF16
  * because it will add a BOM.
  */

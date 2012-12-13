@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.60])
-AC_INIT([libgnustep-corebase], [0.1], [bug-gnustep@gnu.org])
+AC_INIT([libgnustep-corebase], [0.2], [bug-gnustep@gnu.org])
 AC_CONFIG_SRCDIR([Source/CFBase.c])
 AC_CONFIG_HEADERS([Source/config.h])
 
@@ -27,6 +27,8 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 AC_CHECK_TYPES([ptrdiff_t])
+AC_C_BIGENDIAN
+AC_CHECK_SIZEOF([void *])
 
 # Checks for library functions.
 AC_FUNC_MALLOC

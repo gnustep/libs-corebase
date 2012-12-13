@@ -1,3 +1,10 @@
+2012-12-12 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/config.h.in:
+	* configure:
+	* configure.ac: Add test for endianess and size of void *.
+	* Source/GSPrivate.h: Use result of endianess test.
+
 2012-11-11 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFRuntime.c:
