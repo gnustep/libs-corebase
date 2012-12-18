@@ -26,6 +26,7 @@
 
 #import <Foundation/NSObject.h>
 #import <Foundation/NSError.h>
+#import <Foundation/NSString.h>
 
 #include "NSCFType.h"
 #include "CoreFoundation/CFError.h"

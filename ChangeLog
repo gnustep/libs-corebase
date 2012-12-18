@@ -1,3 +1,11 @@
+2012-12-17 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStringEncoding.c: Add local function to converted from
+	UTF-16 to/from UTF-8.
+	* Source/CFString.c: Modify functions for getting characters.
+	* Source/NSCFError.m:
+	* Source/NSCFData.m: Include NSString.h to avoid compiler warning.
+
 2012-12-12 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/config.h.in:

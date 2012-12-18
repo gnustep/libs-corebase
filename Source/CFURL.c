@@ -1394,7 +1394,7 @@ CFURLAppendPercentEscapedForCharacter (char **dst, UniChar c,
   
   source = &c;
   if ((len =
-      GSStringEncodingFromUnicode(enc, buffer, 8, &source, 1, 0, false, NULL)))
+      GSStringEncodingFromUnicode(enc, buffer, 8, source, 1, 0, false, NULL)))
     {
       char hi;
       char lo;
@@ -1564,7 +1564,7 @@ CFURLCharacterForPercentEscape (CFStringInlineBuffer *src, CFIndex *idx,
   
   c = 0;
   str = bytes;
-  num = GSStringEncodingToUnicode (enc, &c, 1, (const char**)&str, j,
+  num = GSStringEncodingToUnicode (enc, &c, 1, (const char*)str, j,
     false, NULL);
   if (num)
     (*idx) += (CFIndex)(str - bytes) + num;

@@ -271,8 +271,8 @@ GSStringGetFileSystemEncoding (void)
  * isExternalRepresentation.
  */
 CFIndex
-GSStringEncodingFromUnicode (CFStringEncoding encoding, char *dst,
-  CFIndex dstLength, const UniChar **src, CFIndex srcLength, char lossByte,
+GSStringEncodingFromUnicode (CFStringEncoding encoding, UInt8 *dst,
+  CFIndex dstLength, const UniChar *src, CFIndex srcLength, UInt8 lossByte,
   Boolean isExternalRepresentation, CFIndex *bytesNeeded);
 
 /* This function converts a Unicode string to a specified encoding.
@@ -283,7 +283,7 @@ GSStringEncodingFromUnicode (CFStringEncoding encoding, char *dst,
  */
 CFIndex
 GSStringEncodingToUnicode (CFStringEncoding encoding, UniChar *dst,
-  CFIndex dstLength, const char **src, CFIndex srcLength,
+  CFIndex dstLength, const UInt8 *src, CFIndex srcLength,
   Boolean isExternalRepresentation, CFIndex *bytesNeeded);
 
 void
