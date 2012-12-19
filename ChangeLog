@@ -1,7 +1,16 @@
+2012-12-18 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStringEncoding.c: Added local function to convert UTF-32
+	to/from UTF-16 (unused at this time).
+	* Source/CFString.c: Fix bugs related to changes to
+	GSStringEncodingToUnicode().
+	* Tests/CFString/encodings.m: Add test for some of the changes made
+	to Unicode conversion.
+
 2012-12-17 Stefan Bidigaray <stefanbidi@gmail.com>
 
-	* Source/CFStringEncoding.c: Add local function to converted from
-	UTF-16 to/from UTF-8.
+	* Source/CFStringEncoding.c: Add local function to converted UTF-8
+	to/from UTF-16.
 	* Source/CFString.c: Modify functions for getting characters.
 	* Source/NSCFError.m:
 	* Source/NSCFData.m: Include NSString.h to avoid compiler warning.

@@ -541,7 +541,7 @@ CFStringGetExtraBytes (CFStringEncoding *encoding, const UInt8 *bytes,
   GSStringEncodingToUnicode(*encoding, NULL, 0, bytes, numBytes, isExtRep,
                             &needed);
   
-  return needed * sizeof(UniChar);
+  return needed;
 }
 
 /* The CFString create function will return an inlined string whenever
@@ -610,10 +610,10 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 *bytes,
             {
               CFIndex count;
               
-              count = GSStringEncodingToUnicode (encoding, new->_contents,
-                extra / sizeof(UniChar), bytes, numBytes, isExtRep, NULL);
+              GSStringEncodingToUnicode (encoding, new->_contents,
+                extra / sizeof(UniChar), bytes, numBytes, isExtRep, &count);
               
-              new->_count = count;
+              new->_count = count / sizeof(UniChar);
               CFStringSetUnicode (new);
             }
           new->_deallocator = contentsDealloc;
@@ -1225,7 +1225,7 @@ CFStringAppendCString (CFMutableStringRef str, const char *cStr,
         (UInt8*)cStr, cStrLen, false, &neededChars);
       
       CFStringAppendCharacters (str, uBuffer, numChars);
-    } while (numChars < neededChars);
+    } while (numChars < (neededChars / sizeof(UniChar)));
 }
 
 void

@@ -576,10 +576,12 @@ CFStringGetMaximumSizeForEncoding (CFIndex length, CFStringEncoding encoding)
   UConverter *cnv;
   int8_t charSize;
   
-  switch (encoding & 0xF00)
+  switch (encoding)
     {
-      case kCFStringEncodingUnicode:
-        charSize = 4;
+      case kCFStringEncodingUTF16:
+      case kCFStringEncodingUTF16BE:
+      case kCFStringEncodingUTF16LE:
+        charSize = sizeof(UniChar);
         break;
       default:
         cnv = GSStringEncodingOpenConverter (encoding, 0);
@@ -758,7 +760,7 @@ GSStringEncodingFromUTF8 (UniChar *d, CFIndex dlen, const UInt8 *s,
     }
   
   if (needed)
-    *needed = d - dstart;
+    *needed = ((UInt8 *)d) - ((UInt8 *)dstart);
   
   return s - sstart;
 }
@@ -771,7 +773,7 @@ GSStringEncodingFromUTF8 (UniChar *d, CFIndex dlen, const UInt8 *s,
 /* Convert from UTF-16 to UTF-8 */
 static CFIndex
 GSStringEncodingToUTF8 (UInt8 *d, CFIndex dlen, const UniChar *s, CFIndex slen,
-                        CFIndex *needed)
+                        UniChar lossByte, CFIndex *needed)
 {
   const UniChar *sstart;
   const UniChar *slimit;
@@ -834,29 +836,108 @@ GSStringEncodingToUTF8 (UInt8 *d, CFIndex dlen, const UniChar *s, CFIndex slen,
     }
   
   if (needed)
-    *needed = d - dstart;
+    *needed = ((UInt8 *)d) - ((UInt8 *)dstart);
   
   return s - sstart;
 }
 
 static CFIndex
-GSStringEncodingFromUTF32 (UniChar *d, CFIndex dlen, UTF32Char *s, CFIndex slen)
+GSStringEncodingFromUTF32 (UniChar *d, CFIndex dlen, UTF32Char *s,
+                           CFIndex slen, CFIndex *needed)
 {
-  return 0;
+  const UTF32Char *sstart;
+  const UTF32Char *slimit;
+  UniChar *dstart;
+  UniChar *dlimit;
+  
+  sstart = s;
+  slimit = sstart + slen;
+  dstart = d;
+  dlimit = dstart + dlen;
+  while (s < slimit && (dlen == 0 || d < dlimit))
+    {
+      UTF32Char u;
+      
+      u = *s++;
+      if (u < 0x10000)
+        {
+          if (u >= 0xD800 && u <= 0xDFFF)
+            break;
+          if (dlen != 0)
+            *d = u;
+          d++;
+        }
+      else
+        {
+          if (u >= 0x10FFFF)
+            break;
+          if (dlen != 0)
+            {
+              d[0] = (u >> 10) + 0xD7C0;
+              d[1] = (u & 0x3FF) | 0xDC00;
+            }
+          d += 2;
+        }
+    }
+  
+  if (needed)
+    *needed = ((UInt8 *)d) - ((UInt8 *)dstart);
+  
+  return s - sstart;
 }
 
 static CFIndex
-GSStringEncodingToUTF32 (UTF32Char *d, CFIndex dlen, UniChar *s, CFIndex slen)
+GSStringEncodingToUTF32 (UTF32Char *d, CFIndex dlen, UniChar *s, CFIndex slen,
+                         UniChar lossByte, CFIndex *needed)
 {
-  return 0;
+  const UniChar *sstart;
+  const UniChar *slimit;
+  UTF32Char *dstart;
+  UTF32Char *dlimit;
+  
+  sstart = s;
+  slimit = sstart + slen;
+  dstart = d;
+  dlimit = dstart + dlen;
+  while (s < slimit && (dlen == 0 || d < dlimit))
+    {
+      UTF32Char u;
+      
+      u = *s++;
+      if (u >= 0xD800 && u <= 0xDFFF)
+        {
+          UTF16Char u16;
+          
+          if (slimit - s > 0 || u > 0xDC00)
+            break;
+          u16 = *s++;
+          if (u16 < 0xDC00 || u16 > 0xDFFF)
+            break;
+          u = (u << 10) + u16 - ((0xD7C0 << 10) + 0xDC00);
+        }
+      if (dlen != 0)
+        *d = u;
+      d++;
+    }
+  
+  if (needed)
+    *needed = ((UInt8 *)d) - ((UInt8 *)dstart);
+  
+  return s - sstart;
 }
 
 CFIndex
 GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
-                             const UniChar *s, CFIndex slen, UInt8 lossByte,
+                             const UniChar *s, CFIndex slen, UniChar lossByte,
                              Boolean isExtRep, CFIndex *needed)
 {
-  if (enc == kCFStringEncodingUTF8)
+  CFIndex converted;
+  
+  if (enc == kCFStringEncodingASCII)
+    {
+      
+    }
+  else if (enc == kCFStringEncodingUTF8)
     {
       if (isExtRep && dlen > 3)
         {
@@ -864,7 +945,13 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
           *d++ = 0xBB;
           *d++ = 0xBF;
         }
-      return GSStringEncodingToUTF8 (d, dlen, s, slen, needed);
+      converted = GSStringEncodingToUTF8 (d, dlen, s, slen, lossByte, needed);
+    }
+  else if (enc == kCFStringEncodingUTF32
+           || enc == kCFStringEncodingUTF32BE
+           || enc == kCFStringEncodingUTF32LE)
+    {
+      
     }
   else
     {
@@ -913,6 +1000,8 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
       
       return used;
     }
+  
+  return converted;
 }
 
 CFIndex
