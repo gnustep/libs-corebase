@@ -254,12 +254,20 @@ GSStringGetFileSystemEncoding (void)
 
 #if WORDS_BIGENDIAN
 #define UTF16_ENCODING kCFStringEncodingUTF16BE
+#define UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16LE
 #define UTF16_BOM_HI 0xFE
 #define UTF16_BOM_LO 0xFF
+
+#define UTF32_ENCODING kCFStringEncodingUTF32BE
+#define UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32LE
 #else
 #define UTF16_ENCODING kCFStringEncodingUTF16LE
+#define UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16BE
 #define UTF16_BOM_HI 0xFF
 #define UTF16_BOM_LO 0xFE
+
+#define UTF32_ENCODING kCFStringEncodingUTF32LE
+#define UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32BE
 #endif
 #define UTF16_BOM 0xFEFF
 

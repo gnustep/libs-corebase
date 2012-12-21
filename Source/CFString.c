@@ -26,6 +26,7 @@
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
+#include "CoreFoundation/CFByteOrder.h"
 #include "CoreFoundation/CFArray.h"
 #include "CoreFoundation/CFData.h"
 #include "CoreFoundation/CFDictionary.h"
@@ -841,19 +842,28 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
           converted = range.length;
         }
       else if (enc == kCFStringEncodingUTF16
-          || enc == UTF16_ENCODING)
+          || enc == kCFStringEncodingUTF16BE
+          || enc == kCFStringEncodingUTF16LE)
         {
+          
           UniChar *dst;
-          const UInt8 *bytes;
-          const UInt8 *end;
           
-          dst = (UniChar*)buffer;
-          bytes = (UInt8*)str->_contents + range.location;
-          end = bytes + range.length;
-          
-          while (bytes < end)
-            *dst++ = *bytes++;
-          converted = buffer - (UInt8*)dst;
+          dst = (UniChar *)buffer;
+          if (isExtRep && enc == kCFStringEncodingUTF16)
+            dst = 0xFEFF;
+          range.length = GS_MIN (range.length, maxBufLen / sizeof(UniChar));
+          CFStringGetCharacters (str, range, (UniChar*)buffer);
+          if (enc == UTF16_ENCODING_TO_SWAP)
+            {
+              UniChar *end;
+              
+              end = dst + converted;
+              while (dst < end)
+                {
+                  *dst = CFSwapInt16 (*dst);
+                  ++dst;
+                }
+            }
         }
       else
         {

@@ -677,8 +677,41 @@ CFStringGetNameOfEncoding (CFStringEncoding encoding)
 
 
 /* Count the number of bytes that make up this UTF-8 code point */
+#define GS_UTF_IS_SURROGATE(c) (((c) & 0xFFFFF800) == 0xD800)
+
+#define GS_UTF_IS_LEAD_SURROGATE(c) (((c) & 0xFFFFFC00) == 0xD800)
+
+#define GS_UTF_IS_TRAIL_SURROGATE(c) (((c) & 0xFFFFFC00) == 0xDC00)
+
+static UInt8 utf8[] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0 };
+
+#define GS_UTF8_MAX_LENGTH 4
+
 #define GS_UTF8_BYTE_COUNT(c) \
   (((c) < 0xF8) ? 1 + ((c) >= 0xC0) + ((c) >= 0xE0) + ((c) >= 0xF0) : 0)
+
+/* Get the number of bytes needed for the code point */
+#define GS_UTF8_LENGTH(c) \
+  (((c) <= 0x10FFFF ) ? 1 + ((c) > 0x007F) + ((c) > 0x07FF) \
+                        + ((c) > 0xFFFF) : 0)
+
+#define GS_UTF8_IS_TRAIL(c) (((c) & 0xC0) == 0x80)
+
+#define GS_UTF16_APPEND(dest, c) do \
+  { \
+    dest[0] = (u >> 10) + 0xD7C0; \
+    dest[1] = (u & 0x3FF) | 0xDC00; \
+  } while(0)
+
+#define GS_UTF16_GET_CHAR(c_lead, c_trail) \
+  ((UTF32Char)c_lead << 10) + (UTF32Char)c_trail - ((0xD7C0 << 10) + 0xDC00);
+
+#define GS_ASCII_IS_OCTAL(c) (((c) & 0xF8) == 0)
+
+#define GS_ASCII_IS_HEX(c) (((c) >= '0' && (c) <= '9') \
+                            || ((c) >= 'A' && (c) <= 'Z') \
+                            || ((c) >= 'a' && (c) <= 'z'))
+
 /* Convert from UTF-8 to UTF-16
  * Return:
  *      Number of bytes converted.
@@ -711,21 +744,22 @@ GSStringEncodingFromUTF8 (UniChar *d, CFIndex dlen, const UInt8 *s,
           CFIndex count;
           
           count = GS_UTF8_BYTE_COUNT(*s);
-          if (count > slimit - s || count < 2)
+          if (count < 2)
             break;
-          if (count == 2 && (s[1] - 0x80) < 0x3F)
+          if (count == 2 && GS_UTF8_IS_TRAIL(s[1]))
             {
               u = (s[0] & 0x1F) << 6;
               u |= s[1] & 0x3F;
             }
-          else if (count == 3 && (s[1] - 0x80) < 0x3F && (s[2] - 0x80) < 0x3F)
+          else if (count == 3 && GS_UTF8_IS_TRAIL(s[1])
+                   && GS_UTF8_IS_TRAIL(s[2]))
             {
               u = (s[0] & 0x0F) << 12;
               u |= (s[1] & 0x3F) << 6;
               u |= s[2] & 0x3F;
             }
-          else if (count == 4 && (s[1] - 0x80) < 0x3F
-                   && (s[2] - 0x80) < 0x3F && (s[3] - 0x80) < 0x3F)
+          else if (count == 4 && GS_UTF8_IS_TRAIL(s[1])
+                   && GS_UTF8_IS_TRAIL(s[2]) && GS_UTF8_IS_TRAIL(s[3]))
             {
               u = (s[0] & 0x07) << 18;
               u |= (s[1] & 0x3F) << 12;
@@ -737,7 +771,7 @@ GSStringEncodingFromUTF8 (UniChar *d, CFIndex dlen, const UInt8 *s,
           s += count;
           if (u < 0x10000)
             {
-              if (u >= 0xD800 && u <= 0xDFFF)
+              if (GS_UTF_IS_SURROGATE(u))
                 break;
               if (dlen != 0)
                 *d = u;
@@ -764,11 +798,6 @@ GSStringEncodingFromUTF8 (UniChar *d, CFIndex dlen, const UInt8 *s,
   
   return s - sstart;
 }
-
-#define GS_UTF8_MAX_LENGTH 4
-/* Get the number of bytes needed for the code point */
-#define GS_UTF8_LENGTH(c) \
-  (((c) > 0x7F) ? 2 + ((c) > 0x7FF) + ((c) > 0xFFFF) + ((c) > 0x10FFFF) : 0)
 
 /* Convert from UTF-16 to UTF-8 */
 static CFIndex
@@ -799,19 +828,19 @@ GSStringEncodingToUTF8 (UInt8 *d, CFIndex dlen, const UniChar *s, CFIndex slen,
         {
           CFIndex count;
           
-          if (u >= 0xD800 && u <= 0xDFFF)
+          if (GS_UTF_IS_SURROGATE(u))
             {
               UTF16Char u16;
               
-              if (slimit - s > 0 || u > 0xDC00)
+              if (slimit - s > 0 || !GS_UTF_IS_LEAD_SURROGATE(u))
                 break;
               u16 = *s++;
-              if (u16 < 0xDC00 || u16 > 0xDFFF)
+              if (!GS_UTF_IS_TRAIL_SURROGATE(u16))
                 break;
-              u = (u << 10) + u16 - ((0xD7C0 << 10) + 0xDC00);
+              u = GS_UTF16_GET_CHAR(u, u16);
             }
           count = GS_UTF8_LENGTH(u);
-          if (count > GS_UTF8_MAX_LENGTH || count < 2)
+          if (count < 2)
             break;
           if (dlen != 0)
             {
@@ -828,7 +857,8 @@ GSStringEncodingToUTF8 (UInt8 *d, CFIndex dlen, const UniChar *s, CFIndex slen,
                   case 2:
                     d[1] = (u & 0x3F) | 0x80;
                     u = u >> 6;
-                    d[0] = 0;
+                  case 1:
+                    d[0] = (u & 0x3F) | utf8[count];
                 }
             }
           d += count;
@@ -842,7 +872,7 @@ GSStringEncodingToUTF8 (UInt8 *d, CFIndex dlen, const UniChar *s, CFIndex slen,
 }
 
 static CFIndex
-GSStringEncodingFromUTF32 (UniChar *d, CFIndex dlen, UTF32Char *s,
+GSStringEncodingFromUTF32 (UniChar *d, CFIndex dlen, const UTF32Char *s,
                            CFIndex slen, CFIndex *needed)
 {
   const UTF32Char *sstart;
@@ -861,7 +891,7 @@ GSStringEncodingFromUTF32 (UniChar *d, CFIndex dlen, UTF32Char *s,
       u = *s++;
       if (u < 0x10000)
         {
-          if (u >= 0xD800 && u <= 0xDFFF)
+          if (GS_UTF_IS_SURROGATE(u))
             break;
           if (dlen != 0)
             *d = u;
@@ -887,8 +917,8 @@ GSStringEncodingFromUTF32 (UniChar *d, CFIndex dlen, UTF32Char *s,
 }
 
 static CFIndex
-GSStringEncodingToUTF32 (UTF32Char *d, CFIndex dlen, UniChar *s, CFIndex slen,
-                         UniChar lossByte, CFIndex *needed)
+GSStringEncodingToUTF32 (UTF32Char *d, CFIndex dlen, const UniChar *s,
+                         CFIndex slen, UniChar lossByte, CFIndex *needed)
 {
   const UniChar *sstart;
   const UniChar *slimit;
@@ -904,20 +934,157 @@ GSStringEncodingToUTF32 (UTF32Char *d, CFIndex dlen, UniChar *s, CFIndex slen,
       UTF32Char u;
       
       u = *s++;
-      if (u >= 0xD800 && u <= 0xDFFF)
+      if (GS_UTF_IS_SURROGATE(u))
         {
           UTF16Char u16;
           
-          if (slimit - s > 0 || u > 0xDC00)
+          if (slimit - s > 0 || !GS_UTF_IS_LEAD_SURROGATE(u))
             break;
           u16 = *s++;
-          if (u16 < 0xDC00 || u16 > 0xDFFF)
+          if (!GS_UTF_IS_TRAIL_SURROGATE(u))
             break;
-          u = (u << 10) + u16 - ((0xD7C0 << 10) + 0xDC00);
+          u = GS_UTF16_GET_CHAR(u, u16);
         }
       if (dlen != 0)
         *d = u;
       d++;
+    }
+  
+  if (needed)
+    *needed = ((UInt8 *)d) - ((UInt8 *)dstart);
+  
+  return s - sstart;
+}
+
+static CFIndex
+GSStringEncodingToNonLossyASCII (char *d, CFIndex dlen, const UniChar *s,
+                                 CFIndex slen, UInt8 lossByte, CFIndex *needed)
+{
+  const UniChar *sstart;
+  const UniChar *slimit;
+  char *dstart;
+  char *dlimit;
+  
+  sstart = s;
+  slimit = sstart + slen;
+  dstart = d;
+  dlimit = dstart + dlen;
+  while (s < slimit && (dlen == 0 || d < dlimit))
+    {
+      UniChar c;
+      
+      c = *s;
+      if (c < 0x80 && c != '\\')
+        {
+          if (dlen != 0)
+            *d = c;
+          d++;
+          s++;
+        }
+      else
+        {
+          char conv[6];
+          CFIndex convCount;
+          
+          conv[0] = '\\';
+          if (c == '\\')
+            {
+              conv[1] = '\\';
+              convCount = 2;
+            }
+          else if (c <= 0x00FF)
+            {
+              conv[3] = (c & 0x7) + '0';
+              conv[2] = ((c >> 3) & 0x7) + '0';
+              conv[1] = ((c >> 6) & 0x7) + '0';
+              convCount = 4;
+            }
+          else
+            {
+              conv[5] = 0;
+              conv[4] = 0;
+              conv[3] = 0;
+              conv[2] = 0;
+              conv[1] = 'u';
+              convCount = 6;
+            }
+          if (dlen != 0 && convCount < dlimit - d)
+            {
+              CFIndex i;
+              for (i = 0 ; i < convCount ; ++i)
+                d[i] = conv[i];
+            }
+          d += convCount;
+        }
+    }
+  
+  if (needed)
+    *needed = ((UInt8 *)d) - ((UInt8 *)dstart);
+  
+  return s - sstart;
+}
+
+static CFIndex
+GSStringEncodingFromNonLossyASCII (UniChar *d, CFIndex dlen, const char *s,
+                                   CFIndex slen, CFIndex *needed)
+{
+  const char *sstart;
+  const char *slimit;
+  UniChar *dstart;
+  UniChar *dlimit;
+  
+  sstart = s;
+  slimit = sstart + slen;
+  dstart = d;
+  dlimit = dstart + dlen;
+  while (s < slimit && (dlen == 0 || d < dlimit))
+    {
+      UniChar c;
+      
+      c = *s;
+      if (c == '\\')
+        {
+          CFIndex convCount;
+          
+          c = s[1];
+          if (c == '\\')
+            {
+              convCount = 2;
+            }
+          else if (GS_ASCII_IS_OCTAL(c) && GS_ASCII_IS_OCTAL(s[2])
+                   && GS_ASCII_IS_OCTAL(s[3]))
+            {
+              c = (s[1] - '0') << 6;
+              c |= (s[2] - '0') << 3;
+              c |= s[3] - '0';
+              convCount = 4;
+            }
+          else if (c == 'u' && GS_ASCII_IS_HEX(s[2]) && GS_ASCII_IS_HEX(s[3])
+                   && GS_ASCII_IS_HEX(s[4]) && GS_ASCII_IS_HEX(s[5]))
+            {
+              
+              convCount = 6;
+            }
+          else
+            {
+              break;
+            }
+          if (dlen != 0)
+            *d = c;
+          d++;
+          s += convCount;
+        }
+      else if (c < 0x80)
+        {
+          if (dlen != 0)
+            *d = *s;
+          d++;
+          s++;
+        }
+      else
+        {
+          break;
+        }
     }
   
   if (needed)
@@ -933,11 +1100,10 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
 {
   CFIndex converted;
   
-  if (enc == kCFStringEncodingASCII)
-    {
-      
-    }
-  else if (enc == kCFStringEncodingUTF8)
+  if (d == NULL)
+    dlen = 0;
+  
+  if (enc == kCFStringEncodingUTF8)
     {
       if (isExtRep && dlen > 3)
         {
@@ -951,7 +1117,32 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
            || enc == kCFStringEncodingUTF32BE
            || enc == kCFStringEncodingUTF32LE)
     {
+      UTF32Char *dst;
       
+      dst = (UTF32Char *)d;
+      if (isExtRep && enc == kCFStringEncodingUTF32 && dlen >= 4)
+        {
+          *dst++ = 0x0000FEFF;
+          dlen -= 4;
+        }
+      /* round to the nearest multiple of 4 */
+      dlen &= ~0x3;
+      converted = GSStringEncodingToUTF32 (dst, dlen, s,
+                                           slen / sizeof(UTF32Char),
+                                           lossByte, needed);
+      if (enc == UTF32_ENCODING_TO_SWAP && dlen != 0)
+        {
+          UTF32Char *cur;
+          UTF32Char *end;
+          
+          cur = (UTF32Char *)d;
+          end = (UTF32Char *)(d + dlen);
+          while (cur < end)
+            {
+              *cur = CFSwapInt32 (*cur);
+              cur++;
+            }
+        }
     }
   else
     {
@@ -1009,17 +1200,64 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
                            const UInt8 *s, CFIndex slen,
                            Boolean isExtRep, CFIndex *needed)
 {
+  CFIndex converted;
+  
+  if (d == NULL)
+    dlen = 0;
+  
   if (enc == kCFStringEncodingUTF8)
     {
       if (isExtRep && slen > 3
           && (s[0] == 0xEF && s[1] == 0xBB && s[2] == 0xBF))
         s += 3;
         
-      return GSStringEncodingFromUTF8 (d, dlen, s, slen, needed);
+      converted = GSStringEncodingFromUTF8 (d, dlen, s, slen, needed);
+    }
+  else if (enc == kCFStringEncodingUTF32
+           || enc == kCFStringEncodingUTF32BE
+           || enc == kCFStringEncodingUTF32LE)
+    {
+      const UTF32Char *src;
+      Boolean swap;
+      
+      src = (const UTF32Char *)s;
+      swap = false;
+      if (enc == kCFStringEncodingUTF32)
+        {
+          UTF32Char bom;
+          
+          bom = (*src == 0x0000FEFF || *src == 0xFFFE0000) ? *src++ : 0;
+#if WORDS_BIGENDIAN
+          if (bom == 0xFFFE0000)
+#else
+          if (bom == 0x0000FEFF)
+#endif
+            swap = true;
+        }
+      else if (enc == UTF32_ENCODING_TO_SWAP)
+        {
+          swap = true;
+        }
+      /* round to the nearest multiple of 4 */
+      dlen &= ~0x3;
+      if (swap && dlen != 0)
+        {
+          UTF32Char *cur;
+          UTF32Char *end;
+          
+          cur = (UTF32Char *)d;
+          end = (UTF32Char *)(d + dlen);
+          while (cur < end)
+            {
+              *cur = CFSwapInt32 (*cur);
+              cur++;
+            }
+        }
+      converted = GSStringEncodingFromUTF32 (d, dlen, src,
+                                             slen / sizeof(UTF32Char), needed);
     }
   else
     {
-      CFIndex converted;
       UConverter *ucnv;
       
       ucnv = GSStringEncodingOpenConverter (enc, 0);
@@ -1061,8 +1299,8 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
           
           GSStringEncodingCloseConverter (ucnv);
         }
-      
-      return converted;
     }
+  
+  return converted;
 }
 
