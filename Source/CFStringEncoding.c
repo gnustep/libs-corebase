@@ -1113,6 +1113,18 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
         }
       converted = GSStringEncodingToUTF8 (d, dlen, s, slen, lossByte, needed);
     }
+  else if (enc == kCFStringEncodingUTF16
+           || enc == kCFStringEncodingUTF16BE
+           || enc == kCFStringEncodingUTF16LE)
+    {
+      UniChar *dst;
+      
+      dst = (UniChar *)d;
+      if (isExtRep && enc == kCFStringEncodingUTF16 && dlen >= 2)
+        {
+          
+        }
+    }
   else if (enc == kCFStringEncodingUTF32
            || enc == kCFStringEncodingUTF32BE
            || enc == kCFStringEncodingUTF32LE)
@@ -1213,6 +1225,12 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
         
       converted = GSStringEncodingFromUTF8 (d, dlen, s, slen, needed);
     }
+  else if (enc == kCFStringEncodingUTF16
+           || enc == kCFStringEncodingUTF16BE
+           || enc == kCFStringEncodingUTF16LE)
+    {
+      
+    }
   else if (enc == kCFStringEncodingUTF32
            || enc == kCFStringEncodingUTF32BE
            || enc == kCFStringEncodingUTF32LE)
@@ -1239,14 +1257,14 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
           swap = true;
         }
       /* round to the nearest multiple of 4 */
-      dlen &= ~0x3;
-      if (swap && dlen != 0)
+      slen &= ~0x3;
+      if (swap && slen != 0)
         {
           UTF32Char *cur;
           UTF32Char *end;
           
-          cur = (UTF32Char *)d;
-          end = (UTF32Char *)(d + dlen);
+          cur = (UTF32Char *)s;
+          end = (UTF32Char *)(s + slen);
           while (cur < end)
             {
               *cur = CFSwapInt32 (*cur);

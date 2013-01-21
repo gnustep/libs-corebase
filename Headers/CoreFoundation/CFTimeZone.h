@@ -112,5 +112,7 @@ CFTimeZoneGetNextDaylightSavingTimeTransition (CFTimeZoneRef tz,
   CFAbsoluteTime at);
 #endif
 
+CF_EXTERN_C_END
+
 #endif /* __COREFOUNDATION_CFTIMEZONE__ */
 
