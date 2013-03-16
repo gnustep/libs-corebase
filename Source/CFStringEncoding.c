@@ -1110,6 +1110,7 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
           *d++ = 0xEF;
           *d++ = 0xBB;
           *d++ = 0xBF;
+          dlen -= 3;
         }
       converted = GSStringEncodingToUTF8 (d, dlen, s, slen, lossByte, needed);
     }
@@ -1122,7 +1123,23 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
       dst = (UniChar *)d;
       if (isExtRep && enc == kCFStringEncodingUTF16 && dlen >= 2)
         {
+          *dst = 0xFEFF;
+          dst++;
+          dlen -= 2;
+        }
+
+      converted = (dlen <= slen * sizeof(UniChar)) ? dlen : (slen * sizeof(UniChar));
+      memcpy(dst, s, converted);
+      if (enc == UTF16_ENCODING_TO_SWAP)
+        {
+          UniChar *end;
           
+          end = dst + converted;
+          while (dst < end)
+            {
+              *dst = CFSwapInt16 (*dst);
+              ++dst;
+            }
         }
     }
   else if (enc == kCFStringEncodingUTF32
@@ -1229,7 +1246,44 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
            || enc == kCFStringEncodingUTF16BE
            || enc == kCFStringEncodingUTF16LE)
     {
+      const UniChar *src;
+      Boolean swap;
       
+      src = (const UniChar *)s;
+      swap = false;
+
+      if (enc == kCFStringEncodingUTF16)
+        {
+          UniChar bom;
+          
+          bom = (*src == 0xFEFF || *src == 0xFFFE) ? *src++ : 0;
+#if WORDS_BIGENDIAN
+          if (bom == 0xFFFE)
+#else
+          if (bom == 0xFEFF)
+#endif
+            swap = true;
+        }
+      else if (enc == UTF16_ENCODING_TO_SWAP)
+        {
+          swap = true;
+        }
+  
+      if (swap && slen != 0)
+        {
+          UniChar *cur;
+          UniChar *end;
+          
+          cur = (UniChar *)s;
+          end = (UniChar *)(s + slen);
+          while (cur < end)
+            {
+              *cur = CFSwapInt16 (*cur);
+              ++cur;
+            }
+        }
+      converted = (dlen * sizeof(UniChar) <= slen) ? (dlen * sizeof(UniChar)) : slen;
+      memcpy(d, s, converted);
     }
   else if (enc == kCFStringEncodingUTF32
            || enc == kCFStringEncodingUTF32BE

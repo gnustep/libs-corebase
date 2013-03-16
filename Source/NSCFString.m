@@ -144,6 +144,7 @@ static NSStringEncoding *nsencodings = NULL;
   return self;
 }
 
+/*
 - (NSString*)stringByReplacingOccurrencesOfString: (NSString*)replace
                                        withString: (NSString*)by
                                           options: (NSStringCompareOptions)opts
@@ -157,6 +158,7 @@ static NSStringEncoding *nsencodings = NULL;
 {
   return nil; // FIXME
 }
+*/
 
 - (NSUInteger) length
 {
@@ -197,17 +199,6 @@ static NSStringEncoding *nsencodings = NULL;
   return NSMakeRange (ret.location, ret.length);
 }
 
-- (NSRange) rangeOfString: (NSString*) aString
-                  options: (NSUInteger) mask
-                    range: (NSRange) aRange
-{
-  // FIXME: Override this method because NSString doesn't do it right.
-  return [self rangeOfString: aString
-                     options: mask
-                       range: aRange
-                      locale: nil];
-}
-
 - (NSRange) rangeOfString: (NSString *) aString
                   options: (NSStringCompareOptions) mask
                     range: (NSRange) searchRange
@@ -231,19 +222,13 @@ static NSStringEncoding *nsencodings = NULL;
   return NSMakeRange (cfRange.location, cfRange.length);
 }
 
+/*
 - (NSDictionary*) propertyListFromStringsFileFormat
 {
   // FIXME ???
   return nil;
 }
-
-- (NSComparisonResult) compare: (NSString*) aString
-                       options: (NSUInteger) mask
-                         range: (NSRange) aRange
-{
-  // FIXME: Another instance of NSString doing it wrong....
-  return [self compare: aString options: mask range: aRange locale: nil];
-}
+*/
 
 - (NSComparisonResult) compare: (NSString*) string 
                        options: (NSUInteger) mask 
@@ -251,10 +236,10 @@ static NSStringEncoding *nsencodings = NULL;
                         locale: (id) locale
 {
   CFRange cfRange = CFRangeMake (compareRange.location, compareRange.length);
-  if ([locale isKindOfClass: [NSDictionary class]])
+  if (nil != locale
+      && ![locale isKindOfClass: [NSLocale class]])
     {
-      return [super compare: string options: mask range: compareRange
-        locale: locale];
+      locale = [NSLocale currentLocale];
     }
   return (NSComparisonResult)CFStringCompareWithOptionsAndLocale (self,
      string, cfRange, (CFStringCompareFlags)mask,
@@ -286,11 +271,13 @@ static NSStringEncoding *nsencodings = NULL;
   return CFHash ((CFTypeRef)self);
 }
 
+/*
 - (NSString*) commonPrefixWithString: (NSString*) aString
                              options: (NSUInteger) mask
 {
   return nil; // FIXME
 }
+*/
 
 - (NSString*) capitalizedString
 {
@@ -369,16 +356,19 @@ static NSStringEncoding *nsencodings = NULL;
   return CFStringGetDoubleValue (self);
 }
 
+/*
 - (BOOL) boolValue
 {
   return (BOOL)CFStringGetIntValue (self); //FIXME
 }
+*/
 
 - (NSInteger) integerValue
 {
   return (NSInteger)CFStringGetIntValue (self);
 }
 
+/*
 - (long long) longLongValue
 {
   return (long long)CFStringGetIntValue (self); // FIXME
@@ -389,6 +379,7 @@ static NSStringEncoding *nsencodings = NULL;
   // FIXME
   return NO;
 }
+*/
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding) encoding
          allowLossyConversion: (BOOL) flag
@@ -398,11 +389,13 @@ static NSStringEncoding *nsencodings = NULL;
     self, enc, flag ? '?' : 0);
 }
 
+/*
 + (NSStringEncoding) defaultCStringEncoding
 {
   // FIXME ???
   return 0;
 }
+*/
 
 - (NSStringEncoding) fastestEncoding
 {
@@ -416,11 +409,13 @@ static NSStringEncoding *nsencodings = NULL;
   return CFStringConvertEncodingToNSStringEncoding (enc);
 }
 
+/*
 - (const char*) fileSystemRepresentation
 {
   // FIXME
   return NULL;
 }
+*/
 
 - (BOOL) getFileSystemRepresentation: (char*) buffer
                            maxLength: (NSUInteger) size
@@ -443,7 +438,7 @@ static NSStringEncoding *nsencodings = NULL;
     const CFStringEncoding* encodings;
     NSStringEncoding* converted;
     
-    encodings = CFStringGetListOfAvailableEncodings();
+    encodings = CFStringGetListOfAvailableEncodings();
     for (i = 0; encodings[i] != 0; i++)
       count++;
     
@@ -461,11 +456,13 @@ static NSStringEncoding *nsencodings = NULL;
   return nsencodings;
 }
 
+/*
 + (NSString*) localizedNameOfStringEncoding: (NSStringEncoding) encoding
 {
   // FIXME
   return nil;
 }
+*/
 
 - (void) getLineStart: (NSUInteger *) startIndex
                   end: (NSUInteger *) lineEndIndex
@@ -477,6 +474,7 @@ static NSStringEncoding *nsencodings = NULL;
     (CFIndex*)lineEndIndex, (CFIndex*)contentsEndIndex);
 }
 
+/*
 - (const char*) lossyCString
 {
   return [self cString]; // FIXME
@@ -486,6 +484,7 @@ static NSStringEncoding *nsencodings = NULL;
 {
   return nil; // FIXME
 }
+*/
 
 - (NSString*) stringByPaddingToLength: (NSUInteger)newLength
                            withString: (NSString*)padString
@@ -497,6 +496,7 @@ static NSStringEncoding *nsencodings = NULL;
   return copy;
 }
 
+/*
 - (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e
 {
   return nil; // FIXME
@@ -511,6 +511,7 @@ static NSStringEncoding *nsencodings = NULL;
 {
   return NULL; // FIXME
 }
+*/
 
 - (void) getParagraphStart: (NSUInteger *) startPtr
                        end: (NSUInteger *) parEndPtr
@@ -522,6 +523,7 @@ static NSStringEncoding *nsencodings = NULL;
     (CFIndex*)parEndPtr, (CFIndex*)contentsEndPtr);
 }
 
+/*
 - (NSArray *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)separator
 {
   return nil; // FIXME
@@ -531,7 +533,7 @@ static NSStringEncoding *nsencodings = NULL;
 {
   return NSMakeRange (NSNotFound, 0); // FIXME
 }
-
+*/
 
 
 //

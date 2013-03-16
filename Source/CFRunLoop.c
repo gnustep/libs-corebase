@@ -441,6 +441,7 @@ struct common_mode_info
 {
   CFRunLoopRef rl;
   CFTypeRef obj;
+  Boolean ret;
 };
 
 /* Call the _nolock variant of the Add, Remove and Contain functions
@@ -451,14 +452,12 @@ CFRunLoopAddSource_nolock (CFRunLoopRef rl, CFRunLoopSourceRef source,
                            CFStringRef mode)
 {
   GSRunLoopContextRef ctxt;
-  CFMutableSetRef sources;
   
   ctxt = GSRunLoopContextGet (rl, mode);
   if (source->_context.version == 0)
-    sources = ctxt->sources0;
+    CFSetAddValue (ctxt->sources0, source);
   else if (source->_context.version == 1)
-    sources = ctxt->sources1;
-  CFSetAddValue (sources, source);
+    CFSetAddValue (ctxt->sources1, source);
 }
 
 static void
@@ -592,7 +591,7 @@ CFRunLoopCommonModesAddFunc (const void *value, void *context)
 static void
 CFRunLoopCommonModesAdd (CFRunLoopRef rl, CFTypeRef obj)
 {
-  struct common_mode_info info = { rl, obj };
+  struct common_mode_info info = { rl, obj, false };
   CFSetApplyFunction (rl->_commonModes, CFRunLoopCommonModesAddFunc, &info);
   CFArrayAppendValue (rl->_commonObjects, obj);
 }
@@ -600,36 +599,40 @@ CFRunLoopCommonModesAdd (CFRunLoopRef rl, CFTypeRef obj)
 static void
 CFRunLoopCommonModesContainFunc (const void *value, void *context)
 {
+  Boolean ret = false;
   struct common_mode_info *info = (struct common_mode_info*)context;
   CFTypeID typeID = CFGetTypeID (info->obj);
   if (typeID == _kCFRunLoopSourceTypeID)
-    CFRunLoopContainsSource_nolock (info->rl, (CFRunLoopSourceRef)info->obj,
-                                    (CFStringRef)value);
+    ret = CFRunLoopContainsSource_nolock (info->rl, (CFRunLoopSourceRef)info->obj,
+                                          (CFStringRef)value);
   else if (typeID == _kCFRunLoopObserverTypeID)
-    CFRunLoopContainsObserver_nolock (info->rl, (CFRunLoopObserverRef)info->obj,
-                                      (CFStringRef)value);
+    ret = CFRunLoopContainsObserver_nolock (info->rl, (CFRunLoopObserverRef)info->obj,
+                                            (CFStringRef)value);
   else if (typeID == _kCFRunLoopTimerTypeID)
-    CFRunLoopContainsTimer_nolock (info->rl, (CFRunLoopTimerRef)info->obj,
-                                   (CFStringRef)value);
+    ret = CFRunLoopContainsTimer_nolock (info->rl, (CFRunLoopTimerRef)info->obj,
+                                         (CFStringRef)value);
+
+  if (ret)
+    {
+      info->ret = ret;
+    }
 }
 
 static Boolean
 CFRunLoopCommonModesContain (CFRunLoopRef rl, CFTypeRef obj)
 {
-  Boolean ret;
   CFRange range = CFRangeMake (0, CFArrayGetCount (rl->_commonObjects));
   if (CFArrayContainsValue (rl->_commonObjects, range, obj))
     {
-      ret = true;
+      return true;
     }
   else
     {
-      struct common_mode_info info = { rl, obj };
+      struct common_mode_info info = { rl, obj, false };
       CFSetApplyFunction (rl->_commonModes, CFRunLoopCommonModesContainFunc,
                           &info);
+      return info.ret;
     }
-  
-  return false;
 }
 
 static void
@@ -653,7 +656,7 @@ CFRunLoopCommonModesRemove (CFRunLoopRef rl, CFTypeRef obj)
 {
   CFRange range;
   CFIndex idx;
-  struct common_mode_info info = { rl, obj };
+  struct common_mode_info info = { rl, obj, false };
   range = CFRangeMake (0, CFArrayGetCount (rl->_commonObjects));
   idx = CFArrayContainsValue (rl->_commonObjects, range, obj);
   if (idx != kCFNotFound)

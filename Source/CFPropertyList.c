@@ -222,6 +222,8 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
           array = CFArrayCreate (alloc, values, cnt, &kCFTypeArrayCallBacks);
           for (i = 0 ; i < cnt ; ++i)
             CFRelease (values[i]);
+
+          return array;
         }
       else
         {
@@ -235,6 +237,8 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
           ctx.container = (CFTypeRef)array;
           range = CFRangeMake (0, cnt);
           CFArrayApplyFunction (array, range, CFArrayCopyFunction, &ctx);
+
+          return array;
         }
     }
   else if (typeID == _kCFDictionaryTypeID)
@@ -259,6 +263,8 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
                                      &kCFTypeDictionaryValueCallBacks);
           for (i = 0 ; i < cnt ; ++i)
             CFRelease (values[i]);
+
+          return dict;
         }
       else
         {
@@ -272,6 +278,8 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
           ctx.alloc = alloc;
           ctx.container = (CFTypeRef)dict;
           CFDictionaryApplyFunction (dict, CFDictionaryCopyFunction, &ctx);
+
+          return dict;
         }
     }
   else if (typeID == _kCFStringTypeID)
