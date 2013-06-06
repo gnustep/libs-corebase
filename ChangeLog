@@ -1,5 +1,13 @@
 2013-06-06 Lubos Dolezel <lubos@dolezel.info>
 
+	* Source/NSCFType.m: leave hash calculation to NS classes,
+	so that they match when compaing NS and CF objects
+	* Tests/CFLocale/bridge.m
+	* Source/NSCFLocale.m,
+	* Source/CFLocale.c: TFB for CFLocale
+
+2013-06-06 Lubos Dolezel <lubos@dolezel.info>
+
 	* Source/NSCFString.m,
 	* Tests/CFString/objc_bridge.m,
 	* Tests/CFString/objc_bridge_from_cf.m,

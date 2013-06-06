@@ -40,7 +40,7 @@ GSRuntimeInitializeConstants (void);
 
 void NSCFInitialize (void)
 {
-  static int requiredClasses = 6;
+  static int requiredClasses = 7;
   --requiredClasses;
   
   if (requiredClasses == 0)
@@ -61,6 +61,7 @@ void NSCFInitialize (void)
       CFRuntimeBridgeClass (CFErrorGetTypeID(), "NSCFError");
       CFRuntimeBridgeClass (CFStringGetTypeID(), "NSCFString");
       CFRuntimeBridgeClass (CFSetGetTypeID(), "NSCFSet");
+      CFRuntimeBridgeClass (CFLocaleGetTypeID(), "NSCFLocale");
       
       GSRuntimeInitializeConstants ();
     }
@@ -103,11 +104,6 @@ void NSCFInitialize (void)
 - (NSUInteger) retainCount
 {
   return CFGetRetainCount (self);
-}
-
-- (NSUInteger) hash
-{
-  return (NSUInteger)CFHash (self);
 }
 
 - (BOOL) isEqual: (id) anObject

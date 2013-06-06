@@ -92,6 +92,7 @@ libgnustep-corebase_OBJC_FILES = \
   NSCFError.m \
   NSCFString.m \
   NSCFSet.m \
+  NSCFLocale.m \
   NSCFType.m
 
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += @LIBS@
