@@ -822,7 +822,7 @@ CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
 const UniChar *
 CFStringGetCharactersPtr (CFStringRef str)
 {
-  CF_OBJC_FUNCDISPATCH1 (_kCFStringTypeID, const UniChar *, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, const UniChar *, str,
                          "cStringUsingEncoding:",
                          CFStringConvertEncodingToNSStringEncoding
                          (kCFStringEncodingUTF16));
@@ -833,7 +833,7 @@ CFStringGetCharactersPtr (CFStringRef str)
 const char *
 CFStringGetCStringPtr (CFStringRef str, CFStringEncoding enc)
 {
-  CF_OBJC_FUNCDISPATCH1 (_kCFStringTypeID, const char *, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, const char *, str,
                          "cStringUsingEncoding:",
                          CFStringConvertEncodingToNSStringEncoding (enc));
 
@@ -970,7 +970,7 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
 void
 CFStringGetCharacters (CFStringRef str, CFRange range, UniChar * buffer)
 {
-  CF_OBJC_FUNCDISPATCH2 (_kCFStringTypeID, void, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, void, str,
                          "getCharacters:range:", buffer, range);
 
   if (CFStringIsUnicode (str))
@@ -997,7 +997,7 @@ CFStringGetCString (CFStringRef str, char *buffer, CFIndex bufferSize,
   CFIndex len = CFStringGetLength (str);
   CFIndex used;
 
-  CF_OBJC_FUNCDISPATCH3 (_kCFStringTypeID, Boolean, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, Boolean, str,
                          "getCString:maxLength:encoding:", buffer, bufferSize,
                          CFStringConvertEncodingToNSStringEncoding (encoding));
 
@@ -1025,7 +1025,7 @@ CFStringGetFileSystemRepresentation (CFStringRef string, char *buffer,
 UniChar
 CFStringGetCharacterAtIndex (CFStringRef str, CFIndex idx)
 {
-  CF_OBJC_FUNCDISPATCH1 (_kCFStringTypeID, UniChar, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, UniChar, str,
                          "characterAtIndex:", idx);
   return CFStringIsUnicode (str) ? ((UniChar *) str->_contents)[idx] :
     ((UInt8 *) str->_contents)[idx];
@@ -1034,14 +1034,14 @@ CFStringGetCharacterAtIndex (CFStringRef str, CFIndex idx)
 CFIndex
 CFStringGetLength (CFStringRef str)
 {
-  CF_OBJC_FUNCDISPATCH0 (_kCFStringTypeID, CFIndex, str, "length");
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, CFIndex, str, "length");
   return str->_count;
 }
 
 CFRange
 CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef str, CFIndex theIndex)
 {
-  CF_OBJC_FUNCDISPATCH1 (_kCFStringTypeID, CFRange, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, CFRange, str,
                          "rangeOfComposedCharacterSequenceAtIndex:", theIndex);
 
   if (CFStringIsUnicode (str))
@@ -1437,7 +1437,7 @@ CFStringPad (CFMutableStringRef str, CFStringRef padString,
 void
 CFStringReplace (CFMutableStringRef str, CFRange range, CFStringRef replacement)
 {
-  CF_OBJC_FUNCDISPATCH2 (_kCFStringTypeID, void, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, void, str,
                          "replaceCharactersInRange:withString:", range,
                          replacement);
 
@@ -1495,7 +1495,7 @@ CFStringReplace (CFMutableStringRef str, CFRange range, CFStringRef replacement)
 void
 CFStringReplaceAll (CFMutableStringRef theString, CFStringRef replacement)
 {
-  CF_OBJC_FUNCDISPATCH1 (_kCFStringTypeID, void, theString, "setString:",
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, void, theString, "setString:",
                          replacement);
 
   CFStringInlineBuffer buffer;
@@ -1536,7 +1536,7 @@ CFStringTrim (CFMutableStringRef str, CFStringRef trimString)
 void
 CFStringTrimWhitespace (CFMutableStringRef str)
 {
-  CF_OBJC_FUNCDISPATCH0 (_kCFStringTypeID, void, str, "_cfTrimWhitespace");
+  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, void, str, "_cfTrimWhitespace");
 
   CFStringInlineBuffer buffer;
   CFIndex start;
