@@ -1,3 +1,10 @@
+2013-06-06 Lubos Dolezel <lubos@dolezel.info>
+
+	* Source/CFSet.c,
+	* Source/NSCFSet.m,
+	* Tests/CFSet/objc_bridge.m: Add CFSet bridging support
+	* Source/GSPrivate.h: Add variable argument helper macros
+
 2013-03-16 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/CFPropertyList.c,

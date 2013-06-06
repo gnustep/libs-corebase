@@ -426,6 +426,58 @@ do { \
     } \
   } while(0)
 
+#define CF_OBJC_FUNCDISPATCHV(typeID, rettype, obj, sel, ...) \
+do { \
+  if (CF_IS_OBJC(typeID, obj)) \
+    { \
+      rettype (*imp)(id, SEL, ...); \
+      static SEL s = NULL; \
+      if (!s) \
+        s = sel_registerName(sel); \
+      imp = (rettype (*)(id, SEL, ...)) \
+        class_getMethodImplementation (object_getClass((id)obj), s); \
+      return (rettype)imp((id)obj, s, ##__VA_ARGS__); \
+    } \
+  } while(0)
+
+#define CF_OBJC_FUNCDISPATCHV_RETAINED(typeID, rettype, obj, sel, ...) \
+do { \
+  if (CF_IS_OBJC(typeID, obj)) \
+    { \
+      rettype (*imp)(id, SEL, ...); \
+      static SEL s = NULL; \
+      if (!s) \
+        s = sel_registerName(sel); \
+      imp = (rettype (*)(id, SEL, ...)) \
+        class_getMethodImplementation (object_getClass((id)obj), s); \
+      rettype val = imp((id)obj, s, ##__VA_ARGS__); \
+      if (val != NULL) CFRetain(val); \
+      return val; \
+    } \
+  } while(0)
+
+#define CF_OBJC_CALLV(rettype, var, obj, sel, ...) \
+do { \
+  rettype (*imp)(id, SEL, ...); \
+  static SEL s = NULL; \
+  if (!s) \
+    s = sel_registerName(sel); \
+  imp = (rettype (*)(id, SEL, ...)) \
+    class_getMethodImplementation (object_getClass((id)obj), s); \
+  var = imp((id)obj, s, ##__VA_ARGS__); \
+} while (0)
+
+#define CF_OBJC_VOIDCALLV(obj, sel, ...) \
+do { \
+  void (*imp)(id, SEL, ...); \
+  static SEL s = NULL; \
+  if (!s) \
+    s = sel_registerName(sel); \
+  imp = (void (*)(id, SEL, ...)) \
+    class_getMethodImplementation (object_getClass((id)obj), s); \
+  imp((id)obj, s, ##__VA_ARGS__); \
+} while (0) 
+
 #else
 
 CF_INLINE void *
