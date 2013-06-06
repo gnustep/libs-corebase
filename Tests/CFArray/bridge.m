@@ -34,13 +34,13 @@ void testNSonCF(void)
     "-addObject: adds a value into a CFArray");
 
   PASS_CF(CFArrayGetValueAtIndex(cfarray, 1) == [nsarray objectAtIndex: 1],
-  "-objectAtIndex: works on a CFDictionary (#1)");
+  "-objectAtIndex: works on a CFArray (#1)");
   PASS_CF(CFArrayGetValueAtIndex(cfarray, 4) == [nsarray objectAtIndex: 4],
-  "-objectAtIndex: works on a CFDictionary (#2)");
+  "-objectAtIndex: works on a CFArray (#2)");
 
   PASS_CF(CFArrayGetFirstIndexOfValue(cfarray, CFRangeMake(0, count+1), @"5")
     == [nsarray indexOfObject: @"5"],
-    "-indexOfObject: works on a CFDictionary");
+    "-indexOfObject: works on a CFArray");
 
   [nsarray release];
 }
@@ -59,21 +59,21 @@ void testCFonNS(void)
   count = [nsarray count];
 
   PASS_CF(CFArrayGetCount(cfarray) == count,
-    "CFArrayGetCount() works on an NSDictionary");
+    "CFArrayGetCount() works on an NSArray");
 
   CFArrayAppendValue(cfarray, @"5");
 
   PASS_CF(CFArrayGetCount(cfarray) == count+1,
-    "CFArrayAppendValue() adds a value into an NSDictionary");
+    "CFArrayAppendValue() adds a value into an NSArray");
 
   PASS_CF(CFArrayGetValueAtIndex(cfarray, 1) == [nsarray objectAtIndex: 1],
-    "CFArrayGetValueAtIndex() works on an NSDictionary (#1)");
+    "CFArrayGetValueAtIndex() works on an NSArray (#1)");
   PASS_CF(CFArrayGetValueAtIndex(cfarray, 4) == [nsarray objectAtIndex: 4],
-    "CFArrayGetValueAtIndex() works on an NSDictionary (#2)");
+    "CFArrayGetValueAtIndex() works on an NSArray (#2)");
 
   PASS_CF(CFArrayGetFirstIndexOfValue(cfarray, CFRangeMake(0, count+1), @"5")
     == [nsarray indexOfObject: @"5"],
-    "CFArrayGetFirstIndexOfValue() works on an NSDictionary");
+    "CFArrayGetFirstIndexOfValue() works on an NSArray");
 
   CFRelease(cfarray);
 }
