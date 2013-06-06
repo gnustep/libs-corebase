@@ -1,5 +1,12 @@
 2013-06-06 Lubos Dolezel <lubos@dolezel.info>
 
+	* Source/NSCFString.m,
+	* Tests/CFString/objc_bridge.m,
+	* Tests/CFString/objc_bridge_from_cf.m,
+	* Source/CFString.c: Improved TFB for CFString
+
+2013-06-06 Lubos Dolezel <lubos@dolezel.info>
+
 	* Source/CFSet.c,
 	* Source/NSCFSet.m,
 	* Tests/CFSet/objc_bridge.m: Add CFSet bridging support
