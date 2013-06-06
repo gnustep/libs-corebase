@@ -234,8 +234,24 @@ CFArrayCreate (CFAllocatorRef allocator, const void **values,
 CFArrayRef
 CFArrayCreateCopy (CFAllocatorRef allocator, CFArrayRef array)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFArrayTypeID, CFArrayRef, array, "copy");
-  
+  if (CF_IS_OBJC (_kCFArrayTypeID, array))
+    {
+      const void **values;
+	  CFIndex count;
+      CFArrayRef copy;
+
+      count = CFArrayGetCount(array);
+      values = (const void **) CFAllocatorAllocate(allocator,
+        sizeof(const void *) * count, 0);
+
+	  CFArrayGetValues(array, CFRangeMake(0, count), values);
+      copy = CFArrayCreate(allocator, values, count, &kCFTypeArrayCallBacks);
+
+      CFAllocatorDeallocate(allocator, (void *)values);
+
+      return copy;
+    }
+
   return CFArrayCreate (allocator, array->_contents, array->_count,
     array->_callBacks);
 }
@@ -293,7 +309,7 @@ CFArrayContainsValue (CFArrayRef array, CFRange range, const void *value)
 CFIndex
 CFArrayGetCount (CFArrayRef array)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFArrayTypeID, CFIndex, array, "count");
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, CFIndex, array, "count");
   
   return array->_count;
 }
@@ -317,6 +333,9 @@ CFIndex
 CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range,
                              const void *value)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, CFIndex, array,
+    "indexOfObject:inRange:", value, range);
+
   const void **contents;
   CFIndex idx;
   CFIndex end;
@@ -330,16 +349,18 @@ CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range,
     {
       while (idx <= end)
         {
-          if (equal (value, contents[idx++]))
+          if (equal (value, contents[idx]))
             break;
+          idx++;
         }
     }
   else
     {
       while (idx <= end)
         {
-          if (value == contents[idx++])
+          if (value == contents[idx])
             break;
+          idx++;
         }
     }
   if (idx > end)
@@ -352,20 +373,23 @@ CFIndex
 CFArrayGetLastIndexOfValue (CFArrayRef array, CFRange range,
                             const void *value)
 {
-  const void **contents;
+  CFArrayEqualCallBack equal;
   CFIndex idx;
   CFIndex start;
-  CFArrayEqualCallBack equal;
   
-  contents = array->_contents;
+  if (CF_IS_OBJC(_kCFArrayTypeID, array))
+    equal = kCFTypeArrayCallBacks.equal;
+  else
+    equal = array->_callBacks->equal;
+  
   start = range.location;
   idx = start + range.length;
-  equal = array->_callBacks->equal;
+  
   if (equal)
     {
       while (idx >= start)
         {
-          if (equal (value, contents[idx]))
+          if (equal (value, CFArrayGetValueAtIndex(array, idx)))
             break;
           --idx;
         }
@@ -374,7 +398,7 @@ CFArrayGetLastIndexOfValue (CFArrayRef array, CFRange range,
     {
       while (idx >= start)
         {
-          if (value == contents[idx])
+          if (value == CFArrayGetValueAtIndex(array, idx))
             break;
           --idx;
         }
@@ -394,7 +418,7 @@ CFArrayGetTypeID (void)
 const void *
 CFArrayGetValueAtIndex (CFArrayRef array, CFIndex idx)
 {
-  CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, const void *, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, const void *, array,
     "objectAtIndex:", idx);
   
   return (array->_contents)[idx];
@@ -403,7 +427,7 @@ CFArrayGetValueAtIndex (CFArrayRef array, CFIndex idx)
 void
 CFArrayGetValues (CFArrayRef array, CFRange range, const void **values)
 {
-  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, void, array,
     "getObjects:range:", values, range);
   
   memcpy (values, (array->_contents + range.location),
@@ -464,6 +488,31 @@ CFMutableArrayRef
 CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
                           CFArrayRef array)
 {
+  if (CF_IS_OBJC (_kCFArrayTypeID, array))
+    {
+      const void **values;
+	  CFIndex count, i;
+      CFMutableArrayRef copy;
+
+      count = CFArrayGetCount(array);
+      values = (const void **) CFAllocatorAllocate(allocator,
+        sizeof(const void *) * count, 0);
+
+	  CFArrayGetValues(array, CFRangeMake(0, count), values);
+
+      if (count > capacity)
+        capacity = count;
+
+      copy = CFArrayCreateMutable(allocator, capacity, &kCFTypeArrayCallBacks);
+
+      for (i = 0; i < count; i++)
+        CFArrayAppendValue(copy, values[i]);
+
+      CFAllocatorDeallocate(allocator, (void *) values);
+
+      return copy;
+    }
+
   CFMutableArrayRef new;
   const CFArrayCallBacks *callbacks;
   
@@ -499,7 +548,7 @@ CFArrayAppendArray (CFMutableArrayRef array, CFArrayRef oArray, CFRange oRange)
   CFIndex oLen;
   const void **values;
   
-  CF_OBJC_FUNCDISPATCH3(_kCFArrayTypeID, void, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, void, array,
     "replaceObjectsInRange:withObjectsFromArray:range:",
     CFRangeMake(CFArrayGetCount(array), 0), oArray, oRange);
   
@@ -515,7 +564,7 @@ CFArrayAppendArray (CFMutableArrayRef array, CFArrayRef oArray, CFRange oRange)
 void
 CFArrayAppendValue (CFMutableArrayRef array, const void *value)
 {
-  CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, void, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, void, array,
     "addObject:", value);
   
   CFArrayReplaceValues (array, CFRangeMake(array->_count, 0), &value, 1);
@@ -527,7 +576,7 @@ CFArrayExchangeValuesAtIndices (CFMutableArrayRef array, CFIndex idx1,
 {
   const void *tmp;
   
-  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, void, array,
     "exchangeObjectAtIndex:withObjectAtIndex:", idx1, idx2);
   
   tmp = array->_contents[idx1];
@@ -539,7 +588,7 @@ void
 CFArrayInsertValueAtIndex (CFMutableArrayRef array, CFIndex idx,
                            const void *value)
 {
-  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, void, array,
     "insertObject:AtIndex:", value, idx);
   
   CFArrayReplaceValues (array, CFRangeMake(idx, 0), &value, 1);
@@ -548,7 +597,7 @@ CFArrayInsertValueAtIndex (CFMutableArrayRef array, CFIndex idx,
 void
 CFArrayRemoveAllValues (CFMutableArrayRef array)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFArrayTypeID, void, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, void, array,
     "removeAllObjects");
   
   CFArrayReplaceValues (array, CFRangeMake(0, array->_count), NULL, 0);
@@ -558,7 +607,7 @@ CFArrayRemoveAllValues (CFMutableArrayRef array)
 void
 CFArrayRemoveValueAtIndex (CFMutableArrayRef array, CFIndex idx)
 {
-  CF_OBJC_FUNCDISPATCH1(_kCFArrayTypeID, void, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, void, array,
     "removeObjectAtIndex:", idx);
   
   CFArrayReplaceValues (array, CFRangeMake(idx, 1), NULL, 0);
@@ -568,6 +617,20 @@ void
 CFArrayReplaceValues (CFMutableArrayRef array, CFRange range,
                       const void **newValues, CFIndex newCount)
 {
+  if (CF_IS_OBJC(_kCFArrayTypeID, array))
+    {
+      CFArrayRef temp;
+      
+      temp = CFArrayCreate(kCFAllocatorDefault, newValues,
+        newCount, &kCFTypeArrayCallBacks);
+      
+      CF_OBJC_VOIDCALLV(array,
+        "replaceObjectsInRange:withObjectsFromArray:", range, temp);
+      
+      CFRelease(temp);
+      return;
+    }
+
   const void **start;
   const void **end;
   CFAllocatorRef alloc;
@@ -625,7 +688,7 @@ void
 CFArraySetValueAtIndex (CFMutableArrayRef array, CFIndex idx,
                         const void *value)
 {
-  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, void, array,
     "replaceObjectAtIndex:withObject:", idx, value);
   
   CFArrayReplaceValues (array, CFRangeMake(idx, 1), &value, 1);
@@ -680,9 +743,10 @@ void
 CFArraySortValues (CFMutableArrayRef array, CFRange range,
                    CFComparatorFunction comparator, void *context)
 {
-  CF_OBJC_FUNCDISPATCH2(_kCFArrayTypeID, void, array,
+  CF_OBJC_FUNCDISPATCHV(_kCFArrayTypeID, void, array,
     "sortUsingFunction:context:", comparator, context);
   
   CFArraySortValuesQuickSort (array, range.location,
     range.location + range.length - 1, comparator, context);
 }
+

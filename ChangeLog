@@ -1,4 +1,9 @@
 2013-06-06 Lubos Dolezel <lubos@dolezel.info>
+	* Tests/CFArray/bridge.m,
+	* Source/NSCFArray.m,
+	* Source/CFArray.c: TFB for CFArray and other fixes
+
+2013-06-06 Lubos Dolezel <lubos@dolezel.info>
 
 	* Tests/CFDictionary/bridge.m,
 	* Source/CFDictionary.c,
