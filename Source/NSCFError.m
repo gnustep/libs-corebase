@@ -35,6 +35,10 @@
 NSCFTYPE_VARS
 @end
 
+@interface NSError (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID;
+@end
+
 @implementation NSCFError
 + (void) load
 {
@@ -95,5 +99,12 @@ NSCFTYPE_VARS
   return CFErrorCopyUserInfo (self);
 }
 
+@end
+
+@implementation NSError (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID
+{
+  return CFErrorGetTypeID();
+}
 @end
 

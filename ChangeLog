@@ -1,5 +1,14 @@
 2013-06-06 Lubos Dolezel <lubos@dolezel.info>
 
+	* Tests/CFDictionary/bridge.m,
+	* Source/CFDictionary.c,
+	* Source/NSCFDictionary.m: TFB for CFDictionary
+	* Source/NSCFData.m: fixing the _cfGetTypeID call
+	* Source/NSCFError.m: fixing the _cfGetTypeID call
+
+
+2013-06-06 Lubos Dolezel <lubos@dolezel.info>
+
 	* Source/NSCFType.m: leave hash calculation to NS classes,
 	so that they match when compaing NS and CF objects
 	* Tests/CFLocale/bridge.m

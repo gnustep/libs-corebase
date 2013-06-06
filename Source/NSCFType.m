@@ -40,7 +40,7 @@ GSRuntimeInitializeConstants (void);
 
 void NSCFInitialize (void)
 {
-  static int requiredClasses = 7;
+  static int requiredClasses = 8;
   --requiredClasses;
   
   if (requiredClasses == 0)
@@ -62,6 +62,7 @@ void NSCFInitialize (void)
       CFRuntimeBridgeClass (CFStringGetTypeID(), "NSCFString");
       CFRuntimeBridgeClass (CFSetGetTypeID(), "NSCFSet");
       CFRuntimeBridgeClass (CFLocaleGetTypeID(), "NSCFLocale");
+      CFRuntimeBridgeClass (CFDictionaryGetTypeID(), "NSCFDictionary");
       
       GSRuntimeInitializeConstants ();
     }

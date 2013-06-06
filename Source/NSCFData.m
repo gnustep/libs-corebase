@@ -37,6 +37,10 @@
 NSCFTYPE_VARS
 @end
 
+@interface NSData (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID;
+@end
+
 @implementation NSCFData
 + (void) load
 {
@@ -101,5 +105,12 @@ NSCFTYPE_VARS
     (CFIndex)length);
 }
 
+@end
+
+@implementation NSData (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID
+{
+  return CFDataGetTypeID();
+}
 @end
 
