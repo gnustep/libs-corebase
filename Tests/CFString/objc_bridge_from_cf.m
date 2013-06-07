@@ -13,9 +13,11 @@ void testPointerAccess(void);
 void testAppend(void);
 void testPad(void);
 void testGetBytes(void);
+void testEquals(void);
 
 int main(void)
 {
+	testEquals();
 	testCaseTransformations();
 	testWhitespace();
 	testPointerAccess();
@@ -23,6 +25,16 @@ int main(void)
 	testPad();
 	testGetBytes();
 	return 0;
+}
+
+void testEquals(void)
+{
+	NSString* str = @"Hello";
+	CFStringRef cstr = CFSTR("Hello");
+	
+	PASS_CF([str isEqual: cstr], "isEqual works #1");
+	PASS_CF([cstr isEqual: str], "isEqual works #2");
+	PASS_CF([str hash] == [cstr hash], "hashes are equal");
 }
 
 void testCaseTransformations(void)
