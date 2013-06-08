@@ -345,14 +345,14 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
 CFStringRef
 CFTimeZoneGetName (CFTimeZoneRef tz)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFTimeZoneTypeID, CFStringRef, tz, "name");
+  CF_OBJC_FUNCDISPATCHV(_kCFTimeZoneTypeID, CFStringRef, tz, "name");
   return tz->_name;
 }
 
 CFDataRef
 CFTimeZoneGetData (CFTimeZoneRef tz)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFTimeZoneTypeID, CFDataRef, tz, "data");
+  CF_OBJC_FUNCDISPATCHV(_kCFTimeZoneTypeID, CFDataRef, tz, "data");
   return tz->_data;
 }
 
@@ -370,6 +370,9 @@ CFTimeZoneComparator (const void *v1, const void *v2, void *ctxt)
 CFStringRef
 CFTimeZoneCopyAbbreviation (CFTimeZoneRef tz, CFAbsoluteTime at)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFTimeZoneTypeID, CFStringRef, tz,
+    "_cfCopyAbbreviation:", at);
+  
   TransInfo tmp;
   CFIndex idx;
   
@@ -383,6 +386,9 @@ CFTimeZoneCopyAbbreviation (CFTimeZoneRef tz, CFAbsoluteTime at)
 CFTimeInterval
 CFTimeZoneGetDaylightSavingTimeOffset (CFTimeZoneRef tz, CFAbsoluteTime at)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFTimeZoneTypeID, CFTimeInterval, tz,
+    "_cfGetDaylightSavingTimeOffset:", at);
+  
   TransInfo tmp;
   TransInfo *cur;
   TransInfo *prev;
@@ -410,6 +416,9 @@ CFTimeZoneGetDaylightSavingTimeOffset (CFTimeZoneRef tz, CFAbsoluteTime at)
 Boolean
 CFTimeZoneIsDaylightSavingTime (CFTimeZoneRef tz, CFAbsoluteTime at)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFTimeZoneTypeID, Boolean, tz,
+    "_cfIsDaylightSavingTime:", at);
+  
   TransInfo tmp;
   CFIndex idx;
   
@@ -423,6 +432,9 @@ CFTimeZoneIsDaylightSavingTime (CFTimeZoneRef tz, CFAbsoluteTime at)
 CFTimeInterval
 CFTimeZoneGetSecondsFromGMT (CFTimeZoneRef tz, CFAbsoluteTime at)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFTimeZoneTypeID, CFTimeInterval, tz,
+    "_cfGetSecondsFromGMT:", at);
+  
   TransInfo tmp;
   CFIndex idx;
   
@@ -437,6 +449,9 @@ CFAbsoluteTime
 CFTimeZoneGetNextDaylightSavingTimeTransition (CFTimeZoneRef tz,
   CFAbsoluteTime at)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFTimeZoneTypeID, CFAbsoluteTime, tz,
+    "_cfGetNextDaylightSavingTimeTransition:", at);
+  
   TransInfo tmp;
   CFIndex idx;
   
@@ -454,6 +469,9 @@ CFStringRef
 CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
   CFLocaleRef locale)
 {
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFTimeZoneTypeID, CFStringRef, tz,
+    "localizedName:locale:", style, locale);
+  
 #if HAVE_ICU
   UniChar localizedName[BUFFER_SIZE];
   UniChar zoneID[BUFFER_SIZE];
@@ -463,9 +481,6 @@ CFTimeZoneCopyLocalizedName (CFTimeZoneRef tz, CFTimeZoneNameStyle style,
   UCalendar *ucal;
   UErrorCode err;
   CFStringRef ret;
-  
-  CF_OBJC_FUNCDISPATCH2(_kCFTimeZoneTypeID, CFStringRef, tz,
-    "localizedName:locale:", style, locale);
   
   len = CFStringGetLength (tz->_name);
   if (len > BUFFER_SIZE)

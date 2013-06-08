@@ -1,3 +1,12 @@
+2013-06-08 Lubos Dolezel <lubos@dolezel.info>
+	* Source/CFRuntime.c: fix a TFB crash with small objects
+	* Source/GNUmakefile.in,
+	* Tests/GNUmakefile.super: remove a macro that causes all OS X Base
+	methods to be unavailable
+	* Source/CFTimeZone.c,
+	* Source/NSCFTimeZone.m,
+	* Tests/CFTimeZone/bridge.m: TFB support for CFTimeZone
+
 2013-06-06 Lubos Dolezel <lubos@dolezel.info>
 	* Tests/CFArray/bridge.m,
 	* Source/NSCFArray.m,

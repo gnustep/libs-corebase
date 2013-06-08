@@ -32,7 +32,11 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
+#if HAVE_LIBOBJC || HAVE_LIBOBJC2
+#  include <objc/runtime.h>
+#endif
 
 
 /* GC stuff... */
@@ -303,9 +307,19 @@ CFGetRetainCount (CFTypeRef cf)
 CFTypeID
 CFGetTypeID (CFTypeRef cf)
 {
-  /* This is unsafe, but I don't see any other way of getting the typeID
-     for this call. */
-  CF_OBJC_FUNCDISPATCH0(((CFRuntimeBase*)cf)->_typeID, CFTypeID, cf, "_cfTypeID");
+
+#if HAVE_LIBOBJC || HAVE_LIBOBJC2
+
+  /* Small objects in ObjC are not valid pointers,
+     hence we must avoid accessing them. */
+
+  CFTypeID typeID = _kCFRuntimeNotATypeID;
+  
+  if ( ((uintptr_t)cf & OBJC_SMALL_OBJECT_MASK) == 0)
+    typeID = ((CFRuntimeBase*)cf)->_typeID;
+  
+  CF_OBJC_FUNCDISPATCHV(typeID, CFTypeID, cf, "_cfTypeID");
+#endif
   
   return ((CFRuntimeBase*)cf)->_typeID;
 }
