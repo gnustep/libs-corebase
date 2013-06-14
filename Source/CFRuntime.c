@@ -308,7 +308,7 @@ CFTypeID
 CFGetTypeID (CFTypeRef cf)
 {
 
-#if HAVE_LIBOBJC || HAVE_LIBOBJC2
+#if defined(OBJC_SMALL_OBJECT_MASK) && (HAVE_LIBOBJC || HAVE_LIBOBJC2)
 
   /* Small objects in ObjC are not valid pointers,
      hence we must avoid accessing them. */

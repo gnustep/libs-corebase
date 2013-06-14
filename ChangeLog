@@ -1,4 +1,18 @@
+2013-06-13 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* configure.ac: Check for existance of ICU headers.
+	* Source/CFString.c: Only build ICU support if headers are installed.
+	* Source/CFStringEncoding.c: Incorporate nonlossy ASCII conversion
+	function.  Check ICU headers.
+	* Source/CFRuntime.c: Only check for small objects if they are
+	supported.
+	* Source/NSCFTimeZone.m,
+	* Tests/CFLocale/bridge.m,
+	* Tests/CFDictionary/bridge.m,
+	* Tests/CFArray/bridge.m: Include Foundation/NSString.h.
+
 2013-06-08 Lubos Dolezel <lubos@dolezel.info>
+
 	* Source/CFRuntime.c: fix a TFB crash with small objects
 	* Source/GNUmakefile.in,
 	* Tests/GNUmakefile.super: remove a macro that causes all OS X Base
@@ -8,6 +22,7 @@
 	* Tests/CFTimeZone/bridge.m: TFB support for CFTimeZone
 
 2013-06-06 Lubos Dolezel <lubos@dolezel.info>
+
 	* Tests/CFArray/bridge.m,
 	* Source/NSCFArray.m,
 	* Source/CFArray.c: TFB for CFArray and other fixes

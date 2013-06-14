@@ -25,6 +25,7 @@
 */
 
 #import <Foundation/NSTimeZone.h>
+#import <Foundation/NSString.h>
 
 #include "NSCFType.h"
 #include "CoreFoundation/CFTimeZone.h"

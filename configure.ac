@@ -91,7 +91,7 @@ ICU_MIN_VERSION='4.0'
     AC_MSG_ERROR([Could not find ICU $ICU_MIN_VERSION or later])
   fi
   
-  AC_CHECK_HEADERS([unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/ucal.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/usearch.h])
+  AC_CHECK_HEADERS([unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/ustring.h unicode/utrans.h])
   AC_DEFINE(HAVE_ICU, 1,
             [Define to 1 if you have International Components for Unicode.])
 #fi

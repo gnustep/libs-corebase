@@ -1,4 +1,5 @@
 #import <Foundation/NSArray.h>
+#import <Foundation/NSString.h>
 #include "CoreFoundation/CFArray.h"
 #include "../CFTesting.h"
 

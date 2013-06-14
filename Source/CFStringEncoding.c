@@ -33,8 +33,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+
+#if HAVE_UNICODE_UCNV_H
 #include <unicode/ucnv.h>
-#include <unicode/ustring.h>
+#endif
 
 static GSMutex _kCFStringEncodingLock;
 static CFStringEncoding *_kCFStringEncodingList = NULL;
@@ -50,7 +52,6 @@ typedef struct
   CFStringEncoding enc;
   const char *converterName;
   UInt32 winCodepage;
-  UConverter *ucnv;
 } _str_encoding;
 
 /* The values in this table are best guess. */
@@ -712,6 +713,9 @@ static UInt8 utf8[] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0 };
                             || ((c) >= 'A' && (c) <= 'Z') \
                             || ((c) >= 'a' && (c) <= 'z'))
 
+static char toNonLossyASCII[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
+                                '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
 /* Convert from UTF-8 to UTF-16
  * Return:
  *      Number of bytes converted.
@@ -1001,10 +1005,10 @@ GSStringEncodingToNonLossyASCII (char *d, CFIndex dlen, const UniChar *s,
             }
           else
             {
-              conv[5] = 0;
-              conv[4] = 0;
-              conv[3] = 0;
-              conv[2] = 0;
+              conv[5] = toNonLossyASCII[(c & 0xF)];
+              conv[4] = toNonLossyASCII[((c >> 4) & 0xF)];
+              conv[3] = toNonLossyASCII[((c >> 8) & 0xF)];
+              conv[2] = toNonLossyASCII[((c >> 12) & 0xF)];
               conv[1] = 'u';
               convCount = 6;
             }
@@ -1042,7 +1046,14 @@ GSStringEncodingFromNonLossyASCII (UniChar *d, CFIndex dlen, const char *s,
       UniChar c;
       
       c = *s;
-      if (c == '\\')
+      if (c < 0x80 && c != '\\')
+        {
+          if (dlen != 0)
+            *d = *s;
+          d++;
+          s++;
+        }
+      else if (c == '\\')
         {
           CFIndex convCount;
           
@@ -1062,7 +1073,14 @@ GSStringEncodingFromNonLossyASCII (UniChar *d, CFIndex dlen, const char *s,
           else if (c == 'u' && GS_ASCII_IS_HEX(s[2]) && GS_ASCII_IS_HEX(s[3])
                    && GS_ASCII_IS_HEX(s[4]) && GS_ASCII_IS_HEX(s[5]))
             {
-              
+              /* The first part of this equation gives us a value between
+               * 0 and 9, the second part adds 9 to that if the char is
+               * alphabetic.
+               */
+              c = ((s[5] & 0xF) + (s[5] >> 6) * 9) & 0x000F;
+              c |= ((s[4] & 0xF) + (s[4] >> 6) * 9) << 4;
+              c |= ((s[3] & 0xF) + (s[3] >> 6) * 9) << 8;
+              c |= ((s[2] & 0xF) + (s[2] >> 6) * 9) << 12;
               convCount = 6;
             }
           else
@@ -1073,13 +1091,6 @@ GSStringEncodingFromNonLossyASCII (UniChar *d, CFIndex dlen, const char *s,
             *d = c;
           d++;
           s += convCount;
-        }
-      else if (c < 0x80)
-        {
-          if (dlen != 0)
-            *d = *s;
-          d++;
-          s++;
         }
       else
         {
@@ -1100,6 +1111,7 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
 {
   CFIndex converted;
   
+  converted = 0;
   if (d == NULL)
     dlen = 0;
   
@@ -1156,9 +1168,8 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
         }
       /* round to the nearest multiple of 4 */
       dlen &= ~0x3;
-      converted = GSStringEncodingToUTF32 (dst, dlen, s,
-                                           slen / sizeof(UTF32Char),
-                                           lossByte, needed);
+      converted = GSStringEncodingToUTF32 (dst, dlen / sizeof(UTF32Char), s,
+                                           slen, lossByte, needed);
       if (enc == UTF32_ENCODING_TO_SWAP && dlen != 0)
         {
           UTF32Char *cur;
@@ -1173,13 +1184,44 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
             }
         }
     }
+  else if (enc == kCFStringEncodingASCII)
+    {
+      char *dst;
+      const char *dstLimit;
+      const UniChar *sstart;
+      
+      if (dlen > slen)
+        dlen = slen;
+      sstart = s;
+      dst = (char*)d;
+      dstLimit = dst + dlen;
+      while (dst < dstLimit)
+        {
+          if (*s < 0x80)
+            {
+              *dst++ = (char)*s++;
+            }
+          else
+            {
+              if (!lossByte)
+                break;
+              *dst++ = (char)lossByte;
+              s++;
+            }
+        }
+      converted = (CFIndex)(s - sstart);
+    }
+  else if (enc == kCFStringEncodingNonLossyASCII)
+    {
+      converted = GSStringEncodingToNonLossyASCII ((char*)d, dlen, s, slen,
+                                                   lossByte, needed);
+    }
+#if !UCONFIG_NO_CONVERSION
   else
     {
-      CFIndex used;
       UConverter *ucnv;
       
       ucnv = GSStringEncodingOpenConverter (enc, lossByte);
-      used = 0;
       if (ucnv)
         {
           char *target;
@@ -1195,11 +1237,11 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
           
           ucnv_fromUnicode (ucnv, &target, targetLimit, &source, sourceLimit,
                             NULL, true, &err);
-          used = (CFIndex)(target - (char*)d);
+          converted = (CFIndex)(target - (char*)d);
           if (needed)
             {
-              *needed = used;
-              if (needed && err == U_BUFFER_OVERFLOW_ERROR)
+              *needed = converted;
+              if (err == U_BUFFER_OVERFLOW_ERROR)
                 {
                   char ibuffer[256]; /* Arbitrary buffer size */
                   
@@ -1217,9 +1259,8 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
           
           GSStringEncodingCloseConverter (ucnv);
         }
-      
-      return used;
     }
+#endif
   
   return converted;
 }
@@ -1231,6 +1272,7 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
 {
   CFIndex converted;
   
+  converted = 0;
   if (d == NULL)
     dlen = 0;
   
@@ -1283,6 +1325,8 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
             }
         }
       converted = (dlen * sizeof(UniChar) <= slen) ? (dlen * sizeof(UniChar)) : slen;
+      if (needed)
+        *needed = slen;
       memcpy(d, s, converted);
     }
   else if (enc == kCFStringEncodingUTF32
@@ -1328,6 +1372,26 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
       converted = GSStringEncodingFromUTF32 (d, dlen, src,
                                              slen / sizeof(UTF32Char), needed);
     }
+  else if (enc == kCFStringEncodingASCII)
+    {
+      UniChar *dst;
+      const UniChar *dstLimit;
+      
+      if (dlen > slen)
+        dlen = slen;
+      dst = d;
+      dstLimit = d + dlen;
+      while (dst < dstLimit)
+        *dst++ = *s++;
+      if (needed)
+        *needed = slen;
+    }
+  else if (enc == kCFStringEncodingNonLossyASCII)
+    {
+      converted = GSStringEncodingFromNonLossyASCII (d, dlen, (const char*)s,
+                                                     slen, needed);
+    }
+#if !UCONFIG_NO_CONVERSION
   else
     {
       UConverter *ucnv;
@@ -1372,7 +1436,7 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
           GSStringEncodingCloseConverter (ucnv);
         }
     }
+#endif
   
   return converted;
 }
-

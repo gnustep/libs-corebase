@@ -47,14 +47,21 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
+#if HAVE_UNICODE_UCHAR_H
 #include <unicode/uchar.h>
+#endif
+#if HAVE_UNICODE_UNORM_H
 #include <unicode/unorm.h>
+#endif
+#if HAVE_UNICODE_USTRING_H
 #include <unicode/ustring.h>
+#endif
+#if HAVE_UNICODE_UTRANS_H
 #include <unicode/utrans.h>
+#endif
 
 #define BUFFER_SIZE 512
-#define CFRANGE_CHECK(len, range) \
-  ((range.location + range.length) <= len)
 
 CONST_STRING_DECL (kCFStringTransformStripCombiningMarks,
                    "NFD; [:nonspacing mark:]Remove; NFC");
@@ -1449,8 +1456,6 @@ CFStringReplace (CFMutableStringRef str, CFRange range, CFStringRef replacement)
 
   textLength = CFStringGetLength (str);
   repLength = CFStringGetLength (replacement);
-  if (!CFRANGE_CHECK (textLength, range))
-    return;                     /* out of range */
 
   if (repLength != range.length)
     {
@@ -1533,6 +1538,12 @@ CFStringTrim (CFMutableStringRef str, CFStringRef trimString)
                           kCFCompareBackwards | kCFCompareAnchored);
 }
 
+#if HAVE_UNICODE_UCHAR_H
+# define _isWhiteSpace(c) u_isUWhiteSpace((UChar32)c)
+#else
+# define _isWhiteSpace(c) ((c) < 0x20)
+#endif
+
 void
 CFStringTrimWhitespace (CFMutableStringRef str)
 {
@@ -1555,7 +1566,7 @@ CFStringTrimWhitespace (CFMutableStringRef str)
 
   idx = 0;
   c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
-  while (u_isUWhiteSpace ((UChar32) c) && idx < textLength)
+  while (_isWhiteSpace ((UChar32) c) && idx < textLength)
     c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
   start = idx - 1;
   end = start;
@@ -1563,7 +1574,7 @@ CFStringTrimWhitespace (CFMutableStringRef str)
     {
       c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
       /* reset the end point */
-      if (!u_isUWhiteSpace ((UChar32) c))
+      if (!_isWhiteSpace ((UChar32) c))
         end = idx;
     }
 
@@ -1588,6 +1599,7 @@ static void
 CFStringCaseMap (CFMutableStringRef str, CFLocaleRef locale,
                  CFOptionFlags flags, CFIndex op)
 {
+#if HAVE_UNICODE_USTRING_H
   char *localeID = NULL;        /* FIXME */
   const UniChar *oldContents;
   CFIndex oldContentsLength;
@@ -1642,6 +1654,9 @@ CFStringCaseMap (CFMutableStringRef str, CFLocaleRef locale,
 
   if (oldContents != mStr->_contents)
     CFAllocatorDeallocate (mStr->_allocator, (void *) oldContents);
+#else
+  /* FIXME */
+#endif
 }
 
 void
@@ -1730,8 +1745,9 @@ CFToICUNormalization (CFStringNormalizationForm form)
 void
 CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
 {
-  // TODO: dispatch to ObjC
+  /* TODO: dispatch to ObjC */
 
+#if !UCONFIG_NO_NORMALIZATION
   /* FIXME: The unorm API has been officially deprecated on ICU 4.8, however,
      the new unorm2 API was only introduced on ICU 4.4.  The current plan is
      to provide compatibility down to ICU 4.0, so unorm is used here.  In
@@ -1771,14 +1787,18 @@ CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
 
   if (oldContents != mStr->_contents)
     CFAllocatorDeallocate (mStr->_allocator, (void *) oldContents);
+#else
+  /* FIXME */
+#endif
 }
 
 Boolean
 CFStringTransform (CFMutableStringRef str, CFRange * range,
                    CFStringRef transform, Boolean reverse)
 {
-  // TODO: dispatch to ObjC
+  /* TODO: dispatch to ObjC */
 
+#if !UCONFIG_NO_TRANSLITERATION
 #define UTRANS_LENGTH 128
   struct __CFMutableString *mStr;
   UniChar transID[UTRANS_LENGTH];
@@ -1823,4 +1843,7 @@ CFStringTransform (CFMutableStringRef str, CFRange * range,
     range->length = limit;
 
   return true;
+#else
+  return false;
+#endif
 }

@@ -1,4 +1,5 @@
 #import <Foundation/NSLocale.h>
+#import <Foundation/NSString.h>
 #include "CoreFoundation/CFString.h"
 #include "../CFTesting.h"
 
