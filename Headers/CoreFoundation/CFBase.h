@@ -49,21 +49,7 @@
 # endif
 #endif
 
-/* FIXME: These macros are defined here to work around an issue with including
- * GNUstepBase/GSVersionMacros.h when compiling with clang or on Windows.
- */
-#ifndef MAC_OS_X_VERSION_10_0
-#define MAC_OS_X_VERSION_10_0 100000
-#define MAC_OS_X_VERSION_10_1 100100
-#define MAC_OS_X_VERSION_10_2 100200
-#define MAC_OS_X_VERSION_10_3 100300
-#define MAC_OS_X_VERSION_10_4 100400
-#define MAC_OS_X_VERSION_10_5 100500
-#define MAC_OS_X_VERSION_10_6 100600
-#define MAC_OS_X_VERSION_10_7 100700
-#endif /* MAC_OS_X_VERSION_10_0 */
-
-#define MAC_OS_X_VERSION_MAX_ALLOWED 100700
+#include <GNUstepBase/GSVersionMacros.h>
 
 /*
  * CoreFoundation types

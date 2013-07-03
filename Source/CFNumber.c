@@ -32,6 +32,18 @@
 #include "GSPrivate.h"
 
 #include <string.h>
+#include <math.h>
+
+#ifndef INFINITY
+# if defined(_MSC_VER)
+#  include <float.h>
+#  define INFINITY DBL_MAX + DBL_MAX
+#  define NAN (INFINITY) - (INFINITY)
+# else
+#  define INFINITY 1.0 / 0.0
+#  define NAN 0.0 / 0.0
+# endif
+#endif
 
 struct __CFBoolean
 {
@@ -102,15 +114,6 @@ struct __CFNumber
 {
   CFRuntimeBase _parent;
 };
-
-#if defined(_MSC_VER)
-#include <float.h>
-#define INFINITY DBL_MAX + DBL_MAX
-#define NAN (INFINITY) - (INFINITY)
-#else
-#define INFINITY 1.0 / 0.0
-#define NAN 0.0 / 0.0
-#endif
 
 struct __CFNumber_static
 {

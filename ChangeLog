@@ -1,3 +1,14 @@
+2013-07-03 Ivan Vucica <ivan@vucica.net>
+
+	* Source/CFNumber.c: Improved the way INFINITY and NAN are defined,
+	preferring to only get them from <math.h>, and using hacks in case
+	<math.h> does not define them for some reason.
+	* Headers/CoreFoundation/CFBase.h: Replaced manual definitions of
+	MAC_OS_X_VERSION macros with inclusion of GSVersionMacros.h. This
+	fixes the issue where the macros were sometimes defined multiple,
+	and fixes the issue where the macros were (by now) no longer
+	matching values in GNUstep Base.
+
 2013-06-13 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* configure.ac: Check for existance of ICU headers.
