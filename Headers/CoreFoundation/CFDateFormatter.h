@@ -31,7 +31,7 @@
 #include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFLocale.h>
 
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 
 CF_EXTERN_C_BEGIN
 
@@ -50,7 +50,7 @@ CF_EXPORT const CFStringRef kCFDateFormatterIsLenient; /* CFBoolean */
 CF_EXPORT const CFStringRef kCFDateFormatterTimeZone; /* CFTimeZone */
 CF_EXPORT const CFStringRef kCFDateFormatterCalendarName; /* CFString */
 CF_EXPORT const CFStringRef kCFDateFormatterDefaultFormat; /* CFString */
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFDateFormatterTwoDigitStartDate; /* CFDate */
 CF_EXPORT const CFStringRef kCFDateFormatterDefaultDate; /* CFDate */
 CF_EXPORT const CFStringRef kCFDateFormatterCalendar; /* CFCalendar */
@@ -62,7 +62,7 @@ CF_EXPORT const CFStringRef kCFDateFormatterShortWeekdaySymbols; /* CFArray */
 CF_EXPORT const CFStringRef kCFDateFormatterAMSymbol; /* CFString */
 CF_EXPORT const CFStringRef kCFDateFormatterPMSymbol; /* CFString */
 #endif
-#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST) 
 CF_EXPORT const CFStringRef kCFDateFormatterLongEraSymbols; /* CFArray */
 CF_EXPORT const CFStringRef kCFDateFormatterVeryShortMonthSymbols; /* CFArray */
 CF_EXPORT const CFStringRef kCFDateFormatterStandaloneMonthSymbols; /* CFArray */

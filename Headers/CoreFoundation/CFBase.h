@@ -345,7 +345,7 @@ CF_EXPORT CFAllocatorRef kCFAllocatorSystemDefault;
 /** An allocator that uses the system's malloc, realloc and free functions.
  */
 CF_EXPORT CFAllocatorRef kCFAllocatorMalloc;
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 /** Equivalent to kCFAllocatorSystemDefault
     @since Mac OS X 10.4
     does not exist on systems other than Darwin.
@@ -445,7 +445,7 @@ CFGetTypeID (CFTypeRef cf);
 CF_EXPORT CFHashCode
 CFHash (CFTypeRef cf);
 
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT CFTypeRef
 CFMakeCollectable (CFTypeRef cf);
 #endif
@@ -463,7 +463,7 @@ CFRetain (CFTypeRef cf);
 /*
  * CFNull
  */
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 typedef struct __CFNull *CFNullRef;
 
 CF_EXPORT CFNullRef kCFNull;

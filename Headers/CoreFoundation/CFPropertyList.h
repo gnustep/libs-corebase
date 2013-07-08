@@ -34,7 +34,7 @@
 
 CF_EXTERN_C_BEGIN
 
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 typedef enum
 {
    kCFPropertyListOpenStepFormat = 1,
@@ -50,7 +50,7 @@ typedef enum
    kCFPropertyListMutableContainersAndLeaves = 2
 } CFPropertyListMutabilityOptions;
 
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 enum
 {
    kCFPropertyListReadCorruptError = 3840,
@@ -67,7 +67,7 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef allocator,
                               CFPropertyListRef propertyList,
                               CFOptionFlags mutabilityOption);
 
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT CFDataRef
 CFPropertyListCreateData (CFAllocatorRef allocator,
                           CFPropertyListRef propertyList,
@@ -93,7 +93,7 @@ CFPropertyListWrite (CFPropertyListRef propertyList, CFWriteStreamRef stream,
                      CFErrorRef *error);
 #endif
 
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 CF_EXPORT Boolean
 CFPropertyListIsValid (CFPropertyListRef plist, CFPropertyListFormat format);
 #endif
@@ -108,7 +108,7 @@ CF_EXPORT CFDataRef
 CFPropertyListCreateXMLData (CFAllocatorRef allocator,
                              CFPropertyListRef propertyList);
 
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 CF_EXPORT CFPropertyListRef
 CFPropertyListCreateFromStream (CFAllocatorRef allocator,
                                 CFReadStreamRef stream,

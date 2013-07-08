@@ -31,7 +31,7 @@
 #include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFLocale.h>
 
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 
 CF_EXTERN_C_BEGIN
 
@@ -51,7 +51,7 @@ typedef enum
   kCFCalendarUnitWeek = (1UL << 8),
   kCFCalendarUnitWeekday = (1UL << 9),
   kCFCalendarUnitWeekdayOrdinal = (1UL << 10),
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
   kCFCalendarUnitQuarter = (1UL << 11),
 #endif
 } CFCalendarUnit;
@@ -152,7 +152,7 @@ CFCalendarSetMinimumDaysInFirstWeek (CFCalendarRef cal, CFIndex mwd);
 CFTypeID
 CFCalendarGetTypeID (void);
 
-#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 Boolean
 CFCalendarGetTimeRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit,
   CFAbsoluteTime at, CFAbsoluteTime *startp, CFTimeInterval *tip);

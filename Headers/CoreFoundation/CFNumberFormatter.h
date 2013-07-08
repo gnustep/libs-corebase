@@ -32,7 +32,7 @@
 #include <CoreFoundation/CFLocale.h>
 #include <CoreFoundation/CFNumber.h>
 
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 
 CF_EXTERN_C_BEGIN
 
@@ -113,7 +113,7 @@ CF_EXPORT const CFStringRef kCFNumberFormatterFormatWidth; /* CFNumber */
 CF_EXPORT const CFStringRef kCFNumberFormatterPaddingPosition; /* CFNumber */
 CF_EXPORT const CFStringRef kCFNumberFormatterPaddingCharacter; /* CFString */
 CF_EXPORT const CFStringRef kCFNumberFormatterDefaultFormat; /* CFString */
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFNumberFormatterMultiplier; /* CFNumber */
 CF_EXPORT const CFStringRef kCFNumberFormatterPositivePrefix; /* CFString */
 CF_EXPORT const CFStringRef kCFNumberFormatterPositiveSuffix; /* CFString */
@@ -123,7 +123,7 @@ CF_EXPORT const CFStringRef kCFNumberFormatterPerMillSymbol; /* CFString */
 CF_EXPORT const CFStringRef
   kCFNumberFormatterInternationalCurrencySymbol; /* CFString */
 #endif
-#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST) 
 CF_EXPORT const CFStringRef
   kCFNumberFormatterCurrencyGroupingSeparator; /* CFString */
 CF_EXPORT const CFStringRef kCFNumberFormatterIsLenient; /* CFBoolean */

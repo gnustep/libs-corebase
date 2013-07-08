@@ -48,13 +48,13 @@ typedef enum
   kCFCharacterSetDecomposable,
   kCFCharacterSetAlphaNumeric,
   kCFCharacterSetPunctuation,
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
   kCFCharacterSetCapitalizedLetter = 13,
 #endif
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
   kCFCharacterSetSymbol = 14,
 #endif
-#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
   kCFCharacterSetNewline = 15,
 #endif
   kCFCharacterSetIllegal = 12
@@ -71,12 +71,12 @@ CFCharacterSetGetTypeID (void);
 /*
  * Creating Character Sets
  */
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 CF_EXPORT CFCharacterSetRef
 CFCharacterSetCreateCopy (CFAllocatorRef alloc, CFCharacterSetRef set);
 #endif
 
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 CF_EXPORT CFCharacterSetRef
 CFCharacterSetCreateInvertedSet (CFAllocatorRef alloc, CFCharacterSetRef set);
 #endif
@@ -109,7 +109,7 @@ CFCharacterSetCreateBitmapRepresentation (CFAllocatorRef alloc,
 CF_EXPORT Boolean
 CFCharacterSetIsCharacterMember (CFCharacterSetRef set, UniChar c);
 
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 CF_EXPORT Boolean
 CFCharacterSetHasMemberInPlane (CFCharacterSetRef set, CFIndex plane);
 

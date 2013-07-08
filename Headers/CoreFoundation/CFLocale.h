@@ -32,7 +32,7 @@
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFDictionary.h>
 
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 
 CF_EXTERN_C_BEGIN
 
@@ -70,7 +70,7 @@ CF_EXPORT const CFStringRef kCFLocaleDecimalSeparator; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleGroupingSeparator; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleCurrencySymbol; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleCurrencyCode; /* CFString */
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFLocaleIdentifier; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleLanguageCode; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleCountryCode; /* CFString */
@@ -82,7 +82,7 @@ CF_EXPORT const CFStringRef kCFLocaleCalendar; /* CFCalendar */
 CF_EXPORT const CFStringRef kCFLocaleCollationIdentifier; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleUsesMetricSystem; /* CFBoolean */
 #endif
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFLocaleCollatorIdentifier; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleQuotationBeginDelimiterKey; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleQuotationEndDelimiterKey; /* CFString */
@@ -96,7 +96,7 @@ CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey; /* CFStr
     @{
  */
 CF_EXPORT const CFStringRef kCFGregorianCalendar;
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFBuddhistCalendar;
 CF_EXPORT const CFStringRef kCFChineseCalendar;
 CF_EXPORT const CFStringRef kCFHebrewCalendar;
@@ -104,7 +104,7 @@ CF_EXPORT const CFStringRef kCFIslamicCalendar;
 CF_EXPORT const CFStringRef kCFIslamicCivilCalendar;
 CF_EXPORT const CFStringRef kCFJapaneseCalendar;
 #endif
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFRepublicOfChinaCalendar;
 CF_EXPORT const CFStringRef kCFPersianCalendar;
 CF_EXPORT const CFStringRef kCFIndianCalendar;
@@ -139,7 +139,7 @@ CFLocaleGetSystem (void);
 /*
  * Getting System Locale Information
  */
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT CFArrayRef
 CFLocaleCopyAvailableLocaleIdentifiers (void);
 #endif
@@ -147,7 +147,7 @@ CFLocaleCopyAvailableLocaleIdentifiers (void);
 /*
  * Getting ISO Information
  */
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT CFArrayRef
 CFLocaleCopyISOCountryCodes (void);
 
@@ -158,7 +158,7 @@ CF_EXPORT CFArrayRef
 CFLocaleCopyISOCurrencyCodes (void);
 #endif
 
-#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 CF_EXPORT CFArrayRef
 CFLocaleCopyCommonISOCurrencyCodes (void);
 #endif
@@ -166,7 +166,7 @@ CFLocaleCopyCommonISOCurrencyCodes (void);
 /*
  * Language Preferences
  */
-#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 CF_EXPORT CFArrayRef
 CFLocaleCopyPreferredLanguages (void);
 #endif
@@ -193,7 +193,7 @@ CF_EXPORT CFStringRef
 CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
                                                    CFStringRef localeIdent);
 
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT CFStringRef
 CFLocaleCreateCanonicalLanguageIdentifierFromString (CFAllocatorRef allocator,
                                                      CFStringRef localeIdent);
@@ -216,7 +216,7 @@ CFLocaleGetTypeID (void);
 /*
  * New Functions
  */
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT CFStringRef
 CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode (CFAllocatorRef allocator,
                                                      UInt32 lcid);

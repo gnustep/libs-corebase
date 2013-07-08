@@ -68,7 +68,7 @@ struct __CFRuntimeClass
   const char *className;
   void (*init)(CFTypeRef cf);
   CFTypeRef (*copy)(CFAllocatorRef allocator, CFTypeRef cf);
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
   void (*finalize)(CFTypeRef cf);
 #else
   void (*dealloc)(CFTypeRef cf);
@@ -77,11 +77,11 @@ struct __CFRuntimeClass
   CFHashCode (*hash)(CFTypeRef cf);
   CFStringRef (*copyFormattingDesc)(CFTypeRef cf, CFDictionaryRef formatOptions);
   CFStringRef (*copyDebugDesc)(CFTypeRef cf);
-#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 #define CF_RECLAIM_AVAILABLE 1
   void (*reclaim)(CFTypeRef cf); /* _kCFRuntimeResourcefulObject */
 #endif
-#if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 #define CF_REFCOUNT_AVAILABLE 1
   UInt32 (*refcount)(intptr_t op, CFTypeRef cf); /* _kCFRuntimeCustomRefCount */
 #endif

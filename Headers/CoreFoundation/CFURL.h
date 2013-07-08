@@ -42,7 +42,7 @@ typedef NSURL *CFURLRef;
 typedef const struct __CFURL *CFURLRef;
 #endif
 
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 typedef CFOptionFlags CFURLBookmarkCreationOptions;
 typedef CFOptionFlags CFURLBookmarkFileCreationOptions;
 typedef CFOptionFlags CFURLBookmarkResolutionOptions;
@@ -58,7 +58,7 @@ typedef enum
   kCFURLWindowsPathStyle = 2
 } CFURLPathStyle;
 
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 typedef enum
 {
   kCFURLComponentScheme =            1,
@@ -76,7 +76,7 @@ typedef enum
 } CFURLComponentType;
 #endif
 
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 enum
 {
   kCFURLBookmarkCreationPreferFileIDResolutionMask = (1<<8),
@@ -119,7 +119,7 @@ CF_EXPORT const CFStringRef kCFURLLocalizedLabelKey;
 CF_EXPORT const CFStringRef kCFURLEffectiveIconKey;
 CF_EXPORT const CFStringRef kCFURLCustomIconKey;
 #endif
-#if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFURLFileResourceIdentifierKey;
 CF_EXPORT const CFStringRef kCFURLVolumeIdentifierKey;
 CF_EXPORT const CFStringRef kCFURLPreferredIOBlockSizeKey;
@@ -133,7 +133,7 @@ CF_EXPORT const CFStringRef kCFURLFileResourceTypeKey;
 /*
  * File Resource Types
  */
-#if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFURLFileResourceTypeBlockSpecial;
 CF_EXPORT const CFStringRef kCFURLFileResourceTypeCharacterSpecial;
 CF_EXPORT const CFStringRef kCFURLFileResourceTypeDirectory;
@@ -147,12 +147,12 @@ CF_EXPORT const CFStringRef kCFURLFileResourceTypeUnknown;
 /*
  * File Property Keys
  */
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFURLFileAllocatedSizeKey;
 CF_EXPORT const CFStringRef kCFURLFileSizeKey;
 CF_EXPORT const CFStringRef kCFURLIsAliasFileKey;
 #endif
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFURLIsMountTriggerKey;
 CF_EXPORT const CFStringRef kCFURLTotalFileAllocatedSizeKey;
 CF_EXPORT const CFStringRef kCFURLTotalFileSizeKey;
@@ -161,7 +161,7 @@ CF_EXPORT const CFStringRef kCFURLTotalFileSizeKey;
 /*
  * Volume Property Keys
  */
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFURLVolumeLocalizedFormatDescriptionKey;
 CF_EXPORT const CFStringRef kCFURLVolumeTotalCapacityKey;
 CF_EXPORT const CFStringRef kCFURLVolumeAvailableCapacityKey;
@@ -176,7 +176,7 @@ CF_EXPORT const CFStringRef kCFURLVolumeSupportsZeroRunsKey;
 CF_EXPORT const CFStringRef kCFURLVolumeSupportsCaseSensitiveNamesKey;
 CF_EXPORT const CFStringRef kCFURLVolumeSupportsCasePreservedNamesKey;
 #endif
-#if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFURLVolumeNameKey;
 CF_EXPORT const CFStringRef kCFURLVolumeLocalizedNameKey;
 CF_EXPORT const CFStringRef kCFURLVolumeSupportsRootDirectoryDatesKey;
@@ -200,7 +200,7 @@ CF_EXPORT const CFStringRef kCFURLVolumeUUIDStringKey;
 /*
  * CFError userInfo Dictionary Keys
  */
-#if MAC_OS_X_VERSION_10_7 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFURLKeysOfUnsetValuesKey;
 #endif
 
@@ -216,14 +216,14 @@ CFURLGetTypeID (void);
 CF_EXPORT CFURLRef
 CFURLCopyAbsoluteURL (CFURLRef relativeURL);
 
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 CF_EXPORT CFURLRef
 CFURLCreateAbsoluteURLWithBytes (CFAllocatorRef alloc,
   const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding,
   CFURLRef baseURL, Boolean useCompatibilityMode);
 #endif
 
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT CFURLRef
 CFURLCreateByResolvingBookmarkData (CFAllocatorRef alloc, CFDataRef bookmark,
   CFURLBookmarkResolutionOptions options, CFURLRef relativeToURL,
@@ -244,7 +244,7 @@ CFURLCreateCopyDeletingLastPathComponent (CFAllocatorRef alloc, CFURLRef url);
 CF_EXPORT CFURLRef
 CFURLCreateCopyDeletingPathExtension (CFAllocatorRef alloc, CFURLRef url);
 
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT CFURLRef
 CFURLCreateFilePathURL (CFAllocatorRef allocator, CFURLRef url,
   CFErrorRef *error);
@@ -354,7 +354,7 @@ CF_EXPORT CFStringRef
 CFURLCreateStringByReplacingPercentEscapes (CFAllocatorRef alloc,
   CFStringRef origString, CFStringRef charactersToLeaveEscaped);
 
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 CF_EXPORT CFStringRef
 CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
   CFStringRef origString, CFStringRef charactersToLeaveEscaped,
@@ -379,7 +379,7 @@ CFURLGetString (CFURLRef url);
 CF_EXPORT CFURLRef
 CFURLGetBaseURL (CFURLRef url);
 
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 CF_EXPORT CFIndex
 CFURLGetBytes (CFURLRef url, UInt8 *buffer, CFIndex bufLen);
 
@@ -394,7 +394,7 @@ CFURLResourceIsReachable (CFURLRef url, CFErrorRef *error);
 /*
  * Getting and Setting File System Resource Properties
  */
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT void
 CFURLClearResourcePropertyCache (CFURLRef url);
 

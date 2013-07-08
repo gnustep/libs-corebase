@@ -174,7 +174,7 @@ CFXMLTreeCreateWithDataFromURL (CFAllocatorRef allocator, CFURLRef dataSource,
 CF_EXPORT CFDataRef
 CFXMLTreeCreateXMLData (CFAllocatorRef allocator, CFXMLTreeRef xmlTree);
 
-#if MAC_OS_X_VERSION_10_3 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 CF_EXPORT const CFStringRef kCFXMLTreeErrorDescription;
 CF_EXPORT const CFStringRef kCFXMLTreeErrorLineNumber;
 CF_EXPORT const CFStringRef kCFXMLTreeErrorLocation;

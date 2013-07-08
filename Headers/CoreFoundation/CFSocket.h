@@ -68,20 +68,20 @@ typedef enum
   kCFSocketAcceptCallBack =  2,
   kCFSocketDataCallBack =    3,
   kCFSocketConnectCallBack = 4
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
   ,
   kCFSocketWriteCallBack =   8
 #endif
 } CFSocketCallBackType;
 
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 enum
 {
   kCFSocketAutomaticallyReenableReadCallBack =   1,
   kCFSocketAutomaticallyReenableAcceptCallBack = 2,
   kCFSocketAutomaticallyReenableDataCallBack =   3,
   kCFSocketAutomaticallyReenableWriteCallBack =  8,
-#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
   kCFSocketLeaveErrors = 64,
 #endif
   kCFSocketCloseOnInvalidate = 128
@@ -162,7 +162,7 @@ CFSocketGetNative (CFSocketRef s);
 CF_EXPORT CFSocketError
 CFSocketSetAddress (CFSocketRef s, CFDataRef address);
 
-#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 CF_EXPORT void
 CFSocketDisableCallBacks (CFSocketRef s, CFOptionFlags callBackTypes);
 

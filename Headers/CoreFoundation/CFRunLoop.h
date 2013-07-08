@@ -198,7 +198,7 @@ CFRunLoopCopyCurrentMode (CFRunLoopRef rl);
  * Scheduling Blocks
  */
 #if __BLOCKS__
-#if MAC_OS_X_VERSION_10_4 <= MAC_OS_X_VERSION_MAX_ALLOWED
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT void
 CFRunLoopPerformBlock (CFRunLoopRef rl, CFTypeRef mode, void (^block)(void));
 #endif
