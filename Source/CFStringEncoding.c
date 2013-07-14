@@ -1186,29 +1186,32 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
     }
   else if (enc == kCFStringEncodingASCII)
     {
-      char *dst;
-      const char *dstLimit;
+      UInt8 *dstart;
+      const UInt8 *dlimit;
       const UniChar *sstart;
+      const UniChar *slimit;
       
-      if (dlen > slen)
-        dlen = slen;
       sstart = s;
-      dst = (char*)d;
-      dstLimit = dst + dlen;
-      while (dst < dstLimit)
+      slimit = s + slen;
+      dstart = (UInt8*)d;
+      dlimit = dstart + dlen;
+      while (s < slimit && (dlen == 0 || d < dlimit))
         {
           if (*s < 0x80)
             {
-              *dst++ = (char)*s++;
+              *d++ = (UInt8)*s++;
             }
           else
             {
               if (!lossByte)
                 break;
-              *dst++ = (char)lossByte;
+              *d++ = (UInt8)lossByte;
               s++;
             }
         }
+      if (needed)
+        *needed = (d - dstart);
+      
       converted = (CFIndex)(s - sstart);
     }
   else if (enc == kCFStringEncodingNonLossyASCII)
@@ -1374,17 +1377,18 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
     }
   else if (enc == kCFStringEncodingASCII)
     {
-      UniChar *dst;
-      const UniChar *dstLimit;
+      UniChar *dstart;
+      const UniChar *dlimit;
       
       if (dlen > slen)
         dlen = slen;
-      dst = d;
-      dstLimit = d + dlen;
-      while (dst < dstLimit)
-        *dst++ = *s++;
+      dstart = d;
+      dlimit = d + dlen;
+      while (d < dlimit)
+        *d++ = *s++;
       if (needed)
         *needed = slen;
+      converted = d - dstart;
     }
   else if (enc == kCFStringEncodingNonLossyASCII)
     {

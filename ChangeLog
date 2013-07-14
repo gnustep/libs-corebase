@@ -1,3 +1,7 @@
+2013-07-14 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFStringEncoding.c: Fix ASCII conversion.
+
 2013-07-03 Ivan Vucica <ivan@vucica.net>
 
 	* Source/CFNumber.c: Improved the way INFINITY and NAN are defined,
