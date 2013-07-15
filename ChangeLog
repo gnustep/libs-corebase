@@ -1,5 +1,21 @@
 2013-07-14 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* configure.ac: Check for math library.
+	* Source/CFAttributedString.c,
+	* Source/CFData.c,
+	* Source/CFError.c,
+	* Source/CFDate.c,
+	* Source/CFNumber.c,
+	* Source/CFRunLoop.c,
+	* Source/CFRuntime.c,
+	* Source/CFURL.c: Use CF_OBJC_FUNCDISPATCHV.
+	* Source/CFStringEncoding.c: Fix character Unicode conversion.
+	* Source/GSHashTable.h: Use GS_PRIVATE for hidden functions.
+	* Source/GSPrivate.h: Add GS_PRIVATE for hidden visibility functions.
+	Remove CF_OBJC_FUNCDISPATCH[012345] in favor of CF_OBJC_FUNCDISPATCHV.
+
+2013-07-14 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFStringEncoding.c: Fix ASCII conversion.
 
 2013-07-03 Ivan Vucica <ivan@vucica.net>

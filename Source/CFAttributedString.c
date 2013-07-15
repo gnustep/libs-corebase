@@ -378,7 +378,7 @@ CFAttributedStringCreateWithSubstring (CFAllocatorRef alloc,
 CFIndex
 CFAttributedStringGetLength (CFAttributedStringRef str)
 {
-  CF_OBJC_FUNCDISPATCH0 (_kCFAttributedStringTypeID, CFIndex, str, "length");
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, CFIndex, str, "length");
   
   return CFStringGetLength (str->_string);
 }
@@ -386,7 +386,7 @@ CFAttributedStringGetLength (CFAttributedStringRef str)
 CFStringRef
 CFAttributedStringGetString (CFAttributedStringRef str)
 {
-  CF_OBJC_FUNCDISPATCH0 (_kCFAttributedStringTypeID, CFStringRef, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, CFStringRef, str,
                          "string");
   
   return str->_string;
@@ -408,7 +408,7 @@ CFAttributedStringGetAttributes (CFAttributedStringRef str, CFIndex loc,
 {
   CFIndex idx;
   
-  CF_OBJC_FUNCDISPATCH2 (_kCFAttributedStringTypeID, CFDictionaryRef, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, CFDictionaryRef, str,
                          "attributesAtIndex:effectiveRange:", loc, effRange);
   
   idx = CFAttributedStringArrayGetIndex (str, loc, effRange);
@@ -643,7 +643,7 @@ CFAttributedStringCreateMutableCopy (CFAllocatorRef alloc, CFIndex maxLength,
 void
 CFAttributedStringBeginEditing (CFMutableAttributedStringRef str)
 {
-  CF_OBJC_FUNCDISPATCH0 (_kCFAttributedStringTypeID, void, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, void, str,
                          "beginEditing");
   
   ((struct __CFMutableAttributedString *)str)->_isEditing += 1;
@@ -652,7 +652,7 @@ CFAttributedStringBeginEditing (CFMutableAttributedStringRef str)
 void
 CFAttributedStringEndEditing (CFMutableAttributedStringRef str)
 {
-  CF_OBJC_FUNCDISPATCH0 (_kCFAttributedStringTypeID, void, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, void, str,
                          "endEditing");
   
   if ((((struct __CFMutableAttributedString *)str)->_isEditing -= 1) == 0)
@@ -662,7 +662,7 @@ CFAttributedStringEndEditing (CFMutableAttributedStringRef str)
 CFMutableStringRef
 CFAttributedStringGetMutableString (CFMutableAttributedStringRef str)
 {
-  CF_OBJC_FUNCDISPATCH0 (_kCFAttributedStringTypeID, CFMutableStringRef, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, CFMutableStringRef, str,
                          "mutableString");
   
   return NULL; /* FIXME */
@@ -672,7 +672,7 @@ void
 CFAttributedStringRemoveAttribute (CFMutableAttributedStringRef str,
                                    CFRange range, CFStringRef attrName)
 {
-  CF_OBJC_FUNCDISPATCH2 (_kCFAttributedStringTypeID, void, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, void, str,
                          "removeAttribute:range:", attrName, range);
   
   if (!CFAttributedStringIsMutable(str))
@@ -689,7 +689,7 @@ CFAttributedStringReplaceString (CFMutableAttributedStringRef str,
   CFIndex cur;
   CFIndex moveAmount;
   
-  CF_OBJC_FUNCDISPATCH2 (_kCFAttributedStringTypeID, void, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, void, str,
                          "replaceCharactersInRange:withString:", range, repl);
   
   if (!CFAttributedStringIsMutable(str))
@@ -716,7 +716,7 @@ CFAttributedStringReplaceAttributedString (CFMutableAttributedStringRef str,
                                            CFRange range,
                                            CFAttributedStringRef repl)
 {
-  CF_OBJC_FUNCDISPATCH2 (_kCFAttributedStringTypeID, void, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, void, str,
                          "replaceCharactersInRange:withAttributeString:",
                          range, repl);
   
@@ -730,7 +730,7 @@ CFAttributedStringSetAttribute (CFMutableAttributedStringRef str,
 {
   CFDictionaryRef attrib;
   
-  CF_OBJC_FUNCDISPATCH3 (_kCFAttributedStringTypeID, void, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, void, str,
                          "setAttribute:value:range:", attrName, value, range);
   
   if (!CFAttributedStringIsMutable(str))
@@ -757,7 +757,7 @@ CFAttributedStringSetAttributes (CFMutableAttributedStringRef str,
   CFIndex rangeMax;
   Attr *array;
   
-  CF_OBJC_FUNCDISPATCH2 (_kCFAttributedStringTypeID, void, str,
+  CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, void, str,
                          "setAttributes:range:", repl, range);
   
   if (!CFAttributedStringIsMutable(str))

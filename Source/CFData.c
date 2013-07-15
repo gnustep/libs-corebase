@@ -207,7 +207,7 @@ CFDataCreateCopy (CFAllocatorRef allocator, CFDataRef d)
 const UInt8 *
 CFDataGetBytePtr (CFDataRef d)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFDataTypeID, const UInt8 *, d, "bytes");
+  CF_OBJC_FUNCDISPATCHV(_kCFDataTypeID, const UInt8 *, d, "bytes");
   
   return d->_contents;
 }
@@ -215,7 +215,7 @@ CFDataGetBytePtr (CFDataRef d)
 void
 CFDataGetBytes (CFDataRef d, CFRange range, UInt8 *buffer)
 {
-  CF_OBJC_FUNCDISPATCH2(_kCFDataTypeID, void, d, "getBytes:range:", buffer,
+  CF_OBJC_FUNCDISPATCHV(_kCFDataTypeID, void, d, "getBytes:range:", buffer,
     range);
   
   assert (range.location + range.length <= d->_length);
@@ -225,7 +225,7 @@ CFDataGetBytes (CFDataRef d, CFRange range, UInt8 *buffer)
 CFIndex
 CFDataGetLength (CFDataRef d)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFDataTypeID, CFIndex, d, "length");
+  CF_OBJC_FUNCDISPATCHV(_kCFDataTypeID, CFIndex, d, "length");
   
   return d->_length;
 }
@@ -295,7 +295,7 @@ CFDataCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
 void
 CFDataAppendBytes (CFMutableDataRef d, const UInt8 *bytes, CFIndex length)
 {
-  CF_OBJC_FUNCDISPATCH2(_kCFDataTypeID, void, d, "appendBytes:length:", bytes,
+  CF_OBJC_FUNCDISPATCHV(_kCFDataTypeID, void, d, "appendBytes:length:", bytes,
     length);
   
   CFDataReplaceBytes (d, CFRangeMake(d->_length, 0), bytes, length);
@@ -310,7 +310,7 @@ CFDataDeleteBytes (CFMutableDataRef d, CFRange range)
 UInt8 *
 CFDataGetMutableBytePtr (CFMutableDataRef d)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFDataTypeID, UInt8 *, d, "mutableBytes");
+  CF_OBJC_FUNCDISPATCHV(_kCFDataTypeID, UInt8 *, d, "mutableBytes");
   
   if (!CFDataIsMutable(d))
     return NULL;
@@ -321,7 +321,7 @@ CFDataGetMutableBytePtr (CFMutableDataRef d)
 void
 CFDataIncreaseLength (CFMutableDataRef d, CFIndex length)
 {
-  CF_OBJC_FUNCDISPATCH1(_kCFDataTypeID, void, d, "increaseLengthBy:", length);
+  CF_OBJC_FUNCDISPATCHV(_kCFDataTypeID, void, d, "increaseLengthBy:", length);
   
   CFDataSetLength (d, d->_length + length);
 }
@@ -333,7 +333,7 @@ CFDataReplaceBytes (CFMutableDataRef d, CFRange range,
   struct __CFMutableData *md;
   CFIndex newBufLen;
   
-  CF_OBJC_FUNCDISPATCH3(_kCFDataTypeID, void, d,
+  CF_OBJC_FUNCDISPATCHV(_kCFDataTypeID, void, d,
     "replaceBytesInRange:withBytes:length:", range, newBytes, newLength);
   
   if (!CFDataIsMutable(d))
@@ -364,7 +364,7 @@ CFDataSetLength (CFMutableDataRef d, CFIndex length)
 {
   struct __CFMutableData *md;
   
-  CF_OBJC_FUNCDISPATCH1(_kCFDataTypeID, void, d, "setLength:", length);
+  CF_OBJC_FUNCDISPATCHV(_kCFDataTypeID, void, d, "setLength:", length);
   
   if (!CFDataIsMutable(d))
     return;

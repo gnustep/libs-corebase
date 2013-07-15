@@ -62,8 +62,7 @@
  * never shrink if we don't remove anything.
  */
 
-static const GSHashTableKeyCallBacks _kGSNullHashTableKeyCallBacks =
-{
+static const GSHashTableKeyCallBacks _kGSNullHashTableKeyCallBacks = {
   0,
   NULL,
   NULL,
@@ -72,8 +71,7 @@ static const GSHashTableKeyCallBacks _kGSNullHashTableKeyCallBacks =
   NULL
 };
 
-const GSHashTableValueCallBacks _kGSNullHashTableValueCallBacks =
-{
+static const GSHashTableValueCallBacks _kGSNullHashTableValueCallBacks = {
   0,
   NULL,
   NULL,
@@ -83,74 +81,75 @@ const GSHashTableValueCallBacks _kGSNullHashTableValueCallBacks =
 
 enum
 {
-  _kGSHashTableMutable = (1<<0),
-  _kGSHashTableShouldCount = (1<<1)
+  _kGSHashTableMutable = (1 << 0),
+  _kGSHashTableShouldCount = (1 << 1)
 };
 
 CF_INLINE Boolean
 GSHashTableIsMutable (GSHashTableRef table)
 {
-  return ((CFRuntimeBase *)table)->_flags.info & _kGSHashTableMutable ?
+  return ((CFRuntimeBase *) table)->_flags.info & _kGSHashTableMutable ?
     true : false;
 }
 
 CF_INLINE Boolean
 GSHashTableShouldCount (GSHashTableRef table)
 {
-  return ((CFRuntimeBase *)table)->_flags.info & _kGSHashTableShouldCount ?
+  return ((CFRuntimeBase *) table)->_flags.info & _kGSHashTableShouldCount ?
     true : false;
 }
 
 CF_INLINE void
 GSHashTableSetMutable (GSHashTableRef table)
 {
-  ((CFRuntimeBase *)table)->_flags.info |= _kGSHashTableMutable;
+  ((CFRuntimeBase *) table)->_flags.info |= _kGSHashTableMutable;
 }
 
 CF_INLINE void
 GSHashTableSetShouldCount (GSHashTableRef table)
 {
-  ((CFRuntimeBase *)table)->_flags.info |= _kGSHashTableShouldCount;
+  ((CFRuntimeBase *) table)->_flags.info |= _kGSHashTableShouldCount;
 }
 
 
 
 CF_INLINE void
 GSHashTableAddKeyValuePair (GSHashTableRef table,
-  GSHashTableBucket *bucket, const void *key, const void *value)
+                            GSHashTableBucket * bucket, const void *key,
+                            const void *value)
 {
   GSHashTableRetainCallBack keyRetain = table->_keyCallBacks.retain;
   GSHashTableRetainCallBack valueRetain = table->_valueCallBacks.retain;
-  
+
   bucket->count++;
-  bucket->key = keyRetain ? keyRetain(table->_allocator, key) : key;
-  bucket->value = valueRetain ? valueRetain(table->_allocator, value) : value;
+  bucket->key = keyRetain ? keyRetain (table->_allocator, key) : key;
+  bucket->value = valueRetain ? valueRetain (table->_allocator, value) : value;
 }
 
 CF_INLINE void
 GSHashTableReplaceKeyValuePair (GSHashTableRef table,
-  GSHashTableBucket *bucket, const void *key, const void *value)
+                                GSHashTableBucket * bucket, const void *key,
+                                const void *value)
 {
   GSHashTableReleaseCallBack release = table->_valueCallBacks.release;
   GSHashTableRetainCallBack retain = table->_valueCallBacks.retain;
-  
+
   if (release)
     release (table->_allocator, bucket->value);
-  bucket->value = retain ? retain(table->_allocator, value) : value;
+  bucket->value = retain ? retain (table->_allocator, value) : value;
 }
 
 CF_INLINE void
-GSHashTableRemoveKeyValuePair (GSHashTableRef table,
-  GSHashTableBucket *bucket)
+GSHashTableRemoveKeyValuePair (GSHashTableRef table, GSHashTableBucket * bucket)
 {
   GSHashTableReleaseCallBack keyRelease = table->_keyCallBacks.release;
   GSHashTableReleaseCallBack valueRelease = table->_valueCallBacks.release;
-  
+
   if (keyRelease)
     keyRelease (table->_allocator, bucket->key);
   if (valueRelease)
     valueRelease (table->_allocator, bucket->value);
-  
+
   bucket->count = 0;
   bucket->key = NULL;
   bucket->value = NULL;
@@ -164,10 +163,10 @@ GSHash2 (CFHashCode value)
  */
 #if defined(__LP64__) || defined(_WIN64)
 /* 64-bit operating systems */
-  return (CFHashCode)(((UInt64)value + 1) * 2654435761UL);
+  return (CFHashCode) (((UInt64) value + 1) * 2654435761UL);
 #else
 /* 32-bit operating systems */
-  return (CFHashCode)(((UInt32)value + 1) * 2654435761UL);
+  return (CFHashCode) (((UInt32) value + 1) * 2654435761UL);
 #endif
 }
 
@@ -181,26 +180,28 @@ GSHashTableFindBucket (GSHashTableRef table, const void *key)
   Boolean matched;
   GSHashTableHashCallBack fHash = table->_keyCallBacks.hash;
   GSHashTableEqualCallBack fEqual = table->_keyCallBacks.equal;
-  
+
   buckets = table->_buckets;
   capacity = table->_capacity;
   hash = fHash ? fHash (key) : GSHashPointer (key);
   idx = hash % capacity;
   matched = buckets[idx].key == NULL || (fEqual ?
-    fEqual (key, buckets[idx].key) : key == buckets[idx].key);
-  
+                                         fEqual (key,
+                                                 buckets[idx].key) : key ==
+                                         buckets[idx].key);
+
   if (!matched)
     {
       CFHashCode hash2 = GSHash2 (hash);
-      
+
       if (fEqual)
         {
           do
             {
               hash += hash2;
               idx = hash % capacity;
-            } while (buckets[idx].key != NULL
-                    && !fEqual (key, buckets[idx].key));
+            }
+          while (buckets[idx].key != NULL && !fEqual (key, buckets[idx].key));
         }
       else
         {
@@ -208,29 +209,29 @@ GSHashTableFindBucket (GSHashTableRef table, const void *key)
             {
               hash += hash2;
               idx = hash % capacity;
-            } while (buckets[idx].key != NULL && key != buckets[idx].key);
+            }
+          while (buckets[idx].key != NULL && key != buckets[idx].key);
         }
     }
-  
+
   return &buckets[idx];
 }
 
 
 
 /* Go as close to INT_MAX as we can. */
-static CFIndex _kGSHashTableSizes[] =
-{
+static CFIndex _kGSHashTableSizes[] = {
   7, 13, 29, 59, 127, 257, 521, 1049, 2099, 4201,
   8419, 16843, 33703, 67409, 134837, 269683, 539389,
   1078787, 2157587, 4315183, 8630387, 17260781, 34521589,
   69043189, 138086407, 276172823, 552345671, 1104691373
 };
+
 static CFIndex _kGSHashTableSizesCount =
-  sizeof(_kGSHashTableSizes) / sizeof(CFIndex);
+  sizeof (_kGSHashTableSizes) / sizeof (CFIndex);
 
 /* Calculted 80% of values above. */
-static CFIndex _kGSHashTableFilled[] =
-{
+static CFIndex _kGSHashTableFilled[] = {
   5, 10, 23, 47, 101, 205, 416, 839, 2099, 3360,
   6735, 13474, 26962, 53927, 107869, 215746, 431511,
   863029, 1726069, 3452146, 6904309, 13808624, 27617271,
@@ -251,42 +252,43 @@ GSHashTableGetSize (CFIndex min)
 
 GSHashTableRef
 GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
-  const void **keys, const void **values, CFIndex numValues,
-  const GSHashTableKeyCallBacks *keyCallBacks,
-  const GSHashTableValueCallBacks *valueCallBacks)
+                   const void **keys, const void **values, CFIndex numValues,
+                   const GSHashTableKeyCallBacks * keyCallBacks,
+                   const GSHashTableValueCallBacks * valueCallBacks)
 {
   CFIndex arraySize;
   CFIndex capacity;
   GSHashTableRef new;
-  
+
   capacity = GSHashTableGetSize (numValues);
-  arraySize = GET_ARRAY_SIZE(capacity);
-  
-  new = (GSHashTableRef)_CFRuntimeCreateInstance (alloc, typeID,
-    GSHASHTABLE_EXTRA + arraySize, NULL);
+  arraySize = GET_ARRAY_SIZE (capacity);
+
+  new = (GSHashTableRef) _CFRuntimeCreateInstance (alloc, typeID,
+                                                   GSHASHTABLE_EXTRA +
+                                                   arraySize, NULL);
   if (new)
     {
       CFIndex idx;
       GSHashTableBucket *bucket;
-      
+
       new->_allocator = alloc;
-      new->_buckets = (GSHashTableBucket*)&(new[1]);
-      
+      new->_buckets = (GSHashTableBucket *) & (new[1]);
+
       new->_capacity = capacity;
-      
+
       if (keyCallBacks == NULL)
         keyCallBacks = &_kGSNullHashTableKeyCallBacks;
       if (valueCallBacks == NULL)
         valueCallBacks = &_kGSNullHashTableValueCallBacks;
-      
+
       memcpy (&new->_keyCallBacks, keyCallBacks,
-        sizeof (GSHashTableKeyCallBacks));
+              sizeof (GSHashTableKeyCallBacks));
       memcpy (&new->_valueCallBacks, valueCallBacks,
-        sizeof (GSHashTableValueCallBacks));
-      
+              sizeof (GSHashTableValueCallBacks));
+
       if (keys != NULL)
         {
-          for (idx = 0 ; idx < numValues ; ++idx)
+          for (idx = 0; idx < numValues; ++idx)
             {
               bucket = GSHashTableFindBucket (new, keys[idx]);
               GSHashTableAddKeyValuePair (new, bucket, keys[idx], values[idx]);
@@ -294,7 +296,7 @@ GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
             }
         }
     }
-  
+
   return new;
 }
 
@@ -303,27 +305,28 @@ GSHashTableCreateCopy (CFAllocatorRef alloc, GSHashTableRef table)
 {
   CFIndex count;
   GSHashTableRef new;
-  
-  count = GSHashTableGetCount(table);
-  new = GSHashTableCreate (alloc, CFGetTypeID(table), NULL, NULL,
-    count, &table->_keyCallBacks, &table->_valueCallBacks);
+
+  count = GSHashTableGetCount (table);
+  new = GSHashTableCreate (alloc, CFGetTypeID (table), NULL, NULL,
+                           count, &table->_keyCallBacks,
+                           &table->_valueCallBacks);
   if (new)
     {
       CFIndex idx;
       GSHashTableBucket *bucket;
       GSHashTableBucket *buckets = table->_buckets;
-      for (idx = 0 ; idx < table->_capacity ; ++idx)
+      for (idx = 0; idx < table->_capacity; ++idx)
         {
           if (buckets[idx].key)
             {
               bucket = GSHashTableFindBucket (new, buckets[idx].key);
               GSHashTableAddKeyValuePair (new, bucket, buckets[idx].key,
-                buckets[idx].value);
+                                          buckets[idx].value);
               new->_count += 1;
             }
         }
     }
-  
+
   return new;
 }
 
@@ -331,7 +334,7 @@ void
 GSHashTableFinalize (GSHashTableRef table)
 {
   GSHashTableRemoveAll (table);
-  if (GSHashTableIsMutable(table))
+  if (GSHashTableIsMutable (table))
     CFAllocatorDeallocate (table->_allocator, table->_buckets);
 }
 
@@ -345,7 +348,7 @@ GSHashTableEqual (GSHashTableRef table1, GSHashTableRef table2)
       GSHashTableBucket *other;
       GSHashTableEqualCallBack keyEqual;
       GSHashTableEqualCallBack valueEqual;
-      
+
       current = table1->_buckets;
       end = current + table1->_capacity;
       keyEqual = table1->_keyCallBacks.equal;
@@ -353,21 +356,21 @@ GSHashTableEqual (GSHashTableRef table1, GSHashTableRef table2)
       while (current < end)
         {
           if (current->count > 0)
-          {
-            other = GSHashTableFindBucket (table2, current->key);
-            if (current->count != other->count
-                || keyEqual ? !keyEqual(current->key, other->key) :
-                    current->key != other->key
-                || valueEqual ? !valueEqual(current->value, other->value) :
-                    current->value != other->value)
-              return false;
-          }
+            {
+              other = GSHashTableFindBucket (table2, current->key);
+              if (current->count != other->count
+                  || keyEqual ? !keyEqual (current->key, other->key) :
+                  current->key != other->key
+                  || valueEqual ? !valueEqual (current->value, other->value) :
+                  current->value != other->value)
+                return false;
+            }
           ++current;
         }
-      
+
       return true;
     }
-  
+
   return false;
 }
 
@@ -382,7 +385,7 @@ GSHashTableContainsKey (GSHashTableRef table, const void *key)
 {
   GSHashTableBucket *bucket;
   bucket = GSHashTableFindBucket (table, key);
-  
+
   return bucket->count > 0 ? true : false;
 }
 
@@ -392,8 +395,8 @@ GSHashTableContainsValue (GSHashTableRef table, const void *value)
   CFIndex idx;
   GSHashTableBucket *buckets = table->_buckets;
   GSHashTableEqualCallBack equal = table->_valueCallBacks.equal;
-  
-  for (idx = 0 ; idx < table->_capacity ; ++idx)
+
+  for (idx = 0; idx < table->_capacity; ++idx)
     {
       if (buckets[idx].key)
         {
@@ -425,8 +428,8 @@ GSHashTableGetCountOfValue (GSHashTableRef table, const void *value)
   CFIndex count = 0;
   GSHashTableBucket *buckets = table->_buckets;
   GSHashTableEqualCallBack equal = table->_valueCallBacks.equal;
-  
-  for (idx = 0 ; idx < table->_capacity ; ++idx)
+
+  for (idx = 0; idx < table->_capacity; ++idx)
     {
       if (buckets[idx].key)
         {
@@ -440,13 +443,13 @@ GSHashTableGetCountOfValue (GSHashTableRef table, const void *value)
 
 void
 GSHashTableGetKeysAndValues (GSHashTableRef table, const void **keys,
-  const void **values)
+                             const void **values)
 {
   CFIndex idx;
   CFIndex j = 0;
   GSHashTableBucket *buckets = table->_buckets;
-  
-  for (idx = 0 ; idx < table->_capacity ; ++idx)
+
+  for (idx = 0; idx < table->_capacity; ++idx)
     {
       if (buckets[idx].count > 0)
         {
@@ -464,7 +467,7 @@ GSHashTableGetValue (GSHashTableRef table, const void *key)
 {
   GSHashTableBucket *bucket;
   bucket = GSHashTableFindBucket (table, key);
-  
+
   return bucket->value;
 }
 
@@ -477,25 +480,25 @@ GSHashTableRehash (GSHashTableRef table, CFIndex newCapacity)
   CFIndex oldSize;
   GSHashTableBucket *bucket;
   GSHashTableBucket *oldBuckets;
-  
+
   oldSize = table->_capacity;
   oldBuckets = table->_buckets;
-  
+
   table->_capacity = newCapacity;
   table->_buckets = CFAllocatorAllocate (table->_allocator,
-    GET_ARRAY_SIZE(newCapacity), 0);
-  memset (table->_buckets, 0, GET_ARRAY_SIZE(newCapacity));
-  
-  for (idx = 0 ; idx < oldSize ; ++idx)
+                                         GET_ARRAY_SIZE (newCapacity), 0);
+  memset (table->_buckets, 0, GET_ARRAY_SIZE (newCapacity));
+
+  for (idx = 0; idx < oldSize; ++idx)
     {
       if (oldBuckets[idx].key)
         {
           bucket = GSHashTableFindBucket (table, oldBuckets[idx].key);
           GSHashTableAddKeyValuePair (table, bucket, oldBuckets[idx].key,
-            oldBuckets[idx].value);
+                                      oldBuckets[idx].value);
         }
     }
-  
+
   CFAllocatorDeallocate (table->_allocator, oldBuckets);
 }
 
@@ -503,7 +506,7 @@ CF_INLINE void
 GSHashTableGrowIfNeeded (GSHashTableRef table)
 {
   CFIndex newSize;
-  if ((newSize = GSHashTableGetSize(table->_count + 1)) > table->_capacity)
+  if ((newSize = GSHashTableGetSize (table->_count + 1)) > table->_capacity)
     GSHashTableRehash (table, newSize);
 }
 
@@ -512,75 +515,76 @@ GSHashTableShrinkIfNeeded (GSHashTableRef table)
 {
   /* Shrink if count is less than half of capacity) */
   if (table->_count < (table->_capacity >> 2))
-    GSHashTableRehash (table, GSHashTableGetSize(table->_count));
+    GSHashTableRehash (table, GSHashTableGetSize (table->_count));
 }
 
 GSHashTableRef
 GSHashTableCreateMutable (CFAllocatorRef allocator,
-  CFTypeID typeID, CFIndex capacity,
-  const GSHashTableKeyCallBacks *keyCallBacks,
-  const GSHashTableValueCallBacks *valueCallBacks)
+                          CFTypeID typeID, CFIndex capacity,
+                          const GSHashTableKeyCallBacks * keyCallBacks,
+                          const GSHashTableValueCallBacks * valueCallBacks)
 {
   GSHashTableRef new;
-  
-  new = (GSHashTableRef)_CFRuntimeCreateInstance (allocator, typeID,
-    GSHASHTABLE_EXTRA, NULL);
+
+  new = (GSHashTableRef) _CFRuntimeCreateInstance (allocator, typeID,
+                                                   GSHASHTABLE_EXTRA, NULL);
   if (new)
     {
       CFIndex arraySize;
-      
+
       capacity = GSHashTableGetSize (capacity);
-      arraySize = GET_ARRAY_SIZE(capacity);
-      
+      arraySize = GET_ARRAY_SIZE (capacity);
+
       new->_allocator = allocator;
       new->_buckets = CFAllocatorAllocate (allocator, arraySize, 0);
       memset (new->_buckets, 0, arraySize);
-      
+
       new->_capacity = capacity;
-      
+
       if (keyCallBacks == NULL)
         keyCallBacks = &_kGSNullHashTableKeyCallBacks;
       if (valueCallBacks == NULL)
         valueCallBacks = &_kGSNullHashTableValueCallBacks;
-      
+
       memcpy (&new->_keyCallBacks, keyCallBacks,
-        sizeof (GSHashTableKeyCallBacks));
+              sizeof (GSHashTableKeyCallBacks));
       memcpy (&new->_valueCallBacks, valueCallBacks,
-        sizeof (GSHashTableValueCallBacks));
-      
+              sizeof (GSHashTableValueCallBacks));
+
       GSHashTableSetMutable (new);
     }
-  
+
   return new;
 }
 
 GSHashTableRef
 GSHashTableCreateMutableCopy (CFAllocatorRef alloc, GSHashTableRef table,
-  CFIndex capacity)
+                              CFIndex capacity)
 {
   GSHashTableRef new;
-  
+
   if (capacity < table->_count)
     capacity = table->_count;
-  new = GSHashTableCreateMutable (alloc, CFGetTypeID(table), capacity,
-    &table->_keyCallBacks, &table->_valueCallBacks);
+  new = GSHashTableCreateMutable (alloc, CFGetTypeID (table), capacity,
+                                  &table->_keyCallBacks,
+                                  &table->_valueCallBacks);
   if (new)
     {
       CFIndex idx;
       GSHashTableBucket *bucket;
       GSHashTableBucket *buckets = table->_buckets;
-      for (idx = 0 ; idx < table->_capacity ; ++idx)
+      for (idx = 0; idx < table->_capacity; ++idx)
         {
           if (buckets[idx].key)
             {
               bucket = GSHashTableFindBucket (new, buckets[idx].key);
               GSHashTableAddKeyValuePair (new, bucket, buckets[idx].key,
-                buckets[idx].value);
+                                          buckets[idx].value);
               new->_count += 1;
             }
         }
     }
-  
+
   return new;
 }
 
@@ -588,9 +592,9 @@ void
 GSHashTableAddValue (GSHashTableRef table, const void *key, const void *value)
 {
   GSHashTableBucket *bucket;
-  
+
   GSHashTableGrowIfNeeded (table);
-  
+
   bucket = GSHashTableFindBucket (table, key);
   if (bucket->count == 0)
     {
@@ -601,10 +605,10 @@ GSHashTableAddValue (GSHashTableRef table, const void *key, const void *value)
 
 void
 GSHashTableReplaceValue (GSHashTableRef table, const void *key,
-  const void *value)
+                         const void *value)
 {
   GSHashTableBucket *bucket;
-  
+
   bucket = GSHashTableFindBucket (table, key);
   if (bucket->count > 0)
     GSHashTableReplaceKeyValuePair (table, bucket, key, value);
@@ -614,9 +618,9 @@ void
 GSHashTableSetValue (GSHashTableRef table, const void *key, const void *value)
 {
   GSHashTableBucket *bucket;
-  
+
   GSHashTableGrowIfNeeded (table);
-  
+
   bucket = GSHashTableFindBucket (table, key);
   if (bucket->count > 0)
     {
@@ -634,8 +638,8 @@ GSHashTableRemoveAll (GSHashTableRef table)
 {
   CFIndex idx;
   GSHashTableBucket *buckets = table->_buckets;
-  
-  for (idx = 0 ; idx < table->_capacity ; ++idx)
+
+  for (idx = 0; idx < table->_capacity; ++idx)
     {
       if (buckets[idx].count > 0)
         GSHashTableRemoveKeyValuePair (table, &buckets[idx]);
@@ -647,9 +651,9 @@ void
 GSHashTableRemoveValue (GSHashTableRef table, const void *key)
 {
   GSHashTableBucket *bucket;
-  
+
   GSHashTableShrinkIfNeeded (table);
-  
+
   bucket = GSHashTableFindBucket (table, key);
   if (bucket->count > 1)
     {
@@ -661,4 +665,3 @@ GSHashTableRemoveValue (GSHashTableRef table, const void *key)
       table->_count -= 1;
     }
 }
-

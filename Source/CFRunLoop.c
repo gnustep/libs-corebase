@@ -979,7 +979,7 @@ Boolean
 CFRunLoopTimerDoesRepeat (CFRunLoopTimerRef timer)
 {
   /* FIXME: need this method in NSTimer. */
-  CF_OBJC_FUNCDISPATCH0(_kCFRunLoopTimerTypeID, Boolean, timer,
+  CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, Boolean, timer,
                         "_cfDoesRepeat");
   
   return (timer->_interval > 0.0);
@@ -990,7 +990,7 @@ CFRunLoopTimerGetContext (CFRunLoopTimerRef timer,
                           CFRunLoopTimerContext *context)
 {
   /* FIXME: need this method in NSTimer. */
-  CF_OBJC_FUNCDISPATCH1(_kCFRunLoopTimerTypeID, void, timer,
+  CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, void, timer,
                         "_cfContext:", context);
   
   *context = timer->_context;
@@ -999,7 +999,7 @@ CFRunLoopTimerGetContext (CFRunLoopTimerRef timer,
 CFTimeInterval
 CFRunLoopTimerGetInterval (CFRunLoopTimerRef timer)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFRunLoopTimerTypeID, CFTimeInterval, timer,
+  CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, CFTimeInterval, timer,
                         "timeInterval");
   
   return timer->_interval;
@@ -1009,7 +1009,7 @@ CFAbsoluteTime
 CFRunLoopTimerGetNextFireDate (CFRunLoopTimerRef timer)
 {
   /* FIXME: need this method in NSTimer. */
-  CF_OBJC_FUNCDISPATCH0(_kCFRunLoopTimerTypeID, CFAbsoluteTime, timer,
+  CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, CFAbsoluteTime, timer,
                         "_cfFireDate");
   
   return timer->_nextFireDate;
@@ -1019,7 +1019,7 @@ CFIndex
 CFRunLoopTimerGetOrder (CFRunLoopTimerRef timer)
 {
   /* FIXME: need this method in NSTimer. */
-  CF_OBJC_FUNCDISPATCH0(_kCFRunLoopTimerTypeID, CFIndex, timer,
+  CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, CFIndex, timer,
                         "_cfOrder");
   
   return timer->_order;
@@ -1028,7 +1028,7 @@ CFRunLoopTimerGetOrder (CFRunLoopTimerRef timer)
 void
 CFRunLoopTimerInvalidate (CFRunLoopTimerRef timer)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFRunLoopTimerTypeID, void, timer,
+  CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, void, timer,
                         "invalidate");
   
   
@@ -1037,7 +1037,7 @@ CFRunLoopTimerInvalidate (CFRunLoopTimerRef timer)
 Boolean
 CFRunLoopTimerIsValid (CFRunLoopTimerRef timer)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFRunLoopTimerTypeID, Boolean, timer,
+  CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, Boolean, timer,
                         "isValid");
   
   return timer->_isValid;
@@ -1048,7 +1048,7 @@ CFRunLoopTimerSetNextFireDate (CFRunLoopTimerRef timer,
                                CFAbsoluteTime fireDate)
 {
   /* FIXME: need this method in NSTimer. */
-  CF_OBJC_FUNCDISPATCH1(_kCFRunLoopTimerTypeID, void, timer,
+  CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, void, timer,
                         "_cfSetNextFireDate:", fireDate);
   
   return;

@@ -24,16 +24,20 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include "CoreFoundation/CFBase.h"
+#ifndef __GSHASHTABLE__
+#define __GSHASHTABLE__ 1
 
-typedef CFStringRef (*GSHashTableCopyDescriptionCallBack)(const void *value);
-typedef Boolean  (*GSHashTableEqualCallBack) (const void *value1,
-  const void *value2);
-typedef CFHashCode    (*GSHashTableHashCallBack) (const void *value);
+#include "CoreFoundation/CFBase.h"
+#include "GSPrivate.h"
+
+typedef CFStringRef (*GSHashTableCopyDescriptionCallBack) (const void *value);
+typedef Boolean (*GSHashTableEqualCallBack) (const void *value1,
+                                             const void *value2);
+typedef CFHashCode (*GSHashTableHashCallBack) (const void *value);
 typedef void (*GSHashTableReleaseCallBack) (CFAllocatorRef allocator,
-  const void *value);
+                                            const void *value);
 typedef const void *(*GSHashTableRetainCallBack) (CFAllocatorRef allocator,
-  const void *value);
+                                                  const void *value);
 
 typedef struct GSHashTableKeyCallBacks GSHashTableKeyCallBacks;
 struct GSHashTableKeyCallBacks
@@ -67,81 +71,76 @@ struct GSHashTableBucket
 typedef struct GSHashTable *GSHashTableRef;
 struct GSHashTable
 {
-  CFRuntimeBase  _parent;
+  CFRuntimeBase _parent;
   CFAllocatorRef _allocator;
-  CFIndex        _capacity;
-  CFIndex        _count;
-  CFIndex        _total; /* Used for CFBagGetCount() */
+  CFIndex _capacity;
+  CFIndex _count;
+  CFIndex _total;               /* Used for CFBagGetCount() */
   GSHashTableKeyCallBacks _keyCallBacks;
   GSHashTableValueCallBacks _valueCallBacks;
   struct GSHashTableBucket *_buckets;
 };
 
-void
-GSHashTableFinalize (GSHashTableRef table);
+GS_PRIVATE void GSHashTableFinalize (GSHashTableRef table);
 
-Boolean
+GS_PRIVATE Boolean
 GSHashTableEqual (GSHashTableRef table1, GSHashTableRef table2);
 
-CFHashCode
-GSHashTableHash (GSHashTableRef table);
+GS_PRIVATE CFHashCode GSHashTableHash (GSHashTableRef table);
 
-GSHashTableRef
+GS_PRIVATE GSHashTableRef
 GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
-  const void **keys, const void **values, CFIndex count,
-  const GSHashTableKeyCallBacks *keyCallBacks,
-  const GSHashTableValueCallBacks *valueCallBacks);
+                   const void **keys, const void **values, CFIndex count,
+                   const GSHashTableKeyCallBacks * keyCallBacks,
+                   const GSHashTableValueCallBacks * valueCallBacks);
 
-GSHashTableRef
+GS_PRIVATE GSHashTableRef
 GSHashTableCreateCopy (CFAllocatorRef alloc, GSHashTableRef table);
 
-Boolean
-GSHashTableContainsKey (GSHashTableRef table, const void *key);
+GS_PRIVATE Boolean GSHashTableContainsKey (GSHashTableRef table, const void *key);
 
-Boolean
+GS_PRIVATE Boolean
 GSHashTableContainsValue (GSHashTableRef table, const void *value);
 
-CFIndex
-GSHashTableGetCount (GSHashTableRef table);
+GS_PRIVATE CFIndex GSHashTableGetCount (GSHashTableRef table);
 
-CFIndex
+GS_PRIVATE CFIndex
 GSHashTableGetCountOfKey (GSHashTableRef table, const void *key);
 
-CFIndex
+GS_PRIVATE CFIndex
 GSHashTableGetCountOfValue (GSHashTableRef table, const void *value);
 
-void
+GS_PRIVATE void
 GSHashTableGetKeysAndValues (GSHashTableRef table, const void **keys,
-  const void **values);
+                             const void **values);
 
-const void *
-GSHashTableGetValue (GSHashTableRef table, const void *key);
+GS_PRIVATE const void *GSHashTableGetValue (GSHashTableRef table,
+                                          const void *key);
 
 
 
-GSHashTableRef
+GS_PRIVATE GSHashTableRef
 GSHashTableCreateMutable (CFAllocatorRef allocator,
-  CFTypeID typeID, CFIndex capacity,
-  const GSHashTableKeyCallBacks *keyCallBacks,
-  const GSHashTableValueCallBacks *valueCallBacks);
+                          CFTypeID typeID, CFIndex capacity,
+                          const GSHashTableKeyCallBacks * keyCallBacks,
+                          const GSHashTableValueCallBacks * valueCallBacks);
 
-GSHashTableRef
+GS_PRIVATE GSHashTableRef
 GSHashTableCreateMutableCopy (CFAllocatorRef alloc, GSHashTableRef table,
-  CFIndex capacity);
+                              CFIndex capacity);
 
-void
+GS_PRIVATE void
 GSHashTableAddValue (GSHashTableRef table, const void *key, const void *value);
 
-void
+GS_PRIVATE void
 GSHashTableReplaceValue (GSHashTableRef table, const void *key,
-  const void *value);
+                         const void *value);
 
-void
+GS_PRIVATE void
 GSHashTableSetValue (GSHashTableRef table, const void *key, const void *value);
 
-void
-GSHashTableRemoveAll (GSHashTableRef table);
+GS_PRIVATE void GSHashTableRemoveAll (GSHashTableRef table);
 
-void
-GSHashTableRemoveValue (GSHashTableRef table, const void *key);
+GS_PRIVATE void GSHashTableRemoveValue (GSHashTableRef table, const void *key);
 
+#endif /* __GSHASHTABLE__ */

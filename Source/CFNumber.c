@@ -306,9 +306,9 @@ CFComparisonResult
 CFNumberCompare (CFNumberRef num, CFNumberRef oNum,
   void *context)
 {
-  CF_OBJC_FUNCDISPATCH1(_kCFNumberTypeID, CFComparisonResult, num,
+  CF_OBJC_FUNCDISPATCHV(_kCFNumberTypeID, CFComparisonResult, num,
     "compare:", oNum);
-  CF_OBJC_FUNCDISPATCH1(_kCFNumberTypeID, CFComparisonResult, oNum,
+  CF_OBJC_FUNCDISPATCHV(_kCFNumberTypeID, CFComparisonResult, oNum,
     "compare:", num);
   
   return -1;

@@ -124,7 +124,7 @@ CFDateGetAbsoluteTime (CFDateRef theDate)
 CFTimeInterval
 CFDateGetTimeIntervalSinceDate (CFDateRef theDate, CFDateRef otherDate)
 {
-  CF_OBJC_FUNCDISPATCH1(_kCFDateTypeID, CFTimeInterval, theDate,
+  CF_OBJC_FUNCDISPATCHV(_kCFDateTypeID, CFTimeInterval, theDate,
     "timeIntervalSinceDate:", otherDate);
   
   return CFDateGetAbsoluteTime (theDate) - CFDateGetAbsoluteTime (otherDate);

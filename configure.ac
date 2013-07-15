@@ -10,7 +10,7 @@ AC_CONFIG_HEADERS([Source/config.h])
 AC_PROG_CC
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h float.h limits.h stddef.h stdint.h stdlib.h string.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h float.h limits.h math.h stddef.h stdint.h stdlib.h string.h sys/time.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -33,7 +33,8 @@ AC_CHECK_SIZEOF([void *])
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([floor getcwd gettimeofday memmove memset mkdir modf pow rmdir strncasecmp])
+AC_CHECK_LIB(m, pow)
+AC_CHECK_FUNCS([floor getcwd gettimeofday memmove memset mkdir modf rmdir strncasecmp])
 
 #---
 # Check for the Objective-C runtime

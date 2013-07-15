@@ -37,6 +37,12 @@
 
 
 
+#if (defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__)
+# define GS_PRIVATE __attribute__ ((visibility ("hidden")))
+#else
+# define GS_PRIVATE
+#endif
+
 #define UDATE_TO_ABSOLUTETIME(d) \
   (((d) / 1000.0) - kCFAbsoluteTimeIntervalSince1970)
 #define ABSOLUTETIME_TO_UDATE(at) \
@@ -347,85 +353,6 @@ CF_IS_OBJC (CFTypeID typeID, const void *obj)
           || object_getClass((id)obj) != __CFISAForTypeID (typeID)));
 }
 
-#define CF_OBJC_FUNCDISPATCH0(typeID, rettype, obj, sel) do { \
-  if (CF_IS_OBJC(typeID, obj)) \
-    { \
-      rettype (*imp)(id, SEL); \
-      static SEL s = NULL; \
-      if (!s) \
-        s = sel_registerName(sel); \
-      imp = (rettype (*)(id, SEL)) \
-        class_getMethodImplementation (object_getClass((id)obj), s); \
-      return imp((id)obj, s); \
-    } \
-  } while(0)
-
-#define CF_OBJC_FUNCDISPATCH1(typeID, rettype, obj, sel, a1) do { \
-  if (CF_IS_OBJC(typeID, obj)) \
-    { \
-      rettype (*imp)(id, SEL, ...); \
-      static SEL s = NULL; \
-      if (!s) \
-        s = sel_registerName(sel); \
-      imp = (rettype (*)(id, SEL, ...)) \
-        class_getMethodImplementation (object_getClass((id)obj), s); \
-      return imp((id)obj, s, a1); \
-    } \
-  } while(0)
-
-#define CF_OBJC_FUNCDISPATCH2(typeID, rettype, obj, sel, a1, a2) do { \
-  if (CF_IS_OBJC(typeID, obj)) \
-    { \
-      rettype (*imp)(id, SEL, ...); \
-      static SEL s = NULL; \
-      if (!s) \
-        s = sel_registerName(sel); \
-      imp = (rettype (*)(id, SEL, ...)) \
-        class_getMethodImplementation (object_getClass((id)obj), s); \
-      return (rettype)imp((id)obj, s, a1, a2); \
-    } \
-  } while(0)
-
-#define CF_OBJC_FUNCDISPATCH3(typeID, rettype, obj, sel, a1, a2, a3) do { \
-  if (CF_IS_OBJC(typeID, obj)) \
-    { \
-      rettype (*imp)(id, SEL, ...); \
-      static SEL s = NULL; \
-      if (!s) \
-        s = sel_registerName(sel); \
-      imp = (rettype (*)(id, SEL, ...)) \
-        class_getMethodImplementation (object_getClass((id)obj), s); \
-      return (rettype)imp((id)obj, s, a1, a2, a3); \
-    } \
-  } while(0)
-
-#define CF_OBJC_FUNCDISPATCH4(typeID, rettype, obj, sel, a1, a2, a3, a4) do { \
-  if (CF_IS_OBJC(typeID, obj)) \
-    { \
-      rettype (*imp)(id, SEL, ...); \
-      static SEL s = NULL; \
-      if (!s) \
-        s = sel_registerName(sel); \
-      imp = (rettype (*)(id, SEL, ...)) \
-        class_getMethodImplementation (object_getClass((id)obj), s); \
-      return (rettype)imp((id)obj, s, a1, a2, a3, a4); \
-    } \
-  } while(0)
-
-#define CF_OBJC_FUNCDISPATCH5(typeID, rettype, obj, sel, a1, a2, a3, a4, a5) \
-do { \
-  if (CF_IS_OBJC(typeID, obj)) \
-    { \
-      rettype (*imp)(id, SEL, ...); \
-      static SEL s = NULL; \
-      if (!s) \
-        s = sel_registerName(sel); \
-      imp = (rettype (*)(id, SEL, ...)) \
-        class_getMethodImplementation (object_getClass((id)obj), s); \
-      return (rettype)imp((id)obj, s, a1, a2, a3, a4, a5); \
-    } \
-  } while(0)
-
 #define CF_OBJC_FUNCDISPATCHV(typeID, rettype, obj, sel, ...) \
 do { \
   if (CF_IS_OBJC(typeID, obj)) \
@@ -492,12 +419,10 @@ CF_IS_OBJC (CFTypeID typeID, const void *obj)
   return false;
 }
 
-#define CF_OBJC_FUNCDISPATCH0(typeID, rettype, obj, sel)
-#define CF_OBJC_FUNCDISPATCH1(typeID, rettype, obj, sel, a1)
-#define CF_OBJC_FUNCDISPATCH2(typeID, rettype, obj, sel, a1, a2)
-#define CF_OBJC_FUNCDISPATCH3(typeID, rettype, obj, sel, a1, a2, a3)
-#define CF_OBJC_FUNCDISPATCH4(typeID, rettype, obj, sel, a1, a2, a3, a4)
-#define CF_OBJC_FUNCDISPATCH5(typeID, rettype, obj, sel, a1, a2, a3, a4, a5)
+#define CF_OBJC_FUNCDISPATCHV(typeID, rettype, obj, sel, ...)
+#define CF_OBJC_FUNCDISPATCHV_RETAINED(typeID, rettype, obj, sel, ...)
+#define CF_OBJC_CALLV(rettype, var, obj, sel, ...)
+#define CF_OBJC_VOIDCALLV(obj, sel, ...)
 
 #endif /* HAVE_LIBOBJC */
 

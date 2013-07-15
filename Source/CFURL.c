@@ -1635,14 +1635,14 @@ CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
 CFStringRef
 CFURLGetString (CFURLRef url)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFURLTypeID, CFStringRef, url, "relativeString");
+  CF_OBJC_FUNCDISPATCHV(_kCFURLTypeID, CFStringRef, url, "relativeString");
   return url->_urlString;
 }
 
 CFURLRef
 CFURLGetBaseURL (CFURLRef url)
 {
-  CF_OBJC_FUNCDISPATCH0(_kCFURLTypeID, CFURLRef, url, "baseURL");
+  CF_OBJC_FUNCDISPATCHV(_kCFURLTypeID, CFURLRef, url, "baseURL");
   return url->_baseURL;
 }
 

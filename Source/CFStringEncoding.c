@@ -1131,6 +1131,7 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
            || enc == kCFStringEncodingUTF16LE)
     {
       UniChar *dst;
+      CFIndex copyLength;
       
       dst = (UniChar *)d;
       if (isExtRep && enc == kCFStringEncodingUTF16 && dlen >= 2)
@@ -1140,8 +1141,8 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
           dlen -= 2;
         }
 
-      converted = (dlen <= slen * sizeof(UniChar)) ? dlen : (slen * sizeof(UniChar));
-      memcpy(dst, s, converted);
+      copyLength = (dlen <= slen * sizeof(UniChar)) ? dlen : (slen * sizeof(UniChar));
+      memcpy(dst, s, copyLength);
       if (enc == UTF16_ENCODING_TO_SWAP)
         {
           UniChar *end;
@@ -1153,6 +1154,9 @@ GSStringEncodingFromUnicode (CFStringEncoding enc, UInt8 *d, CFIndex dlen,
               ++dst;
             }
         }
+      if (needed)
+        *needed = slen + (isExtRep ? 2 : 0);
+      converted = copyLength / sizeof(UniChar);
     }
   else if (enc == kCFStringEncodingUTF32
            || enc == kCFStringEncodingUTF32BE
@@ -1292,6 +1296,7 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
            || enc == kCFStringEncodingUTF16LE)
     {
       const UniChar *src;
+      CFIndex copyLength;
       Boolean swap;
       
       src = (const UniChar *)s;
@@ -1327,10 +1332,11 @@ GSStringEncodingToUnicode (CFStringEncoding enc, UniChar *d, CFIndex dlen,
               ++cur;
             }
         }
-      converted = (dlen * sizeof(UniChar) <= slen) ? (dlen * sizeof(UniChar)) : slen;
+      copyLength = (dlen * sizeof(UniChar) <= slen) ? (dlen * sizeof(UniChar)) : slen;
+      memcpy(d, s, copyLength);
       if (needed)
         *needed = slen;
-      memcpy(d, s, converted);
+      converted = copyLength / sizeof(UniChar);
     }
   else if (enc == kCFStringEncodingUTF32
            || enc == kCFStringEncodingUTF32BE
