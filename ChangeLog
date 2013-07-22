@@ -1,3 +1,8 @@
+2013-07-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/GSCArray.h,
+	* Source/GSCArray.c: Add function to sort and search C arrays.
+
 2013-07-14 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* configure.ac: Check for math library.
