@@ -30,14 +30,15 @@
 #include "config.h"
 
 #include "CoreFoundation/CFBase.h"
+#include "GSPrivate.h"
 
 GS_PRIVATE void
 GSCArrayQuickSort (const void **array, CFIndex length,
-                   CFCOmpoaratorFunction comparator, void *context);
+                   CFComparatorFunction comparator, void *context);
 
 GS_PRIVATE void
 GSCArrayInsertionSort (const void **array, CFIndex length,
-                       CFCOmpoaratorFunction comparator, void *context);
+                       CFComparatorFunction comparator, void *context);
 
 GS_PRIVATE void
 GSCArrayHeapify (const void **array, CFIndex length,

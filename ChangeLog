@@ -1,5 +1,9 @@
 2013-07-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFArray.c: Use new sort function.
+
+2013-07-21 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/GSCArray.h,
 	* Source/GSCArray.c: Add function to sort and search C arrays.
 

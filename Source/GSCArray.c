@@ -36,48 +36,51 @@
 
 void
 GSCArrayQuickSort (const void **array, CFIndex length,
-                   CFCOmpoaratorFunction comparator, void *context)
+                   CFComparatorFunction comparator, void *context)
 {
-  if (length > 16) /* 16 is an arbritrary "small" number */
+  if (length > 16)              /* 16 is an arbritrary "small" number */
     {
       const void *value;
       CFIndex pivot;
       CFIndex stored;
       CFIndex idx;
-      
+
       pivot = length / 2;
       value = array[pivot];
-      GS_EXCHANGE_VALUES (array[pivot], *end);
-      for (idx = 0, stored = 0 ; idx < length ; ++idx)
+      GS_EXCHANGE_VALUES (array[pivot], array[length - 1]);
+      for (idx = 0, stored = 0; idx < length; ++idx)
         {
-          if ((*comp)(array[idx], value, context) == kCFCompareLessThan)
+          if ((*comparator) (array[idx], value, context) == kCFCompareLessThan)
             {
-              GS_EXHANGE_VALUES (array[idx], array[stored]);
+              GS_EXCHANGE_VALUES (array[idx], array[stored]);
               ++stored;
             }
         }
-      GS_EXCHANGE_VALUES(*stored, *end);
-      
-      GSSortQuickSort (array, tmp - 1, comparator, context);
-      GSSortQuickSort (array + tmp + 1, length - tmp, comparator, context);
+      GS_EXCHANGE_VALUES (array[stored], array[length - 1]);
+
+      GSCArrayQuickSort (array, stored - 1, comparator, context);
+      GSCArrayQuickSort (array + stored + 1, length - stored, comparator,
+                         context);
     }
-  GSSortInsertionSort (array, length, comparator, context);
+  GSCArrayInsertionSort (array, length, comparator, context);
 }
 
 void
 GSCArrayInsertionSort (const void **array, CFIndex length,
-                       CFCOmpoaratorFunction comparator, void *context)
+                       CFComparatorFunction comparator, void *context)
 {
   CFIndex idx;
-  
-  for (idx = 1 ; idx < length ; ++idx)
+
+  for (idx = 1; idx < length; ++idx)
     {
       int hole;
       const void *value;
-      
+
       hole = idx;
       value = array[hole];
-      while (hole > 0 && value < array[hole - 1])
+      while (hole > 0
+             && (*comparator) (value, array[hole - 1],
+                               context) == kCFCompareLessThan)
         {
           array[hole] = array[hole - 1];
           --hole;
@@ -93,13 +96,13 @@ GSCArrayBSearch (const void **array, const void *key, CFIndex length,
   CFIndex min;
   CFIndex mid;
   CFIndex max;
-  
+
   min = 0;
   max = length;
   while (min < max)
     {
       CFComparisonResult r;
-      
+
       mid = (min + max) / 2;
       r = (*comparator) (key, array[mid], context);
       if (r == kCFCompareLessThan)
@@ -116,7 +119,7 @@ GSCArrayBSearch (const void **array, const void *key, CFIndex length,
           min = mid + 1;
         }
     }
-  
+
   return max + 1;
 }
 
@@ -124,5 +127,5 @@ void
 GSCArrayHeapify (const void **array, CFIndex length,
                  CFComparatorFunction comparator, void *context)
 {
-  
+
 }

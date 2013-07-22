@@ -46,6 +46,7 @@ libgnustep-corebase_C_FILES = \
   CFUUID.c \
   CFXMLNode.c \
   CFXMLParser.c \
+  GSCArray.c \
   GSFunctions.c \
   GSHashTable.c
 
