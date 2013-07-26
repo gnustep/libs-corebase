@@ -112,8 +112,8 @@ GSToUnicode (const UInt8 * src, CFIndex srcLen, CFStringEncoding encoding,
  * @param usedLen If non-NULL, contains the number of characters written to dst.
  */
 GS_PRIVATE CFIndex
-GSUnicodeFromUTF8 (const UInt8 *src, CFIndex srcLen, UniChar lossChar,
-                   UniChar *dst, CFIndex dstLen, CFIndex *usedLen);
+GSUnicodeFromUTF8 (const UInt8 * src, CFIndex srcLen, UniChar lossChar,
+                   UniChar * dst, CFIndex dstLen, CFIndex * usedLen);
 
 /** @internal
  * Convert from Unicode to UTF-8
@@ -131,8 +131,8 @@ GSUnicodeFromUTF8 (const UInt8 *src, CFIndex srcLen, UniChar lossChar,
  * @param usedLen If non-NULL, the number of bytes used in destination buffer.
  */
 GS_PRIVATE CFIndex
-GSUnicodeToUTF8 (const UniChar *src, CFIndex srcLen, UniChar lossChar,
-                 UInt8 *dst, CFIndex dstLen, CFIndex *usedLen);
+GSUnicodeToUTF8 (const UniChar * src, CFIndex srcLen, UniChar lossChar,
+                 UInt8 * dst, CFIndex dstLen, CFIndex * usedLen);
 
 
 
@@ -151,15 +151,15 @@ GSUnicodeToUTF8 (const UniChar *src, CFIndex srcLen, UniChar lossChar,
   ((UTF32Char)_lead << 10) + (UTF32Char)_trail - ((0xD7C0 << 10) + 0xDC00)
 
 #if WORDS_BIGENDIAN
-# define GS_UTF16_ENCODING kCFStringEncodingUTF16BE
-# define GS_UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16LE
-# define GS_UTF16_BOM_HI 0xFE
-# define GS_UTF16_BOM_LO 0xFF
+#define GS_UTF16_ENCODING kCFStringEncodingUTF16BE
+#define GS_UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16LE
+#define GS_UTF16_BOM_HI 0xFE
+#define GS_UTF16_BOM_LO 0xFF
 #else
-# define GS_UTF16_ENCODING kCFStringEncodingUTF16LE
-# define GS_UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16BE
-# define GS_UTF16_BOM_HI 0xFF
-# define GS_UTF16_BOM_LO 0xFE
+#define GS_UTF16_ENCODING kCFStringEncodingUTF16LE
+#define GS_UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16BE
+#define GS_UTF16_BOM_HI 0xFF
+#define GS_UTF16_BOM_LO 0xFE
 #endif
 
 
@@ -170,19 +170,19 @@ GSUnicodeToUTF8 (const UniChar *src, CFIndex srcLen, UniChar lossChar,
 #define GS_UTF32_BOM 0x0000FEFF
 
 #if WORDS_BIGENDIAN
-# define GS_UTF32_ENCODING kCFStringEncodingUTF32BE
-# define GS_UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32LE
-# define GS_UTF32_BOM_0 0x00
-# define GS_UTF32_BOM_1 0x00
-# define GS_UTF32_BOM_2 0xFE
-# define GS_UTF32_BOM_3 0xFF
+#define GS_UTF32_ENCODING kCFStringEncodingUTF32BE
+#define GS_UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32LE
+#define GS_UTF32_BOM_0 0x00
+#define GS_UTF32_BOM_1 0x00
+#define GS_UTF32_BOM_2 0xFE
+#define GS_UTF32_BOM_3 0xFF
 #else
-# define GS_UTF32_ENCODING kCFStringEncodingUTF32LE
-# define GS_UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32BE
-# define GS_UTF32_BOM_0 0xFF
-# define GS_UTF32_BOM_1 0xFE
-# define GS_UTF32_BOM_2 0x00
-# define GS_UTF32_BOM_3 0x00
+#define GS_UTF32_ENCODING kCFStringEncodingUTF32LE
+#define GS_UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32BE
+#define GS_UTF32_BOM_0 0xFF
+#define GS_UTF32_BOM_1 0xFE
+#define GS_UTF32_BOM_2 0x00
+#define GS_UTF32_BOM_3 0x00
 #endif
 
 /** @internal
@@ -198,8 +198,8 @@ GSUnicodeToUTF8 (const UniChar *src, CFIndex srcLen, UniChar lossChar,
  * @param usedLen If non-NULL, contains the number of characters written to dst.
  */
 GS_PRIVATE CFIndex
-GSUnicodeFromUTF32 (const UTF32Char *src, CFIndex srcLen, UniChar lossChar,
-                   UniChar *dst, CFIndex dstLen, CFIndex *usedLen);
+GSUnicodeFromUTF32 (const UTF32Char * src, CFIndex srcLen, UniChar lossChar,
+                    UniChar * dst, CFIndex dstLen, CFIndex * usedLen);
 
 /** @internal
  * Convert from Unicode to UTF-32
@@ -217,8 +217,8 @@ GSUnicodeFromUTF32 (const UTF32Char *src, CFIndex srcLen, UniChar lossChar,
  * @param usedLen If non-NULL, the number of bytes used in destination buffer.
  */
 GS_PRIVATE CFIndex
-GSUnicodeToUTF32 (const UniChar *src, CFIndex srcLen, UniChar lossChar,
-                  UTF32Char *dst, CFIndex dstLen, CFIndex *usedLen);
+GSUnicodeToUTF32 (const UniChar * src, CFIndex srcLen, UniChar lossChar,
+                  UTF32Char * dst, CFIndex dstLen, CFIndex * usedLen);
 
 
 /*
@@ -238,8 +238,8 @@ GSUnicodeToUTF32 (const UniChar *src, CFIndex srcLen, UniChar lossChar,
  */
 GS_PRIVATE CFIndex
 GSUnicodeFromNonLossyASCII (const char *src, CFIndex srcLen,
-                            UniChar lossChar, UniChar *dst, CFIndex dstLen,
-                            CFIndex *usedLen);
+                            UniChar lossChar, UniChar * dst, CFIndex dstLen,
+                            CFIndex * usedLen);
 
 /** @internal
  * Convert from ISO-8859-1 (Latin1) to Unicode
@@ -254,8 +254,8 @@ GSUnicodeFromNonLossyASCII (const char *src, CFIndex srcLen,
  * @param usedLen If non-NULL, contains the number of characters written to dst.
  */
 GS_PRIVATE CFIndex
-GSUnicodeFromLatin1 (const UInt8 *src, CFIndex srcLen, UniChar lossChar,
-                     UniChar *dst, CFIndex dstLen, CFIndex *usedLen);
+GSUnicodeFromLatin1 (const UInt8 * src, CFIndex srcLen, UniChar lossChar,
+                     UniChar * dst, CFIndex dstLen, CFIndex * usedLen);
 
 /** @internal
  * Convert from Unicode to Non-Lossy ASCII
@@ -273,8 +273,8 @@ GSUnicodeFromLatin1 (const UInt8 *src, CFIndex srcLen, UniChar lossChar,
  * @param usedLen If non-NULL, the number of bytes used in destination buffer.
  */
 GS_PRIVATE CFIndex
-GSUnicodeToNonLossyASCII (const UniChar *src, CFIndex srcLen, UniChar lossChar,
-                          char *dst, CFIndex dstLen, CFIndex *usedLen);
+GSUnicodeToNonLossyASCII (const UniChar * src, CFIndex srcLen, UniChar lossChar,
+                          char *dst, CFIndex dstLen, CFIndex * usedLen);
 
 /** @internal
  * Convert from Unicode to ISO-8859-1 (Latin1)
@@ -292,7 +292,7 @@ GSUnicodeToNonLossyASCII (const UniChar *src, CFIndex srcLen, UniChar lossChar,
  * @param usedLen If non-NULL, the number of bytes used in destination buffer.
  */
 GS_PRIVATE CFIndex
-GSUnicodeToLatin1 (const UniChar *src, CFIndex srcLen, UniChar lossChar,
-                   UInt8 *dst, CFIndex dstLen, CFIndex *usedLen);
+GSUnicodeToLatin1 (const UniChar * src, CFIndex srcLen, UniChar lossChar,
+                   UInt8 * dst, CFIndex dstLen, CFIndex * usedLen);
 
 #endif /* __GSUNICODE_H__ */

@@ -30,11 +30,10 @@
 #include "config.h"
 #include "CoreFoundation/CFBase.h"
 
-GS_PRIVATE const void *
-CFTypeRetainCallBack (CFAllocatorRef alloc, const void *value);
+GS_PRIVATE const void *CFTypeRetainCallBack (CFAllocatorRef alloc,
+                                             const void *value);
 
-GS_PRIVATE void
-CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
+GS_PRIVATE void CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
 
 
 
@@ -51,14 +50,14 @@ CF_INLINE void *
 __CFISAForTypeID (CFTypeID typeID)
 {
   return (__CFRuntimeObjCClassTable && typeID < __CFRuntimeClassTableCount ?
-    __CFRuntimeObjCClassTable[typeID] : NULL);
+          __CFRuntimeObjCClassTable[typeID] : NULL);
 }
 
 CF_INLINE Boolean
 CF_IS_OBJC (CFTypeID typeID, const void *obj)
 {
   return (obj && (typeID >= __CFRuntimeClassTableCount
-          || object_getClass((id)obj) != __CFISAForTypeID (typeID)));
+                  || object_getClass ((id) obj) != __CFISAForTypeID (typeID)));
 }
 
 #define CF_OBJC_FUNCDISPATCHV(typeID, rettype, obj, sel, ...) \
@@ -111,7 +110,7 @@ do { \
   imp = (void (*)(id, SEL, ...)) \
     class_getMethodImplementation (object_getClass((id)obj), s); \
   imp((id)obj, s, ##__VA_ARGS__); \
-} while (0) 
+} while (0)
 
 #else
 

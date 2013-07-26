@@ -136,8 +136,8 @@ CFStringIsMutable (CFStringRef str)
 CF_INLINE Boolean
 CFStringIsUnicode (CFStringRef str)
 {
-  return ((CFRuntimeBase *) str)->_flags.
-    info & _kCFStringIsUnicode ? true : false;
+  return ((CFRuntimeBase *) str)->
+    _flags.info & _kCFStringIsUnicode ? true : false;
 }
 
 CF_INLINE Boolean
@@ -570,8 +570,7 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 * bytes,
 
   /* We'll need to convert anything that isn't one of these encodings. */
   if (!(encoding == kCFStringEncodingASCII
-        || encoding == kCFStringEncodingUTF16
-        || encoding == GS_UTF16_ENCODING))
+        || encoding == kCFStringEncodingUTF16 || encoding == GS_UTF16_ENCODING))
     {
       CFStringEncoding origEncoding = encoding;
       extra = CFStringGetExtraBytes (&encoding, bytes, numBytes, isExtRep);
@@ -619,7 +618,7 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 * bytes,
               CFIndex count;
 
               GSToUnicode (bytes, numBytes, encoding, 0, isExtRep,
-                           new->_contents, extra / sizeof(UniChar), &count);
+                           new->_contents, extra / sizeof (UniChar), &count);
 
               new->_count = count / sizeof (UniChar);
               CFStringSetUnicode (new);
@@ -717,8 +716,8 @@ CFStringCreateWithCharacters (CFAllocatorRef alloc, const UniChar * chars,
                               CFIndex numChars)
 {
   return CFStringCreateWithBytes (alloc, (const UInt8 *) chars,
-                                  numChars * sizeof (UniChar), GS_UTF16_ENCODING,
-                                  false);
+                                  numChars * sizeof (UniChar),
+                                  GS_UTF16_ENCODING, false);
 }
 
 CFStringRef
@@ -873,14 +872,14 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
       return 0;
 
       /*
-      CF_OBJC_CALLV (Boolean, b, str,
-                     "getBytes:maxLength:usedLength:encoding:options:range:remainingRange:",
-                     buffer, maxBufLen, usedBufLen,
-                     CFStringConvertEncodingToNSStringEncoding (enc), opts,
-                     range, NULL);
+         CF_OBJC_CALLV (Boolean, b, str,
+         "getBytes:maxLength:usedLength:encoding:options:range:remainingRange:",
+         buffer, maxBufLen, usedBufLen,
+         CFStringConvertEncodingToNSStringEncoding (enc), opts,
+         range, NULL);
 
-      return b ? *usedBufLen : 0;
-      */
+         return b ? *usedBufLen : 0;
+       */
     }
 
   characters = CFStringGetCharactersPtr (str);
@@ -1334,8 +1333,9 @@ CFStringAppendCString (CFMutableStringRef str, const char *cStr,
   numChars = BUFFER_SIZE;
   do
     {
-      numChars = GSToUnicode ((const UInt8 *)cStr, cStrLen, encoding, 0, false, uBuffer,
-                              numChars, &neededChars);
+      numChars =
+        GSToUnicode ((const UInt8 *) cStr, cStrLen, encoding, 0, false, uBuffer,
+                     numChars, &neededChars);
 
       CFStringAppendCharacters (str, uBuffer, numChars);
     }
@@ -1531,9 +1531,9 @@ CFStringTrim (CFMutableStringRef str, CFStringRef trimString)
 }
 
 #if HAVE_UNICODE_UCHAR_H
-# define _isWhiteSpace(c) u_isUWhiteSpace((UChar32)c)
+#define _isWhiteSpace(c) u_isUWhiteSpace((UChar32)c)
 #else
-# define _isWhiteSpace(c) ((c) < 0x20)
+#define _isWhiteSpace(c) ((c) < 0x20)
 #endif
 
 void
