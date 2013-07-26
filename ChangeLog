@@ -1,5 +1,11 @@
 2013-07-25 Stefan Bidigaray <stefanbidi@gmail.com>
 
+	* Source/CFPropertyList.c: Add some property list writing code.
+	* Source/CFRuntime.c,
+	* Source/GSPrivate.h: Remove unneeded GSTypeCreateCopy() function.
+
+2013-07-25 Stefan Bidigaray <stefanbidi@gmail.com>
+
 	* Source/CFArray.c,
 	* Source/CFAttributedString.c,
 	* Source/CFBag.c,

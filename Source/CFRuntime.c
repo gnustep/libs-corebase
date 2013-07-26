@@ -387,20 +387,6 @@ CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value)
   CFRelease (value);
 }
 
-CFTypeRef
-GSTypeCreateCopy (CFAllocatorRef alloc, CFTypeRef cf, CFTypeID typeID)
-{
-  CFRuntimeClass *cls;
-
-  CF_OBJC_FUNCDISPATCHV (typeID, CFTypeRef, cf, "copy");
-
-  cls = __CFRuntimeClassTable[typeID];
-  if (cls->copy)
-    return cls->copy (alloc, cf);
-
-  return CFRetain (cf);
-}
-
 
 
 void
