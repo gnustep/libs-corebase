@@ -29,7 +29,9 @@
 #include "CoreFoundation/CFArray.h"
 #include "CoreFoundation/CFDictionary.h"
 #include "CoreFoundation/CFSet.h"
+
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 
 /* From NSDate.m in GNUstep-base */
 #define DISTANT_FUTURE	63113990400.0

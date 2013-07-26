@@ -28,7 +28,9 @@
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFError.h"
 #include "CoreFoundation/CFDictionary.h"
+
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 
 
 

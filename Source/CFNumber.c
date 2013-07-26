@@ -29,7 +29,9 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFNumber.h"
+
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 
 #include <string.h>
 #include <math.h>

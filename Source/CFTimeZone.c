@@ -35,7 +35,9 @@
 #include "CoreFoundation/CFURL.h"
 #include "CoreFoundation/CFURLAccess.h"
 #include "CoreFoundation/CFRuntime.h"
+
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 #include "tzfile.h"
 
 #include <stdio.h>

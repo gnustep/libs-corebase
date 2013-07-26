@@ -30,7 +30,9 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFLocale.h"
+
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 
 #include <string.h>
 #include <unicode/uloc.h>

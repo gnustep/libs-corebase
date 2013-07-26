@@ -33,7 +33,10 @@
 #include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
+
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
+#include "GSUnicode.h"
 
 /* Need the next few includes so we can initialize the string constants */
 #include "CoreFoundation/CFError.h"
@@ -541,8 +544,7 @@ CFStringGetExtraBytes (CFStringEncoding * encoding, const UInt8 * bytes,
         }
     }
 
-  GSStringEncodingToUnicode (*encoding, NULL, 0, bytes, numBytes, isExtRep,
-                             &needed);
+  GSToUnicode (bytes, numBytes, *encoding, 0, isExtRep, NULL, 0, &needed);
 
   return needed;
 }
@@ -568,7 +570,8 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 * bytes,
 
   /* We'll need to convert anything that isn't one of these encodings. */
   if (!(encoding == kCFStringEncodingASCII
-        || encoding == kCFStringEncodingUTF16 || encoding == UTF16_ENCODING))
+        || encoding == kCFStringEncodingUTF16
+        || encoding == GS_UTF16_ENCODING))
     {
       CFStringEncoding origEncoding = encoding;
       extra = CFStringGetExtraBytes (&encoding, bytes, numBytes, isExtRep);
@@ -605,7 +608,7 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 * bytes,
               new->_count = numBytes;
             }
           else if (encoding == kCFStringEncodingUTF16
-                   || encoding == UTF16_ENCODING)
+                   || encoding == GS_UTF16_ENCODING)
             {
               memcpy (new->_contents, bytes, numBytes);
               new->_count = numBytes / sizeof (UniChar);
@@ -615,9 +618,8 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 * bytes,
             {
               CFIndex count;
 
-              GSStringEncodingToUnicode (encoding, new->_contents,
-                                         extra / sizeof (UniChar), bytes,
-                                         numBytes, isExtRep, &count);
+              GSToUnicode (bytes, numBytes, encoding, 0, isExtRep,
+                           new->_contents, extra / sizeof(UniChar), &count);
 
               new->_count = count / sizeof (UniChar);
               CFStringSetUnicode (new);
@@ -715,7 +717,7 @@ CFStringCreateWithCharacters (CFAllocatorRef alloc, const UniChar * chars,
                               CFIndex numChars)
 {
   return CFStringCreateWithBytes (alloc, (const UInt8 *) chars,
-                                  numChars * sizeof (UniChar), UTF16_ENCODING,
+                                  numChars * sizeof (UniChar), GS_UTF16_ENCODING,
                                   false);
 }
 
@@ -726,7 +728,7 @@ CFStringCreateWithCharactersNoCopy (CFAllocatorRef alloc, const UniChar * chars,
 {
   return CFStringCreateWithBytesNoCopy (alloc, (const UInt8 *) chars,
                                         numChars * sizeof (UniChar),
-                                        UTF16_ENCODING, false,
+                                        GS_UTF16_ENCODING, false,
                                         contentsDeallocator);
 }
 
@@ -784,7 +786,7 @@ CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
 
   if (CFStringIsUnicode (str))
     {
-      enc = UTF16_ENCODING;
+      enc = GS_UTF16_ENCODING;
       len = range.length * sizeof (UniChar);
       contents = ((UniChar *) str->_contents) + range.location;
     }
@@ -853,7 +855,8 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
                   UInt8 lossByte, Boolean isExtRep, UInt8 * buffer,
                   CFIndex maxBufLen, CFIndex * usedBufLen)
 {
-  // FIXME: ranges not being checked!
+  CFIndex converted;
+  const UniChar *characters;
 
   if (CF_IS_OBJC (_kCFStringTypeID, str))
     {
@@ -877,11 +880,8 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
                      range, NULL);
 
       return b ? *usedBufLen : 0;
-	  */
+      */
     }
-
-  CFIndex converted;
-  const UniChar *characters;
 
   characters = CFStringGetCharactersPtr (str);
   if (characters)
@@ -890,9 +890,8 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
 
       characters += range.location;
       src = characters;
-      converted = GSStringEncodingFromUnicode (enc, buffer, maxBufLen, src,
-                                               range.length, lossByte,
-                                               isExtRep, NULL);
+      converted = GSFromUnicode (src, range.length, enc, lossByte, isExtRep,
+                                 buffer, maxBufLen, usedBufLen);
     }
   else
     {
@@ -920,7 +919,7 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
           range.length = GS_MIN (range.length, maxBufLen / sizeof (UniChar));
           converted = range.length;
           CFStringGetCharacters (str, range, dst);
-          if (enc == UTF16_ENCODING_TO_SWAP)
+          if (enc == GS_UTF16_ENCODING_TO_SWAP)
             {
               UniChar *end;
 
@@ -939,7 +938,6 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
            */
           const UInt8 *bytes;
           const UInt8 *end;
-          UniChar *chars;
           UniChar pivot[BUFFER_SIZE];
 
           converted = 0;
@@ -947,19 +945,14 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
           end = bytes + range.length;
           while (bytes < end)
             {
-              chars = pivot;
-
               /* No need to worry about lossByte since ASCII can be converted
                * to any encoding.
                */
-              converted += GSStringEncodingToUnicode (kCFStringEncodingASCII,
-                                                      chars, BUFFER_SIZE, bytes,
-                                                      range.length, false,
-                                                      NULL);
-              converted +=
-                GSStringEncodingFromUnicode (enc, buffer, maxBufLen,
-                                             (const UniChar *) chars, converted,
-                                             0, isExtRep, NULL);
+              converted += GSToUnicode (bytes, range.length,
+                                        kCFStringEncodingASCII, 0, false,
+                                        pivot, BUFFER_SIZE, NULL);
+              converted += GSFromUnicode (pivot, converted, enc, 0, isExtRep,
+                                          buffer, maxBufLen, NULL);
 
               maxBufLen -= converted;
               buffer += converted;
@@ -1341,9 +1334,8 @@ CFStringAppendCString (CFMutableStringRef str, const char *cStr,
   numChars = BUFFER_SIZE;
   do
     {
-      numChars = GSStringEncodingToUnicode (encoding, uBuffer, numChars,
-                                            (UInt8 *) cStr, cStrLen, false,
-                                            &neededChars);
+      numChars = GSToUnicode ((const UInt8 *)cStr, cStrLen, encoding, 0, false, uBuffer,
+                              numChars, &neededChars);
 
       CFStringAppendCharacters (str, uBuffer, numChars);
     }

@@ -28,7 +28,9 @@
 #include "CoreFoundation/CFCalendar.h"
 #include "CoreFoundation/CFTimeZone.h"
 #include "CoreFoundation/CFRuntime.h"
+
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 
 #include <math.h>
 #include <unicode/ucal.h>

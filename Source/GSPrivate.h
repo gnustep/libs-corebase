@@ -214,8 +214,9 @@ struct __CFConstantString
   DLL_EXPORT const CFStringRef var = (CFStringRef) & __ ## var ## __;
 
 #define CHAR_IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
-#define CHAR_IS_HEX(c) (CHAR_IS_DIGIT(c) \
-  || ((c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'))
+#define CHAR_IS_OCTAL(c) ((c) >= '0' && (c) <= '7')
+#define CHAR_IS_HEX(c) ((CHAR_IS_DIGIT(c) \
+  || ((c) >= 'A' && (c) <= 'F') || ((c) >= 'a' && (c) <= 'f')))
 #define CHAR_IS_ASCII(c) ((c) < 128)
 #define CHAR_IS_UPPER_CASE(c) ((c) >= 'A' && (c) <= 'Z')
 #define CHAR_IS_LOWER_CASE(c) ((c) >= 'a' && (c) <= 'z')
@@ -258,64 +259,6 @@ GSStringGetFileSystemEncoding (void)
 #endif
 }
 
-#if WORDS_BIGENDIAN
-#define UTF16_ENCODING kCFStringEncodingUTF16BE
-#define UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16LE
-#define UTF16_BOM_HI 0xFE
-#define UTF16_BOM_LO 0xFF
-
-#define UTF32_ENCODING kCFStringEncodingUTF32BE
-#define UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32LE
-#else
-#define UTF16_ENCODING kCFStringEncodingUTF16LE
-#define UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16BE
-#define UTF16_BOM_HI 0xFF
-#define UTF16_BOM_LO 0xFE
-
-#define UTF32_ENCODING kCFStringEncodingUTF32LE
-#define UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32BE
-#endif
-#define UTF16_BOM 0xFEFF
-
-/* This function converts a Unicode string to a specified encoding.
- * It returns the number of bytes consumed.
- * This function will adjusts the value of src.
- * WARNING: Never tell this function to convert to kCFStringEncodingUTF16
- * because it will add a BOM even if one already exists, regardless of
- * isExternalRepresentation.
- */
-CFIndex
-GSStringEncodingFromUnicode (CFStringEncoding encoding, UInt8 *dst,
-  CFIndex dstLength, const UniChar *src, CFIndex srcLength, UniChar lossByte,
-  Boolean isExternalRepresentation, CFIndex *bytesNeeded);
-
-/* This function converts a Unicode string to a specified encoding.
- * It return the number of characters converted.
- * This function adjusts the value of src.
- * WARNING: Never tell this function to convert from kCFStringEncodingUTF16
- * because it will add a BOM.
- */
-CFIndex
-GSStringEncodingToUnicode (CFStringEncoding encoding, UniChar *dst,
-  CFIndex dstLength, const UInt8 *src, CFIndex srcLength,
-  Boolean isExternalRepresentation, CFIndex *bytesNeeded);
-
-void
-_CFStringAppendFormatAndArgumentsAux (CFMutableStringRef outputString,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args);
-
-CFStringRef
-_CFStringCreateWithFormatAndArgumentsAux (CFAllocatorRef alloc,
-  CFStringRef (*copyDescFunc)(void *, const void *loc),
-  CFDictionaryRef formatOptions, CFStringRef formatString, va_list args);
-
-const void *
-CFTypeRetainCallBack (CFAllocatorRef allocator, const void *value);
-
-void
-CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
-
 const char *
 CFLocaleGetCStringIdentifier (CFLocaleRef locale, char *buf, CFIndex maxlen);
 
@@ -328,103 +271,4 @@ GSRuntimeDeallocateInstance (CFTypeRef cf);
 #define GS_MAX(a,b) (a > b ? a : b)
 #define GS_MIN(a,b) (a < b ? a : b)
 
-
-
-#if HAVE_LIBOBJC || HAVE_LIBOBJC2
-
-#define BOOL OBJC_BOOL
-#include <objc/runtime.h>
-#undef BOOL
-
-extern void **__CFRuntimeObjCClassTable;
-extern UInt32 __CFRuntimeClassTableCount;
-
-CF_INLINE void *
-__CFISAForTypeID (CFTypeID typeID)
-{
-  return (__CFRuntimeObjCClassTable && typeID < __CFRuntimeClassTableCount ?
-    __CFRuntimeObjCClassTable[typeID] : NULL);
-}
-
-CF_INLINE Boolean
-CF_IS_OBJC (CFTypeID typeID, const void *obj)
-{
-  return (obj && (typeID >= __CFRuntimeClassTableCount
-          || object_getClass((id)obj) != __CFISAForTypeID (typeID)));
-}
-
-#define CF_OBJC_FUNCDISPATCHV(typeID, rettype, obj, sel, ...) \
-do { \
-  if (CF_IS_OBJC(typeID, obj)) \
-    { \
-      rettype (*imp)(id, SEL, ...); \
-      static SEL s = NULL; \
-      if (!s) \
-        s = sel_registerName(sel); \
-      imp = (rettype (*)(id, SEL, ...)) \
-        class_getMethodImplementation (object_getClass((id)obj), s); \
-      return (rettype)imp((id)obj, s, ##__VA_ARGS__); \
-    } \
-  } while(0)
-
-#define CF_OBJC_FUNCDISPATCHV_RETAINED(typeID, rettype, obj, sel, ...) \
-do { \
-  if (CF_IS_OBJC(typeID, obj)) \
-    { \
-      rettype (*imp)(id, SEL, ...); \
-      static SEL s = NULL; \
-      if (!s) \
-        s = sel_registerName(sel); \
-      imp = (rettype (*)(id, SEL, ...)) \
-        class_getMethodImplementation (object_getClass((id)obj), s); \
-      rettype val = imp((id)obj, s, ##__VA_ARGS__); \
-      if (val != NULL) CFRetain(val); \
-      return val; \
-    } \
-  } while(0)
-
-#define CF_OBJC_CALLV(rettype, var, obj, sel, ...) \
-do { \
-  rettype (*imp)(id, SEL, ...); \
-  static SEL s = NULL; \
-  if (!s) \
-    s = sel_registerName(sel); \
-  imp = (rettype (*)(id, SEL, ...)) \
-    class_getMethodImplementation (object_getClass((id)obj), s); \
-  var = imp((id)obj, s, ##__VA_ARGS__); \
-} while (0)
-
-#define CF_OBJC_VOIDCALLV(obj, sel, ...) \
-do { \
-  void (*imp)(id, SEL, ...); \
-  static SEL s = NULL; \
-  if (!s) \
-    s = sel_registerName(sel); \
-  imp = (void (*)(id, SEL, ...)) \
-    class_getMethodImplementation (object_getClass((id)obj), s); \
-  imp((id)obj, s, ##__VA_ARGS__); \
-} while (0) 
-
-#else
-
-CF_INLINE void *
-__CFISAForTypeID (CFTypeID typeID)
-{
-  return NULL;
-}
-
-CF_INLINE Boolean
-CF_IS_OBJC (CFTypeID typeID, const void *obj)
-{
-  return false;
-}
-
-#define CF_OBJC_FUNCDISPATCHV(typeID, rettype, obj, sel, ...)
-#define CF_OBJC_FUNCDISPATCHV_RETAINED(typeID, rettype, obj, sel, ...)
-#define CF_OBJC_CALLV(rettype, var, obj, sel, ...)
-#define CF_OBJC_VOIDCALLV(obj, sel, ...)
-
-#endif /* HAVE_LIBOBJC */
-
 #endif /* __GSPRIVATE_H__ */
-

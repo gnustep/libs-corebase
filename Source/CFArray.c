@@ -28,8 +28,9 @@
 #include "CoreFoundation/CFArray.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFString.h"
+
 #include "GSCArray.h"
-#include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 
 #include <string.h>
 

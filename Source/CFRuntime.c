@@ -26,7 +26,9 @@
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
+
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 
 #include <assert.h>
 #include <limits.h>

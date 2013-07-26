@@ -1,3 +1,28 @@
+2013-07-25 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/CFArray.c,
+	* Source/CFAttributedString.c,
+	* Source/CFBag.c,
+	* Source/CFData.c,
+	* Source/CFDate.c,
+	* Source/CFDictionary.c,
+	* Source/CFError.c,
+	* Source/CFRuntime.c,
+	* Source/CFNumber.c,
+	* Source/CFLocale.c,
+	* Source/CFTimeZone.c,
+	* Source/CFSet.c,
+	* Source/CFString.c,
+	* Source/CFRunLoop.c,
+	* Source/CFURL.c: Include new headers.
+	* Source/GSPrivate.h: Move functionality.
+	* Source/GSObjCRuntime.h: Move ObjC runtime functionality to separate
+	header.
+	* Source/GSUnicode.c,
+	* Source/GSUnicode.h: Move Unicode conversion functions to separate
+	header.
+	* Source/CFStringEncoding.c: Use GSUnicode.h.
+
 2013-07-21 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFArray.c: Use new sort function.

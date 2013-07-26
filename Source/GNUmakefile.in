@@ -48,7 +48,8 @@ libgnustep-corebase_C_FILES = \
   CFXMLParser.c \
   GSCArray.c \
   GSFunctions.c \
-  GSHashTable.c
+  GSHashTable.c \
+  GSUnicode.c
 
 libgnustep-corebase_HEADER_FILES = \
   CoreFoundation.h \

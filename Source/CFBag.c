@@ -28,8 +28,9 @@
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFBag.h"
 #include "CoreFoundation/CFString.h"
+
 #include "GSHashTable.h"
-#include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 
 
 

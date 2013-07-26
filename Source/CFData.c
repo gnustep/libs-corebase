@@ -30,7 +30,9 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFData.h"
+
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 
 struct __CFData
 {
