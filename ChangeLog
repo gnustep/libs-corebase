@@ -1,3 +1,8 @@
+2013-08-06 Lubos Dolezel <lubos@dolezel.info>
+
+	* Tests/CFString/hash.m,
+	* Source/CFString.c: Always use UTF-16 in CFStringHash()
+
 2013-07-25 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/CFPropertyList.c: Add some property list writing code.

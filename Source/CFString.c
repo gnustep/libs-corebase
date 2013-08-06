@@ -199,14 +199,39 @@ static CFHashCode
 CFStringHash (CFTypeRef cf)
 {
   CFStringRef str = (CFStringRef) cf;
-  if (str->_hash == 0)
+  UniChar *buf;
+  CFIndex len;
+  Boolean isObjc;
+  CFHashCode hash;
+
+  isObjc = CF_IS_OBJC (_kCFStringTypeID, str);
+
+  if (!isObjc)
     {
-      CFIndex len = CFStringGetLength (str) *
-        (CFStringIsUnicode (str) ? sizeof (UniChar) : sizeof (char));
-      ((struct __CFString *) str)->_hash = GSHashBytes (str->_contents, len);
+      if (str->_hash == 0)
+        {
+          if (CFStringIsUnicode (str))
+            {
+              len = CFStringGetLength (str) * sizeof (UniChar);
+              ((struct __CFString *) str)->_hash = GSHashBytes (str->_contents, len);
+              return str->_hash;
+            }
+        }
+      else
+        return str->_hash;
     }
 
-  return str->_hash;
+  len = CFStringGetLength (str) * sizeof (UniChar);
+
+  buf = CFAllocatorAllocate(kCFAllocatorSystemDefault, len, 0);
+  CFStringGetCharacters (str, CFRangeMake(0, len/2), buf);
+
+  hash = GSHashBytes (buf, len);
+  if (!isObjc)
+    ((struct __CFString *) str)->_hash = hash;
+
+  CFAllocatorDeallocate(kCFAllocatorSystemDefault, buf);
+  return hash;
 }
 
 static CFStringRef
