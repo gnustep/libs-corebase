@@ -1762,8 +1762,6 @@ CFToICUNormalization (CFStringNormalizationForm form)
 void
 CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
 {
-  /* TODO: dispatch to ObjC */
-
 #if !UCONFIG_NO_NORMALIZATION
   /* FIXME: The unorm API has been officially deprecated on ICU 4.8, however,
      the new unorm2 API was only introduced on ICU 4.4.  The current plan is
@@ -1836,8 +1834,6 @@ Boolean
 CFStringTransform (CFMutableStringRef str, CFRange * range,
                    CFStringRef transform, Boolean reverse)
 {
-  /* TODO: dispatch to ObjC */
-
 #if !UCONFIG_NO_TRANSLITERATION
 #define UTRANS_LENGTH 128
   struct __CFMutableString *mStr;
@@ -1872,12 +1868,28 @@ CFStringTransform (CFMutableStringRef str, CFRange * range,
       limit = newLength;
     }
 
-  mStr = (struct __CFMutableString *) str;
+  if (CF_IS_OBJC (_kCFStringTypeID, str))
+    {
+      mStr = (struct __CFMutableString *)
+             CFStringCreateMutableCopy(kCFAllocatorDefault, 0, str);
+    }
+  else
+    {
+      mStr = (struct __CFMutableString *) str;
+    }
+
   utrans_transUChars (utrans, mStr->_contents, (int32_t *) & mStr->_count,
                       mStr->_capacity, start, (int32_t *) & limit, &err);
+  utrans_close (utrans);
+
+  if ( ((CFMutableStringRef) mStr) != str) /* ObjC case */
+    {
+      CF_OBJC_VOIDCALLV (str, "setString:", mStr);
+      CFRelease(mStr);
+    }
+
   if (U_FAILURE (err))
     return false;
-  utrans_close (utrans);
 
   if (range)
     range->length = limit;
