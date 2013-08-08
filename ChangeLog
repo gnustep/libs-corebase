@@ -1,3 +1,9 @@
+2013-08-08 Lubos Dolezel <lubos@dolezel.info>
+
+	* Tests/CFString/hash.m: Make the test work on big endian machines
+	* Tests/CFString/normalize.m,
+	* Source/CFString.c: make CFStringNormalize() work, support TFB
+
 2013-08-06 Lubos Dolezel <lubos@dolezel.info>
 
 	* Tests/CFString/hash.m,

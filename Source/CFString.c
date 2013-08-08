@@ -1777,26 +1777,43 @@ CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
   UErrorCode err = U_ZERO_ERROR;
   UNormalizationMode mode = CFToICUNormalization (theForm);
   struct __CFMutableString *mStr;
+  CFMutableStringRef objc = NULL;
 
   /* Make sure string isn't already normalized.  Use the quick check for
      speed. We still go through the normalization if the quick check does not
      return UNORM_YES. */
   oldContents = (UniChar *) CFStringGetCharactersPtr (str);
   oldContentsLength = CFStringGetLength (str);
-  checkResult = unorm_quickCheck (oldContents, oldContentsLength, mode, &err);
-  if (U_FAILURE (err) || checkResult == UNORM_YES)
-    return;
+  
+  if (oldContents != NULL)
+    {
+      checkResult = unorm_quickCheck (oldContents, oldContentsLength, mode, &err);
+      if (U_FAILURE (err) || checkResult == UNORM_YES)
+        return;
+    }
+  
+  if (CF_IS_OBJC (_kCFStringTypeID, str))
+    {
+      objc = str;
+      str = CFStringCreateMutableCopy(kCFAllocatorDefault, 0, objc);
+    }
+
+  /* unorm_normalize requires that source/dest buffers don't overlap */
+  mStr = (struct __CFMutableString *) str;
+  oldContents = CFAllocatorAllocate(mStr->_allocator,
+    oldContentsLength * sizeof(UniChar), 0);
+  CFStringGetCharacters(str, CFRangeMake (0, oldContentsLength),
+    oldContents);
 
   /* Works just like CFStringCaseMap() above... */
-  mStr = (struct __CFMutableString *) str;
   do
     {
-      newLength = unorm_normalize (mStr->_contents, mStr->_capacity, mode,
-                                   0, oldContents, oldContentsLength, &err);
+      newLength = unorm_normalize (oldContents, oldContentsLength, mode,
+                                   0, mStr->_contents, mStr->_capacity, &err);
     }
   while (err == U_BUFFER_OVERFLOW_ERROR
-         && CFStringCheckCapacityAndGrow (str, newLength,
-                                          (void **) &oldContents));
+         && CFStringCheckCapacityAndGrow (str, newLength, NULL));
+
   if (U_FAILURE (err))
     return;
 
@@ -1804,6 +1821,12 @@ CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
 
   if (oldContents != mStr->_contents)
     CFAllocatorDeallocate (mStr->_allocator, (void *) oldContents);
+  
+  if (objc != NULL)
+    {
+      CF_OBJC_VOIDCALLV (objc, "setString:", str);
+      CFRelease(str);
+    }
 #else
   /* FIXME */
 #endif
