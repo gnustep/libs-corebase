@@ -29,6 +29,8 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFURL.h>
+#include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFError.h>
 
 CF_EXTERN_C_BEGIN
 
@@ -41,6 +43,36 @@ void* CFBundleGetFunctionPointerForName(CFBundleRef bundle,
 
 void* CFBundleGetDataPointerForName(CFBundleRef bundle,
                                     CFStringRef functionName);
+
+CFBundleRef CFBundleGetMainBundle(void);
+CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID);
+
+Boolean CFBundleLoadExecutable(CFBundleRef bundle);
+Boolean CFBundleLoadExecutableAndReturnError(CFBundleRef bundle, CFErrorRef *error);
+Boolean CFBundlePreflightExecutable(CFBundleRef bundle, CFErrorRef *error);
+void CFBundleUnloadExecutable(CFBundleRef bundle);
+
+CFStringRef CFBundleGetIdentifier(CFBundleRef bundle);
+
+CFURLRef CFBundleCopyExecutableURL(CFBundleRef bundle);
+
+CFURLRef CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle);
+
+CFURLRef CFBundleCopyBundleURL(CFBundleRef bundle);
+
+CFURLRef CFBundleCopyResourceURL(CFBundleRef bundle, CFStringRef resourceName,
+                                 CFStringRef resourceType,
+                                 CFStringRef subDirName);
+
+CFURLRef CFBundleCopyResourceURLForLocalization(CFBundleRef bundle,
+   CFStringRef resourceName, CFStringRef resourceType,
+   CFStringRef subDirName, CFStringRef localizationName);
+
+CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle);
+CFDictionaryRef CFBundleGetLocalInfoDictionary(CFBundleRef bundle);
+
+CFTypeRef CFBundleGetValueForInfoDictionaryKey(CFBundleRef bundle,
+                                               CFStringRef key);
 
 CF_EXTERN_C_END
 

@@ -2,6 +2,7 @@
 
 	* Source/CFStringEncoding.c: Fixed a crash in
 	CFStringGetListOfAvailableEncodings()
+	* Source/CFBundle.c: added many (but not all) CFBundle functions
 
 2013-08-08 Lubos Dolezel <lubos@dolezel.info>
 

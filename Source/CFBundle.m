@@ -67,3 +67,124 @@ void* CFBundleGetDataPointerForName(CFBundleRef bundle,
 #endif
 }
 
+Boolean CFBundlePreflightExecutable(CFBundleRef bundle, CFErrorRef *error)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  return [ns preflightAndReturnError: (NSError **)error];
+}
+
+Boolean CFBundleLoadExecutable(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  return [ns load];
+}
+
+Boolean CFBundleLoadExecutableAndReturnError(CFBundleRef bundle, CFErrorRef *error)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  return [ns loadAndReturnError: (NSError**) error];
+}
+
+void CFBundleUnloadExecutable(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  [ns unload];
+}
+
+CFBundleRef CFBundleGetMainBundle(void)
+{
+  return (CFBundleRef) [NSBundle mainBundle];
+}
+
+CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID)
+{
+  return (CFBundleRef) [NSBundle bundleWithIdentifier: (NSString*)bundleID];
+}
+
+CFStringRef CFBundleGetIdentifier(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  return (CFStringRef) [ns bundleIdentifier];
+}
+
+CFURLRef CFBundleCopyBundleURL(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  NSURL *url = [ns bundleURL];
+  [url retain];
+  
+  return (CFURLRef) url;
+}
+
+CFURLRef CFBundleCopyExecutableURL(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  NSURL* url;
+  
+  url = [ns executableURL];
+  [url retain];
+  
+  return (CFURLRef) url;
+}
+
+CFURLRef CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  NSURL* url;
+  
+  url = [ns builtInPlugInsURL];
+  [url retain];
+  
+  return (CFURLRef) url;
+}
+
+CFURLRef CFBundleCopyResourceURL(CFBundleRef bundle, CFStringRef resourceName,
+                                 CFStringRef resourceType,
+                                 CFStringRef subDirName)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  NSURL *url;
+  
+  url = [ns URLForResource: (NSString *) resourceName
+             withExtension: (NSString *) resourceType
+              subdirectory: (NSString *) subDirName];
+
+  [url retain];
+  return (CFURLRef) url;
+}
+
+CFURLRef CFBundleCopyResourceURLForLocalization(CFBundleRef bundle,
+   CFStringRef resourceName, CFStringRef resourceType,
+   CFStringRef subDirName, CFStringRef localizationName)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  NSURL *url;
+  
+  url = [ns URLForResource: (NSString *) resourceName
+             withExtension: (NSString *) resourceType
+              subdirectory: (NSString *) subDirName
+              localization: (NSString *) localizationName];
+
+  [url retain];
+  return (CFURLRef) url;
+}
+
+CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  return (CFDictionaryRef) [ns infoDictionary];
+}
+
+CFDictionaryRef CFBundleGetLocalInfoDictionary(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  return (CFDictionaryRef) [ns localizedInfoDictionary];
+}
+
+CFTypeRef CFBundleGetValueForInfoDictionaryKey(CFBundleRef bundle,
+                                               CFStringRef key)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  return [ns objectForInfoDictionaryKey: (NSString *)key];
+}
+
