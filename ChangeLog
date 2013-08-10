@@ -1,3 +1,8 @@
+2013-08-10 Lubos Dolezel <lubos@dolezel.info>
+
+	* Source/CFStringEncoding.c: Fixed a crash in
+	CFStringGetListOfAvailableEncodings()
+
 2013-08-08 Lubos Dolezel <lubos@dolezel.info>
 
 	* Source/CFString.c: TFB support in CFStringTransform

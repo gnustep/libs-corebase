@@ -543,7 +543,7 @@ CFStringGetListOfAvailableEncodings (void)
       if (_kCFStringEncodingList == NULL)
         {
           int32_t count;
-          int32_t idx;
+          int32_t idx, pos;
           const char *name;
           UErrorCode err = U_ZERO_ERROR;
 
@@ -554,17 +554,20 @@ CFStringGetListOfAvailableEncodings (void)
                                                         (CFStringEncoding) *
                                                         (count + 1), 0);
 
-          idx = 0;
+          idx = pos = 0;
           while (idx < count)
             {
               name = ucnv_getStandardName (ucnv_getAvailableName (idx),
                                            "MIME", &err);
-              if (U_SUCCESS (err))
-                _kCFStringEncodingList[idx] =
-                  CFStringConvertStandardNameToEncoding (name, -1);
+              if (U_SUCCESS (err) && name != NULL)
+              {
+                  _kCFStringEncodingList[pos] =
+                    CFStringConvertStandardNameToEncoding (name, -1);
+                  ++pos;
+              }
               ++idx;
             }
-          _kCFStringEncodingList[idx] = kCFStringEncodingInvalidId;
+          _kCFStringEncodingList[pos] = kCFStringEncodingInvalidId;
         }
       GSMutexUnlock (&_kCFStringEncodingLock);
     }
