@@ -93,6 +93,7 @@ void testPad(void)
 	[str release];
 }
 
+
 void testGetBytes(void)
 {
 	NSString* str = @"Hello world!";
@@ -103,10 +104,12 @@ void testGetBytes(void)
 	CFStringGetBytes((CFStringRef) str, CFRangeMake(1, 9), kCFStringEncodingUnicode,
 			0, false, (UInt8*) buffer, 9, &usedLen);
 
+	testHopeful = true;
 	PASS_CF(memcmp(buffer, uniStr, sizeof(UniChar)*9) == 0, "CFStringGetBytes works in simple case");
 
 	// TODO: lossByte, ext representation...
 	
 	PASS_CF(usedLen == 9, "CFStringGetBytes returns correct usedLen");
+	testHopeful = false;
 }
 

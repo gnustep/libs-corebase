@@ -1,3 +1,8 @@
+2013-08-11 Lubos Dolezel <lubos@dolezel.info>
+
+	* Tests/CFString/objc_bridge_from_cf.m: mark -getBytes* tests as hopeful
+	* Source/CFBundle.c: CFBundle as a proper CF type
+
 2013-08-10 Lubos Dolezel <lubos@dolezel.info>
 
 	* Source/CFStringEncoding.c: Fixed a crash in

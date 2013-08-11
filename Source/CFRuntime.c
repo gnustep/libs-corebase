@@ -434,6 +434,7 @@ GS_PRIVATE void CFBooleanInitialize (void);
 GS_PRIVATE void CFCalendarInitialize (void);
 GS_PRIVATE void CFCharacterSetInitialize (void);
 GS_PRIVATE void CFDataInitialize (void);
+GS_PRIVATE void CFBundleInitialize (void);
 GS_PRIVATE void CFDateInitialize (void);
 GS_PRIVATE void CFDateFormatterInitialize (void);
 GS_PRIVATE void CFDictionaryInitialize (void);
@@ -484,6 +485,7 @@ CFInitialize (void)
   CFCalendarInitialize ();
   CFCharacterSetInitialize ();
   CFDataInitialize ();
+  CFBundleInitialize ();
   CFDateInitialize ();
   CFDateFormatterInitialize ();
   CFDictionaryInitialize ();

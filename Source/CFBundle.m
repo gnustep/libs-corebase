@@ -36,6 +36,39 @@
 #endif
 #endif
 
+static CFTypeID _kCFBundleTypeID = 0;
+
+@implementation NSBundle (CoreBaseAdditions)
+- (CFTypeID) _cfTypeID
+{
+  return CFBundleGetTypeID();
+}
+@end
+
+static const CFRuntimeClass CFBundleClass =
+{
+  0,
+  "CFBundle",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+void CFBundleInitialize (void)
+{
+  _kCFBundleTypeID = _CFRuntimeRegisterClass(&CFBundleClass);
+}
+
+CFTypeID
+CFBundleGetTypeID (void)
+{
+  return _kCFBundleTypeID;
+}
+
 CFBundleRef CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL)
 {
   NSString *path = [(NSURL*)bundleURL path];
