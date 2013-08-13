@@ -36,6 +36,8 @@ CF_EXTERN_C_BEGIN
 
 typedef const struct __CFBundle *CFBundleRef;
 
+CFTypeID CFBundleGetTypeID (void);
+
 CFBundleRef CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL);
 
 void* CFBundleGetFunctionPointerForName(CFBundleRef bundle,
