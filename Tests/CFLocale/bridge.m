@@ -31,5 +31,16 @@ void testCFonNS(void)
 
 void testNSonCF(void)
 {
+  CFLocaleRef cfRef = CFLocaleCopyCurrent();
+  NSLocale* locale = (NSLocale*)cfRef;
+
+  PASS_CF([[(NSLocale*)cfRef localeIdentifier] isEqual:[locale localeIdentifier]] == YES, 
+    "-localeIdentifier works");
+  PASS_CF([[(NSLocale*)cfRef objectForKey:NSLocaleCurrencySymbol] isEqual:[locale objectForKey:NSLocaleCurrencySymbol]] == YES, 
+    "-objectForKey: works");
+  PASS_CF([[(NSLocale*)cfRef displayNameForKey:NSLocaleIdentifier value:@"fr_FR"] isEqual:[locale displayNameForKey:NSLocaleIdentifier value:@"fr_FR"]] == YES, 
+    "-displayNameForKey:value: works"); 
+
+  CFRelease(cfRef);
 }
 

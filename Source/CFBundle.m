@@ -202,6 +202,31 @@ CFURLRef CFBundleCopyResourceURLForLocalization(CFBundleRef bundle,
   return (CFURLRef) url;
 }
 
+
+CFURLRef CFBundleCopyPrivateFrameworksURL(CFBundleRef bundle)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  NSURL *url;
+  
+  url = [ns privateFrameworksURL];
+  [url retain];
+  
+  return (CFURLRef) url;
+}
+
+CFURLRef CFBundleCopyAuxiliaryExecutableURL(CFBundleRef bundle,
+                                            CFStringRef executableName)
+{
+  NSBundle *ns = (NSBundle *) bundle;
+  NSURL *url;
+  
+  url = [ns URLForAuxiliaryExecutable: (NSString *) executableName];
+  [url retain];
+  
+  return (CFURLRef) url;
+}
+
+
 CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef bundle)
 {
   NSBundle *ns = (NSBundle *) bundle;

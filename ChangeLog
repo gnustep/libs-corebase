@@ -1,13 +1,19 @@
 2013-08-11 Lubos Dolezel <lubos@dolezel.info>
+	* Source/CFBundle.m: Added CFBundleCopyPrivateFrameworksURL and
+	CFBundleCopyAuxiliaryExecutableURL
+	* Tests/CFLocale/bridge.m: Added the other half of tests, courtesy of
+	mahimahi42
+
+2013-08-11 Lubos Dolezel <lubos@dolezel.info>
 
 	* Tests/CFString/objc_bridge_from_cf.m: mark -getBytes* tests as hopeful
-	* Source/CFBundle.c: CFBundle as a proper CF type
+	* Source/CFBundle.m: CFBundle as a proper CF type
 
 2013-08-10 Lubos Dolezel <lubos@dolezel.info>
 
 	* Source/CFStringEncoding.c: Fixed a crash in
 	CFStringGetListOfAvailableEncodings()
-	* Source/CFBundle.c: added many (but not all) CFBundle functions
+	* Source/CFBundle.m: added many (but not all) CFBundle functions
 
 2013-08-08 Lubos Dolezel <lubos@dolezel.info>
 

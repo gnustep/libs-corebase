@@ -66,6 +66,11 @@ CFURLRef CFBundleCopyResourceURL(CFBundleRef bundle, CFStringRef resourceName,
                                  CFStringRef resourceType,
                                  CFStringRef subDirName);
 
+CFURLRef CFBundleCopyPrivateFrameworksURL(CFBundleRef bundle);
+
+CFURLRef CFBundleCopyAuxiliaryExecutableURL(CFBundleRef bundle,
+                                            CFStringRef executableName);
+
 CFURLRef CFBundleCopyResourceURLForLocalization(CFBundleRef bundle,
    CFStringRef resourceName, CFStringRef resourceType,
    CFStringRef subDirName, CFStringRef localizationName);
