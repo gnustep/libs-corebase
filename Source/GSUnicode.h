@@ -31,8 +31,55 @@
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFString.h"
 
+CF_EXTERN_C_BEGIN
+
 /*
- * General Unicode Macros and Functions
+ * Printf style functions that output to a UniChar buffer.
+ */
+/** @internal
+ * Creates an output according to a format per the printf family of functions.
+ * @return On success, return the number of characters printed, excluding
+ *         NULL byte.  If buffer is not long enough, returns how many
+ *         characters would be required.
+ *
+ * @param buffer Output buffer.  If NULL, this function returns the number
+ *               of characters needed.
+ * @param size Maximum size of buffer.
+ * @param locale This may be a CFDictionaryRef containing locale information
+ *               or a CFLocaleRef object.  Pass NULL for POSIX locale.
+ * @param format The formatted string with printf-style specifiers.
+ *
+ * @see GSUnicodeFormatWithArguments ()
+ */ 
+GS_PRIVATE CFIndex
+GSUnicodeFormat (UniChar *__restrict__ s, CFIndex n, CFTypeRef locale,
+                 const UniChar *__restrict__ format, CFIndex fmtlen, ...);
+
+/** @internal
+ * Creates an output according to a format per the printf family of functions.
+ * @return On success, return the number of characters printed, excluding
+ *         NULL byte.  If buffer is not long enough, returns how many
+ *         characters would be required.
+ *
+ * @param buffer Output buffer.  If NULL, this function returns the number
+ *               of characters needed.
+ * @param size Maximum size of buffer.
+ * @param locale This may be a CFDictionaryRef containing locale information
+ *               or a CFLocaleRef object.  Pass NULL for POSIX locale.
+ * @param format The formatted string with printf-style directives.
+ * @param arguments The variable argument list of values to be formatted. 
+ *
+ * @see GSUnicodeFormat()
+ */ 
+GS_PRIVATE CFIndex
+GSUnicodeFormatWithArguments (UniChar *__restrict__ s, CFIndex n,
+                              CFTypeRef locale,
+                              const UniChar *__restrict__ format,
+                              CFIndex fmtlen,
+                              va_list ap);
+
+/*
+ * General Unicode Conversion Macros and Functions
  */
 #define GS_UTF_IS_SURROGATE(c) (((c) & 0xFFFFF800) == 0xD800)
 
@@ -85,7 +132,7 @@ GSToUnicode (const UInt8 * src, CFIndex srcLen, CFStringEncoding encoding,
 
 
 /*
- * UTF-8 Macros and Functions
+ * UTF-8 Conversion Macros and Functions
  */
 #define GS_UTF8_MAX_LENGTH 4
 
@@ -137,7 +184,7 @@ GSUnicodeToUTF8 (const UniChar * src, CFIndex srcLen, UniChar lossChar,
 
 
 /*
- * UTF-16 Macros and Functions
+ * UTF-16 Conversion Macros and Functions
  */
 #define GS_UTF16_BOM 0xFEFF
 
@@ -165,7 +212,7 @@ GSUnicodeToUTF8 (const UniChar * src, CFIndex srcLen, UniChar lossChar,
 
 
 /*
- * UTF-32 Macros and Functions
+ * UTF-32 Conversion Macros and Functions
  */
 #define GS_UTF32_BOM 0x0000FEFF
 
@@ -294,5 +341,7 @@ GSUnicodeToNonLossyASCII (const UniChar * src, CFIndex srcLen, UniChar lossChar,
 GS_PRIVATE CFIndex
 GSUnicodeToLatin1 (const UniChar * src, CFIndex srcLen, UniChar lossChar,
                    UInt8 * dst, CFIndex dstLen, CFIndex * usedLen);
+
+CF_EXTERN_C_END
 
 #endif /* __GSUNICODE_H__ */

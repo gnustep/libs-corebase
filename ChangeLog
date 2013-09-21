@@ -1,4 +1,10 @@
 2013-08-11 Lubos Dolezel <lubos@dolezel.info>
+	* Source/GSMemory.h: Introduce wrappers for platform-dependent
+	memory functions.
+	* Source/GSUnicode.c,
+	* Source/GSUnicode.h: Add printf-type functions. Not currently used.
+
+2013-08-11 Lubos Dolezel <lubos@dolezel.info>
 	* Source/CFBundle.m: Added CFBundleCopyPrivateFrameworksURL and
 	CFBundleCopyAuxiliaryExecutableURL
 	* Tests/CFLocale/bridge.m: Added the other half of tests, courtesy of

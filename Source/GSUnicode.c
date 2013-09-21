@@ -24,14 +24,20 @@
    Boston, MA 02110-1301, USA.
 */
 
+#include "config.h"
+
 #include "CoreFoundation/CFByteOrder.h"
+#include "CoreFoundation/CFDictionary.h"
+#include "CoreFoundation/CFLocale.h"
+#include "CoreFoundation/CFRuntime.h"
 
 #include "GSPrivate.h"
 #include "GSUnicode.h"
+#include "GSMemory.h"
 
-#if defined(HAVE_UNICODE_CNV_H)
 #include <unicode/ucnv.h>
-#endif
+
+#define BUFFER_SIZE 512
 
 CFIndex
 GSUnicodeFromUTF8 (const UInt8 * s, CFIndex slen, UniChar lossChar, UniChar * d,
@@ -362,7 +368,7 @@ GSUnicodeFromNonLossyASCII (const char *s, CFIndex slen, UniChar lossChar,
   return s - sstart;
 }
 
-static char base16[] = "0123456789ABCDEF";
+static const char *base16 = "0123456789ABCDEF";
 
 CFIndex
 GSUnicodeToNonLossyASCII (const UniChar * s, CFIndex slen, UniChar lossChar,
@@ -865,4 +871,1330 @@ GSToUnicode (const UInt8 * s, CFIndex slen, CFStringEncoding enc,
 #endif
 
   return converted;
+}
+
+typedef union format_argument
+{
+  int intValue;
+  long int lintValue;
+  long long int llintValue;
+  double dblValue;
+  long double ldblValue;
+  void *ptrValue;
+} format_argument_t;
+
+#define FMT_MOD_INT 0
+enum
+{
+  FMT_UNKNOWN = 0,
+  FMT_SPACE,                    /* ' ' */
+  FMT_HASH,                     /* '#' */
+  FMT_QUOTE,                    /* '\'' */
+  FMT_PLUS,                     /* '+' */
+  FMT_MINUS,                    /* '-' */
+  FMT_ZERO,                     /* '0' */
+  FMT_NUMBER,                   /* '1' ... '9' */
+  FMT_POSITION,                 /* '$' */
+  FMT_WIDTH_AST,                /* '*' */
+  FMT_PRECISION,                /* '.' */
+  FMT_MOD_CHAR,                 /* 'hh' NOTE: Note in fmt_table[] */
+  FMT_MOD_SHORT,                /* 'h' */
+  FMT_MOD_LONG,                 /* 'l' or 'L' */
+  FMT_MOD_LONGLONG,             /* 'll' NOTE: Not in fmt_table[] */
+  FMT_MOD_SIZE,                 /* 'z' */
+  FMT_MOD_PTRDIFF,              /* 't' */
+  FMT_MOD_INTMAX,               /* 'j' */
+  FMT_QUADWORD,                 /* 'q' */
+  FMT_PERCENT,                  /* '%' */
+  FMT_OBJECT,                   /* '@' */
+  FMT_POINTER,                  /* 'p' */
+  FMT_INTEGER,                  /* 'd', 'D' or 'i' */
+  FMT_OCTAL,                    /* 'o' or 'O' */
+  FMT_HEX,                      /* 'x' or 'X' */
+  FMT_UINTEGER,                 /* 'u' */
+  FMT_DOUBLE,                   /* 'e', 'E', 'f', 'F', 'g' or 'G' */
+  FMT_DOUBLEHEX,                /* 'a' or 'A' */
+  FMT_GETCOUNT,                 /* 'n' */
+  FMT_CHARACTER,                /* 'c' or 'C' */
+  FMT_STRING                    /* 's' or 'S' */
+};
+
+static const UInt8 fmt_table[] = {
+  /* 0x20 */
+  FMT_SPACE,     FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_HASH,
+  FMT_POSITION,  FMT_PERCENT,    FMT_UNKNOWN,    FMT_QUOTE,
+  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_WIDTH_AST,  FMT_PLUS,
+  FMT_UNKNOWN,   FMT_MINUS,      FMT_PRECISION,  FMT_UNKNOWN,
+  /* 0x30 */
+  FMT_ZERO,      FMT_NUMBER,     FMT_NUMBER,     FMT_NUMBER,
+  FMT_NUMBER,    FMT_NUMBER,     FMT_NUMBER,     FMT_NUMBER,
+  FMT_NUMBER,    FMT_NUMBER,     FMT_UNKNOWN,    FMT_UNKNOWN,
+  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN,
+  /* 0x40 */
+  FMT_OBJECT,    FMT_DOUBLEHEX,  FMT_UNKNOWN,    FMT_CHARACTER,
+  FMT_INTEGER,   FMT_DOUBLE,     FMT_DOUBLE,     FMT_DOUBLE,
+  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN,
+  FMT_MOD_LONG,  FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_OCTAL,
+  /* 0x50 */
+  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_STRING,
+  FMT_UNKNOWN,   FMT_UINTEGER,   FMT_UNKNOWN,    FMT_UNKNOWN,
+  FMT_HEX,       FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN,
+  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN,
+  /* 0x60 */
+  FMT_UNKNOWN,   FMT_DOUBLEHEX,  FMT_UNKNOWN,    FMT_CHARACTER,
+  FMT_INTEGER,   FMT_DOUBLE,     FMT_DOUBLE,     FMT_DOUBLE,
+  FMT_MOD_SHORT, FMT_INTEGER,    FMT_MOD_INTMAX, FMT_UNKNOWN,
+  FMT_MOD_LONG,  FMT_UNKNOWN,    FMT_GETCOUNT,   FMT_OCTAL,
+  /* 0x70 */
+  FMT_POINTER,   FMT_QUADWORD,   FMT_UNKNOWN,    FMT_STRING,
+  FMT_MOD_PTRDIFF, FMT_UINTEGER, FMT_UNKNOWN,    FMT_UNKNOWN,
+  FMT_HEX,       FMT_UNKNOWN,    FMT_MOD_SIZE,   FMT_UNKNOWN,
+  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN
+};
+
+/* Step 0: At the beginning of the spec */
+#define STEP_0_JUMP(_fmt) do \
+{ \
+  type = (fmt < fmtlimit) ? *fmt++ : 0; \
+  switch ((type >= 0x20 && type <= 0x7A) ? fmt_table[type - 0x20] : 0) \
+    { \
+      case FMT_UNKNOWN:     goto handle_error; \
+      case FMT_SPACE:       goto flag_space_prefix; \
+      case FMT_HASH:        goto flag_alternate; \
+      case FMT_QUOTE:       goto flag_grouping; \
+      case FMT_PLUS:        goto flag_show_sign; \
+      case FMT_MINUS:       goto flag_left_align; \
+      case FMT_ZERO:        goto flag_pad_zeros; \
+      case FMT_NUMBER:      goto width_number; \
+      case FMT_POSITION:    goto get_position; \
+      case FMT_WIDTH_AST:   goto width_asterisk; \
+      case FMT_PRECISION:   goto precision; \
+      case FMT_MOD_SHORT:   goto mod_short; \
+      case FMT_MOD_LONG:    goto mod_long; \
+      case FMT_MOD_SIZE:    goto mod_size_t; \
+      case FMT_MOD_PTRDIFF: goto mod_ptrdiff_t; \
+      case FMT_MOD_INTMAX:  goto mod_intmax_t; \
+      case FMT_PERCENT:     goto fmt_percent; \
+      case FMT_OBJECT:      goto fmt_object; \
+      case FMT_POINTER:     goto fmt_pointer; \
+      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_OCTAL:       goto fmt_octal; \
+      case FMT_HEX:         goto fmt_hex; \
+      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_GETCOUNT:    goto fmt_getcount; \
+      case FMT_DOUBLE:      goto fmt_double; \
+      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
+      case FMT_CHARACTER:   goto fmt_character; \
+      case FMT_STRING:      goto fmt_string; \
+    } \
+} while (0)
+
+/* Step 1: After reading flags and/or width */
+#define STEP_1_JUMP(_fmt) do \
+{ \
+  UniChar _c = *fmt++; \
+  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
+          fmt_table[_c - 0x20] : 0) \
+    { \
+      case FMT_UNKNOWN:     goto handle_error; \
+      case FMT_SPACE:       goto handle_error; \
+      case FMT_HASH:        goto handle_error; \
+      case FMT_QUOTE:       goto handle_error; \
+      case FMT_PLUS:        goto handle_error; \
+      case FMT_MINUS:       goto handle_error; \
+      case FMT_ZERO:        goto handle_error; \
+      case FMT_NUMBER:      goto handle_error; \
+      case FMT_POSITION:    goto get_position; \
+      case FMT_WIDTH_AST:   goto handle_error; \
+      case FMT_PRECISION:   goto precision; \
+      case FMT_MOD_SHORT:   goto mod_short; \
+      case FMT_MOD_LONG:    goto mod_long; \
+      case FMT_MOD_SIZE:    goto mod_size_t; \
+      case FMT_MOD_PTRDIFF: goto mod_ptrdiff_t; \
+      case FMT_MOD_INTMAX:  goto mod_intmax_t; \
+      case FMT_PERCENT:     goto fmt_percent; \
+      case FMT_OBJECT:      goto fmt_object; \
+      case FMT_POINTER:     goto fmt_pointer; \
+      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_OCTAL:       goto fmt_octal; \
+      case FMT_HEX:         goto fmt_hex; \
+      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_GETCOUNT:    goto fmt_getcount; \
+      case FMT_DOUBLE:      goto fmt_double; \
+      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
+      case FMT_CHARACTER:   goto fmt_character; \
+      case FMT_STRING:      goto fmt_string; \
+    } \
+} while (0)
+
+/* Step 2: After processing precision */
+#define STEP_2_JUMP(_fmt) do \
+{ \
+  UniChar _c = *fmt++; \
+  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
+          fmt_table[_c - 0x20] : 0) \
+    { \
+      case FMT_UNKNOWN:     goto handle_error; \
+      case FMT_SPACE:       goto handle_error; \
+      case FMT_HASH:        goto handle_error; \
+      case FMT_QUOTE:       goto handle_error; \
+      case FMT_PLUS:        goto handle_error; \
+      case FMT_MINUS:       goto handle_error; \
+      case FMT_ZERO:        goto handle_error; \
+      case FMT_NUMBER:      goto handle_error; \
+      case FMT_POSITION:    goto handle_error; \
+      case FMT_WIDTH_AST:   goto handle_error; \
+      case FMT_PRECISION:   goto handle_error; \
+      case FMT_MOD_SHORT:   goto mod_short; \
+      case FMT_MOD_LONG:    goto mod_long; \
+      case FMT_MOD_SIZE:    goto mod_size_t; \
+      case FMT_MOD_PTRDIFF: goto mod_ptrdiff_t; \
+      case FMT_MOD_INTMAX:  goto mod_intmax_t; \
+      case FMT_PERCENT:     goto fmt_percent; \
+      case FMT_OBJECT:      goto fmt_object; \
+      case FMT_POINTER:     goto fmt_pointer; \
+      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_OCTAL:       goto fmt_octal; \
+      case FMT_HEX:         goto fmt_hex; \
+      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_GETCOUNT:    goto fmt_getcount; \
+      case FMT_DOUBLE:      goto fmt_double; \
+      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
+      case FMT_CHARACTER:   goto fmt_character; \
+      case FMT_STRING:      goto fmt_string; \
+    } \
+} while (0)
+
+/* Step 3L: After reading length modifier 'l' */
+#define STEP_3L_JUMP(_fmt) do \
+{ \
+  UniChar _c = *fmt++; \
+  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
+          fmt_table[_c - 0x20] : 0) \
+    { \
+      case FMT_UNKNOWN:     goto handle_error; \
+      case FMT_SPACE:       goto handle_error; \
+      case FMT_HASH:        goto handle_error; \
+      case FMT_QUOTE:       goto handle_error; \
+      case FMT_PLUS:        goto handle_error; \
+      case FMT_MINUS:       goto handle_error; \
+      case FMT_ZERO:        goto handle_error; \
+      case FMT_NUMBER:      goto handle_error; \
+      case FMT_POSITION:    goto handle_error; \
+      case FMT_WIDTH_AST:   goto handle_error; \
+      case FMT_PRECISION:   goto handle_error; \
+      case FMT_MOD_SHORT:   goto handle_error; \
+      case FMT_MOD_LONG:    goto mod_longlong; \
+      case FMT_MOD_SIZE:    goto handle_error; \
+      case FMT_MOD_PTRDIFF: goto handle_error; \
+      case FMT_MOD_INTMAX:  goto handle_error; \
+      case FMT_PERCENT:     goto fmt_percent; \
+      case FMT_OBJECT:      goto fmt_object; \
+      case FMT_POINTER:     goto fmt_pointer; \
+      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_OCTAL:       goto fmt_octal; \
+      case FMT_HEX:         goto fmt_hex; \
+      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_GETCOUNT:    goto fmt_getcount; \
+      case FMT_DOUBLE:      goto fmt_double; \
+      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
+      case FMT_CHARACTER:   goto fmt_character; \
+      case FMT_STRING:      goto fmt_string; \
+    } \
+} while (0)
+
+/* Step 3H: After reading length modifier 'h' */
+#define STEP_3H_JUMP(_fmt) do \
+{ \
+  UniChar _c = *fmt++; \
+  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
+          fmt_table[_c - 0x20] : 0) \
+    { \
+      case FMT_UNKNOWN:     goto handle_error; \
+      case FMT_SPACE:       goto handle_error; \
+      case FMT_HASH:        goto handle_error; \
+      case FMT_QUOTE:       goto handle_error; \
+      case FMT_PLUS:        goto handle_error; \
+      case FMT_MINUS:       goto handle_error; \
+      case FMT_ZERO:        goto handle_error; \
+      case FMT_NUMBER:      goto handle_error; \
+      case FMT_POSITION:    goto handle_error; \
+      case FMT_WIDTH_AST:   goto handle_error; \
+      case FMT_PRECISION:   goto handle_error; \
+      case FMT_MOD_SHORT:   goto mod_char; \
+      case FMT_MOD_LONG:    goto handle_error; \
+      case FMT_MOD_SIZE:    goto handle_error; \
+      case FMT_MOD_PTRDIFF: goto handle_error; \
+      case FMT_MOD_INTMAX:  goto handle_error; \
+      case FMT_PERCENT:     goto fmt_percent; \
+      case FMT_OBJECT:      goto fmt_object; \
+      case FMT_POINTER:     goto fmt_pointer; \
+      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_OCTAL:       goto fmt_octal; \
+      case FMT_HEX:         goto fmt_hex; \
+      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_GETCOUNT:    goto fmt_getcount; \
+      case FMT_DOUBLE:      goto fmt_double; \
+      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
+      case FMT_CHARACTER:   goto fmt_character; \
+      case FMT_STRING:      goto fmt_string; \
+    } \
+} while (0)
+
+/* Step 4: Read the conversion specifier */
+#define STEP_4_JUMP(_fmt) do \
+{ \
+  UniChar _c = *fmt++; \
+  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
+          fmt_table[_c - 0x20] : 0) \
+    { \
+      case FMT_UNKNOWN:     goto handle_error; \
+      case FMT_SPACE:       goto handle_error; \
+      case FMT_HASH:        goto handle_error; \
+      case FMT_QUOTE:       goto handle_error; \
+      case FMT_PLUS:        goto handle_error; \
+      case FMT_MINUS:       goto handle_error; \
+      case FMT_ZERO:        goto handle_error; \
+      case FMT_NUMBER:      goto handle_error; \
+      case FMT_POSITION:    goto handle_error; \
+      case FMT_WIDTH_AST:   goto handle_error; \
+      case FMT_PRECISION:   goto handle_error; \
+      case FMT_MOD_SHORT:   goto handle_error; \
+      case FMT_MOD_LONG:    goto handle_error; \
+      case FMT_MOD_SIZE:    goto handle_error; \
+      case FMT_MOD_PTRDIFF: goto handle_error; \
+      case FMT_MOD_INTMAX:  goto handle_error; \
+      case FMT_PERCENT:     goto fmt_percent; \
+      case FMT_OBJECT:      goto fmt_object; \
+      case FMT_POINTER:     goto fmt_pointer; \
+      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_OCTAL:       goto fmt_octal; \
+      case FMT_HEX:         goto fmt_hex; \
+      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_GETCOUNT:    goto fmt_getcount; \
+      case FMT_DOUBLE:      goto fmt_double; \
+      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
+      case FMT_CHARACTER:   goto fmt_character; \
+      case FMT_STRING:      goto fmt_string; \
+    } \
+} while (0)
+
+CF_INLINE CFIndex
+_ustring_length (const UniChar * string, size_t maxlen)
+{
+  size_t len;
+#if HOST_OS_WINDOWS
+  if (maxlen < 0)
+    maxlen = STRSAFE_MAX_CCH * sizeof (UniChar);
+  return SUCCEEDED (StringCbLengthW (string, maxlen, &len)) ? len : 0;
+#elif (SIZEOF_WCHAR_T == SIZEOF_UNICHAR) && HAVE_WCHAR_H
+  if (maxlen < 0)
+    len = wcslen (string);
+  else
+    len = wcsnlen (string, maxlen);
+#else
+  if (maxlen < 0)
+    maxlen = INT_MAX;
+  /* We test 64-bits at a time */
+  for (len = 0; maxlen != 0 && string[len] != '\0'; ++len, --maxlen)
+    {
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+    }
+  return len;
+#endif
+}
+
+CF_INLINE CFIndex
+_cstring_length (const char *string, size_t maxlen)
+{
+  size_t len;
+#if HOST_OS_WINDOWS
+  if (maxlen < 0)
+    maxlen = STRSAFE_MAX_CCH * sizeof (char);
+  return SUCCEEDED (StringCbLengthA (string, maxlen, &len)) ? len : 0;
+#elif HAVE_STRING_H
+  if (maxlen < 0)
+    len = strlen (string);
+  else
+    len = strnlen (string, maxlen);
+  return len;
+#else
+  if (maxlen < 0)
+    maxlen = INT_MAX;
+  /* We test 64-bits at a time */
+  for (len = 0; maxlen != 0 && string[len] != '\0'; ++len, --maxlen)
+    {
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+      if (--maxlen == 0 || string[++len] == '\0')
+        break;
+    }
+  return len;
+#endif
+}
+
+/* format MUST already be pointing to a digit */
+static int
+_read_number (const UniChar ** __restrict__ format)
+{
+  int number;
+
+  number = *(*format)++ - '0';
+  while (**format >= '0' && **format <= '9')
+    number = (number * 10) + (*(*format++) - '0');
+
+  return number;
+}
+
+static const UniChar _lookup_upper[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+};
+
+static const UniChar _lookup_lower[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+  '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+};
+
+CF_INLINE UniChar *
+_uint_to_string (unsigned long long int value, UniChar * bufend,
+                 int base, Boolean uppercase)
+{
+  UniChar *cur = bufend;
+  const UniChar *lookup = uppercase ? _lookup_upper : _lookup_lower;
+  switch (base)
+    {
+    case 8:
+      do
+        *--cur = lookup[value & 7];
+      while ((value >>= 3));
+      break;
+    case 10:
+      do
+        *--cur = lookup[value % base];
+      while ((value /= base));
+      break;
+    case 16:
+      do
+        *--cur = lookup[value & 15];
+      while ((value >>= 4));
+      break;
+    }
+  return cur;
+}
+
+#define _write(_s, _n) do \
+{ \
+  int _left = output_bufend - output_buffer; \
+  int _towrite = (_n); \
+  if (_left > 0) \
+    GSMemoryCopy (output_buffer, (_s), _left < _towrite ? _left : _towrite); \
+  output_buffer += _towrite; \
+} while (0)
+
+#define PAD_SIZE 8
+static const UniChar _pad_space[] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
+static const UniChar _pad_zero[] = { '0', '0', '0', '0', '0', '0', '0', '0' };
+
+#define _pad(_padchar, _count) do \
+{ \
+  if ((_count) > 0) \
+    { \
+      int i; \
+      const UniChar *pad_string; \
+      if ((_padchar) == ' ') \
+        pad_string = _pad_space; \
+      else \
+        pad_string = _pad_zero; \
+      for (i = (_count); i >= PAD_SIZE; i -= PAD_SIZE) \
+        _write ((char *) pad_string, PAD_SIZE); \
+      if (i > 0) \
+        _write ((char *) pad_string, i); \
+    } \
+} while (0)
+
+CF_INLINE format_argument_t *
+GSUnicodeCreateArgumentList (const UniChar * __restrict__ format,
+                             CFIndex fmtlen, va_list ap)
+{
+  int max;
+  int idx;
+  const UniChar *fmt;
+  const UniChar *fmtlimit;
+  format_argument_t *arglist;
+  UInt8 *lengthlist;
+  UInt8 *typelist;
+
+  max = 0;
+  fmt = format;
+  fmtlimit = fmt + fmtlen;
+  /* Find the maximum number of arguments. */
+
+  /* We'll first get to the first occurrence of '%' and make sure it includes
+   * a position field.
+   * POSIX.1-2008 allows the following pattern: '%n$[*m$][.*o$]<type>'
+   * http://pubs.opengroup.org/onlinepubs/9699919799/functions/printf.html
+   */
+  while (fmt < fmtlimit)
+    {
+      int pos;
+      Boolean doingposition;
+
+      doingposition = true;
+      while (fmt < fmtlimit && *fmt != '%')
+        fmt++;
+      if (!(fmt < fmtlimit))
+        break;
+      fmt++;
+      if (*fmt == '%')          /* Search again if we find a '%%' pattern. */
+        continue;
+      /* Must start with 1 - 9 or it is not a position argument */
+      if (!(*fmt >= '1' && *fmt <= '9'))
+        return NULL;
+
+      /* Get the maximum position */
+      while (fmt < fmtlimit)
+        {
+          switch (*fmt)
+            {
+              /* Skip flags */
+            case ' ':
+            case '#':
+            case '\'':
+            case '+':
+            case '-':
+            case '0':
+              fmt++;
+              continue;
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+              if (doingposition == true)
+                {
+                  pos = _read_number (&fmt);
+                  /* If there isn't a '$' at this point, there is an error in
+                   * the specification.  Return NULL and the error will be
+                   * caught when doing the real parsing later.
+                   */
+                  if (*fmt != '$')
+                    return NULL;
+                  if (pos > max)
+                    max = pos;
+                  doingposition = false;        /* Position already done. */
+                }
+              fmt++;
+              continue;
+            case '.':
+              /* Precision is the last possibility for a position argument.
+               * If it is not '*' we can just move on.
+               */
+              if (*++fmt != '*')
+                break;
+            case '*':
+              fmt++;
+              doingposition = true;
+              continue;
+            default:
+              break;
+            }
+          break;
+        }
+    }
+  if (max <= 0)
+    return NULL;
+
+  arglist =
+    (format_argument_t *) CFAllocatorAllocate (kCFAllocatorSystemDefault,
+                                               sizeof (format_argument_t) * max,
+                                               0);
+  lengthlist =
+    (UInt8 *) CFAllocatorAllocate (kCFAllocatorSystemDefault,
+                                   sizeof (UInt8) * max, 0);
+  typelist =
+    (UInt8 *) CFAllocatorAllocate (kCFAllocatorSystemDefault,
+                                   sizeof (UInt8) * max, 0);
+  if (arglist == NULL || lengthlist == NULL || typelist == NULL)
+    {
+      if (arglist != NULL)
+        CFAllocatorDeallocate (kCFAllocatorSystemDefault, arglist);
+      if (lengthlist != NULL)
+        CFAllocatorDeallocate (kCFAllocatorSystemDefault, lengthlist);
+      if (typelist != NULL)
+        CFAllocatorDeallocate (kCFAllocatorSystemDefault, typelist);
+      return NULL;
+    }
+  GSMemoryZero (lengthlist, sizeof (UInt8) * max);
+  GSMemoryZero (typelist, sizeof (UInt8) * max);
+
+  /* Gather all the length and type. */
+  fmt = format;
+  while (1)
+    {
+      int pos;
+
+      while (fmt < fmtlimit && *fmt != '%')
+        fmt++;
+      if (!(fmt < fmtlimit))
+        break;
+      fmt++;
+      if (*fmt == '%')
+        {
+          fmt++;
+          continue;
+        }
+
+      /* Read position parameter
+       * The previous loop already established that the spec is well formed,
+       * so we do not need to check it again.
+       */
+      pos = _read_number (&fmt) - 1;
+      fmt++;                    /* Skip '$' */
+
+      /* Skip over any flags */
+      while (fmt < fmtlimit)
+        {
+          switch (*fmt)
+            {
+            case ' ':
+            case '#':
+            case '\'':
+            case '+':
+            case '-':
+            case '0':
+              fmt++;
+              continue;
+            default:
+              break;
+            }
+          break;
+        }
+
+      /* Width */
+      if (fmt < fmtlimit && *fmt == '*')
+        {
+          int width_pos;
+
+          width_pos = _read_number (&fmt) - 1;
+          if (*fmt == '$')
+            {
+              lengthlist[width_pos] = FMT_MOD_INT;
+              fmt++;
+            }
+        }
+      else
+        {
+          while (fmt < fmtlimit && (*fmt >= '0' && *fmt <= '9'))
+            fmt++;
+        }
+      /* Precision */
+      if (fmt < fmtlimit && *fmt == '.')
+        {
+          fmt++;
+          if (fmt < fmtlimit && *fmt++ == '*')
+            {
+              int prec_pos;
+
+              prec_pos = -1;
+              if (*fmt >= '1' && *fmt <= '9')
+                {
+                  prec_pos = _read_number (&fmt) - 1;
+                  if (*fmt == '$')
+                    {
+                      lengthlist[prec_pos] = FMT_MOD_INT;
+                      fmt++;
+                    }
+                }
+            }
+          else
+            {
+              while (fmt < fmtlimit && (*fmt >= '0' && *fmt <= '9'))
+                fmt++;
+            }
+        }
+      if (!(fmt < fmtlimit))    /* Double check */
+        goto args_handle_error;
+
+      /* Length */
+      switch (*fmt++)
+        {
+        case 'L':
+          lengthlist[pos] = FMT_MOD_LONG;
+          break;
+        case 'h':
+          if (*fmt == 'h')
+            {
+              fmt++;
+              lengthlist[pos] = FMT_MOD_CHAR;
+            }
+          else
+            {
+              lengthlist[pos] = FMT_MOD_SHORT;
+            }
+          break;
+        case 'j':
+          lengthlist[pos] = FMT_MOD_INTMAX;
+          break;
+        case 'l':
+          if (*fmt == 'l')
+            {
+              ++fmt;
+              lengthlist[pos] = FMT_MOD_LONGLONG;
+            }
+          else
+            {
+              lengthlist[pos] = FMT_MOD_LONG;
+            }
+          break;
+        case 't':
+          lengthlist[pos] = FMT_MOD_PTRDIFF;
+          break;
+        case 'z':
+          lengthlist[pos] = FMT_MOD_SIZE;
+          break;
+        default:
+          fmt--;
+          break;
+        }
+
+      /* Get the type */
+      if (fmt < fmtlimit)
+        {
+          switch (*fmt++)
+            {
+            case 'C':
+            case 'c':
+            case 'd':
+            case 'i':
+            case 'o':
+            case 'u':
+            case 'X':
+            case 'x':
+              typelist[pos] = FMT_INTEGER;
+              break;
+            case 'A':
+            case 'a':
+            case 'E':
+            case 'e':
+            case 'F':
+            case 'f':
+            case 'G':
+            case 'g':
+              typelist[pos] = FMT_DOUBLE;
+              break;
+            case '@':
+            case 'n':
+            case 'p':
+            case 'S':
+            case 's':
+              typelist[pos] = FMT_POINTER;
+              break;
+            default:
+              goto args_handle_error;
+            }
+        }
+    }
+
+  /* Collect the arguments */
+  for (idx = 0; idx < max; ++idx)
+    {
+      switch (typelist[idx])
+        {
+        case FMT_POINTER:
+          arglist[idx].ptrValue = va_arg (ap, void *);
+          break;
+        case FMT_INTEGER:
+          if (lengthlist[idx] == FMT_MOD_LONGLONG)
+            arglist[idx].intValue = va_arg (ap, long long);
+          else if (lengthlist[idx] == FMT_MOD_LONG)
+            arglist[idx].lintValue = va_arg (ap, long);
+          else
+            arglist[idx].intValue = va_arg (ap, int);
+          break;
+        case FMT_DOUBLE:
+#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
+          if (lengthlist[idx] == FMT_MOD_LONG)
+            arglist[idx].ldblValue = va_arg (ap, long double);
+          else
+#endif
+            arglist[idx].dblValue = va_arg (ap, double);
+          break;
+        default:
+          goto args_handle_error;
+        }
+    }
+
+  CFAllocatorDeallocate (kCFAllocatorSystemDefault, typelist);
+  CFAllocatorDeallocate (kCFAllocatorSystemDefault, lengthlist);
+
+  return arglist;
+
+args_handle_error:
+  CFAllocatorDeallocate (kCFAllocatorSystemDefault, arglist);
+  CFAllocatorDeallocate (kCFAllocatorSystemDefault, typelist);
+  CFAllocatorDeallocate (kCFAllocatorSystemDefault, lengthlist);
+
+  return NULL;
+}
+
+CFIndex
+GSUnicodeFormat (UniChar * __restrict__ s, CFIndex n, CFTypeRef locale,
+                 const UniChar * __restrict__ format, CFIndex fmtlen, ...)
+{
+  CFIndex result;
+  va_list ap;
+
+  va_start (ap, fmtlen);
+  result = GSUnicodeFormatWithArguments (s, n, locale, format, fmtlen, ap);
+  va_end (ap);
+
+  return result;
+}
+
+static const UniChar nil_string[] = { '(', 'n', 'i', 'l', ')' };
+
+static const CFIndex nil_string_len = 5;
+
+/* String Formatting function.
+ * I used GLIBC's implementation of vfprintf() as a model.  This seemed like
+ * the most sensible thing to do at the time.  The implementation is fairly
+ * efficient in that it doesn't call a lot functions.  I still tried to
+ * simplify it it even further but not separating between the slow
+ * positional parameters path and regular path.
+ * 
+ * POSIX.1-2008 (http://pubs.opengroup.org/onlinepubs/9699919799/) allows
+ * two possible styles of format strings:
+ *   format-string  = non-positional / positional
+ * 
+ *   non-positional = "%" [flags] [width] [precision] [length] specifier
+ *   positional     = "%" DIGIT "$" [flags] [pos-width] [pos-precision] [length] specifier
+ * 
+ *   flags          = *("'" / "-" / "+" / SP / "#" / "0")
+ * 
+ *   width          = *DIGIT / "*"
+ *   pos-width      = *DIGIT / ("*" 1*DIGIT)
+ * 
+ *   precision      = "." (*DIGIT / "*")
+ *   pos-precision  = "." *DIGIT / ("*" 1*DIGIT)
+ * 
+ *   length         = "hh" / "h" / "l" / "ll" / "j" / "z" / "t" / "L"
+ * 
+ *   specifier      = int-spec / float-spec / special-spec
+ *   int-specifier  = "d" / "i" / "o" / "u" / "x" / "X"
+ *   float-spec     = "f" / "F" / "e" / "E" / "g" / "G" / "a" / "A"
+ *   special-spec   = "p" / "c" / "C" / "s" / "S" / "n" / "%"
+ * 
+ * -- Stefan
+ */
+
+CFIndex
+GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
+                              CFTypeRef locale,
+                              const UniChar * __restrict__ format,
+                              CFIndex fmtlen, va_list ap)
+{
+  UniChar *output_buffer;
+  UniChar *output_bufend;
+  const UniChar *fmt;
+  const UniChar *fmtlimit;
+  format_argument_t *arglist;
+
+  if (fmtlen == 0)
+    return 0;
+  if (s == NULL)
+    n = 0;
+
+  output_buffer = s;
+  output_bufend = s + n;
+  fmt = format;
+  fmtlimit = fmt + fmtlen;
+  arglist = GSUnicodeCreateArgumentList (fmt, fmtlen, ap);
+  while (fmt < fmtlimit)
+    {
+      const UniChar *prev;
+      UniChar buffer[BUFFER_SIZE];
+      UniChar *bufend = buffer + BUFFER_SIZE;
+      UniChar *string;
+      CFIndex string_len;
+      Boolean free_string = false;
+      int base;
+      unsigned long long number;
+      long double dbl_number;
+      int position;
+      Boolean is_negative;
+      Boolean space_prefix = false;
+      Boolean alternate = false;
+      Boolean grouping = false;
+      Boolean left_align = false;
+      Boolean show_sign = false;
+      Boolean pad_zeros = false;
+      int width = 0;            /* 0 for not specified */
+      int prec = -1;            /* -1 for not specified */
+      int length = FMT_MOD_INT; /* Standard Length */
+      UniChar type = 0;
+
+      prev = fmt;
+      while (fmt < fmtlimit && *fmt != '%')
+        fmt++;
+      _write (prev, fmt - prev);
+      if (!(fmt < fmtlimit))
+        break;
+      fmt++;
+      STEP_0_JUMP (fmt);
+
+      /* Process the flags */
+    flag_space_prefix:
+      space_prefix = true;
+      STEP_0_JUMP (fmt);
+    flag_alternate:
+      alternate = true;
+      STEP_0_JUMP (fmt);
+    flag_grouping:
+      grouping = true;
+      STEP_0_JUMP (fmt);
+    flag_show_sign:
+      show_sign = true;
+      STEP_0_JUMP (fmt);
+    flag_left_align:
+      left_align = true;
+      STEP_0_JUMP (fmt);
+    flag_pad_zeros:
+      pad_zeros = true;
+      STEP_0_JUMP (fmt);
+
+      /* Process width or position (if '$' exists at the end) */
+    width_number:
+      fmt--;                    /* STEP_)_JUMP would have moved fmt forward */
+      width = _read_number (&fmt);
+      if (width < 0)
+        goto handle_error;
+      STEP_1_JUMP (fmt);
+    get_position:
+      if (arglist == NULL)
+        goto handle_error;
+      position = width - 1;
+      width = 0;
+      STEP_0_JUMP (fmt);        /* This is a position field, so do step 0 again. */
+    width_asterisk:
+      fmt++;
+      if (fmt < fmtlimit && (*fmt >= '1' && *fmt <= '9'))
+        {
+          int width_pos = _read_number (&fmt);
+          if (fmt < fmtlimit && (*fmt == '$' && arglist != NULL))
+            width = arglist[width_pos].intValue;
+          else
+            goto handle_error;
+        }
+      else
+        {
+          width = va_arg (ap, int);
+        }
+      STEP_1_JUMP (fmt);
+
+      /* Process precision */
+    precision:
+      fmt++;
+      if (fmt < fmtlimit)
+        {
+          if (*fmt == '*')
+            {
+              fmt++;
+              if (fmt < fmtlimit && (*fmt >= '1' && *fmt <= '9'))
+                {
+                  int prec_pos = _read_number (&fmt);
+                  if (fmt < fmtlimit && (*fmt == '$' && arglist != NULL))
+                    prec = arglist[prec_pos].intValue;
+                  else
+                    goto handle_error;
+                }
+              else
+                {
+                  prec = va_arg (ap, int);
+                }
+            }
+          else if (*fmt >= '0' && *fmt <= '9')
+            {
+              prec = _read_number (&fmt);
+            }
+          else
+            {
+              /* Treat %.? as %.0? */
+              prec = 0;
+            }
+          STEP_2_JUMP (fmt);
+        }
+      else
+        {
+          goto handle_error;
+        }
+
+      /* Process length modifiers */
+    mod_char:
+      length = FMT_MOD_CHAR;
+      STEP_4_JUMP (fmt);
+    mod_short:
+      length = FMT_MOD_SHORT;
+      STEP_3H_JUMP (fmt);
+    mod_long:
+      length = FMT_MOD_LONG;
+      STEP_3L_JUMP (fmt);
+    mod_longlong:
+      length = FMT_MOD_LONGLONG;
+      STEP_4_JUMP (fmt);
+    mod_size_t:
+      length = FMT_MOD_SIZE;
+      STEP_4_JUMP (fmt);
+    mod_ptrdiff_t:
+      length = FMT_MOD_PTRDIFF;
+      STEP_4_JUMP (fmt);
+    mod_intmax_t:
+      length = FMT_MOD_INTMAX;
+      STEP_4_JUMP (fmt);
+
+      /* Process specification */
+    fmt_percent:
+      buffer[0] = '%';
+      string = buffer;
+      string_len = 1;
+      goto print_string;
+
+    fmt_object:
+      {
+        CFTypeRef o;
+        o = arglist == NULL ? va_arg (ap, CFTypeRef) :
+          arglist[position].ptrValue;
+        if (o == NULL)
+          {
+            string = (UniChar *) nil_string;
+            string_len = nil_string_len;
+            goto print_string;
+          }
+        else
+          {
+            const CFRuntimeClass *cls;
+            CFStringRef desc;
+            Boolean free_string = false;
+
+            cls = _CFRuntimeGetClassWithTypeID (CFGetTypeID (o));
+            if (cls->copyFormattingDesc)
+              desc = cls->copyFormattingDesc (o, locale);
+            else
+              desc = CFCopyDescription (o);
+            string = (UniChar *) CFStringGetCharactersPtr (desc);
+            string_len = CFStringGetLength (desc);
+            if (string == NULL)
+              {
+                if (string_len <= BUFFER_SIZE)
+                  {
+                    string = buffer;
+                    CFStringGetCharacters (desc, CFRangeMake (0, string_len),
+                                           string);
+                  }
+                else
+                  {
+                    string = CFAllocatorAllocate (kCFAllocatorSystemDefault,
+                                                  string_len * sizeof (UniChar),
+                                                  0);
+                    if (string == NULL)
+                      {
+                        CFRelease (desc);
+                        goto handle_error;
+                      }
+                    free_string = true;
+                    CFStringGetCharacters (desc, CFRangeMake (0, string_len),
+                                           string);
+                  }
+              }
+            if (left_align == false)
+              _pad (' ', width);
+            _write (string, string_len);
+            if (left_align == true)
+              _pad (' ', width);
+            if (free_string)
+              CFAllocatorDeallocate (kCFAllocatorSystemDefault, string);
+            CFRelease (desc);
+          }
+      }
+      continue;
+
+    fmt_pointer:
+      {
+        const void *ptr;
+        ptr = arglist == NULL ? va_arg (ap, void *) :
+          arglist[position].ptrValue;
+        if (ptr == NULL)
+          {
+            string = (UniChar *) nil_string;
+            string_len = nil_string_len;
+            goto print_string;
+          }
+        else
+          {
+            base = 16;
+            alternate = true;
+            is_negative = false;
+            show_sign = false;
+            space_prefix = false;
+            type = 'x';
+            number = (unsigned long long) ptr;
+            goto fmt_signed_number;
+          }
+      }
+
+    fmt_integer:
+      {
+        signed long long int signed_number;
+
+        if (arglist == NULL)
+          {
+            if (length == FMT_MOD_INT)
+              signed_number = va_arg (ap, int);
+            else if (length == FMT_MOD_LONG)
+              signed_number = va_arg (ap, long int);
+            else if (length == FMT_MOD_LONGLONG)
+              signed_number = va_arg (ap, long long int);
+            else if (length == FMT_MOD_SHORT)
+              signed_number = (short int) va_arg (ap, int);
+            else                /* Must be FMT_MOD_CHAR */
+              signed_number = (char) va_arg (ap, int);
+          }
+        else
+          {
+            if (length == FMT_MOD_INT)
+              signed_number = arglist[position].intValue;
+            else if (length == FMT_MOD_LONG)
+              signed_number = arglist[position].lintValue;
+            else if (length == FMT_MOD_LONGLONG)
+              signed_number = arglist[position].llintValue;
+            else if (length == FMT_MOD_SHORT)
+              signed_number = (short int) arglist[position].intValue;
+            else                /* Must be FMT_MOD_CHAR */
+              signed_number = (char) arglist[position].intValue;
+          }
+        is_negative = (signed_number < 0);
+        number = is_negative ? (-signed_number) : signed_number;
+        base = 10;
+      }
+      goto fmt_signed_number;
+
+    fmt_octal:
+      base = 8;
+      goto fmt_unsigned_number;
+
+    fmt_hex:
+      base = 16;
+      goto fmt_unsigned_number;
+
+    fmt_uinteger:
+      base = 10;
+
+    fmt_unsigned_number:
+      if (arglist == NULL)
+        {
+          if (length == FMT_MOD_INT)
+            number = va_arg (ap, unsigned int);
+          else if (length == FMT_MOD_LONG)
+            number = va_arg (ap, unsigned long int);
+          else if (length == FMT_MOD_LONGLONG)
+            number = va_arg (ap, unsigned long long int);
+          else if (length == FMT_MOD_SHORT)
+            number = (unsigned short int) va_arg (ap, unsigned int);
+          else                  /* Must be FMT_MOD_CHAR */
+            number = (unsigned char) va_arg (ap, unsigned int);
+        }
+      else
+        {
+          if (length == FMT_MOD_INT)
+            number = arglist[position].intValue;
+          else if (length == FMT_MOD_LONG)
+            number = arglist[position].lintValue;
+          else if (length == FMT_MOD_LONGLONG)
+            number = arglist[position].llintValue;
+          else if (length == FMT_MOD_SHORT)
+            number = (unsigned short int) arglist[position].intValue;
+          else                  /* Must be FMT_MOD_CHAR */
+            number = (unsigned char) arglist[position].intValue;
+        }
+
+      is_negative = false;
+      show_sign = false;
+      space_prefix = false;
+      if (prec == 0 && number == 0)
+        {
+          /* If number and precision are zero we print nothing, unless
+           * we are formatting an octal value with the alternate flag.
+           */
+          string = bufend;
+          if (base == 8 && alternate)
+            *--string = '0';
+        }
+      else
+        {
+        fmt_signed_number:
+          if (base == 10 && locale != NULL)
+            {
+              /* This is a slower than using _uint_to_string () because
+               * we have to go through the trouble of opening a formatter.
+               * That's why we only do it if a locale is specified.
+               */
+              string = NULL;
+            }
+          else
+            {
+              /* This is the "fast" integer formatting path. */
+              string = _uint_to_string (number, bufend, base, type == 'X');
+
+              string_len = bufend - string;
+
+              if (base == 8 && alternate)
+                *--string = '0';
+
+              if (is_negative)
+                *--string = '-';
+              else if (show_sign)
+                *--string = '+';
+              else if (space_prefix)
+                *--string = ' ';
+            }
+        }
+      string_len = bufend - string;
+      goto print_string;
+
+    fmt_getcount:
+      {
+        int written = output_buffer - s;
+        if (arglist == NULL)
+          {
+            if (length == FMT_MOD_INT)
+              *(int *) va_arg (ap, void *) = written;
+            else if (length == FMT_MOD_LONG)
+              *(long int *) va_arg (ap, void *) = written;
+            else if (length == FMT_MOD_LONGLONG)
+              *(long long int *) va_arg (ap, void *) = written;
+            else if (length == FMT_MOD_SHORT)
+              *(short int *) va_arg (ap, void *) = written;
+            else                  /* Must be FMT_MOD_CHAR */
+              *(char *) va_arg (ap, void *) = written;
+          }
+        else
+          {
+            if (length == FMT_MOD_INT)
+              *(int *) arglist[position].ptrValue = written;
+            else if (length == FMT_MOD_LONG)
+              *(long int *) arglist[position].ptrValue = written;
+            else if (length == FMT_MOD_LONGLONG)
+              *(long long int *) arglist[position].ptrValue = written;
+            else if (length == FMT_MOD_SHORT)
+              *(short int *) arglist[position].ptrValue = written;
+            else                  /* Must be FMT_MOD_CHAR */
+              *(char *) arglist[position].ptrValue = written;
+          }
+      }
+      continue;
+
+    fmt_double:
+#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
+      if (length == FMT_MOD_LONG)
+        {
+          if (arglist == NULL)
+            dbl_number = va_arg (ap, long double);
+          else
+            dbl_number = arglist[position].ldblValue;
+          else
+        }
+#endif
+      {
+        if (arglist == NULL)
+          dbl_number = va_arg (ap, double);
+        else
+          dbl_number = arglist[position].dblValue;
+      }
+
+    fmt_doublehex:
+
+    fmt_character:
+      if (length == FMT_MOD_LONG || type == 'C')
+        {
+          if (arglist == NULL)
+            buffer[0] = (UniChar) va_arg (ap, int);
+          else
+            buffer[0] = (UniChar) arglist[position].intValue;
+          string = buffer;
+        }
+      else
+        {
+          if (arglist == NULL)
+            buffer[0] = (char) va_arg (ap, int);
+          else
+            buffer[0] = (char) arglist[position].intValue;
+          string = buffer;
+        }
+      string_len = 1;
+      goto print_string;
+
+    fmt_string:
+      string = arglist == NULL ? va_arg (ap, UniChar *) :
+        arglist[position].ptrValue;
+      if (length == FMT_MOD_LONG || type == 'S')
+        {
+          string_len = _ustring_length (string, prec);
+        }
+      else
+        {
+          const char *cstring = (const char *) string;
+          string_len = _cstring_length (cstring, prec);
+          if (string_len <= BUFFER_SIZE)
+            {
+              string = buffer;
+            }
+          else
+            {
+              string = CFAllocatorAllocate (kCFAllocatorSystemDefault,
+                                            string_len * sizeof (UniChar), 0);
+              free_string = true;
+            }
+          GSToUnicode ((const UInt8 *) cstring, string_len,
+                       CFStringGetSystemEncoding (), 0, false, string,
+                       string_len, &string_len);
+        }
+
+    print_string:
+      width -= string_len;
+      if (left_align == false)
+        _pad (' ', width);
+      _write (string, string_len);
+      if (left_align == true)
+        _pad (' ', width);
+      if (free_string == true)
+        CFAllocatorDeallocate (kCFAllocatorSystemDefault, string);
+    }
+
+  if (arglist != NULL)
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, arglist);
+
+  return output_buffer - s;
+
+handle_error:
+  if (arglist != NULL)
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, arglist);
+
+  return -1;
 }
