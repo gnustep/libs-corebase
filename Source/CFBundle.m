@@ -171,6 +171,17 @@ CFURLRef CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle)
   return (CFURLRef) url;
 }
 
+CFURLRef CFBundleCopyResourcesDirectoryURL(CFBundleRef bundle)
+{
+	NSBundle *ns = (NSBundle *) bundle;
+	NSURL* url;
+
+	url = [ns resourceURL];
+	[url retain];
+
+	return (CFURLRef) url;
+}
+
 CFURLRef CFBundleCopyResourceURL(CFBundleRef bundle, CFStringRef resourceName,
                                  CFStringRef resourceType,
                                  CFStringRef subDirName)

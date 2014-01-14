@@ -62,6 +62,8 @@ CFURLRef CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle);
 
 CFURLRef CFBundleCopyBundleURL(CFBundleRef bundle);
 
+CFURLRef CFBundleCopyResourcesDirectoryURL(CFBundleRef bundle);
+
 CFURLRef CFBundleCopyResourceURL(CFBundleRef bundle, CFStringRef resourceName,
                                  CFStringRef resourceType,
                                  CFStringRef subDirName);

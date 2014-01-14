@@ -1,3 +1,6 @@
+2014-01-14 Lubos Dolezel <lubos@dolezel.info>
+	* Source/NSBundle.m: Add CFBundleCopyResourcesDirectoryURL
+
 2013-08-11 Lubos Dolezel <lubos@dolezel.info>
 	* Source/GSMemory.h: Introduce wrappers for platform-dependent
 	memory functions.
