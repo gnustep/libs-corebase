@@ -1,3 +1,6 @@
+2014-02-02 Lubos Dolezel <lubos@dolezel.info>
+	* Source/CFStream.c: Initial CFWriteStream implementation
+
 2014-01-14 Lubos Dolezel <lubos@dolezel.info>
 	* Source/NSBundle.m: Add CFBundleCopyResourcesDirectoryURL
 

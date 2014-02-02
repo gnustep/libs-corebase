@@ -35,8 +35,8 @@
 
 CF_EXTERN_C_BEGIN
 
-typedef struct CFWriteStream *CFWriteStreamRef;
-typedef struct CFReadStream *CFReadStreamRef;
+typedef struct __CFWriteStream *CFWriteStreamRef;
+typedef struct __CFReadStream *CFReadStreamRef;
 
 
 
