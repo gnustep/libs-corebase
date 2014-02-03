@@ -98,6 +98,8 @@ libgnustep-corebase_OBJC_FILES = \
   NSCFLocale.m \
   NSCFDictionary.m \
   NSCFTimeZone.m \
+  NSCFInputStream.m \
+  NSCFOutputStream.m \
   NSCFType.m
 
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += @LIBS@

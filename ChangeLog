@@ -2,6 +2,8 @@
 	* Source/CFStream.c: Initial CFReadStream implementation, generalization
 	* Tests/CFStream/write.m: Tests for CFWriteStream
 	* Tests/CFStream/read.m: Test for CFReadStream
+	* Source/NSCFInputStream.m,
+	* Source/NSCFOutputStream.m: TFB for CFRead/WriteStream
 	* Source/CFError.c: Prevent crash on NULL user dictionary
 
 2014-02-02 Lubos Dolezel <lubos@dolezel.info>

@@ -30,6 +30,7 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFStream.h"
 #include "GSPrivate.h"
+#include "GSObjCRuntime.h"
 #include "CoreFoundation/CFData.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFNumber.h"
@@ -335,6 +336,9 @@ CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
 Boolean
 CFWriteStreamCanAcceptBytes (CFWriteStreamRef stream)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFWriteStreamTypeID, Boolean, stream,
+                        "hasSpaceAvailable");
+
   if (stream->impl.acceptBytes != NULL)
     return stream->impl.acceptBytes(stream);
   return true;
@@ -800,6 +804,9 @@ CFIndex
 CFWriteStreamWrite (CFWriteStreamRef stream, const UInt8 *buffer,
                     CFIndex bufferLength)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFWriteStreamTypeID, CFIndex, stream,
+                        "write:maxLength:", buffer, bufferLength);
+
   if (!stream->open)
     return -1;
 
@@ -950,6 +957,21 @@ const UInt8 *
 CFReadStreamGetBuffer (CFReadStreamRef stream, CFIndex maxBytesToRead,
                        CFIndex *numBytesRead)
 {
+  if (CF_IS_OBJC(_kCFReadStreamTypeID, stream))
+    {
+      const UInt8* buffer;
+      Boolean rv;
+      
+      *numBytesRead = maxBytesToRead;
+
+      CF_OBJC_CALLV(Boolean, rv, stream, "getBuffer:length:",
+                    &buffer, numBytesRead);
+      if (!rv)
+        buffer = NULL;
+
+      return buffer;
+    }
+
   if (stream->impl.getBuffer == NULL)
     return NULL;
   return stream->impl.getBuffer(stream, maxBytesToRead, numBytesRead);
@@ -986,6 +1008,9 @@ CFReadStreamBufferHasBytesAvailable (CFReadStreamRef s)
 Boolean
 CFReadStreamHasBytesAvailable (CFReadStreamRef stream)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFReadStreamTypeID, Boolean, stream,
+                        "hasBytesAvailable");
+
   if (stream->impl.hasBytes != NULL)
     return stream->impl.hasBytes(stream);
   return true;
@@ -1073,6 +1098,10 @@ CFReadStreamBufferRead (CFReadStreamRef s, UInt8 *buffer, CFIndex bufferLength)
 CFIndex
 CFReadStreamRead (CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength)
 {
+  CF_OBJC_FUNCDISPATCHV (_kCFReadStreamTypeID, CFIndex, stream,
+                         "read:maxLength:",
+                         buffer, bufferLength);
+
   if (!stream->open)
     {
       CFReadStreamSetError(stream, EBADF);
