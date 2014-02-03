@@ -34,16 +34,14 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFNumber.h"
 #include "CoreFoundation/CFError.h"
+#include "CoreFoundation/CFStreamPriv.h"
 
 #ifndef _WIN32
 #	include <sys/types.h>
 #	include <sys/stat.h>
-#	include <sys/socket.h>
-#	include <arpa/inet.h>
 #	include <fcntl.h>
 #	include <unistd.h>
 #	include <errno.h>
-#	include <netdb.h>
 #endif
 #include <stdlib.h>
 
@@ -59,50 +57,153 @@ CONST_STRING_DECL(kCFStreamPropertyAppendToFile,
 CONST_STRING_DECL(kCFStreamPropertyFileCurrentOffset,
   "kCFStreamPropertyFileCurrentOffset");
 
+/* This belongs into CFNetwork, but we don't have that yet */
+// const CFStringRef kCFStreamPropertyShouldCloseNativeSocket;
+// CONST_STRING_DECL(kCFStreamPropertyShouldCloseNativeSocket, 
+//   "kCFStreamPropertyShouldCloseNativeSocket");
+
 static CFTypeID _kCFWriteStreamTypeID = 0;
 static CFTypeID _kCFReadStreamTypeID = 0;
 
-enum _CFWriteStreamType
-{
-    _kCFWriteStreamDescriptor, /* file or socket */
-    _kCFWriteStreamExpandableBuffer, /* CFAllocatorRef allocated buffer */
-    _kCFWriteStreamFixedBuffer /* Fixed buffer with a given length */
-};
+static void
+CFWriteStreamFDFinalize(CFWriteStreamRef s);
+static void
+CFWriteStreamFDClose(CFWriteStreamRef s);
+static void
+CFWriteStreamBufferClose(CFWriteStreamRef s);
+static CFTypeRef
+CFWriteStreamFDCopyProperty (CFWriteStreamRef s, CFStringRef propertyName);
+static CFTypeRef
+CFWriteStreamBufferCopyProperty (CFWriteStreamRef s, CFStringRef propertyName);
+static Boolean
+CFWriteStreamFDSetProperty (CFWriteStreamRef s, CFStringRef propertyName,
+                          CFTypeRef propertyValue);
+static Boolean
+CFWriteStreamBufferSetProperty (CFWriteStreamRef s, CFStringRef propertyName,
+                          CFTypeRef propertyValue);
+static CFIndex
+CFWriteStreamFDWrite (CFWriteStreamRef s, const UInt8 *buffer,
+                    CFIndex bufferLength);
+static CFIndex
+CFWriteStreamBufferWrite (CFWriteStreamRef s, const UInt8 *buffer,
+                    CFIndex bufferLength);
+static Boolean
+CFWriteStreamFDOpen (CFWriteStreamRef s);
+static Boolean
+CFWriteStreamBufferOpen (CFWriteStreamRef s);
 
-struct __CFWriteStream
+
+
+struct CFWriteStreamFD
 {
-    CFRuntimeBase               parent;
-    enum _CFWriteStreamType     type;
+    struct __CFWriteStream parent;
+    int                    fd; // FIXME: support Windows?
+    Boolean                append;
+    CFURLRef               url;
 
     /* reference to related read stream for socket streams */
-    CFReadStreamRef             readStream;
-
-    Boolean open, closed;
-    CFErrorRef error;
-
-    /* callbacks when used with a runloop */
-    CFOptionFlags               streamEvents;
-    CFWriteStreamClientCallBack clientCB;
-    
-    union
-    {
-        struct
-        {
-            int fd; // FIXME: support Windows?
-            Boolean append, isSocket, failed;
-            CFURLRef url;
-        };
-        struct
-        {
-            CFAllocatorRef bufferAllocator;
-            UInt8          *buffer;
-            CFIndex        bufferCapacity;
-            CFIndex        position;
-        };
-    };    
+    CFReadStreamRef        readStream;
 };
 
-#define CFWRITESTREAM_SIZE (sizeof(struct __CFWriteStream) - sizeof(CFRuntimeBase))
+static const struct CFWriteStreamImpl CFWriteStreamFDImpl = {
+    CFWriteStreamFDClose,
+    CFWriteStreamFDFinalize,
+    CFWriteStreamFDOpen,
+    CFWriteStreamFDWrite,
+    CFWriteStreamFDCopyProperty,
+    CFWriteStreamFDSetProperty,
+    NULL
+};
+
+static const struct CFWriteStreamImpl CFWriteStreamBufferImpl = {
+    CFWriteStreamBufferClose,
+    NULL,
+    CFWriteStreamBufferOpen,
+    CFWriteStreamBufferWrite,
+    CFWriteStreamBufferCopyProperty,
+    CFWriteStreamBufferSetProperty,
+    NULL
+};
+
+struct CFWriteStreamBuffer
+{
+    struct __CFWriteStream parent;
+    CFAllocatorRef         bufferAllocator;
+    UInt8                  *buffer;
+    CFIndex                bufferCapacity;
+    CFIndex                position;
+};
+
+static void
+CFReadStreamFDClose (CFReadStreamRef s);
+static void
+CFReadStreamBufferClose (CFReadStreamRef s);
+static const UInt8 *
+CFReadStreamBufferGetBuffer (CFReadStreamRef s, CFIndex maxBytesToRead,
+                       CFIndex *numBytesRead);
+static Boolean
+CFReadStreamBufferHasBytesAvailable (CFReadStreamRef s);
+static Boolean
+CFReadStreamFDOpen (CFReadStreamRef s);
+static Boolean
+CFReadStreamBufferOpen (CFReadStreamRef s);
+static CFIndex
+CFReadStreamFDRead (CFReadStreamRef s, UInt8 *buffer, CFIndex bufferLength);
+static CFIndex
+CFReadStreamBufferRead (CFReadStreamRef s, UInt8 *buffer, CFIndex bufferLength);
+static Boolean
+CFReadStreamFDSetProperty (CFReadStreamRef s, CFStringRef propertyName,
+                         CFTypeRef propertyValue);
+static Boolean
+CFReadStreamBufferSetProperty (CFReadStreamRef s, CFStringRef propertyName,
+                         CFTypeRef propertyValue);
+static CFTypeRef
+CFReadStreamFDCopyProperty (CFReadStreamRef s, CFStringRef propertyName);
+static void
+CFReadStreamFDFinalize(CFReadStreamRef s);
+
+static const struct CFReadStreamImpl CFReadStreamFDImpl = {
+    CFReadStreamFDClose,
+    CFReadStreamFDFinalize,
+    CFReadStreamFDOpen,
+    CFReadStreamFDRead,
+    CFReadStreamFDCopyProperty,
+    CFReadStreamFDSetProperty,
+    NULL,
+    NULL
+};
+
+static const struct CFReadStreamImpl CFReadStreamBufferImpl = {
+    CFReadStreamBufferClose,
+    NULL,
+    CFReadStreamBufferOpen,
+    CFReadStreamBufferRead,
+    NULL,
+    CFReadStreamBufferSetProperty,
+    CFReadStreamBufferGetBuffer,
+    CFReadStreamBufferHasBytesAvailable
+};
+
+struct CFReadStreamFD
+{
+    struct __CFReadStream parent;
+    int      fd;
+    CFURLRef url;
+};
+
+struct CFReadStreamBuffer
+{
+    struct __CFReadStream parent;
+    CFAllocatorRef        bufferAllocator;
+    const UInt8           *buffer;
+    CFIndex               bufferCapacity;
+    CFIndex               position;
+};
+
+#define CFWRITESTREAMFD_SIZE (sizeof(struct CFWriteStreamFD) - sizeof(CFRuntimeBase))
+#define CFWRITESTREAMBUFFER_SIZE (sizeof(struct CFWriteStreamBuffer) - sizeof(CFRuntimeBase))
+#define CFREADSTREAMFD_SIZE (sizeof(struct CFReadStreamFD) - sizeof(CFRuntimeBase))
+#define CFREADSTREAMBUFFER_SIZE (sizeof(struct CFReadStreamBuffer) - sizeof(CFRuntimeBase))
 
 static void
 CFWriteStreamFinalize (CFTypeRef cf)
@@ -114,12 +215,28 @@ CFWriteStreamFinalize (CFTypeRef cf)
   if (s->error)
     CFRelease(s->error);
 
-  if (s->type == _kCFWriteStreamDescriptor && s->url != NULL)
-    CFRelease(s->url);
+  if (s->impl.finalize != NULL)
+    s->impl.finalize(s);
 }
 
 static void
+CFWriteStreamFDFinalize(CFWriteStreamRef stream)
+{
+  struct CFWriteStreamFD* s = (struct CFWriteStreamFD*) stream;
+  if (s->url != NULL)
+    CFRelease(s->url);
+}
+
+void
 CFWriteStreamSetError(CFWriteStreamRef stream, int error)
+{
+  if (stream->error)
+    CFRelease(stream->error);
+  stream->error = CFErrorCreate(NULL, kCFErrorDomainPOSIX, error, NULL);
+}
+
+void
+CFReadStreamSetError(CFReadStreamRef stream, int error)
 {
   if (stream->error)
     CFRelease(stream->error);
@@ -139,10 +256,47 @@ static CFRuntimeClass CFWriteStreamClass =
   NULL
 };
 
+static void
+CFReadStreamFDFinalize(CFReadStreamRef s)
+{
+  struct CFReadStreamFD* ss = (struct CFReadStreamFD*) s;
+
+  if (ss->url != NULL)
+    CFRelease(ss->url);
+}
+
+static void
+CFReadStreamFinalize (CFTypeRef cf)
+{
+  CFReadStreamRef s = (CFReadStreamRef)cf;
+  
+  CFReadStreamClose(s);
+
+  if (s->error)
+    CFRelease(s->error);
+  
+  if (s->impl.finalize)
+    s->impl.finalize(s);
+}
+
+static CFRuntimeClass CFReadStreamClass =
+{
+  0,
+  "CFReadStream",
+  NULL,
+  NULL,
+  CFReadStreamFinalize,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
 void
 CFStreamInitialize (void)
 {
   _kCFWriteStreamTypeID = _CFRuntimeRegisterClass (&CFWriteStreamClass);
+  _kCFReadStreamTypeID = _CFRuntimeRegisterClass (&CFReadStreamClass);
 }
 
 CFTypeID
@@ -154,7 +308,7 @@ CFWriteStreamGetTypeID (void)
 CFTypeID
 CFReadStreamGetTypeID (void)
 {
-  return 0;
+  return _kCFReadStreamTypeID;
 }
 
 void
@@ -177,23 +331,6 @@ CFStreamCreatePairWithPeerSocketSignature (CFAllocatorRef alloc,
 */
 
 void
-CFStreamCreatePairWithSocket (CFAllocatorRef alloc, CFSocketNativeHandle sock,
-                              CFReadStreamRef *readStream,
-                              CFWriteStreamRef *writeStream)
-{
-  
-  *writeStream = (CFWriteStreamRef)
-        _CFRuntimeCreateInstance (alloc, _kCFWriteStreamTypeID,
-                                  CFWRITESTREAM_SIZE, 0);
-
-  (*writeStream)->type = _kCFWriteStreamDescriptor;
-  (*writeStream)->isSocket = true;
-  (*writeStream)->fd = dup(sock);
-
-  // TODO: read stream
-}
-
-void
 CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
                                     UInt32 port, CFReadStreamRef *readStream,
                                     CFWriteStreamRef *writeStream)
@@ -206,37 +343,44 @@ CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
 Boolean
 CFWriteStreamCanAcceptBytes (CFWriteStreamRef stream)
 {
+  if (stream->impl.acceptBytes != NULL)
+    return stream->impl.acceptBytes(stream);
   return true;
+}
+
+static void
+CFWriteStreamFDClose(CFWriteStreamRef s)
+{
+  struct CFWriteStreamFD* stream = (struct CFWriteStreamFD*) s;
+  if (stream->fd != -1)
+    {
+      close(stream->fd);
+      stream->fd = -1;
+    }
+}
+
+static void
+CFWriteStreamBufferClose(CFWriteStreamRef s)
+{
+  struct CFWriteStreamBuffer* stream =
+    (struct CFWriteStreamBuffer*) s;
+
+  if (stream->buffer != NULL && stream->bufferAllocator != NULL)
+    {
+      CFAllocatorDeallocate(stream->bufferAllocator, stream->buffer);
+    }
+
+  stream->buffer = NULL;
 }
 
 void
 CFWriteStreamClose (CFWriteStreamRef stream)
 {
-
   if (stream->closed)
     return;
-  
-  switch (stream->type)
-    {
-      case _kCFWriteStreamDescriptor:
-        if (stream->fd != -1)
-          {
-            close(stream->fd);
-            stream->fd = -1;
-          }
-        break;
-      case _kCFWriteStreamExpandableBuffer:
-        if (stream->buffer != NULL)
-          {
-            CFAllocatorDeallocate(stream->bufferAllocator, stream->buffer);
-            stream->buffer = NULL;
-          }
-      break;
-      case _kCFWriteStreamFixedBuffer:
-        /* Deallocated by whoever allocated the buffer for us */
-        stream->buffer = NULL;
-        break;
-  };
+
+  if (stream->impl.close != NULL)
+    stream->impl.close(stream);
 
   stream->closed = true;
   stream->open = false;
@@ -248,101 +392,67 @@ CFWriteStreamCopyError (CFWriteStreamRef stream)
   return (CFErrorRef) CFRetain(stream->error);
 }
 
-CFTypeRef
-CFWriteStreamCopyProperty (CFWriteStreamRef stream, CFStringRef propertyName)
+static CFTypeRef
+CFWriteStreamBufferCopyProperty (CFWriteStreamRef s, CFStringRef propertyName)
 {
-  if (stream->type != _kCFWriteStreamDescriptor
-      && CFEqual(propertyName, kCFStreamPropertyDataWritten))
+  struct CFWriteStreamBuffer* stream = (struct CFWriteStreamBuffer*) s;
+
+  if (!s->open)
+    {
+      CFWriteStreamSetError(s, EBADF);
+      return NULL;
+    }
+
+  if (CFEqual(propertyName, kCFStreamPropertyDataWritten))
     {
       return CFDataCreate(NULL, stream->buffer, stream->position);
     }
-
-  if (stream->type != _kCFWriteStreamDescriptor)
+  else if (CFEqual(propertyName, kCFStreamPropertyFileCurrentOffset))
     {
-      CFWriteStreamSetError(stream, EINVAL);
-      return NULL;
+      return CFNumberCreate(NULL, kCFNumberCFIndexType, &stream->position);
     }
+
+  // unknown property
+  CFWriteStreamSetError(s, EINVAL);
+  return NULL;
+}
+
+static CFTypeRef
+CFWriteStreamFDCopyProperty (CFWriteStreamRef s, CFStringRef propertyName)
+{
+  struct CFWriteStreamFD* stream = (struct CFWriteStreamFD*) s;
 
   if (CFEqual(propertyName, kCFStreamPropertyFileCurrentOffset))
     {
       long long offset = 0;
 
-      if (!stream->open)
+      if (!s->open)
         {
-          CFWriteStreamSetError(stream, EBADF);
+          CFWriteStreamSetError(s, EBADF);
           return NULL;
         }
           
-      if (!stream->isSocket)
-        offset = lseek(stream->fd, 0, SEEK_CUR);
+      offset = lseek(stream->fd, 0, SEEK_CUR);
 
       if (offset == (off_t)-1)
         {
-          CFWriteStreamSetError(stream, errno);
+          CFWriteStreamSetError(s, errno);
           return NULL;
         }
 
       return CFNumberCreate(NULL, kCFNumberLongLongType, &offset);
     }
 
-  if (stream->isSocket)
-    {
-      if (CFEqual(propertyName, kCFStreamPropertySocketNativeHandle))
-        {
-          return CFDataCreate(NULL, (UInt8*) &stream->fd, sizeof(stream->fd));
-        }
-      else if (CFEqual(propertyName, kCFStreamPropertySocketRemoteHostName)
-            || CFEqual(propertyName, kCFStreamPropertySocketRemotePortNumber))
-       {
-         char hbuf[NI_MAXHOST];
-         struct sockaddr* sa = NULL;
-         socklen_t len = 0;
+  // unknown property
+  CFWriteStreamSetError(s, EINVAL);
+  return NULL;
+}
 
-         getpeername(stream->fd, sa, &len);
-         
-         if (errno != ENOBUFS)
-           {
-             CFWriteStreamSetError(stream, errno);
-             return NULL;
-           }
-
-         sa = (struct sockaddr*) malloc(len);
-
-         if (getpeername(stream->fd, sa, &len) == -1)
-           {
-             free(sa);
-
-             CFWriteStreamSetError(stream, errno);
-             return NULL;
-           }
-
-         if (CFEqual(propertyName, kCFStreamPropertySocketRemoteHostName))
-           {
-             if (getnameinfo(sa, len, hbuf, sizeof(hbuf), NULL, 0, 0) == -1)
-               {
-                 free(sa);
-
-                 CFWriteStreamSetError(stream, errno);
-                 return NULL;
-               }
-
-             free(sa);
-             return CFStringCreateWithCString(NULL, hbuf, kCFStringEncodingISOLatin1);
-           }
-         else
-           {
-             int port = 0;
-
-             if (sa->sa_family == AF_INET)
-               port = ntohs( ((struct sockaddr_in*) sa)->sin_port );
-             else if (sa->sa_family == AF_INET6)
-               port = ntohs( ((struct sockaddr_in6*) sa)->sin6_port );
-
-             free(sa);
-             return CFNumberCreate(NULL, kCFNumberIntType, &port);
-           }
-       }
-    }
+CFTypeRef
+CFWriteStreamCopyProperty (CFWriteStreamRef stream, CFStringRef propertyName)
+{
+  if (stream->impl.copyProperty != NULL)
+    return stream->impl.copyProperty(stream, propertyName);
 
   // unknown property
   CFWriteStreamSetError(stream, EINVAL);
@@ -356,9 +466,10 @@ CFWriteStreamCreateWithAllocatedBuffers (CFAllocatorRef alloc,
   CFWriteStreamRef new;
 
   new = (CFWriteStreamRef)_CFRuntimeCreateInstance (alloc, _kCFWriteStreamTypeID,
-                                                   CFWRITESTREAM_SIZE, 0);
-  new->type = _kCFWriteStreamExpandableBuffer;
-  new->bufferAllocator = bufferAllocator;
+                                                   CFWRITESTREAMBUFFER_SIZE, 0);
+  memcpy(&new->impl, &CFWriteStreamBufferImpl, sizeof(CFWriteStreamBufferImpl));
+
+  ((struct CFWriteStreamBuffer *)new)->bufferAllocator = bufferAllocator;
 
   return new;
 }
@@ -368,15 +479,18 @@ CFWriteStreamCreateWithBuffer (CFAllocatorRef alloc, UInt8 *buffer,
                                CFIndex bufferCapacity)
 {
   CFWriteStreamRef new;
+  struct CFWriteStreamBuffer *sbuf;
 
   if (buffer == NULL && bufferCapacity > 0)
     return NULL;
 
   new = (CFWriteStreamRef)_CFRuntimeCreateInstance (alloc, _kCFWriteStreamTypeID,
-                                                   CFWRITESTREAM_SIZE, 0);
-  new->type = _kCFWriteStreamFixedBuffer;
-  new->buffer = buffer;
-  new->bufferCapacity = bufferCapacity;
+                                                   CFWRITESTREAMBUFFER_SIZE, 0);
+  sbuf = ((struct CFWriteStreamBuffer *)new);
+  memcpy(&new->impl, &CFWriteStreamBufferImpl, sizeof(CFWriteStreamBufferImpl));
+  sbuf->buffer = buffer;
+  sbuf->bufferCapacity = bufferCapacity;
+  sbuf->bufferAllocator = kCFAllocatorNull;
 
   return new;
 }
@@ -387,6 +501,7 @@ CFWriteStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
   CFWriteStreamRef new;
   CFStringRef scheme;
   CFStringRef schemeFile = CFSTR("file");
+  struct CFWriteStreamFD *sfd;
 
   if (fileURL == NULL)
     return NULL;
@@ -400,17 +515,21 @@ CFWriteStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
   CFRelease(scheme);
 
   new = (CFWriteStreamRef)_CFRuntimeCreateInstance (alloc, _kCFWriteStreamTypeID,
-                                                   CFWRITESTREAM_SIZE, 0);
-  new->type = _kCFWriteStreamDescriptor;
-  new->url = (CFURLRef) CFRetain(fileURL);
+                                                   CFWRITESTREAMFD_SIZE, 0);
+
+  sfd = ((struct CFWriteStreamFD *)new);
+  memcpy(&new->impl, &CFWriteStreamFDImpl, sizeof(CFWriteStreamFDImpl));
+  sfd->url = (CFURLRef) CFRetain(fileURL);
+  sfd->fd = -1;
 
   return new;
 }
 
-CFStreamError
-CFWriteStreamGetError (CFWriteStreamRef stream)
+
+static CFStreamError
+CFStreamGetError (CFErrorRef inError)
 {
-  if (!stream->error)
+  if (!inError)
     {
       CFStreamError error = { kCFStreamErrorDomainPOSIX, 0 };
       return error;
@@ -420,16 +539,22 @@ CFWriteStreamGetError (CFWriteStreamRef stream)
       CFStreamError error;
       CFStringRef domain;
 
-      domain = CFErrorGetDomain(stream->error);
+      domain = CFErrorGetDomain(inError);
 
       if (CFEqual(domain, kCFErrorDomainPOSIX))
         error.domain = kCFStreamErrorDomainPOSIX;
       else
         error.domain = kCFStreamErrorDomainCustom;
 
-      error.error = CFErrorGetCode(stream->error);
+      error.error = CFErrorGetCode(inError);
       return error;
     }
+}
+
+CFStreamError
+CFWriteStreamGetError (CFWriteStreamRef stream)
+{
+  return CFStreamGetError(stream->error);
 }
 
 CFStreamStatus
@@ -445,34 +570,51 @@ CFWriteStreamGetStatus (CFWriteStreamRef stream)
     return kCFStreamStatusNotOpen;
 }
 
+static Boolean
+CFWriteStreamFDOpen (CFWriteStreamRef s)
+{
+  struct CFWriteStreamFD* stream = (struct CFWriteStreamFD*) s;
+  CFStringRef path = CFURLCopyFileSystemPath(stream->url,
+                                                 kCFURLPOSIXPathStyle);
+  int flags = O_WRONLY | O_CREAT;
+
+  if (stream->append)
+    flags |= O_APPEND;
+
+#ifdef O_LARGEFILE
+  flags |= O_LARGEFILE;
+#endif
+
+  stream->fd = open(CFStringGetCStringPtr(path, kCFStringEncodingUTF8),
+                    flags, 0666);
+
+  CFRelease(path);
+  if (stream->fd == -1)
+    {
+      CFWriteStreamSetError(s, errno);
+      return false;
+    }
+
+  return true;
+}
+
+static Boolean
+CFWriteStreamBufferOpen (CFWriteStreamRef s)
+{
+  return true;
+}
+
 Boolean
 CFWriteStreamOpen (CFWriteStreamRef stream)
 {
-  if (stream->closed)
+  if (stream->closed || stream->open)
     {
       CFWriteStreamSetError(stream, EBADF);
       return false;
     }
 
-  if (stream->type == _kCFWriteStreamDescriptor)
-    {
-      // TODO: Windows?
-      CFStringRef path = CFURLCopyFileSystemPath(stream->url,
-                                                 kCFURLPOSIXPathStyle);
-      int flags = O_WRONLY | O_CREAT;
-
-      if (stream->append)
-        flags |= O_APPEND;
-
-      stream->fd = open(CFStringGetCStringPtr(path, kCFStringEncodingUTF8),
-                        flags, 0666);
-
-      if (stream->fd == -1)
-      {
-        CFWriteStreamSetError(stream, errno);
-        return false;
-      }
-    }
+  if (!stream->impl.open(stream))
+    return false;
 
   stream->open = true;
   return true;
@@ -494,62 +636,110 @@ CFWriteStreamSetClient (CFWriteStreamRef stream, CFOptionFlags streamEvents,
   return false;
 }
 
+static Boolean
+CFWriteStreamFDSetProperty (CFWriteStreamRef s, CFStringRef propertyName,
+                          CFTypeRef propertyValue)
+{
+  struct CFWriteStreamFD* stream = (struct CFWriteStreamFD*) s;
+
+  if (CFEqual(propertyName, kCFStreamPropertyFileCurrentOffset))
+    {
+      if (!s->open)
+        {
+          CFWriteStreamSetError(s, EINVAL);
+          return false;
+        }
+      if (CFGetTypeID(propertyValue) != CFNumberGetTypeID())
+        {
+          CFWriteStreamSetError(s, EINVAL);
+          return false;
+        }
+
+      long long offset;
+
+      if (!CFNumberGetValue((CFNumberRef) propertyValue,
+                            kCFNumberLongLongType, &offset))
+        {
+          CFWriteStreamSetError(s, EINVAL);
+          return false;
+        }
+          
+      if (lseek(stream->fd, offset, SEEK_SET) == (off_t)-1)
+        {
+          CFWriteStreamSetError(s, errno);
+          return false;
+        }
+
+      return true;
+    }
+
+  else if (CFEqual(propertyName, kCFStreamPropertyAppendToFile))
+    {
+      if (s->open)
+        {
+          CFWriteStreamSetError(s, EINVAL);
+          return false;
+        }
+      if (CFGetTypeID(propertyValue) != CFBooleanGetTypeID())
+        {
+          CFWriteStreamSetError(s, EINVAL);
+          return false;
+        }
+
+      stream->append = propertyValue == kCFBooleanTrue;
+      return true;
+    }
+/*  else if (stream->isSocket
+           && CFEqual(propertyName, kCFStreamPropertyShouldCloseNativeSocket))
+    {
+      stream->closeOriginal = propertyValue == kCFBooleanTrue;
+      if (stream->readStream)
+        stream->readStream->closeOriginal = stream->closeOriginal;
+      return true;
+    }*/
+
+  CFWriteStreamSetError(s, EINVAL);
+  return false;
+}
+
+static Boolean
+CFWriteStreamBufferSetProperty (CFWriteStreamRef s, CFStringRef propertyName,
+                          CFTypeRef propertyValue)
+{
+  struct CFWriteStreamBuffer* stream = (struct CFWriteStreamBuffer*) s;
+  
+  if (CFEqual(propertyName, kCFStreamPropertyFileCurrentOffset))
+    {
+      if (!s->open)
+        {
+          CFWriteStreamSetError(s, EINVAL);
+          return false;
+        }
+      if (CFGetTypeID(propertyValue) != CFNumberGetTypeID())
+        {
+          CFWriteStreamSetError(s, EINVAL);
+          return false;
+        }
+
+      if (!CFNumberGetValue((CFNumberRef) propertyValue,
+                            kCFNumberCFIndexType, &stream->position))
+        {
+          CFWriteStreamSetError(s, EINVAL);
+          return false;
+        }
+          
+      return true;
+    }
+
+  CFWriteStreamSetError(s, EINVAL);
+  return false;
+}
+
 Boolean
 CFWriteStreamSetProperty (CFWriteStreamRef stream, CFStringRef propertyName,
                           CFTypeRef propertyValue)
 {
-  if (stream->type == _kCFWriteStreamDescriptor)
-    {
-      if (CFEqual(propertyName, kCFStreamPropertyAppendToFile))
-        {
-          if (stream->open)
-            {
-              CFWriteStreamSetError(stream, EINVAL);
-              return false;
-            }
-          if (CFGetTypeID(propertyValue) != CFBooleanGetTypeID())
-            {
-              CFWriteStreamSetError(stream, EINVAL);
-              return false;
-            }
-
-          stream->append = propertyValue == kCFBooleanTrue;
-          return true;
-        }
-      else if (CFEqual(propertyName, kCFStreamPropertyFileCurrentOffset))
-        {
-          if (!stream->open)
-            {
-              CFWriteStreamSetError(stream, EINVAL);
-              return false;
-            }
-          if (CFGetTypeID(propertyValue) != CFNumberGetTypeID())
-            {
-              CFWriteStreamSetError(stream, EINVAL);
-              return false;
-            }
-
-          long long offset;
-
-          if (!CFNumberGetValue((CFNumberRef) propertyValue,
-                                kCFNumberLongLongType, &offset))
-            {
-              CFWriteStreamSetError(stream, EINVAL);
-              return false;
-            }
-          
-          if (lseek(stream->fd, offset, SEEK_SET) == (off_t)-1)
-            {
-              CFWriteStreamSetError(stream, errno);
-              return false;
-            }
-
-          return true;
-        }
-    }
-
-  CFWriteStreamSetError(stream, EINVAL);
-  return false;
+  return stream->impl.setProperty(stream, propertyName, propertyValue);
 }
 
 void
@@ -560,44 +750,37 @@ CFWriteStreamUnscheduleFromRunLoop (CFWriteStreamRef stream,
   
 }
 
-CFIndex
-CFWriteStreamWrite (CFWriteStreamRef stream, const UInt8 *buffer,
+static CFIndex
+CFWriteStreamFDWrite (CFWriteStreamRef s, const UInt8 *buffer,
                     CFIndex bufferLength)
 {
-  if (!stream->open)
-    return -1;
+  struct CFWriteStreamFD* stream = (struct CFWriteStreamFD*) s;
+  int wr;
 
-  if (stream->type == _kCFWriteStreamDescriptor)
-    {
-      int wr;
+  wr = write(stream->fd, buffer, bufferLength);
+  if (wr == -1)
+    CFWriteStreamSetError(s, errno);
 
-      wr = write(stream->fd, buffer, bufferLength);
+  return wr;
+}
 
-      return wr;
-    }
-  else if (stream->type == _kCFWriteStreamFixedBuffer)
-    {
-      CFIndex bufSpace = stream->bufferCapacity - stream->position;
+static CFIndex
+CFWriteStreamBufferWrite (CFWriteStreamRef s, const UInt8 *buffer,
+                    CFIndex bufferLength)
+{
+  struct CFWriteStreamBuffer* stream = (struct CFWriteStreamBuffer*) s;
+
+  CFIndex bufSpace = stream->bufferCapacity - stream->position;
       
-      if (bufSpace <= 0)
-        return 0;
-
-      if (bufferLength > bufSpace)
-        bufferLength = bufSpace;
-
-      memcpy(stream->buffer + stream->position, buffer, bufferLength);
-      stream->position += bufferLength;
-
-      return bufferLength;
-    }
-  else if (stream->type == _kCFWriteStreamExpandableBuffer)
+  if (bufSpace < bufferLength)
     {
-      CFIndex bufSpace = stream->bufferCapacity - stream->position;
-
-      if (bufSpace <= 0)
+      if (stream->bufferAllocator != kCFAllocatorNull)
         {
           CFIndex cap = stream->bufferCapacity;
           UInt8 *newbuf;
+
+          if (cap == 0)
+            cap = 4;
 
           while (cap - stream->position < bufferLength)
             cap *= 2;
@@ -611,32 +794,88 @@ CFWriteStreamWrite (CFWriteStreamRef stream, const UInt8 *buffer,
           stream->buffer = newbuf;
           stream->bufferCapacity = cap;
         }
-
-       memcpy(stream->buffer + stream->position, buffer, bufferLength);
-       stream->position += bufferLength;
-
-       return bufferLength;
+      else
+        bufferLength = bufSpace;
     }
-  return -1;
+
+  memcpy(stream->buffer + stream->position, buffer, bufferLength);
+  stream->position += bufferLength;
+
+  return bufferLength;
 }
 
+CFIndex
+CFWriteStreamWrite (CFWriteStreamRef stream, const UInt8 *buffer,
+                    CFIndex bufferLength)
+{
+  if (!stream->open)
+    return -1;
 
+  return stream->impl.write(stream, buffer, bufferLength);
+}
+
+static void
+CFReadStreamFDClose (CFReadStreamRef s)
+{
+  struct CFReadStreamFD* stream = (struct CFReadStreamFD*) s;
+  if (stream->fd != -1)
+    {
+      close(stream->fd);
+      stream->fd = -1;
+    }
+}
+
+static void
+CFReadStreamBufferClose (CFReadStreamRef s)
+{
+  struct CFReadStreamBuffer* stream = (struct CFReadStreamBuffer*) s;
+
+  if (stream->buffer != NULL)
+    {
+      CFAllocatorDeallocate(stream->bufferAllocator, (void*)stream->buffer);
+      stream->buffer = NULL;
+    }
+}
 
 void
 CFReadStreamClose (CFReadStreamRef stream)
 {
-  
+  if (stream->closed)
+    return;
+
+  if (stream->impl.close)
+    stream->impl.close(stream);
+
+  stream->closed = true;
+  stream->open = false;
 }
 
 CFErrorRef
 CFReadStreamCopyError (CFReadStreamRef stream)
 {
+  if (!stream->error)
+    return NULL;
+
+  return (CFErrorRef) CFRetain(stream->error);
+}
+
+static CFTypeRef
+CFReadStreamFDCopyProperty (CFReadStreamRef s, CFStringRef propertyName)
+{
+  // struct CFReadStreamFD* stream = (struct CFReadStreamFD*) s;
+
+  CFReadStreamSetError(s, EINVAL);
   return NULL;
 }
 
 CFTypeRef
 CFReadStreamCopyProperty (CFReadStreamRef stream, CFStringRef propertyName)
 {
+  if (stream->impl.copyProperty != NULL)
+    return stream->impl.copyProperty(stream, propertyName);
+
+  // unknown property
+  CFReadStreamSetError(stream, EINVAL);
   return NULL;
 }
 
@@ -645,51 +884,210 @@ CFReadStreamCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
                                    CFIndex length,
                                    CFAllocatorRef bytesDeallocator)
 {
-  return NULL;
+  CFReadStreamRef new;
+  struct CFReadStreamBuffer* sbuf;
+
+  if (bytes == NULL && length > 0)
+    return NULL;
+
+  new = (CFReadStreamRef)_CFRuntimeCreateInstance (alloc, _kCFReadStreamTypeID,
+                                                   CFREADSTREAMBUFFER_SIZE, 0);
+
+  memcpy(&new->impl, &CFReadStreamBufferImpl, sizeof(CFReadStreamBufferImpl));
+  sbuf = (struct CFReadStreamBuffer*) new;
+  sbuf->buffer = bytes;
+  sbuf->bufferAllocator = bytesDeallocator;
+  sbuf->bufferCapacity = length;
+
+  return new;
 }
 
 CFReadStreamRef
 CFReadStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
 {
-  return NULL;
+  CFReadStreamRef new;
+  CFStringRef scheme;
+  CFStringRef schemeFile = CFSTR("file");
+  struct CFReadStreamFD* sfd;
+
+  if (fileURL == NULL)
+    return NULL;
+
+  scheme = CFURLCopyScheme(fileURL);
+  if (!CFEqual(schemeFile, scheme))
+    {
+      CFRelease(scheme);
+      return NULL;
+    }
+  CFRelease(scheme);
+
+  new = (CFReadStreamRef)_CFRuntimeCreateInstance (alloc, _kCFReadStreamTypeID,
+                                                   CFREADSTREAMFD_SIZE, 0);
+  memcpy(&new->impl, &CFReadStreamFDImpl, sizeof(CFReadStreamFDImpl));
+  sfd = (struct CFReadStreamFD*) new;
+  sfd->url = (CFURLRef) CFRetain(fileURL);
+  sfd->fd = -1;
+
+  return new;
+}
+
+static const UInt8 *
+CFReadStreamBufferGetBuffer (CFReadStreamRef s, CFIndex maxBytesToRead,
+                       CFIndex *numBytesRead)
+{
+  struct CFReadStreamBuffer* stream;
+  const UInt8 *retval;
+
+  stream = (struct CFReadStreamBuffer*) s;
+
+  if (!numBytesRead)
+    return NULL;
+
+  if (maxBytesToRead < stream->bufferCapacity - stream->position)
+    *numBytesRead = maxBytesToRead;
+  else
+    *numBytesRead = stream->bufferCapacity - stream->position;
+
+  retval = stream->buffer + stream->position;
+  stream->position += *numBytesRead;
+
+  return retval;
 }
 
 const UInt8 *
 CFReadStreamGetBuffer (CFReadStreamRef stream, CFIndex maxBytesToRead,
                        CFIndex *numBytesRead)
 {
-  return NULL;
+  if (stream->impl.getBuffer == NULL)
+    return NULL;
+  return stream->impl.getBuffer(stream, maxBytesToRead, numBytesRead);
 }
 
 CFStreamError
 CFReadStreamGetError (CFReadStreamRef stream)
 {
-  CFStreamError error = { 0, 0 };
-  return error;
+  return CFStreamGetError(stream->error);
 }
 
 CFStreamStatus
 CFReadStreamGetStatus (CFReadStreamRef stream)
 {
-  return kCFStreamStatusError;
+  if (stream->closed)
+    return kCFStreamStatusClosed;
+  else if (stream->failed)
+    return kCFStreamStatusError;
+  else if (stream->open)
+    return kCFStreamStatusOpen;
+  else
+    return kCFStreamStatusNotOpen;
+}
+
+static Boolean
+CFReadStreamBufferHasBytesAvailable (CFReadStreamRef s)
+{
+  struct CFReadStreamBuffer* stream;
+
+  stream = (struct CFReadStreamBuffer*) s;
+  return stream->bufferCapacity > stream->position;
 }
 
 Boolean
 CFReadStreamHasBytesAvailable (CFReadStreamRef stream)
 {
-  return false;
+  if (stream->impl.hasBytes != NULL)
+    return stream->impl.hasBytes(stream);
+  return true;
+}
+
+static Boolean
+CFReadStreamFDOpen (CFReadStreamRef s)
+{
+  struct CFReadStreamFD* stream = (struct CFReadStreamFD*) s;
+
+  CFStringRef path = CFURLCopyFileSystemPath(stream->url,
+                                                 kCFURLPOSIXPathStyle);
+  int flags = O_RDONLY;
+
+#ifdef O_LARGEFILE
+  flags |= O_LARGEFILE;
+#endif
+
+  stream->fd = open(CFStringGetCStringPtr(path, kCFStringEncodingUTF8),
+                    flags);
+
+  CFRelease(path);
+  if (stream->fd == -1)
+    {
+      CFReadStreamSetError(s, errno);
+      return false;
+    }
+
+  return true;
+}
+
+static Boolean
+CFReadStreamBufferOpen (CFReadStreamRef s)
+{
+  return true;
 }
 
 Boolean
 CFReadStreamOpen (CFReadStreamRef stream)
 {
-  return false;
+  if (stream->open || stream->closed)
+    {
+      CFReadStreamSetError(stream, EBADF);
+      return false;
+    }
+
+  if (!stream->impl.open(stream))
+    return false;
+
+  stream->open = true;
+  return true;
+}
+
+static CFIndex
+CFReadStreamFDRead (CFReadStreamRef s, UInt8 *buffer, CFIndex bufferLength)
+{
+  int rd;
+  struct CFReadStreamFD* stream = (struct CFReadStreamFD*) s;
+
+  rd = read(stream->fd, buffer, bufferLength);
+
+  if (rd == -1)
+    CFReadStreamSetError(s, errno);
+
+  return rd;
+}
+
+static CFIndex
+CFReadStreamBufferRead (CFReadStreamRef s, UInt8 *buffer, CFIndex bufferLength)
+{
+  struct CFReadStreamBuffer* stream = (struct CFReadStreamBuffer*) s;
+
+  if (stream->position >= stream->bufferCapacity)
+    return 0;
+
+  if (stream->bufferCapacity - stream->position < bufferLength)
+    bufferLength = stream->bufferCapacity - stream->position;
+
+  memcpy(buffer, stream->buffer + stream->position, bufferLength);
+  stream->position += bufferLength;
+
+  return bufferLength;
 }
 
 CFIndex
 CFReadStreamRead (CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength)
 {
-  return 0;
+  if (!stream->open)
+    {
+      CFReadStreamSetError(stream, EBADF);
+      return -1;
+    }
+
+  return stream->impl.read(stream, buffer, bufferLength);
 }
 
 void
@@ -707,10 +1105,92 @@ CFReadStreamSetClient (CFReadStreamRef stream, CFOptionFlags streamEvents,
   return false;
 }
 
+static Boolean
+CFReadStreamFDSetProperty (CFReadStreamRef s, CFStringRef propertyName,
+                         CFTypeRef propertyValue)
+{
+  struct CFReadStreamFD* stream = (struct CFReadStreamFD*) s;
+
+  if (CFEqual(propertyName, kCFStreamPropertyFileCurrentOffset))
+    {
+
+      if (!s->open)
+        {
+          CFReadStreamSetError(s, EINVAL);
+          return false;
+        }
+      if (CFGetTypeID(propertyValue) != CFNumberGetTypeID())
+        {
+          CFReadStreamSetError(s, EINVAL);
+          return false;
+        }
+
+      long long offset;
+
+      if (!CFNumberGetValue((CFNumberRef) propertyValue,
+                            kCFNumberLongLongType, &offset))
+        {
+          CFReadStreamSetError(s, EINVAL);
+          return false;
+        }
+
+      if (lseek(stream->fd, offset, SEEK_SET) == (off_t)-1)
+        {
+          CFReadStreamSetError(s, errno);
+          return false;
+        }
+  
+      return true;
+    }
+
+  CFReadStreamSetError(s, EINVAL);
+  return false;
+}
+
+static Boolean
+CFReadStreamBufferSetProperty (CFReadStreamRef s, CFStringRef propertyName,
+                         CFTypeRef propertyValue)
+{
+  struct CFReadStreamBuffer* stream = (struct CFReadStreamBuffer*) s;
+
+  if (CFEqual(propertyName, kCFStreamPropertyFileCurrentOffset))
+    {
+      if (!s->open)
+        {
+          CFReadStreamSetError(s, EINVAL);
+          return false;
+        }
+      if (CFGetTypeID(propertyValue) != CFNumberGetTypeID())
+        {
+          CFReadStreamSetError(s, EINVAL);
+          return false;
+        }
+
+      CFIndex offset;
+
+      if (!CFNumberGetValue((CFNumberRef) propertyValue,
+                            kCFNumberCFIndexType, &offset))
+        {
+          CFReadStreamSetError(s, EINVAL);
+          return false;
+        }
+
+      stream->position = offset;
+      return true;
+    }
+
+  CFReadStreamSetError(s, EINVAL);
+  return false;
+}
+
 Boolean
 CFReadStreamSetProperty (CFReadStreamRef stream, CFStringRef propertyName,
                          CFTypeRef propertyValue)
 {
+  if (stream->impl.setProperty != NULL)
+    stream->impl.setProperty(stream, propertyName, propertyValue);
+
+  CFReadStreamSetError(stream, EINVAL);
   return false;
 }
 

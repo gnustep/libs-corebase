@@ -125,7 +125,11 @@ CFErrorCreate (CFAllocatorRef allocator, CFStringRef domain,
     {
       new->_domain = CFRetain (domain);
       new->_code = code;
-      new->_userInfo = (CFDictionaryRef)CFRetain (userInfo);
+      
+      if (userInfo != NULL)
+        new->_userInfo = (CFDictionaryRef)CFRetain (userInfo);
+      else
+        new->_userInfo = CFDictionaryCreate(allocator, NULL, NULL, 0, NULL, NULL);
     }
   
   return (CFErrorRef)new;

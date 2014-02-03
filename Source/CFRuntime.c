@@ -445,6 +445,7 @@ GS_PRIVATE void CFNumberInitialize (void);
 GS_PRIVATE void CFNumberFormatterInitialize (void);
 GS_PRIVATE void CFRunLoopInitialize (void);
 GS_PRIVATE void CFSetInitialize (void);
+GS_PRIVATE void CFStreamInitialize (void);
 GS_PRIVATE void CFStringInitialize (void);
 GS_PRIVATE void CFStringEncodingInitialize (void);
 GS_PRIVATE void CFTimeZoneInitialize (void);
@@ -496,6 +497,7 @@ CFInitialize (void)
   CFNumberFormatterInitialize ();
   CFRunLoopInitialize ();
   CFSetInitialize ();
+  CFStreamInitialize ();
   CFStringInitialize ();
   CFStringEncodingInitialize ();
   CFTimeZoneInitialize ();

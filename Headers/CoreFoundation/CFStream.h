@@ -111,12 +111,6 @@ typedef void (*CFReadStreamClientCallBack) (CFReadStreamRef stream,
 /*
  * NSStream functions
  */
-/* FIXME: need CFSocket suff...
-void
-CFStreamCreatePairWithSocket (CFAllocatorRef alloc, CFSocketNativeHandle sock,
-                              CFReadStreamRef *readStream,
-                              CFWriteStreamRef *writeStream);
-*/
 CF_EXPORT void
 CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
                                     UInt32 port, CFReadStreamRef *readStream,
