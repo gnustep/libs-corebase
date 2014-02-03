@@ -57,11 +57,6 @@ CONST_STRING_DECL(kCFStreamPropertyAppendToFile,
 CONST_STRING_DECL(kCFStreamPropertyFileCurrentOffset,
   "kCFStreamPropertyFileCurrentOffset");
 
-/* This belongs into CFNetwork, but we don't have that yet */
-// const CFStringRef kCFStreamPropertyShouldCloseNativeSocket;
-// CONST_STRING_DECL(kCFStreamPropertyShouldCloseNativeSocket, 
-//   "kCFStreamPropertyShouldCloseNativeSocket");
-
 static CFTypeID _kCFWriteStreamTypeID = 0;
 static CFTypeID _kCFReadStreamTypeID = 0;
 
@@ -100,9 +95,6 @@ struct CFWriteStreamFD
     int                    fd; // FIXME: support Windows?
     Boolean                append;
     CFURLRef               url;
-
-    /* reference to related read stream for socket streams */
-    CFReadStreamRef        readStream;
 };
 
 static const struct CFWriteStreamImpl CFWriteStreamFDImpl = {
