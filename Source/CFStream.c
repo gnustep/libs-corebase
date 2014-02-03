@@ -31,6 +31,7 @@
 #include "CoreFoundation/CFStream.h"
 #include "GSPrivate.h"
 #include "GSObjCRuntime.h"
+#include "GSMemory.h"
 #include "CoreFoundation/CFData.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFNumber.h"
@@ -463,7 +464,7 @@ CFWriteStreamCreateWithAllocatedBuffers (CFAllocatorRef alloc,
 
   new = (CFWriteStreamRef)_CFRuntimeCreateInstance (alloc, _kCFWriteStreamTypeID,
                                                    CFWRITESTREAMBUFFER_SIZE, 0);
-  memcpy(&new->impl, &CFWriteStreamBufferImpl, sizeof(CFWriteStreamBufferImpl));
+  GSMemoryCopy(&new->impl, &CFWriteStreamBufferImpl, sizeof(CFWriteStreamBufferImpl));
 
   ((struct CFWriteStreamBuffer *)new)->bufferAllocator = bufferAllocator;
 
@@ -483,7 +484,7 @@ CFWriteStreamCreateWithBuffer (CFAllocatorRef alloc, UInt8 *buffer,
   new = (CFWriteStreamRef)_CFRuntimeCreateInstance (alloc, _kCFWriteStreamTypeID,
                                                    CFWRITESTREAMBUFFER_SIZE, 0);
   sbuf = ((struct CFWriteStreamBuffer *)new);
-  memcpy(&new->impl, &CFWriteStreamBufferImpl, sizeof(CFWriteStreamBufferImpl));
+  GSMemoryCopy(&new->impl, &CFWriteStreamBufferImpl, sizeof(CFWriteStreamBufferImpl));
   sbuf->buffer = buffer;
   sbuf->bufferCapacity = bufferCapacity;
   sbuf->bufferAllocator = kCFAllocatorNull;
@@ -514,7 +515,7 @@ CFWriteStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
                                                    CFWRITESTREAMFD_SIZE, 0);
 
   sfd = ((struct CFWriteStreamFD *)new);
-  memcpy(&new->impl, &CFWriteStreamFDImpl, sizeof(CFWriteStreamFDImpl));
+  GSMemoryCopy(&new->impl, &CFWriteStreamFDImpl, sizeof(CFWriteStreamFDImpl));
   sfd->url = (CFURLRef) CFRetain(fileURL);
   sfd->fd = -1;
 
@@ -794,7 +795,7 @@ CFWriteStreamBufferWrite (CFWriteStreamRef s, const UInt8 *buffer,
         bufferLength = bufSpace;
     }
 
-  memcpy(stream->buffer + stream->position, buffer, bufferLength);
+  GSMemoryCopy(stream->buffer + stream->position, buffer, bufferLength);
   stream->position += bufferLength;
 
   return bufferLength;
@@ -892,7 +893,7 @@ CFReadStreamCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
   new = (CFReadStreamRef)_CFRuntimeCreateInstance (alloc, _kCFReadStreamTypeID,
                                                    CFREADSTREAMBUFFER_SIZE, 0);
 
-  memcpy(&new->impl, &CFReadStreamBufferImpl, sizeof(CFReadStreamBufferImpl));
+  GSMemoryCopy(&new->impl, &CFReadStreamBufferImpl, sizeof(CFReadStreamBufferImpl));
   sbuf = (struct CFReadStreamBuffer*) new;
   sbuf->buffer = bytes;
   sbuf->bufferAllocator = bytesDeallocator;
@@ -922,7 +923,7 @@ CFReadStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
 
   new = (CFReadStreamRef)_CFRuntimeCreateInstance (alloc, _kCFReadStreamTypeID,
                                                    CFREADSTREAMFD_SIZE, 0);
-  memcpy(&new->impl, &CFReadStreamFDImpl, sizeof(CFReadStreamFDImpl));
+  GSMemoryCopy(&new->impl, &CFReadStreamFDImpl, sizeof(CFReadStreamFDImpl));
   sfd = (struct CFReadStreamFD*) new;
   sfd->url = (CFURLRef) CFRetain(fileURL);
   sfd->fd = -1;
@@ -1089,7 +1090,7 @@ CFReadStreamBufferRead (CFReadStreamRef s, UInt8 *buffer, CFIndex bufferLength)
   if (stream->bufferCapacity - stream->position < bufferLength)
     bufferLength = stream->bufferCapacity - stream->position;
 
-  memcpy(buffer, stream->buffer + stream->position, bufferLength);
+  GSMemoryCopy(buffer, stream->buffer + stream->position, bufferLength);
   stream->position += bufferLength;
 
   return bufferLength;
