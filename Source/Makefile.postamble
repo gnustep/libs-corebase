@@ -37,7 +37,7 @@
 
 # Things to do after distcleaning
 after-distclean::
-	@rm -f config.h GNUmakefile
+	@rm -f config.h GNUmakefile ../Headers/CoreFoundation/CFBase.h
 
 # Things to do before checking
 # before-check::

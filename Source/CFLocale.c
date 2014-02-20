@@ -1021,7 +1021,7 @@ CFLocaleGetTypeID (void)
 
 CFStringRef
 CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode (CFAllocatorRef allocator,
-                                                     uint32_t lcid)
+                                                     UInt32 lcid)
 {
   CFStringRef result = NULL;
   char buffer[BUFFER_SIZE];
@@ -1073,7 +1073,7 @@ CFLocaleGetLanguageLineDirection (CFStringRef isoLangCode)
   return ICUToCFLocaleOrientation (result);
 }
 
-uint32_t
+UInt32
 CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier (CFStringRef localeIdent)
 {
   char buffer[BUFFER_SIZE];

@@ -28,9 +28,7 @@
 #ifndef __COREFOUNDATION_CFBASE_H__
 #define __COREFOUNDATION_CFBASE_H__
 
-#include <stddef.h> /* for intptr_t and uintptr_t */
-
-/* CoreFoundation defineds __LITTLE_ENDIAN__ or __BIG_ENDIAN__ so we'll
+/* CoreFoundation defines __LITTLE_ENDIAN__ or __BIG_ENDIAN__ so we'll
  * do the same here for compatibility.
  */
 #if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
@@ -54,53 +52,41 @@
 /*
  * CoreFoundation types
  */
-#if defined(_MSC_VER)
-#include <intsafe.h>
-typedef UINT8  Boolean;
-typedef UINT8  UInt8;
-typedef INT8   SInt8;
-typedef UINT16 UInt16;
-typedef INT16  SInt16;
-typedef UINT32 UInt32;
-typedef INT32  SInt32;
-typedef UINT64 UInt64;
-typedef INT64  SInt64;
-#else
-#include <stdint.h>
-typedef uint8_t  Boolean;
-typedef uint8_t  UInt8;
-typedef int8_t   SInt8;
-typedef uint16_t UInt16;
-typedef int16_t  SInt16;
-typedef uint32_t UInt32;
-typedef int32_t  SInt32;
-typedef uint64_t UInt64;
-typedef int64_t  SInt64;
-#endif
-typedef SInt32   OSStatus;
+typedef @GS_UINT8_T@ Boolean;
+typedef @GS_UINT8_T@ UInt8;
+typedef @GS_INT8_T@ SInt8;
+typedef @GS_UINT16_T@ UInt16;
+typedef @GS_INT16_T@ SInt16;
+typedef @GS_UINT32_T@ UInt32;
+typedef @GS_INT32_T@ SInt32;
+typedef @GS_UINT64_T@ UInt64;
+typedef @GS_INT64_T@ SInt64;
+typedef SInt32 OSStatus;
 
-typedef float            Float32;
-typedef double           Float64;
-typedef UInt16           UniChar;
-typedef UInt8*           StringPtr;
+typedef float Float32;
+typedef double Float64;
+typedef UInt16 UniChar;
+typedef UInt8* StringPtr;
 typedef const StringPtr* ConstStringPtr;
-typedef UInt8            Str255[256];
-typedef const Str255*    ConstStr255Param;
-typedef SInt16           OSErr;
-typedef SInt16           RegionCode;
-typedef SInt16           LangCode;
-typedef SInt16           ScriptCode;
-typedef UInt32           FourCharCode;
+typedef UInt8 Str255[256];
+typedef const Str255* ConstStr255Param;
+typedef SInt16 OSErr;
+typedef SInt16 RegionCode;
+typedef SInt16 LangCode;
+typedef SInt16 ScriptCode;
+typedef UInt32 FourCharCode;
 #ifndef OSTYPE_DECLARED
-typedef FourCharCode     OSType;
+typedef FourCharCode OSType;
 #define OSTYPE_DECLARED
 #endif
-typedef UInt8            Byte;
-typedef SInt8            SignedByte;
+typedef UInt8 Byte;
+typedef SInt8 SignedByte;
 
+#ifndef UTF32Char /* UTF32Char is also defined in GSConfig.h */
 typedef UInt32 UTF32Char;
+#endif
 typedef UInt16 UTF16Char;
-typedef UInt8  UTF8Char;
+typedef UInt8 UTF8Char;
 
 #if !defined(CF_EXTERN_C_BEGIN)
 # if defined(__cplusplus)
@@ -146,8 +132,6 @@ typedef UInt8  UTF8Char;
 # define FALSE 0
 #endif
 
-CF_EXTERN_C_BEGIN
-
 #if !defined(CF_INLINE)
 # if defined(__GNUC__) && (__GNUC__ == 4)
 #  define CF_INLINE static __inline__ __attribute__((always_inline))
@@ -168,15 +152,17 @@ CF_EXTERN_C_BEGIN
 #define GS_PURE_FUNCTION
 #endif
 
+CF_EXTERN_C_BEGIN
+
 /*
  * CFType types
  */
-typedef uintptr_t CFHashCode;
+typedef @GS_UINTPTR_T@ CFHashCode;
 /** @defgroup CFType
     @{
     @class CFType
  */
-typedef uintptr_t CFTypeID;
+typedef @GS_UINTPTR_T@ CFTypeID;
 typedef const void *CFTypeRef;
 /** @}
  */
@@ -184,8 +170,8 @@ typedef const void *CFTypeRef;
 /*
  * Base Utilities
  */
-typedef uintptr_t CFOptionFlags;
-typedef intptr_t CFIndex;
+typedef @GS_UINTPTR_T@ CFOptionFlags;
+typedef @GS_INTPTR_T@ CFIndex;
 
 typedef struct {
   CFIndex location;
@@ -475,4 +461,3 @@ CFNullGetTypeID (void);
 CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFBASE_H__ */
-

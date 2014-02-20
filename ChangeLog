@@ -1,3 +1,11 @@
+2014-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
+	* configure,
+	* configure.ac: Use autoconf's built-in functions and introduce
+	function to check the architecture's data model.
+	* Headers/CoreFoundation/CFBase.h,
+	* Headers/CoreFoundation/CFBase.h.in: Used data model information.
+	* Source/CFLocale.c: Use CF defined type (UInt32).
+
 2014-02-03 Lubos Dolezel <lubos@dolezel.info>
 	* Source/CFStream.c: Initial CFReadStream implementation, generalization
 	* Tests/CFStream/write.m: Tests for CFWriteStream
