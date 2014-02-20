@@ -884,7 +884,7 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
 
   if (CF_IS_OBJC (_kCFStringTypeID, str))
     {
-      Boolean b;
+      /* Boolean b; */
       uintptr_t opts = 0;
 
       if (lossByte != 0)

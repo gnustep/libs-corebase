@@ -422,7 +422,7 @@ CFPListAppendBase16Data (CFDataRef obj, CFDataRef data, CFOptionFlags options)
 }
 
 static void
-CFPListAppendBase64Data (CFDateRef obj, CFDataRef data, CFOptionFlags options)
+CFPListAppendBase64Data (CFDataRef obj, CFDataRef data, CFOptionFlags options)
 {
 
 }
@@ -472,6 +472,8 @@ CFXMLPListAppendObject (CFPropertyListRef plist, CFMutableDataRef data,
       CFIndex count;
 
       CFDataAppendBytes (data, (const UInt8 *) "<array>\n", 8);
+
+      count = CFArrayGetCount ((CFArrayRef)plist);
       for (idx = 0; idx < count; ++idx)
         {
           CFPropertyListRef obj;
@@ -588,6 +590,7 @@ CFOpenStepPListAppendObject (CFPropertyListRef plist, CFMutableDataRef data,
 
       CFDataAppendBytes (data, (const UInt8 *) "(\n", 2);
 
+      count = CFArrayGetCount ((CFArrayRef)plist);
       for (idx = 0; idx < count; ++idx)
         {
           CFPropertyListRef obj;
