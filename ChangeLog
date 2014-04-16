@@ -1,3 +1,7 @@
+2014-04-16 Lubos Dolezel <lubos@dolezel.info>
+	* Source/CFRunLoop.c,
+	  Source/CFRuntime.c: Work on CFRunLoop
+
 2014-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
 	* configure,
 	* configure.ac: Use autoconf's built-in functions and introduce

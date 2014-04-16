@@ -495,7 +495,6 @@ CFInitialize (void)
   CFNullInitialize ();
   CFNumberInitialize ();
   CFNumberFormatterInitialize ();
-  CFRunLoopInitialize ();
   CFSetInitialize ();
   CFStreamInitialize ();
   CFStringInitialize ();
@@ -505,6 +504,7 @@ CFInitialize (void)
   CFURLInitialize ();
   CFUUIDInitialize ();
   CFXMLNodeInitialize ();
+  CFRunLoopInitialize ();
 }
 
 #if defined(_MSC_VER)

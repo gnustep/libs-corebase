@@ -33,6 +33,15 @@
 #include "GSPrivate.h"
 #include "GSObjCRuntime.h"
 
+#ifndef _WIN32
+#	include <unistd.h>
+#	include <fcntl.h>
+#	include <poll.h>
+#endif
+#ifdef HAVE_LIBDISPATCH
+#	include <dispatch/dispatch.h>
+#endif
+
 /* From NSDate.m in GNUstep-base */
 #define DISTANT_FUTURE	63113990400.0
 
@@ -40,6 +49,9 @@ static CFTypeID _kCFRunLoopTypeID = 0;
 static CFTypeID _kCFRunLoopSourceTypeID = 0;
 static CFTypeID _kCFRunLoopObserverTypeID = 0;
 static CFTypeID _kCFRunLoopTimerTypeID = 0;
+
+static CFRunLoopRef static_mainLoop = NULL;
+static pthread_key_t static_loopKey;
 
 CONST_STRING_DECL(kCFRunLoopDefaultMode, "kCFRunLoopDefaultMode");
 CONST_STRING_DECL(kCFRunLoopCommonModes, "kCFRunLoopCommonModes");
@@ -62,6 +74,10 @@ struct __CFRunLoop
   CFMutableSetRef   _commonModes;
   CFMutableArrayRef _commonObjects;
   CFMutableDictionaryRef _contexts;
+
+  int     _wakeUpPipe[2];
+  Boolean _isWaiting; /* Whether the runloop is currently in a select/poll call */
+  Boolean _stop; /* Whether the runloop was told to stop */
 };
 
 struct __CFRunLoopSource
@@ -72,6 +88,7 @@ struct __CFRunLoopSource
   Boolean       _isSignaled;
   Boolean       _isValid;
   CFRunLoopSourceContext _context; /* FIXME: Handle version 1 contexts */
+  CFRunLoopRef   _runloop;
 };
 
 struct __CFRunLoopObserver
@@ -84,6 +101,7 @@ struct __CFRunLoopObserver
   Boolean       _isValid;
   CFRunLoopObserverCallBack _callback;
   CFRunLoopObserverContext  _context;
+  CFRunLoopRef   _runloop;
 };
 
 struct __CFRunLoopTimer
@@ -96,6 +114,7 @@ struct __CFRunLoopTimer
   Boolean        _isValid;
   CFRunLoopTimerCallBack _callback;
   CFRunLoopTimerContext  _context;
+  CFRunLoopRef   _runloop;
 };
 
 static GSRunLoopContextRef
@@ -112,7 +131,7 @@ CFRunLoopFinalize (CFTypeRef cf)
 {
   CFRunLoopRef rl = (CFRunLoopRef)cf;
   CFAllocatorRef alloc = CFGetAllocator (rl);
-  CFRelease (rl->_currentMode);
+
   CFRelease (rl->_commonModes);
   CFRelease (rl->_commonObjects);
   CFDictionaryApplyFunction (rl->_contexts, GSRunLoopContextDeallocFunc,
@@ -196,7 +215,8 @@ static CFRuntimeClass CFRunLoopTimerClass =
   NULL
 };
 
-
+#define CFRUNLOOP_SIZE \
+  sizeof(struct __CFRunLoop) - sizeof(CFRuntimeBase)
 
 void
 CFRunLoopInitialize (void)
@@ -303,18 +323,66 @@ GSRunLoopContextGet (CFRunLoopRef rl, CFStringRef mode)
   return ctxt;
 }
 
+static CFRunLoopRef
+CFRunLoopCreate (void)
+{
+  CFRunLoopRef rl;
 
+  rl = (CFRunLoopRef)_CFRuntimeCreateInstance (kCFAllocatorDefault,
+                                               _kCFRunLoopTypeID,
+                                               CFRUNLOOP_SIZE,
+                                               0);
+  rl->_commonModes = CFSetCreateMutable(kCFAllocatorDefault,
+                                        0, &kCFTypeSetCallBacks);
+  rl->_commonObjects = CFArrayCreateMutable(kCFAllocatorDefault,
+                                        0, &kCFTypeArrayCallBacks);
+  rl->_contexts = CFDictionaryCreateMutable(kCFAllocatorDefault,
+                                        0, &kCFTypeDictionaryKeyCallBacks,
+                                        NULL);
+
+  pipe(rl->_wakeUpPipe);
+  fcntl(rl->_wakeUpPipe[0], F_SETFL, O_NONBLOCK);
+  fcntl(rl->_wakeUpPipe[1], F_SETFL, O_NONBLOCK);
+
+  return rl;
+}
+
+static void
+_CFRunLoopCreateThreadKey (void)
+{
+  pthread_key_create(&static_loopKey, (void(*)(void*)) CFRelease);
+}
 
 CFRunLoopRef
 CFRunLoopGetCurrent (void)
 {
-  return NULL;
+  static pthread_once_t once = PTHREAD_ONCE_INIT;
+  CFRunLoopRef rl;
+
+  pthread_once(&once, _CFRunLoopCreateThreadKey);
+
+  rl = pthread_getspecific(static_loopKey);
+  if (rl == NULL)
+    {
+      rl = CFRunLoopCreate();
+      pthread_setspecific(static_loopKey, rl);
+    }
+
+  return rl;
+}
+
+static void
+_CFRunLoopCreateMain (void)
+{
+  static_mainLoop = CFRunLoopGetCurrent();
 }
 
 CFRunLoopRef
 CFRunLoopGetMain (void)
 {
-  return NULL;
+  static pthread_once_t once = PTHREAD_ONCE_INIT;
+  pthread_once(&once, _CFRunLoopCreateMain);
+  return static_mainLoop;
 }
 
 void
@@ -325,6 +393,121 @@ CFRunLoopRun (void)
     {
       code = CFRunLoopRunInMode (kCFRunLoopDefaultMode, DISTANT_FUTURE, false);
     } while (code != kCFRunLoopRunFinished || code != kCFRunLoopRunStopped);
+}
+
+static void
+CFRunLoopNotifyObservers (GSRunLoopContextRef context, CFRunLoopActivity activity)
+{
+  CFRunLoopObserverRef *observers;
+  CFIndex i, count;
+
+  count = CFSetGetCount(context->observers);
+  observers = (CFRunLoopObserverRef*) CFAllocatorAllocate(NULL,
+                                   sizeof(CFRunLoopObserverRef)*count, 0);
+  CFSetGetValues(context->observers, (const void**) observers);
+
+  for (i = 0; i < count; i++)
+    CFRetain(observers[i]);
+
+  for (i = 0; i < count; i++)
+    {
+      CFRunLoopObserverRef observer = observers[i];
+
+      if (observer->_isValid && observer->_activities & activity)
+        {
+          observer->_callback(observer, activity, observer->_context.info);
+
+          if (!observer->_repeats)
+            observer->_isValid = false;
+        }
+
+      CFRelease(observer);
+    }
+
+  CFAllocatorDeallocate(NULL, (void*) observers);
+}
+
+static Boolean
+CFRunLoopProcessTimers (CFAbsoluteTime now, GSRunLoopContextRef context)
+{
+  CFIndex i, count;
+  CFRunLoopTimerRef *timers;
+  Boolean hadTimer = false;
+
+  CFRunLoopNotifyObservers(context, kCFRunLoopBeforeTimers);
+
+  // Make a copy of timers so that we don't crash if timer's callback removes it
+  // from the set of timers.
+  count = CFArrayGetCount(context->timers);
+  timers = (CFRunLoopTimerRef*) CFAllocatorAllocate(NULL,
+                                sizeof(CFRunLoopTimerRef)*count, 0);
+
+  CFArrayGetValues(context->timers, CFRangeMake(0, count), (const void**) timers);
+
+  for (i = 0; i < count; i++)
+    CFRetain(timers[i]);
+
+  for (i = 0; i < count; i++)
+    {
+      CFRunLoopTimerRef timer = timers[i];
+
+      if (timer->_nextFireDate < now)
+        {
+          hadTimer = true;
+          timer->_callback(timer, timer->_context.info);
+        }
+
+      if (timer->_isValid)
+        {
+          // Compute the next time
+          if (timer->_interval <= 0)
+            timer->_isValid = false;
+          else
+            timer->_nextFireDate = now + timer->_interval;
+        }
+
+      CFRelease(timer);
+    }
+
+  CFAllocatorDeallocate(NULL, (void*) timers);
+  return hadTimer;
+}
+
+static Boolean
+CFRunLoopProcessSourcesVersion0 (CFAbsoluteTime now, GSRunLoopContextRef context)
+{
+  CFIndex i, count;
+  CFRunLoopSourceRef *sources;
+  Boolean hadSource = false;
+
+  // Notify observers with kCFRunLoopBeforeSources activity.
+  CFRunLoopNotifyObservers(context, kCFRunLoopBeforeSources);
+
+  count = CFSetGetCount(context->sources0);
+  sources = (CFRunLoopSourceRef*) CFAllocatorAllocate(NULL,
+                                  sizeof(CFRunLoopSourceRef)*count, 0);
+
+  CFSetGetValues(context->sources0, (const void**) sources);
+
+  for (i = 0; i < count; i++)
+    CFRetain(sources[i]);
+
+  for (i = 0; i < count; i++)
+    {
+      CFRunLoopSourceRef source = sources[i];
+
+      if (source->_isValid && source->_isSignaled)
+        {
+          hadSource = true;
+          source->_isSignaled = false;
+          source->_context.perform(source->_context.info);
+        }
+
+      CFRelease(source);
+    }
+
+  CFAllocatorDeallocate(NULL, (void*) sources);
+  return hadSource;
 }
 
 SInt32
@@ -346,31 +529,169 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
    *   - Someone calls CFRunLoopWakeUp(). 
    * 8. Notify observers with kCFRunLoopAfterWaiting activity.
    * 9. Process the pending event.
-   *   - Process timers with fire dates in the pass.
+   *   - Process timers with fire dates in the past.
    *   - If an input source fired, deliver the event.
    *   - If CFRunLoopWakeUp() was called but the run loop has not timed out,
    *     restart the loop. Go to step 2.
    * 10. Notify observers with kCFRunLoopExit activity.
    */
-  return 0;
+  CFRunLoopRef rl = CFRunLoopGetCurrent();
+  const Boolean isMainLoop = CFRunLoopGetCurrent() == CFRunLoopGetMain();
+  const CFAbsoluteTime timeStart = CFAbsoluteTimeGetCurrent();
+  CFAbsoluteTime timeNow = timeStart;
+  SInt32 exitReason = 0;
+  Boolean hadSource = false;
+  struct pollfd pfd[2];
+  int numSources = 1;
+  GSRunLoopContextRef context = GSRunLoopContextGet(rl, mode);
+
+  rl->_currentMode = mode;
+
+  pfd[0].fd = rl->_wakeUpPipe[0];
+  pfd[0].events = POLLIN;
+  pfd[0].revents = 0;
+
+#if HAVE_LIBDISPATCH
+  if (isMainLoop)
+    {
+      // integrate libdispatch
+      pfd[1].fd = dispatch_get_main_queue_eventfd_np();
+      pfd[1].events = POLLIN;
+      pfd[1].revents = 0;
+
+      numSources++;
+    }
+#endif
+
+  // Notify observers with kCFRunLoopEntry activity.
+  CFRunLoopNotifyObservers(context, kCFRunLoopEntry);
+
+  GSMutexLock (&rl->_lock);
+  hadSource |= CFRunLoopProcessTimers(timeStart, context);
+  hadSource |= CFRunLoopProcessSourcesVersion0(timeStart, context);
+  GSMutexUnlock (&rl->_lock);
+
+  if (returnAfterSourceHandled && hadSource)
+    {
+      exitReason = kCFRunLoopRunHandledSource;
+    }
+
+  timeNow = CFAbsoluteTimeGetCurrent();
+
+  while (exitReason == 0)
+    {
+      int sourcesFired, timeout;
+
+      hadSource = false;
+
+      if (seconds == 0)
+        timeout = 0; // only one pass
+      else if (seconds >= DISTANT_FUTURE)
+        timeout = -1;
+      else
+        timeout = (int) (seconds - (timeNow - timeStart) * 1000);
+
+      if (timeout != 0)
+        {
+          // Check all timers in current mode and plan the timeout accordingly.
+          CFAbsoluteTime nextTimer = CFRunLoopGetNextTimerFireDate(rl, mode);
+          if (nextTimer < DISTANT_FUTURE)
+            {
+              int delay = (int) ( (nextTimer - timeNow)*1000 );
+              if (timeout == -1 || delay < timeout)
+                timeout = delay;
+            }
+        }
+
+      if (rl->_stop)
+        {
+          exitReason = kCFRunLoopRunStopped;
+          rl->_stop = false;
+          break;
+        }
+        
+      // Notify observers with kCFRunLoopBeforeWaiting activity.
+      CFRunLoopNotifyObservers(context, kCFRunLoopBeforeWaiting);
+      rl->_isWaiting = true;
+
+      sourcesFired = poll(pfd, numSources, timeout);
+
+      rl->_isWaiting = false;
+      // Notify observers with kCFRunLoopAfterWaiting activity.
+      CFRunLoopNotifyObservers(context, kCFRunLoopAfterWaiting);
+
+      if (sourcesFired < 0) // error
+        {
+          // TODO: print explanation into the console?
+          exitReason = kCFRunLoopRunFinished;
+          break;
+        }
+      else if (sourcesFired > 0)
+        {
+          if (pfd[0].revents != 0)
+            {
+              int dummy;
+
+              // Remove everything from the notification pipe that woke us up
+              while (read(pfd[0].fd, &dummy, sizeof(dummy)) > 0);
+            }
+
+#if HAVE_LIBDISPATCH
+          if (pfd[1].revents != 0)
+            {
+              dispatch_main_queue_drain_np();
+              hadSource = true;
+            }
+#endif
+
+          GSMutexLock (&rl->_lock);
+          hadSource |= CFRunLoopProcessTimers(timeNow, context);
+          hadSource |= CFRunLoopProcessSourcesVersion0(timeNow, context);
+          GSMutexUnlock (&rl->_lock);
+        }
+
+      if (returnAfterSourceHandled && hadSource)
+        {
+          exitReason = kCFRunLoopRunHandledSource;
+          break;
+        }
+
+      timeNow = CFAbsoluteTimeGetCurrent();
+      if (CFAbsoluteTimeGetCurrent() >= timeStart+seconds)
+        {
+          exitReason = kCFRunLoopRunTimedOut;
+          break;
+        }
+    }
+
+  // Notify observers with kCFRunLoopExit activity.
+  CFRunLoopNotifyObservers(context, kCFRunLoopExit);
+  rl->_currentMode = NULL;
+
+  return exitReason;
 }
 
 void
 CFRunLoopWakeUp (CFRunLoopRef rl)
 {
-  return;
+  if (CFRunLoopIsWaiting(rl))
+    {
+      int dummy = 1;
+      write(rl->_wakeUpPipe[1], &dummy, sizeof(dummy));
+    }
 }
 
 void
 CFRunLoopStop (CFRunLoopRef rl)
 {
-  return;
+  if (rl->_currentMode != NULL)
+    rl->_stop = true;
 }
 
 Boolean
 CFRunLoopIsWaiting (CFRunLoopRef rl)
 {
-  return false;
+  return rl->_isWaiting;
 }
 
 void
@@ -424,16 +745,19 @@ CFRunLoopCopyAllModes (CFRunLoopRef rl)
 CFStringRef
 CFRunLoopCopyCurrentMode (CFRunLoopRef rl)
 {
-  return CFRetain (rl->_currentMode);
+  CFStringRef mode = rl->_currentMode;
+
+  if (mode != NULL)
+    return CFRetain (rl->_currentMode);
+  else
+    return NULL;
 }
 
-#if __BLOCKS__
 void
-CFRunLoopPerformBlock (CFRunLoopRef rl, CFTypeRef mode, void (^block)(void))
+CFRunLoopPerformBlock (CFRunLoopRef rl, CFTypeRef mode, PerformBlockType block)
 {
   return;
 }
-#endif
 
 
 
@@ -454,12 +778,19 @@ CFRunLoopAddSource_nolock (CFRunLoopRef rl, CFRunLoopSourceRef source,
                            CFStringRef mode)
 {
   GSRunLoopContextRef ctxt;
+
+  if (source->_runloop != NULL && source->_runloop != rl)
+    return; // This source is already added elsewhere
+
+  source->_runloop = rl;
   
   ctxt = GSRunLoopContextGet (rl, mode);
   if (source->_context.version == 0)
     CFSetAddValue (ctxt->sources0, source);
   else if (source->_context.version == 1)
     CFSetAddValue (ctxt->sources1, source);
+
+  CFRunLoopWakeUp(rl);
 }
 
 static void
@@ -468,6 +799,11 @@ CFRunLoopAddObserver_nolock (CFRunLoopRef rl, CFRunLoopObserverRef obs,
 {
   GSRunLoopContextRef ctxt;
   CFMutableSetRef observers;
+
+  if (obs->_runloop != NULL && obs->_runloop != rl)
+    return; // This observer is already added elsewhere
+
+  obs->_runloop = rl;
   
   ctxt = GSRunLoopContextGet (rl, mode);
   observers = ctxt->observers;
@@ -480,12 +816,20 @@ CFRunLoopAddTimer_nolock (CFRunLoopRef rl, CFRunLoopTimerRef timer,
 {
   GSRunLoopContextRef ctxt;
   CFRange range;
+
+  if (timer->_runloop != NULL && timer->_runloop != rl)
+    return; // This timer is already added elsewhere
+
+  timer->_runloop = rl;
   
   ctxt = GSRunLoopContextGet (rl, mode);
   /* Only add the timer if one doesn't exist */
   range = CFRangeMake (0, CFArrayGetCount (ctxt->timers));
   if (CFArrayContainsValue (ctxt->timers, range, timer) == false)
     CFArrayAppendValue (ctxt->timers, timer);
+
+  // Wake up the runloop so that it can recalculate the next timer date
+  CFRunLoopWakeUp(rl);
 }
 
 
@@ -512,9 +856,9 @@ CFRunLoopContainsObserver_nolock (CFRunLoopRef rl, CFRunLoopObserverRef obs,
   Boolean ret;
   GSRunLoopContextRef ctxt;
   
-  GSMutexLock (&rl->_lock);
   ctxt = GSRunLoopContextGet (rl, mode);
   ret = CFSetContainsValue (ctxt->observers, obs);
+
   return ret;
 }
 
@@ -540,7 +884,6 @@ CFRunLoopRemoveSource_nolock (CFRunLoopRef rl, CFRunLoopSourceRef source,
 {
   GSRunLoopContextRef ctxt;
   
-  GSMutexLock (&rl->_lock);
   ctxt = GSRunLoopContextGet (rl, mode);
   if (source->_context.version == 0)
     CFSetRemoveValue (ctxt->sources0, source);
@@ -554,7 +897,6 @@ CFRunLoopRemoveObserver_nolock (CFRunLoopRef rl, CFRunLoopObserverRef obs,
 {
   GSRunLoopContextRef ctxt;
   
-  GSMutexLock (&rl->_lock);
   ctxt = GSRunLoopContextGet (rl, mode);
   CFSetRemoveValue (ctxt->observers, obs);
 }
@@ -926,7 +1268,7 @@ CFRunLoopObserverGetOrder (CFRunLoopObserverRef observer)
 void
 CFRunLoopObserverInvalidate (CFRunLoopObserverRef observer)
 {
-  return;
+  observer->_isValid = false;
 }
 
 Boolean
@@ -940,7 +1282,24 @@ CFRunLoopObserverIsValid (CFRunLoopObserverRef observer)
 CFAbsoluteTime
 CFRunLoopGetNextTimerFireDate (CFRunLoopRef rl, CFStringRef mode)
 {
-  return 0.0;
+  CFAbsoluteTime rv = DISTANT_FUTURE;
+  CFIndex i, count;
+  GSRunLoopContextRef context = GSRunLoopContextGet(rl, mode);
+  
+  count = CFArrayGetCount(context->timers);
+
+  for (i = 0; i < count; i++)
+    {
+      CFRunLoopTimerRef timer = (CFRunLoopTimerRef) CFArrayGetValueAtIndex(context->timers, i);
+
+      if (timer->_isValid)
+        {
+          if (timer->_nextFireDate < rv)
+            rv = timer->_nextFireDate;
+        }
+    }
+
+  return rv;
 }
 
 #define CFRUNLOOPTIMER_SIZE \
@@ -1033,7 +1392,7 @@ CFRunLoopTimerInvalidate (CFRunLoopTimerRef timer)
   CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, void, timer,
                         "invalidate");
   
-  
+  timer->_isValid = false;
 }
 
 Boolean
@@ -1053,6 +1412,8 @@ CFRunLoopTimerSetNextFireDate (CFRunLoopTimerRef timer,
   CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTimerTypeID, void, timer,
                         "_cfSetNextFireDate:", fireDate);
   
-  return;
+  timer->_nextFireDate = fireDate;
+  // Wake up the runloop so that it can recalculate the next timer date
+  CFRunLoopWakeUp(timer->_runloop);
 }
 
