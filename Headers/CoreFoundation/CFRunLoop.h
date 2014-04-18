@@ -31,6 +31,7 @@
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFError.h>
+#include <GNUstepBase/GSBlocks.h>
 
 CF_EXTERN_C_BEGIN
 
@@ -197,11 +198,11 @@ CFRunLoopCopyCurrentMode (CFRunLoopRef rl);
 /*
  * Scheduling Blocks
  */
-#if __BLOCKS__
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+DEFINE_BLOCK_TYPE_NO_ARGS(PerformBlockType, void);
+
 CF_EXPORT void
-CFRunLoopPerformBlock (CFRunLoopRef rl, CFTypeRef mode, void (^block)(void));
-#endif
+CFRunLoopPerformBlock (CFRunLoopRef rl, CFTypeRef mode, PerformBlockType block);
 #endif
 
 /*

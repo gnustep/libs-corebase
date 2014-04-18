@@ -64,6 +64,7 @@ struct GSRunLoopContext
   CFMutableSetRef observers;
   CFMutableSetRef sources0;
   CFMutableSetRef sources1; /* This is only a place holder for now. */
+  CFMutableArrayRef blocks;
 };
 
 struct __CFRunLoop
@@ -125,6 +126,26 @@ GSRunLoopContextFinalize (GSRunLoopContextRef ctxt);
 
 static void
 GSRunLoopContextDeallocFunc (const void *key, const void *value, void *ctxt);
+
+static const void *
+BlockRetainCallback(CFAllocatorRef allocator, const void *value)
+{
+  return (const void *) _Block_copy((void *) value);
+}
+
+static void
+BlockReleaseCallback(CFAllocatorRef allocator, const void *value)
+{
+  _Block_release((void *) value);
+}
+
+static const CFArrayCallBacks _kBlockArrayCallbacks = {
+  .version = 0,
+  .retain = BlockRetainCallback,
+  .release = BlockReleaseCallback,
+  .copyDescription = NULL,
+  .equal = NULL
+};
 
 static void
 CFRunLoopFinalize (CFTypeRef cf)
@@ -263,6 +284,7 @@ GSRunLoopContextNew (CFAllocatorRef alloc)
       new->observers = CFSetCreateMutable (alloc, 0, &kCFTypeSetCallBacks);
       new->sources0 = CFSetCreateMutable (alloc, 0, &kCFTypeSetCallBacks);
       new->sources1 = CFSetCreateMutable (alloc, 0, &kCFTypeSetCallBacks);
+      new->blocks = CFArrayCreateMutable (alloc, 0, &_kBlockArrayCallbacks);
     }
   
   return new;
@@ -275,6 +297,7 @@ GSRunLoopContextFinalize (GSRunLoopContextRef ctxt)
   CFRelease (ctxt->observers);
   CFRelease (ctxt->sources0);
   CFRelease (ctxt->sources1);
+  CFRelease (ctxt->blocks);
 }
 
 static void
@@ -396,15 +419,17 @@ CFRunLoopRun (void)
 }
 
 static void
-CFRunLoopNotifyObservers (GSRunLoopContextRef context, CFRunLoopActivity activity)
+CFRunLoopNotifyObservers (CFRunLoopRef rl, GSRunLoopContextRef context, CFRunLoopActivity activity)
 {
   CFRunLoopObserverRef *observers;
   CFIndex i, count;
 
+  GSMutexLock (&rl->_lock);
   count = CFSetGetCount(context->observers);
   observers = (CFRunLoopObserverRef*) CFAllocatorAllocate(NULL,
                                    sizeof(CFRunLoopObserverRef)*count, 0);
   CFSetGetValues(context->observers, (const void**) observers);
+  GSMutexUnlock (&rl->_lock);
 
   for (i = 0; i < count; i++)
     CFRetain(observers[i]);
@@ -428,21 +453,23 @@ CFRunLoopNotifyObservers (GSRunLoopContextRef context, CFRunLoopActivity activit
 }
 
 static Boolean
-CFRunLoopProcessTimers (CFAbsoluteTime now, GSRunLoopContextRef context)
+CFRunLoopProcessTimers (CFRunLoopRef rl, CFAbsoluteTime now, GSRunLoopContextRef context)
 {
   CFIndex i, count;
   CFRunLoopTimerRef *timers;
   Boolean hadTimer = false;
 
-  CFRunLoopNotifyObservers(context, kCFRunLoopBeforeTimers);
+  CFRunLoopNotifyObservers(rl, context, kCFRunLoopBeforeTimers);
 
-  // Make a copy of timers so that we don't crash if timer's callback removes it
-  // from the set of timers.
+  GSMutexLock (&rl->_lock);
+  // Make a copy of timers so that we don't hold the mutex when using the callback
+  // and cause a deadlock.
   count = CFArrayGetCount(context->timers);
   timers = (CFRunLoopTimerRef*) CFAllocatorAllocate(NULL,
                                 sizeof(CFRunLoopTimerRef)*count, 0);
 
   CFArrayGetValues(context->timers, CFRangeMake(0, count), (const void**) timers);
+  GSMutexUnlock (&rl->_lock);
 
   for (i = 0; i < count; i++)
     CFRetain(timers[i]);
@@ -474,20 +501,22 @@ CFRunLoopProcessTimers (CFAbsoluteTime now, GSRunLoopContextRef context)
 }
 
 static Boolean
-CFRunLoopProcessSourcesVersion0 (CFAbsoluteTime now, GSRunLoopContextRef context)
+CFRunLoopProcessSourcesVersion0 (CFRunLoopRef rl, CFAbsoluteTime now, GSRunLoopContextRef context)
 {
   CFIndex i, count;
   CFRunLoopSourceRef *sources;
   Boolean hadSource = false;
 
   // Notify observers with kCFRunLoopBeforeSources activity.
-  CFRunLoopNotifyObservers(context, kCFRunLoopBeforeSources);
+  CFRunLoopNotifyObservers(rl, context, kCFRunLoopBeforeSources);
 
+  GSMutexLock (&rl->_lock);
   count = CFSetGetCount(context->sources0);
   sources = (CFRunLoopSourceRef*) CFAllocatorAllocate(NULL,
                                   sizeof(CFRunLoopSourceRef)*count, 0);
 
   CFSetGetValues(context->sources0, (const void**) sources);
+  GSMutexUnlock (&rl->_lock);
 
   for (i = 0; i < count; i++)
     CFRetain(sources[i]);
@@ -507,7 +536,65 @@ CFRunLoopProcessSourcesVersion0 (CFAbsoluteTime now, GSRunLoopContextRef context
     }
 
   CFAllocatorDeallocate(NULL, (void*) sources);
+
   return hadSource;
+}
+
+static void
+CFRunLoopPerformBlocks (GSRunLoopContextRef context)
+{
+  CFIndex i, count;
+
+  count = CFArrayGetCount(context->blocks);
+
+  for (i = 0; i < count; i++)
+    {
+      PerformBlockType block = (PerformBlockType)
+                               CFArrayGetValueAtIndex(context->blocks, i);
+      CALL_BLOCK_NO_ARGS(block);
+    }
+
+  CFArrayRemoveAllValues(context->blocks);
+}
+
+static void
+CFRunLoopHasAnyValidSources_SourceApplier(const void *value, void *context)
+{
+  CFRunLoopSourceRef source = (CFRunLoopSourceRef) value;
+  Boolean* hasSource = (Boolean*) context;
+  
+  if (source->_isValid)
+    *hasSource = true;
+}
+
+static void
+CFRunLoopHasAnyValidSources_TimerApplier(const void *value, void *context)
+{
+  CFRunLoopTimerRef timer = (CFRunLoopTimerRef) value;
+  Boolean* hasSource = (Boolean*) context;
+  
+  if (timer->_isValid)
+    *hasSource = true;
+}
+
+static Boolean
+CFRunLoopHasAnyValidSources (CFRunLoopRef rl, GSRunLoopContextRef context)
+{
+  Boolean hasSource = false;
+  
+  GSMutexLock (&rl->_lock);
+  CFSetApplyFunction(context->sources0, CFRunLoopHasAnyValidSources_SourceApplier,
+                       &hasSource);
+  
+  if (!hasSource)
+    {
+      CFArrayApplyFunction(context->timers, CFRangeMake(0, CFArrayGetCount(context->timers)),
+                           CFRunLoopHasAnyValidSources_TimerApplier,
+                           &hasSource);
+    }
+  GSMutexUnlock (&rl->_lock);
+  
+  return hasSource;
 }
 
 SInt32
@@ -564,11 +651,10 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
 #endif
 
   // Notify observers with kCFRunLoopEntry activity.
-  CFRunLoopNotifyObservers(context, kCFRunLoopEntry);
+  CFRunLoopNotifyObservers(rl, context, kCFRunLoopEntry);
 
-  GSMutexLock (&rl->_lock);
-  hadSource |= CFRunLoopProcessTimers(timeStart, context);
-  hadSource |= CFRunLoopProcessSourcesVersion0(timeStart, context);
+  hadSource |= CFRunLoopProcessTimers(rl, timeStart, context);
+  hadSource |= CFRunLoopProcessSourcesVersion0(rl, timeStart, context);
   GSMutexUnlock (&rl->_lock);
 
   if (returnAfterSourceHandled && hadSource)
@@ -584,12 +670,25 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
 
       hadSource = false;
 
-      if (seconds == 0)
-        timeout = 0; // only one pass
-      else if (seconds >= DISTANT_FUTURE)
-        timeout = -1;
+      if (!returnAfterSourceHandled)
+        {
+          if (seconds == 0)
+            timeout = 0; // only one pass
+          else if (seconds >= DISTANT_FUTURE)
+            timeout = -1;
+          else
+            timeout = (int) ((seconds - (timeNow - timeStart)) * 1000);
+        }
       else
-        timeout = (int) (seconds - (timeNow - timeStart) * 1000);
+        {
+          timeout = -1;
+        }
+        
+      if (!CFRunLoopHasAnyValidSources(rl, context))
+        {
+          exitReason = kCFRunLoopRunFinished;
+          break;
+        }
 
       if (timeout != 0)
         {
@@ -600,6 +699,8 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
               int delay = (int) ( (nextTimer - timeNow)*1000 );
               if (timeout == -1 || delay < timeout)
                 timeout = delay;
+              if (timeout < 0)
+                timeout = 0;
             }
         }
 
@@ -609,16 +710,20 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
           rl->_stop = false;
           break;
         }
+
+      GSMutexLock (&rl->_lock);
+      CFRunLoopPerformBlocks(context);
+      GSMutexUnlock (&rl->_lock);
         
       // Notify observers with kCFRunLoopBeforeWaiting activity.
-      CFRunLoopNotifyObservers(context, kCFRunLoopBeforeWaiting);
+      CFRunLoopNotifyObservers(rl, context, kCFRunLoopBeforeWaiting);
       rl->_isWaiting = true;
 
       sourcesFired = poll(pfd, numSources, timeout);
 
       rl->_isWaiting = false;
       // Notify observers with kCFRunLoopAfterWaiting activity.
-      CFRunLoopNotifyObservers(context, kCFRunLoopAfterWaiting);
+      CFRunLoopNotifyObservers(rl, context, kCFRunLoopAfterWaiting);
 
       if (sourcesFired < 0) // error
         {
@@ -644,10 +749,8 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
             }
 #endif
 
-          GSMutexLock (&rl->_lock);
-          hadSource |= CFRunLoopProcessTimers(timeNow, context);
-          hadSource |= CFRunLoopProcessSourcesVersion0(timeNow, context);
-          GSMutexUnlock (&rl->_lock);
+          hadSource |= CFRunLoopProcessTimers(rl, timeNow, context);
+          hadSource |= CFRunLoopProcessSourcesVersion0(rl, timeNow, context);
         }
 
       if (returnAfterSourceHandled && hadSource)
@@ -665,7 +768,7 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
     }
 
   // Notify observers with kCFRunLoopExit activity.
-  CFRunLoopNotifyObservers(context, kCFRunLoopExit);
+  CFRunLoopNotifyObservers(rl, context, kCFRunLoopExit);
   rl->_currentMode = NULL;
 
   return exitReason;
@@ -753,10 +856,39 @@ CFRunLoopCopyCurrentMode (CFRunLoopRef rl)
     return NULL;
 }
 
+static void
+CFRunLoopPerformBlock_nolock (CFRunLoopRef rl, CFTypeRef mode,
+                              PerformBlockType block)
+{
+  if (CFGetTypeID(mode) == CFStringGetTypeID())
+    {
+      GSRunLoopContextRef ctxt;
+
+      ctxt = GSRunLoopContextGet (rl, mode);
+      CFArrayAppendValue(ctxt->blocks, block);
+    }
+  else if (CFGetTypeID(mode) == CFArrayGetTypeID())
+    {
+      CFIndex i, count;
+      CFArrayRef array = (CFArrayRef) mode;
+      
+      count = CFArrayGetCount(array);
+
+      for (i = 0; i < count; i++)
+        {
+          CFTypeRef m = CFArrayGetValueAtIndex(array, i);
+          
+          CFRunLoopPerformBlock_nolock(rl, m, block);
+        }
+    }
+}
+
 void
 CFRunLoopPerformBlock (CFRunLoopRef rl, CFTypeRef mode, PerformBlockType block)
 {
-  return;
+  GSMutexLock (&rl->_lock);
+  CFRunLoopPerformBlock_nolock(rl, mode, block);
+  GSMutexUnlock (&rl->_lock);
 }
 
 
@@ -1154,6 +1286,7 @@ CFRunLoopSourceCreate (CFAllocatorRef  alloc, CFIndex order,
   if (new)
     {
       GSMutexInitialize (&(new->_lock));
+      new->_isValid = true;
       new->_order = order;
       if (context)
         {
@@ -1190,7 +1323,7 @@ CFRunLoopSourceGetOrder (CFRunLoopSourceRef source)
 void
 CFRunLoopSourceInvalidate (CFRunLoopSourceRef source)
 {
-  return;
+  source->_isValid = false;
 }
 
 Boolean
@@ -1202,7 +1335,8 @@ CFRunLoopSourceIsValid (CFRunLoopSourceRef source)
 void
 CFRunLoopSourceSignal (CFRunLoopSourceRef source)
 {
-  return;
+  source->_isSignaled = true;
+  CFRunLoopWakeUp(source->_runloop);
 }
 
 
@@ -1320,6 +1454,7 @@ CFRunLoopTimerCreate (CFAllocatorRef  alloc, CFAbsoluteTime fireDate,
   if (new)
     {
       GSMutexInitialize (&(new->_lock));
+      new->_isValid = true;
       new->_nextFireDate = fireDate;
       new->_interval = interval;
       /* 'flags' is ignored */

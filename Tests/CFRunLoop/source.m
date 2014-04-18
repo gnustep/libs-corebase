@@ -1,13 +1,19 @@
 #include <CoreFoundation/CFRunLoop.h>
 
 #include "../CFTesting.h"
+#include <pthread.h>
+#include <unistd.h>
+
+CFRunLoopSourceRef rls1 = NULL;
+CFRunLoopSourceRef rls2 = NULL;
+pthread_t thread2 = 0;
 
 void perform1 (void *info)
 {
   SInt32 ret;
   CFIndex *i = (CFIndex*)info;
-  ret = CFRunLoopRunInMode (CFSTR("another_mode"), 0.0, true);
-  PASS_CF(ret == kCFRunLoopRunFinished, "Run loop run in 'another_mode' returned"
+  ret = CFRunLoopRunInMode (CFSTR("another_mode"), 3.0, false);
+  PASS_CF(ret == kCFRunLoopRunTimedOut, "Run loop run in 'another_mode' returned"
        " '%d'", ret);
   (*i)++;
 }
@@ -18,13 +24,34 @@ void perform2 (void *info)
   (*i)++;
 }
 
+void* delay_signal(void* arg)
+{
+	//CFRunLoopSourceRef src = (CFRunLoopSourceRef) arg;
+	int i;
+	
+	for (i = 0; i < 2; i++)
+	{
+		sleep(1);
+	
+		printf("Signalling!\n");
+		CFRunLoopSourceSignal(rls1);
+		CFRunLoopSourceSignal(rls2);
+	}
+	
+	return NULL;
+}
 
+void schedule2 (void* info, CFRunLoopRef rl, CFStringRef mode)
+{
+	if (!thread2)
+	{
+		pthread_create(&thread2, NULL, delay_signal, rls2);
+	}
+}
 
 int main (void)
 {
   CFRunLoopRef rl;
-  CFRunLoopSourceRef rls1;
-  CFRunLoopSourceRef rls2;
   CFIndex i1 = 0;
   CFIndex i2 = 0;
   CFRunLoopSourceContext c1 = { 0 };
@@ -35,8 +62,10 @@ int main (void)
   PASS_CF(rl != NULL, "Got main run loop.");
   
   c1.info = &i1;
+  // c1.schedule = schedule1;
   c1.perform = perform1;
   c2.info = &i2;
+  c2.schedule = schedule2;
   c2.perform = perform2;
   rls1 = CFRunLoopSourceCreate (NULL, 0, &c1);
   PASS_CF(rls1 != NULL, "First run loop source create.");
@@ -55,8 +84,11 @@ int main (void)
   
   CFRunLoopRemoveSource (rl, rls2, CFSTR("another_mode"));
   CFRunLoopSourceInvalidate (rls2);
+  CFRunLoopSourceInvalidate (rls1);
   
   ret = CFRunLoopRunInMode (kCFRunLoopDefaultMode, 0.0, true);
+  PASS_CF(ret == kCFRunLoopRunFinished, "Run loop handled sources.  Exit"
+          " code '%d'.", ret);
   
   CFRelease (rls1);
   CFRelease (rls2);
