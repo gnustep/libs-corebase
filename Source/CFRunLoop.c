@@ -37,6 +37,7 @@
 #	include <unistd.h>
 #	include <fcntl.h>
 #	include <poll.h>
+#	include <limits.h>
 #endif
 #ifdef HAVE_LIBDISPATCH
 #	include <dispatch/dispatch.h>
@@ -363,6 +364,8 @@ CFRunLoopCreate (void)
                                         0, &kCFTypeDictionaryKeyCallBacks,
                                         NULL);
 
+  CFSetAddValue(rl->_commonModes, kCFRunLoopDefaultMode);
+  
   pipe(rl->_wakeUpPipe);
   fcntl(rl->_wakeUpPipe[0], F_SETFL, O_NONBLOCK);
   fcntl(rl->_wakeUpPipe[1], F_SETFL, O_NONBLOCK);
@@ -415,7 +418,7 @@ CFRunLoopRun (void)
   do
     {
       code = CFRunLoopRunInMode (kCFRunLoopDefaultMode, DISTANT_FUTURE, false);
-    } while (code != kCFRunLoopRunFinished || code != kCFRunLoopRunStopped);
+    } while (code != kCFRunLoopRunFinished && code != kCFRunLoopRunStopped);
 }
 
 static void
@@ -477,15 +480,12 @@ CFRunLoopProcessTimers (CFRunLoopRef rl, CFAbsoluteTime now, GSRunLoopContextRef
   for (i = 0; i < count; i++)
     {
       CFRunLoopTimerRef timer = timers[i];
-
-      if (timer->_nextFireDate < now)
+      
+      if (timer->_isValid && (timer->_nextFireDate < now || fabs(now - timer->_nextFireDate) < 0.001))
         {
           hadTimer = true;
           timer->_callback(timer, timer->_context.info);
-        }
 
-      if (timer->_isValid)
-        {
           // Compute the next time
           if (timer->_interval <= 0)
             timer->_isValid = false;
@@ -697,6 +697,7 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
           if (nextTimer < DISTANT_FUTURE)
             {
               int delay = (int) ( (nextTimer - timeNow)*1000 );
+              // printf("(%f-%f)*1000=%d\n", nextTimer, timeNow, delay);
               if (timeout == -1 || delay < timeout)
                 timeout = delay;
               if (timeout < 0)
@@ -719,6 +720,7 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
       CFRunLoopNotifyObservers(rl, context, kCFRunLoopBeforeWaiting);
       rl->_isWaiting = true;
 
+      // printf("poll: %d ms\n", timeout);
       sourcesFired = poll(pfd, numSources, timeout);
 
       rl->_isWaiting = false;
@@ -736,6 +738,7 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
           if (pfd[0].revents != 0)
             {
               int dummy;
+              // printf("loop woken up!\n");
 
               // Remove everything from the notification pipe that woke us up
               while (read(pfd[0].fd, &dummy, sizeof(dummy)) > 0);
@@ -749,9 +752,10 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
             }
 #endif
 
-          hadSource |= CFRunLoopProcessTimers(rl, timeNow, context);
-          hadSource |= CFRunLoopProcessSourcesVersion0(rl, timeNow, context);
         }
+        
+      hadSource |= CFRunLoopProcessTimers(rl, timeNow, context);
+      hadSource |= CFRunLoopProcessSourcesVersion0(rl, timeNow, context);
 
       if (returnAfterSourceHandled && hadSource)
         {
@@ -1421,11 +1425,13 @@ CFRunLoopGetNextTimerFireDate (CFRunLoopRef rl, CFStringRef mode)
   GSRunLoopContextRef context = GSRunLoopContextGet(rl, mode);
   
   count = CFArrayGetCount(context->timers);
+  // printf("Current time: %f\n", CFAbsoluteTimeGetCurrent());
 
   for (i = 0; i < count; i++)
     {
       CFRunLoopTimerRef timer = (CFRunLoopTimerRef) CFArrayGetValueAtIndex(context->timers, i);
 
+      // printf("Timer %p valid:%d nextFireDate:%f\n", timer, timer->_isValid, timer->_nextFireDate);
       if (timer->_isValid)
         {
           if (timer->_nextFireDate < rv)

@@ -1,3 +1,7 @@
+2014-04-20 Lubos Dolezel <lubos@dolezel.info>
+	* Source/CFRunLoop.c,
+	  Tests/CFRunLoop/timers.m: CFRunLoop timer fixes and tests
+
 2014-04-18 Lubos Dolezel <lubos@dolezel.info>
 	* Source/CFRunLoop.c,
 	  Tests/CFRunLoop/source.m: CFRunLoop impl that passes the test
