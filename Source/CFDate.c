@@ -120,6 +120,9 @@ CFDateCreate (CFAllocatorRef allocator, CFAbsoluteTime at)
 CFAbsoluteTime
 CFDateGetAbsoluteTime (CFDateRef theDate)
 {
+  CF_OBJC_FUNCDISPATCHV(_kCFDateTypeID, CFAbsoluteTime, theDate,
+    "timeIntervalSinceReferenceDate");
+  
   return theDate->_absTime;
 }
 
