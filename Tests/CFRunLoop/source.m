@@ -92,7 +92,6 @@ int main (void)
   
   CFRelease (rls1);
   CFRelease (rls2);
-  CFRelease (rl);
   
   return 0;
 }

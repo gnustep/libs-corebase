@@ -1,5 +1,14 @@
 2014-05-06 Lubos Dolezel <lubos@dolezel.info>
-	* Source/NSCFDate.m,
+	* Source/CFRunLoop.c,
+	  Headers/CoreFoundation/CFRunLoop.h: CFRunLoop improvements & fixes
+	* Source/CFArray.c: Fixes
+	* Source/CFSocket.c: CFSocket integration with CFRunLoop
+	* Source/config.h.in,
+	  configure,
+	  configure.ac: libdispatch detection
+	* Source/GNUmakefile.in,
+	  Source/NSCFType.m,
+	  Source/NSCFDate.m,
 	  Source/CFDate.c: CFDateRef toll-free bridging
 
 2014-04-20 Lubos Dolezel <lubos@dolezel.info>

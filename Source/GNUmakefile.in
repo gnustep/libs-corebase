@@ -100,6 +100,7 @@ libgnustep-corebase_OBJC_FILES = \
   NSCFTimeZone.m \
   NSCFInputStream.m \
   NSCFOutputStream.m \
+  NSCFDate.m \
   NSCFType.m
 
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += @LIBS@

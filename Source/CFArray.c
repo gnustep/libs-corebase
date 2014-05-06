@@ -348,7 +348,7 @@ CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range, const void *value)
   equal = array->_callBacks->equal;
   if (equal)
     {
-      while (idx <= end)
+      while (idx < end)
         {
           if (equal (value, contents[idx]))
             break;
@@ -357,14 +357,14 @@ CFArrayGetFirstIndexOfValue (CFArrayRef array, CFRange range, const void *value)
     }
   else
     {
-      while (idx <= end)
+      while (idx < end)
         {
           if (value == contents[idx])
             break;
           idx++;
         }
     }
-  if (idx > end)
+  if (idx >= end)
     idx = -1;
 
   return idx;

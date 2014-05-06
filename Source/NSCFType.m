@@ -66,6 +66,7 @@ void NSCFInitialize (void)
       CFRuntimeBridgeClass (CFTimeZoneGetTypeID(), "NSCFTimeZone");
       CFRuntimeBridgeClass (CFReadStreamGetTypeID(), "NSCFInputStream");
       CFRuntimeBridgeClass (CFWriteStreamGetTypeID(), "NSCFOutputStream");
+      CFRuntimeBridgeClass (CFDateGetTypeID(), "NSCFDate");
       
       GSRuntimeInitializeConstants ();
     }

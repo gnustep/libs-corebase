@@ -63,6 +63,13 @@ enum
 CF_EXPORT const CFStringRef kCFRunLoopCommonModes;
 CF_EXPORT const CFStringRef kCFRunLoopDefaultMode;
 
+#ifndef __APPLE__ 
+/* On non-Darwin platforms, we assume ports to be ordinary pollable
+ * file descriptors
+ */
+typedef int mach_port_t;
+#endif
+
 /*
  * Callbacks
  */
@@ -71,12 +78,12 @@ typedef void (*CFRunLoopCancelCallBack) (void *info, CFRunLoopRef rl,
 typedef Boolean (*CFRunLoopEqualCallBack) (const void *info1,
                                            const void *info2);
 typedef CFHashCode (*CFRunLoopHashCallBack) (const void *info);
-#if 0 /* No mach_port_t support */
+
 typedef mach_port_t (*CFRunLoopGetPortCallBack) (void *info);
 typedef void *(*CFRunLoopMachPerformCallBack) (void *msg, CFIndex size,
                                                CFAllocatorRef  alloc,
                                                void *info);
-#endif
+
 typedef void (*CFRunLoopPerformCallBack) (void *info);
 typedef void (*CFRunLoopScheduleCallBack) (void *info, CFRunLoopRef rl,
                                            CFStringRef mode);
@@ -102,7 +109,6 @@ struct CFRunLoopSourceContext
   CFRunLoopPerformCallBack perform;
 };
 
-#if 0 /* No mach_port_t support */
 typedef struct CFRunLoopSourceContext1 CFRunLoopSourceContext1;
 struct CFRunLoopSourceContext1
 {
@@ -116,7 +122,6 @@ struct CFRunLoopSourceContext1
   CFRunLoopGetPortCallBack getPort;
   CFRunLoopMachPerformCallBack perform;
 };
-#endif
 
 typedef struct CFRunLoopObserverContext CFRunLoopObserverContext;
 struct CFRunLoopObserverContext
@@ -330,6 +335,12 @@ CFRunLoopTimerIsValid (CFRunLoopTimerRef timer);
 CF_EXPORT void
 CFRunLoopTimerSetNextFireDate (CFRunLoopTimerRef timer,
                                 CFAbsoluteTime fireDate);
+
+/*
+ * Extensions for NSRunLoop
+ */
+CF_EXPORT Boolean
+_CFRunLoopHasAnyValidSources (CFRunLoopRef rl, CFStringRef mode);
 
 CF_EXTERN_C_END
 

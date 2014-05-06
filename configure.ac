@@ -102,6 +102,23 @@ AC_DEFINE([HAVE_ICU], [1],
 GS_CHECK_ICU([4.0])
 
 #---
+# Check for Grand Central Dispatch (libdispatch)
+#---
+AC_ARG_ENABLE([gcd],
+  [AS_HELP_STRING([--disable-gcd],
+    [Disables Grand Central Dispatch support. Leads to a loss of functionality.])])
+AS_IF([test "x$enable_gcd" != "no"],
+      [LIBS="$LIBS -ldispatch"
+            AC_DEFINE(HAVE_LIBDISPATCH, 1)]
+            [AC_CHECK_HEADER(dispatch/dispatch.h)
+            AS_IF([test "$ac_cv_header_dispatch_dispatch_h" = "no"],
+                  [AC_MSG_ERROR([Could not find the Grand Central Dispatch header. Use --disable-gcd to disable GCD support or install libdispatch.])
+            ])
+            AC_CHECK_LIB(dispatch, dispatch_get_main_queue_eventfd_np)
+            AS_IF([test "$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" = "no"],
+                  [AC_MSG_ERROR([Compatible libdispatch not found for GCD support! Use --disable-gcd to disable GCD support or install GCD.])])])
+
+#---
 # Check for the Objective-C runtime
 #---
 AC_ARG_ENABLE([objc-bridge],
