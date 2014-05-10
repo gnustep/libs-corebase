@@ -4165,10 +4165,12 @@ $as_echo "#define HAVE_ICU 1" >>confdefs.h
 #---
 # Check whether --enable-gcd was given.
 if test "${enable_gcd+set}" = set; then :
-  enableval=$enable_gcd;
+  enableval=$enable_gcd; enable_gcd=$enableval
+else
+  enable_gcd=yes
 fi
 
-if test "x$enable_gcd" != "no"; then :
+if test "$enable_gcd" = "yes"; then :
   LIBS="$LIBS -ldispatch"
             $as_echo "#define HAVE_LIBDISPATCH 1" >>confdefs.h
 

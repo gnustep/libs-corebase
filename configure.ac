@@ -106,8 +106,9 @@ GS_CHECK_ICU([4.0])
 #---
 AC_ARG_ENABLE([gcd],
   [AS_HELP_STRING([--disable-gcd],
-    [Disables Grand Central Dispatch support. Leads to a loss of functionality.])])
-AS_IF([test "x$enable_gcd" != "no"],
+    [Disables Grand Central Dispatch support. Leads to a loss of functionality.])],
+  [enable_gcd=$enableval], [enable_gcd=yes])
+AS_IF([test "$enable_gcd" = "yes"],
       [LIBS="$LIBS -ldispatch"
             AC_DEFINE(HAVE_LIBDISPATCH, 1)]
             [AC_CHECK_HEADER(dispatch/dispatch.h)
