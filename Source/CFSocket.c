@@ -83,6 +83,7 @@ struct __CFSocket
   CFDataRef        _peerAddress;
   Boolean          _isConnected;
   Boolean          _isListening;
+  CFRunLoopSourceRef _source;
 #if HAVE_LIBDISPATCH
   dispatch_source_t  _readSource;
   Boolean            _readFired;
@@ -90,7 +91,6 @@ struct __CFSocket
   dispatch_source_t  _writeSource;
   Boolean            _writeFired;
   Boolean            _writeResumed;
-  CFRunLoopSourceRef _source;
 #endif
 };
 

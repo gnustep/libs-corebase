@@ -42,32 +42,32 @@ AC_CACHE_CHECK([for data model],
 AC_DEFINE_UNQUOTED([DATA_MODEL], [DATA_MODEL_$gs_cv_c_data_model], [Define to the architecture's data model.])
 ]) # GS_CHECK_DATA_MODEL
 GS_CHECK_DATA_MODEL
-AC_SUBST([GS_INT8_T], ["char"])
+AC_SUBST([GS_SINT8_T], ["signed char"])
 AC_SUBST([GS_UINT8_T], ["unsigned char"])
-AC_SUBST([GS_INT16_T], ["short"])
+AC_SUBST([GS_SINT16_T], ["signed short"])
 AC_SUBST([GS_UINT16_T], ["unsigned short"])
-AC_SUBST([GS_INT64_T], ["long long"])
+AC_SUBST([GS_SINT64_T], ["signed long long"])
 AC_SUBST([GS_UINT64_T], ["unsigned long long"])
 AS_CASE([$gs_cv_c_data_model],
-        [IP16], [AC_SUBST([GS_INT32_T], ["long"])
+        [IP16], [AC_SUBST([GS_SINT32_T], ["signed long"])
                 AC_SUBST([GS_UINT32_T], ["unsigned long"])
-                AC_SUBST([GS_INTPTR_T], ["int"])
+                AC_SUBST([GS_SINTPTR_T], ["signed int"])
                 AC_SUBST([GS_UINTPTR_T], ["unsigned int"])],
-        [LP32], [AC_SUBST([GS_INT32_T], ["long"])
+        [LP32], [AC_SUBST([GS_SINT32_T], ["signed long"])
                 AC_SUBST([GS_UINT32_T], ["unsigned long"])
-                AC_SUBST([GS_INTPTR_T], ["long"])
+                AC_SUBST([GS_SINTPTR_T], ["signed long"])
                 AC_SUBST([GS_UINTPTR_T], ["unsigned long"])],
-        [ILP32], [AC_SUBST([GS_INT32_T], ["int"])
+        [ILP32], [AC_SUBST([GS_SINT32_T], ["signed int"])
                  AC_SUBST([GS_UINT32_T], ["unsigned int"])
-                 AC_SUBST([GS_INTPTR_T], ["int"])
+                 AC_SUBST([GS_SINTPTR_T], ["signed int"])
                  AC_SUBST([GS_UINTPTR_T], ["unsigned int"])],
-        [LLP64], [AC_SUBST([GS_INT32_T], ["int"])
+        [LLP64], [AC_SUBST([GS_SINT32_T], ["signed int"])
                  AC_SUBST([GS_UINT32_T], ["unsigned int"])
-                 AC_SUBST([GS_INTPTR_T], ["long long"])
+                 AC_SUBST([GS_SINTPTR_T], ["signed long long"])
                  AC_SUBST([GS_UINTPTR_T], ["unsigned long long"])],
-        [LP64], [AC_SUBST([GS_INT32_T], ["int"])
+        [LP64], [AC_SUBST([GS_SINT32_T], ["signed int"])
                  AC_SUBST([GS_UINT32_T], ["unsigned int"])
-                 AC_SUBST([GS_INTPTR_T], ["long"])
+                 AC_SUBST([GS_SINTPTR_T], ["signed long"])
                  AC_SUBST([GS_UINTPTR_T], ["unsigned long"])],
         [AC_MSG_ERROR([Could not identify the architecture's data model.])])
 
@@ -117,7 +117,7 @@ AS_IF([test "$enable_gcd" = "yes"],
             ])
             AC_CHECK_LIB(dispatch, dispatch_get_main_queue_eventfd_np)
             AS_IF([test "$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" = "no"],
-                  [AC_MSG_ERROR([Compatible libdispatch not found for GCD support! Use --disable-gcd to disable GCD support or install GCD.])])])
+                  [AC_MSG_ERROR([Compatible libdispatch not found for GCD support! Use --disable-gcd to disable GCD support.])])])
 
 #---
 # Check for the Objective-C runtime

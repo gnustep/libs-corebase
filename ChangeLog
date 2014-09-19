@@ -1,3 +1,9 @@
+2014-09-19 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/CFSocket.c: Fix build without libdispatch.
+	* Headers/CoreFoundation/CFBase.h.in,
+	  configure,
+	  configure.ac: Use correct sign for data types.
+
 2014-05-06 Lubos Dolezel <lubos@dolezel.info>
 	* Source/CFRunLoop.c,
 	  Headers/CoreFoundation/CFRunLoop.h: CFRunLoop improvements & fixes

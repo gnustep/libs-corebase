@@ -54,13 +54,13 @@
  */
 typedef @GS_UINT8_T@ Boolean;
 typedef @GS_UINT8_T@ UInt8;
-typedef @GS_INT8_T@ SInt8;
+typedef @GS_SINT8_T@ SInt8;
 typedef @GS_UINT16_T@ UInt16;
-typedef @GS_INT16_T@ SInt16;
+typedef @GS_SINT16_T@ SInt16;
 typedef @GS_UINT32_T@ UInt32;
-typedef @GS_INT32_T@ SInt32;
+typedef @GS_SINT32_T@ SInt32;
 typedef @GS_UINT64_T@ UInt64;
-typedef @GS_INT64_T@ SInt64;
+typedef @GS_SINT64_T@ SInt64;
 typedef SInt32 OSStatus;
 
 typedef float Float32;
@@ -171,7 +171,7 @@ typedef const void *CFTypeRef;
  * Base Utilities
  */
 typedef @GS_UINTPTR_T@ CFOptionFlags;
-typedef @GS_INTPTR_T@ CFIndex;
+typedef @GS_SINTPTR_T@ CFIndex;
 
 typedef struct {
   CFIndex location;

@@ -628,15 +628,15 @@ LIBOBJS
 GNUSTEP_CONFIG
 ICU_CONFIG
 GS_UINTPTR_T
-GS_INTPTR_T
+GS_SINTPTR_T
 GS_UINT32_T
-GS_INT32_T
+GS_SINT32_T
 GS_UINT64_T
-GS_INT64_T
+GS_SINT64_T
 GS_UINT16_T
-GS_INT16_T
+GS_SINT16_T
 GS_UINT8_T
-GS_INT8_T
+GS_SINT8_T
 EGREP
 GREP
 CPP
@@ -3963,61 +3963,61 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-GS_INT8_T="char"
+GS_SINT8_T="signed char"
 
 GS_UINT8_T="unsigned char"
 
-GS_INT16_T="short"
+GS_SINT16_T="signed short"
 
 GS_UINT16_T="unsigned short"
 
-GS_INT64_T="long long"
+GS_SINT64_T="signed long long"
 
 GS_UINT64_T="unsigned long long"
 
 case $gs_cv_c_data_model in #(
   IP16) :
-    GS_INT32_T="long"
+    GS_SINT32_T="signed long"
 
                 GS_UINT32_T="unsigned long"
 
-                GS_INTPTR_T="int"
+                GS_SINTPTR_T="signed int"
 
                 GS_UINTPTR_T="unsigned int"
  ;; #(
   LP32) :
-    GS_INT32_T="long"
+    GS_SINT32_T="signed long"
 
                 GS_UINT32_T="unsigned long"
 
-                GS_INTPTR_T="long"
+                GS_SINTPTR_T="signed long"
 
                 GS_UINTPTR_T="unsigned long"
  ;; #(
   ILP32) :
-    GS_INT32_T="int"
+    GS_SINT32_T="signed int"
 
                  GS_UINT32_T="unsigned int"
 
-                 GS_INTPTR_T="int"
+                 GS_SINTPTR_T="signed int"
 
                  GS_UINTPTR_T="unsigned int"
  ;; #(
   LLP64) :
-    GS_INT32_T="int"
+    GS_SINT32_T="signed int"
 
                  GS_UINT32_T="unsigned int"
 
-                 GS_INTPTR_T="long long"
+                 GS_SINTPTR_T="signed long long"
 
                  GS_UINTPTR_T="unsigned long long"
  ;; #(
   LP64) :
-    GS_INT32_T="int"
+    GS_SINT32_T="signed int"
 
                  GS_UINT32_T="unsigned int"
 
-                 GS_INTPTR_T="long"
+                 GS_SINTPTR_T="signed long"
 
                  GS_UINTPTR_T="unsigned long"
  ;; #(
@@ -4230,7 +4230,7 @@ _ACEOF
 fi
 
             if test "$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" = "no"; then :
-  as_fn_error $? "Compatible libdispatch not found for GCD support! Use --disable-gcd to disable GCD support or install GCD." "$LINENO" 5
+  as_fn_error $? "Compatible libdispatch not found for GCD support! Use --disable-gcd to disable GCD support." "$LINENO" 5
 fi
 fi
 
