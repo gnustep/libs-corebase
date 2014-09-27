@@ -795,9 +795,51 @@ CFStringCreateWithFormatAndArguments (CFAllocatorRef alloc,
                                       CFDictionaryRef formatOptions,
                                       CFStringRef format, va_list arguments)
 {
-  return _CFStringCreateWithFormatAndArgumentsAux (alloc, NULL,
-                                                   formatOptions, format,
-                                                   arguments);
+  Boolean free_fmt_str = false;
+  CFIndex str_len;
+  CFIndex fmt_str_len;
+  UniChar buf[BUFFER_SIZE];
+  UniChar *str = buf;
+  const UniChar *fmt_str;
+  CFStringRef fmted_str;
+
+  fmt_str_len = CFStringGetLength (format);
+  fmt_str = CFStringGetCharactersPtr (format);
+  if (fmt_str == 0)
+    {
+      CFRange range;
+
+      free_fmt_str = true;
+      fmt_str = CFAllocatorAllocate (kCFAllocatorSystemDefault,
+				     fmt_str_len * sizeof (UniChar), 0);
+      range = CFRangeMake (0, fmt_str_len);
+      CFStringGetCharacters (format, range, (UniChar *)fmt_str);
+    }
+  str_len = GSUnicodeFormatWithArguments (str, BUFFER_SIZE, formatOptions,
+					  fmt_str, fmt_str_len,
+				          arguments);
+  if (str_len > BUFFER_SIZE)
+    {
+      /* The buffer was not long enough for the formatted string, so we will
+       * need to allocate a longer buffer and try again.
+       */
+      str = CFAllocatorAllocate (kCFAllocatorSystemDefault,
+	                         str_len * sizeof (UniChar), 0);
+      str_len = GSUnicodeFormatWithArguments (str, str_len, formatOptions,
+					      fmt_str, fmt_str_len, arguments);
+
+    }
+  if (str_len < 0)
+    return NULL;
+
+  fmted_str = CFStringCreateWithCharacters (alloc, (const UniChar *)str,
+					    str_len);
+  if (free_fmt_str)
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, (void *)fmt_str);
+  if (str != buf)
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, str);
+
+  return fmted_str;
 }
 
 CFStringRef
@@ -1373,7 +1415,7 @@ CFStringAppendFormat (CFMutableStringRef str, CFDictionaryRef options,
 {
   va_list args;
   va_start (args, format);
-  _CFStringAppendFormatAndArgumentsAux (str, NULL, options, format, args);
+  CFStringAppendFormatAndArguments (str, options, format, args);
   va_end (args);
 }
 
@@ -1382,7 +1424,46 @@ CFStringAppendFormatAndArguments (CFMutableStringRef str,
                                   CFDictionaryRef options, CFStringRef format,
                                   va_list args)
 {
-  _CFStringAppendFormatAndArgumentsAux (str, NULL, options, format, args);
+  Boolean free_fmt_str = false;
+  CFIndex str_len;
+  CFIndex fmt_str_len;
+  UniChar buf[BUFFER_SIZE];
+  UniChar *fmted_str = buf;
+  const UniChar *fmt_str;
+
+  fmt_str_len = CFStringGetLength (format);
+  fmt_str = CFStringGetCharactersPtr (format);
+  if (fmt_str == 0)
+    {
+      CFRange range;
+
+      free_fmt_str = true;
+      fmt_str = CFAllocatorAllocate (kCFAllocatorSystemDefault,
+				     fmt_str_len * sizeof (UniChar), 0);
+      range = CFRangeMake (0, fmt_str_len);
+      CFStringGetCharacters (format, range, (UniChar *)fmt_str);
+    }
+  str_len = GSUnicodeFormatWithArguments (fmted_str, BUFFER_SIZE, options,
+					  fmt_str, fmt_str_len, args);
+  if (str_len > BUFFER_SIZE)
+    {
+      /* The buffer was not long enough for the formatted string, so we will
+       * need to allocate a longer buffer and try again.
+       */
+      fmted_str = CFAllocatorAllocate (kCFAllocatorSystemDefault,
+		                       str_len * sizeof (UniChar), 0);
+      str_len = GSUnicodeFormatWithArguments (fmted_str, str_len, options,
+					      fmt_str, fmt_str_len, args);
+
+    }
+  if (str_len < 0)
+    return;
+
+  CFStringAppendCharacters (str, (const UniChar *)fmted_str, str_len);
+  if (free_fmt_str)
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, (void *)fmt_str);
+  if (fmted_str != buf)
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, str);
 }
 
 void

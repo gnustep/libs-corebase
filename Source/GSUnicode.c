@@ -1,4 +1,4 @@
-/* GSUnicode.h
+/* GSUnicode.c
    
    Copyright (C) 2013 Free Software Foundation, Inc.
    
@@ -921,39 +921,39 @@ enum
 
 static const UInt8 fmt_table[] = {
   /* 0x20 */
-  FMT_SPACE,     FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_HASH,
-  FMT_POSITION,  FMT_PERCENT,    FMT_UNKNOWN,    FMT_QUOTE,
-  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_WIDTH_AST,  FMT_PLUS,
-  FMT_UNKNOWN,   FMT_MINUS,      FMT_PRECISION,  FMT_UNKNOWN,
+  FMT_SPACE, FMT_UNKNOWN, FMT_UNKNOWN, FMT_HASH,
+  FMT_POSITION, FMT_PERCENT, FMT_UNKNOWN, FMT_QUOTE,
+  FMT_UNKNOWN, FMT_UNKNOWN, FMT_WIDTH_AST, FMT_PLUS,
+  FMT_UNKNOWN, FMT_MINUS, FMT_PRECISION, FMT_UNKNOWN,
   /* 0x30 */
-  FMT_ZERO,      FMT_NUMBER,     FMT_NUMBER,     FMT_NUMBER,
-  FMT_NUMBER,    FMT_NUMBER,     FMT_NUMBER,     FMT_NUMBER,
-  FMT_NUMBER,    FMT_NUMBER,     FMT_UNKNOWN,    FMT_UNKNOWN,
-  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN,
+  FMT_ZERO, FMT_NUMBER, FMT_NUMBER, FMT_NUMBER,
+  FMT_NUMBER, FMT_NUMBER, FMT_NUMBER, FMT_NUMBER,
+  FMT_NUMBER, FMT_NUMBER, FMT_UNKNOWN, FMT_UNKNOWN,
+  FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN,
   /* 0x40 */
-  FMT_OBJECT,    FMT_DOUBLEHEX,  FMT_UNKNOWN,    FMT_CHARACTER,
-  FMT_INTEGER,   FMT_DOUBLE,     FMT_DOUBLE,     FMT_DOUBLE,
-  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN,
-  FMT_MOD_LONG,  FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_OCTAL,
+  FMT_OBJECT, FMT_DOUBLEHEX, FMT_UNKNOWN, FMT_CHARACTER,
+  FMT_INTEGER, FMT_DOUBLE, FMT_DOUBLE, FMT_DOUBLE,
+  FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN,
+  FMT_MOD_LONG, FMT_UNKNOWN, FMT_UNKNOWN, FMT_OCTAL,
   /* 0x50 */
-  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_STRING,
-  FMT_UNKNOWN,   FMT_UINTEGER,   FMT_UNKNOWN,    FMT_UNKNOWN,
-  FMT_HEX,       FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN,
-  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN,
+  FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_STRING,
+  FMT_UNKNOWN, FMT_UINTEGER, FMT_UNKNOWN, FMT_UNKNOWN,
+  FMT_HEX, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN,
+  FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN,
   /* 0x60 */
-  FMT_UNKNOWN,   FMT_DOUBLEHEX,  FMT_UNKNOWN,    FMT_CHARACTER,
-  FMT_INTEGER,   FMT_DOUBLE,     FMT_DOUBLE,     FMT_DOUBLE,
-  FMT_MOD_SHORT, FMT_INTEGER,    FMT_MOD_INTMAX, FMT_UNKNOWN,
-  FMT_MOD_LONG,  FMT_UNKNOWN,    FMT_GETCOUNT,   FMT_OCTAL,
+  FMT_UNKNOWN, FMT_DOUBLEHEX, FMT_UNKNOWN, FMT_CHARACTER,
+  FMT_INTEGER, FMT_DOUBLE, FMT_DOUBLE, FMT_DOUBLE,
+  FMT_MOD_SHORT, FMT_INTEGER, FMT_MOD_INTMAX, FMT_UNKNOWN,
+  FMT_MOD_LONG, FMT_UNKNOWN, FMT_GETCOUNT, FMT_OCTAL,
   /* 0x70 */
-  FMT_POINTER,   FMT_QUADWORD,   FMT_UNKNOWN,    FMT_STRING,
-  FMT_MOD_PTRDIFF, FMT_UINTEGER, FMT_UNKNOWN,    FMT_UNKNOWN,
-  FMT_HEX,       FMT_UNKNOWN,    FMT_MOD_SIZE,   FMT_UNKNOWN,
-  FMT_UNKNOWN,   FMT_UNKNOWN,    FMT_UNKNOWN,    FMT_UNKNOWN
+  FMT_POINTER, FMT_QUADWORD, FMT_UNKNOWN, FMT_STRING,
+  FMT_MOD_PTRDIFF, FMT_UINTEGER, FMT_UNKNOWN, FMT_UNKNOWN,
+  FMT_HEX, FMT_UNKNOWN, FMT_MOD_SIZE, FMT_UNKNOWN,
+  FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN
 };
 
 /* Step 0: At the beginning of the spec */
-#define STEP_0_JUMP(_fmt) do \
+#define STEP_0_JUMP do \
 { \
   type = (fmt < fmtlimit) ? *fmt++ : 0; \
   switch ((type >= 0x20 && type <= 0x7A) ? fmt_table[type - 0x20] : 0) \
@@ -977,10 +977,10 @@ static const UInt8 fmt_table[] = {
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
-      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_INTEGER:     goto fmt_decimal; \
       case FMT_OCTAL:       goto fmt_octal; \
       case FMT_HEX:         goto fmt_hex; \
-      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
       case FMT_DOUBLE:      goto fmt_double; \
       case FMT_DOUBLEHEX:   goto fmt_doublehex; \
@@ -990,11 +990,10 @@ static const UInt8 fmt_table[] = {
 } while (0)
 
 /* Step 1: After reading flags and/or width */
-#define STEP_1_JUMP(_fmt) do \
+#define STEP_1_JUMP do \
 { \
-  UniChar _c = *fmt++; \
-  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
-          fmt_table[_c - 0x20] : 0) \
+  type = (fmt < fmtlimit) ? *fmt++ : 0; \
+  switch ((type >= 0x20 && type <= 0x7A) ? fmt_table[type - 0x20] : 0) \
     { \
       case FMT_UNKNOWN:     goto handle_error; \
       case FMT_SPACE:       goto handle_error; \
@@ -1015,10 +1014,10 @@ static const UInt8 fmt_table[] = {
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
-      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_INTEGER:     goto fmt_decimal; \
       case FMT_OCTAL:       goto fmt_octal; \
       case FMT_HEX:         goto fmt_hex; \
-      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
       case FMT_DOUBLE:      goto fmt_double; \
       case FMT_DOUBLEHEX:   goto fmt_doublehex; \
@@ -1028,11 +1027,10 @@ static const UInt8 fmt_table[] = {
 } while (0)
 
 /* Step 2: After processing precision */
-#define STEP_2_JUMP(_fmt) do \
+#define STEP_2_JUMP do \
 { \
-  UniChar _c = *fmt++; \
-  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
-          fmt_table[_c - 0x20] : 0) \
+  type = (fmt < fmtlimit) ? *fmt++ : 0; \
+  switch ((type >= 0x20 && type <= 0x7A) ? fmt_table[type - 0x20] : 0) \
     { \
       case FMT_UNKNOWN:     goto handle_error; \
       case FMT_SPACE:       goto handle_error; \
@@ -1053,10 +1051,10 @@ static const UInt8 fmt_table[] = {
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
-      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_INTEGER:     goto fmt_decimal; \
       case FMT_OCTAL:       goto fmt_octal; \
       case FMT_HEX:         goto fmt_hex; \
-      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
       case FMT_DOUBLE:      goto fmt_double; \
       case FMT_DOUBLEHEX:   goto fmt_doublehex; \
@@ -1066,11 +1064,10 @@ static const UInt8 fmt_table[] = {
 } while (0)
 
 /* Step 3L: After reading length modifier 'l' */
-#define STEP_3L_JUMP(_fmt) do \
+#define STEP_3L_JUMP do \
 { \
-  UniChar _c = *fmt++; \
-  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
-          fmt_table[_c - 0x20] : 0) \
+  type = (fmt < fmtlimit) ? *fmt++ : 0; \
+  switch ((type >= 0x20 && type <= 0x7A) ? fmt_table[type - 0x20] : 0) \
     { \
       case FMT_UNKNOWN:     goto handle_error; \
       case FMT_SPACE:       goto handle_error; \
@@ -1091,10 +1088,10 @@ static const UInt8 fmt_table[] = {
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
-      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_INTEGER:     goto fmt_decimal; \
       case FMT_OCTAL:       goto fmt_octal; \
       case FMT_HEX:         goto fmt_hex; \
-      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
       case FMT_DOUBLE:      goto fmt_double; \
       case FMT_DOUBLEHEX:   goto fmt_doublehex; \
@@ -1104,11 +1101,10 @@ static const UInt8 fmt_table[] = {
 } while (0)
 
 /* Step 3H: After reading length modifier 'h' */
-#define STEP_3H_JUMP(_fmt) do \
+#define STEP_3H_JUMP do \
 { \
-  UniChar _c = *fmt++; \
-  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
-          fmt_table[_c - 0x20] : 0) \
+  type = (fmt < fmtlimit) ? *fmt++ : 0; \
+  switch ((type >= 0x20 && type <= 0x7A) ? fmt_table[type - 0x20] : 0) \
     { \
       case FMT_UNKNOWN:     goto handle_error; \
       case FMT_SPACE:       goto handle_error; \
@@ -1129,10 +1125,10 @@ static const UInt8 fmt_table[] = {
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
-      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_INTEGER:     goto fmt_decimal; \
       case FMT_OCTAL:       goto fmt_octal; \
       case FMT_HEX:         goto fmt_hex; \
-      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
       case FMT_DOUBLE:      goto fmt_double; \
       case FMT_DOUBLEHEX:   goto fmt_doublehex; \
@@ -1142,11 +1138,10 @@ static const UInt8 fmt_table[] = {
 } while (0)
 
 /* Step 4: Read the conversion specifier */
-#define STEP_4_JUMP(_fmt) do \
+#define STEP_4_JUMP do \
 { \
-  UniChar _c = *fmt++; \
-  switch (((_fmt) <= fmtlimit && (_c >= 0x20 && _c <= 0x7A)) ? \
-          fmt_table[_c - 0x20] : 0) \
+  type = (fmt < fmtlimit) ? *fmt++ : 0; \
+  switch ((type >= 0x20 && type <= 0x7A) ? fmt_table[type - 0x20] : 0) \
     { \
       case FMT_UNKNOWN:     goto handle_error; \
       case FMT_SPACE:       goto handle_error; \
@@ -1167,10 +1162,10 @@ static const UInt8 fmt_table[] = {
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
-      case FMT_INTEGER:     goto fmt_integer; \
+      case FMT_INTEGER:     goto fmt_decimal; \
       case FMT_OCTAL:       goto fmt_octal; \
       case FMT_HEX:         goto fmt_hex; \
-      case FMT_UINTEGER:    goto fmt_uinteger; \
+      case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
       case FMT_DOUBLE:      goto fmt_double; \
       case FMT_DOUBLEHEX:   goto fmt_doublehex; \
@@ -1296,26 +1291,33 @@ _uint_to_string (unsigned long long int value, UniChar * bufend,
   return cur;
 }
 
+#define _write_char(_c) do \
+{ \
+  int _left = (UInt8 *)obuf_end - (UInt8 *)obuf; \
+  if (_left > 0) \
+    *obuf = _c; \
+  ++obuf; \
+} while (0)
+
 #define _write(_s, _n) do \
 { \
-  int _left = output_bufend - output_buffer; \
-  int _towrite = (_n); \
+  int _left = (UInt8 *)obuf_end - (UInt8 *)obuf; \
+  int _towrite = sizeof (UniChar) * (_n); \
   if (_left > 0) \
-    GSMemoryCopy (output_buffer, (_s), _left < _towrite ? _left : _towrite); \
-  output_buffer += _towrite; \
+    GSMemoryCopy (obuf, (_s), _left < _towrite ? _left : _towrite); \
+  obuf = (UniChar *)((UInt8 *)obuf + _towrite); \
 } while (0)
 
 #define PAD_SIZE 8
 static const UniChar _pad_space[] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 static const UniChar _pad_zero[] = { '0', '0', '0', '0', '0', '0', '0', '0' };
 
-#define _pad(_padchar, _count) do \
-{ \
+#define _pad(_padchar, _count) \
   if ((_count) > 0) \
     { \
       int i; \
       const UniChar *pad_string; \
-      if ((_padchar) == ' ') \
+      if (_padchar == ' ') \
         pad_string = _pad_space; \
       else \
         pad_string = _pad_zero; \
@@ -1324,7 +1326,6 @@ static const UniChar _pad_zero[] = { '0', '0', '0', '0', '0', '0', '0', '0' };
       if (i > 0) \
         _write ((char *) pad_string, i); \
     } \
-} while (0)
 
 CF_INLINE format_argument_t *
 GSUnicodeCreateArgumentList (const UniChar * __restrict__ format,
@@ -1672,6 +1673,9 @@ GSUnicodeFormat (UniChar * __restrict__ s, CFIndex n, CFTypeRef locale,
 static const UniChar nil_string[] = { '(', 'n', 'i', 'l', ')' };
 
 static const CFIndex nil_string_len = 5;
+static const UniChar null_string[] = { '(', 'n', 'u', 'l', 'l', ')' };
+
+static const CFIndex null_string_len = 6;
 
 /* String Formatting function.
  * I used GLIBC's implementation of vfprintf() as a model.  This seemed like
@@ -1711,8 +1715,8 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
                               const UniChar * __restrict__ format,
                               CFIndex fmtlen, va_list ap)
 {
-  UniChar *output_buffer;
-  UniChar *output_bufend;
+  UniChar *obuf;
+  UniChar *obuf_end;
   const UniChar *fmt;
   const UniChar *fmtlimit;
   format_argument_t *arglist;
@@ -1722,8 +1726,8 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
   if (s == NULL)
     n = 0;
 
-  output_buffer = s;
-  output_bufend = s + n;
+  obuf = s;
+  obuf_end = s + n;
   fmt = format;
   fmtlimit = fmt + fmtlen;
   arglist = GSUnicodeCreateArgumentList (fmt, fmtlen, ap);
@@ -1734,11 +1738,11 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       UniChar *bufend = buffer + BUFFER_SIZE;
       UniChar *string;
       CFIndex string_len;
-      Boolean free_string = false;
       int base;
       unsigned long long number;
       long double dbl_number;
       int position;
+      Boolean free_string = false;
       Boolean is_negative;
       Boolean space_prefix = false;
       Boolean alternate = false;
@@ -1758,43 +1762,42 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       if (!(fmt < fmtlimit))
         break;
       fmt++;
-      STEP_0_JUMP (fmt);
+      STEP_0_JUMP;
 
       /* Process the flags */
     flag_space_prefix:
       space_prefix = true;
-      STEP_0_JUMP (fmt);
+      STEP_0_JUMP;
     flag_alternate:
       alternate = true;
-      STEP_0_JUMP (fmt);
+      STEP_0_JUMP;
     flag_grouping:
       grouping = true;
-      STEP_0_JUMP (fmt);
+      STEP_0_JUMP;
     flag_show_sign:
       show_sign = true;
-      STEP_0_JUMP (fmt);
+      STEP_0_JUMP;
     flag_left_align:
       left_align = true;
-      STEP_0_JUMP (fmt);
+      STEP_0_JUMP;
     flag_pad_zeros:
       pad_zeros = true;
-      STEP_0_JUMP (fmt);
+      STEP_0_JUMP;
 
       /* Process width or position (if '$' exists at the end) */
     width_number:
-      fmt--;                    /* STEP_)_JUMP would have moved fmt forward */
+      fmt--;                    /* STEP_0_JUMP would have moved fmt forward */
       width = _read_number (&fmt);
       if (width < 0)
         goto handle_error;
-      STEP_1_JUMP (fmt);
+      STEP_1_JUMP;
     get_position:
       if (arglist == NULL)
         goto handle_error;
       position = width - 1;
       width = 0;
-      STEP_0_JUMP (fmt);        /* This is a position field, so do step 0 again. */
+      STEP_0_JUMP;              /* This is a position field, so do step 0 again. */
     width_asterisk:
-      fmt++;
       if (fmt < fmtlimit && (*fmt >= '1' && *fmt <= '9'))
         {
           int width_pos = _read_number (&fmt);
@@ -1807,13 +1810,13 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
         {
           width = va_arg (ap, int);
         }
-      STEP_1_JUMP (fmt);
+      STEP_1_JUMP;
 
       /* Process precision */
     precision:
-      fmt++;
       if (fmt < fmtlimit)
         {
+          pad_zeros = false;
           if (*fmt == '*')
             {
               fmt++;
@@ -1839,7 +1842,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
               /* Treat %.? as %.0? */
               prec = 0;
             }
-          STEP_2_JUMP (fmt);
+          STEP_2_JUMP;
         }
       else
         {
@@ -1849,25 +1852,25 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       /* Process length modifiers */
     mod_char:
       length = FMT_MOD_CHAR;
-      STEP_4_JUMP (fmt);
+      STEP_4_JUMP;
     mod_short:
       length = FMT_MOD_SHORT;
-      STEP_3H_JUMP (fmt);
+      STEP_3H_JUMP;
     mod_long:
       length = FMT_MOD_LONG;
-      STEP_3L_JUMP (fmt);
+      STEP_3L_JUMP;
     mod_longlong:
       length = FMT_MOD_LONGLONG;
-      STEP_4_JUMP (fmt);
+      STEP_4_JUMP;
     mod_size_t:
       length = FMT_MOD_SIZE;
-      STEP_4_JUMP (fmt);
+      STEP_4_JUMP;
     mod_ptrdiff_t:
       length = FMT_MOD_PTRDIFF;
-      STEP_4_JUMP (fmt);
+      STEP_4_JUMP;
     mod_intmax_t:
       length = FMT_MOD_INTMAX;
-      STEP_4_JUMP (fmt);
+      STEP_4_JUMP;
 
       /* Process specification */
     fmt_percent:
@@ -1891,7 +1894,6 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
           {
             const CFRuntimeClass *cls;
             CFStringRef desc;
-            Boolean free_string = false;
 
             cls = _CFRuntimeGetClassWithTypeID (CFGetTypeID (o));
             if (cls->copyFormattingDesc)
@@ -1923,17 +1925,10 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
                                            string);
                   }
               }
-            if (left_align == false)
-              _pad (' ', width);
-            _write (string, string_len);
-            if (left_align == true)
-              _pad (' ', width);
-            if (free_string)
-              CFAllocatorDeallocate (kCFAllocatorSystemDefault, string);
             CFRelease (desc);
           }
+        goto print_string;
       }
-      continue;
 
     fmt_pointer:
       {
@@ -1955,11 +1950,11 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
             space_prefix = false;
             type = 'x';
             number = (unsigned long long) ptr;
-            goto fmt_signed_number;
+            goto fmt_integer;
           }
       }
 
-    fmt_integer:
+    fmt_decimal:
       {
         signed long long int signed_number;
 
@@ -1993,20 +1988,20 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
         number = is_negative ? (-signed_number) : signed_number;
         base = 10;
       }
-      goto fmt_signed_number;
+      goto fmt_integer;
 
     fmt_octal:
       base = 8;
-      goto fmt_unsigned_number;
+      goto fmt_unsigned_integer;
 
     fmt_hex:
       base = 16;
-      goto fmt_unsigned_number;
+      goto fmt_unsigned_integer;
 
-    fmt_uinteger:
+    fmt_unsigned_decimal:
       base = 10;
 
-    fmt_unsigned_number:
+    fmt_unsigned_integer:
       if (arglist == NULL)
         {
           if (length == FMT_MOD_INT)
@@ -2045,10 +2040,17 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
           string = bufend;
           if (base == 8 && alternate)
             *--string = '0';
+          continue;
         }
       else
         {
-        fmt_signed_number:
+        fmt_integer:
+#if 0
+          /* Is is not important that this is part of the build for now as
+             CFString formatting function do not support supplying a locale.
+             Implementing this is a long term goal to support passing both
+             {CF, NS}Dictionary and {CF, NS} Locale objects to help format integers. */
+
           if (base == 10 && locale != NULL)
             {
               /* This is a slower than using _uint_to_string () because
@@ -2058,29 +2060,78 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
               string = NULL;
             }
           else
+#endif
             {
-              /* This is the "fast" integer formatting path. */
+              /* This is the "fast" integer formatting path. 
+               * All the writing is done here, too.
+               */
               string = _uint_to_string (number, bufend, base, type == 'X');
-
-              string_len = bufend - string;
-
               if (base == 8 && alternate)
                 *--string = '0';
+              string_len = bufend - string;
+              prec = prec >= string_len ? prec - string_len : 0;
+              width -= string_len + prec;
 
-              if (is_negative)
-                *--string = '-';
-              else if (show_sign)
-                *--string = '+';
-              else if (space_prefix)
-                *--string = ' ';
+              /* Account for sign symbols */
+              if (is_negative || show_sign || space_prefix)
+                --width;
+
+              if (!left_align)
+                {
+                  /* Account for '0x' prefix for hexadecimal formatting. */
+                  if (base == 16 && alternate)
+                    width -= 2;
+
+                  if (pad_zeros == false && width > 0)
+                    _pad (' ', width);
+
+                  if (is_negative)
+                    _write_char ('-');
+                  else if (show_sign)
+                    _write_char ('+');
+                  else if (space_prefix)
+                    _write_char (' ');
+                  if (base == 16 && alternate)
+                    {
+                      _write_char ('0');
+                      _write_char (type);
+                    }
+
+                  if (pad_zeros && width > 0)
+                    prec += width;
+                  if (prec > 0)
+                    _pad ('0', prec);
+                  _write (string, string_len);
+                }
+              else
+                {
+                  if (is_negative)
+                    _write_char ('-');
+                  else if (show_sign)
+                    _write_char ('+');
+                  else if (space_prefix)
+                    _write_char (' ');
+                  if (base == 16 && alternate)
+                    {
+                      _write_char ('0');
+                      _write_char (type);
+                      width -= 2;
+                    }
+
+                  if (prec > 0)
+                    _pad ('0', prec);
+                  _write (string, string_len);
+                  if (width > 0)
+                    _pad (' ', width);
+                }
+              continue;
             }
+          goto print_string;
         }
-      string_len = bufend - string;
-      goto print_string;
 
     fmt_getcount:
       {
-        int written = output_buffer - s;
+        int written = obuf - s;
         if (arglist == NULL)
           {
             if (length == FMT_MOD_INT)
@@ -2091,7 +2142,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
               *(long long int *) va_arg (ap, void *) = written;
             else if (length == FMT_MOD_SHORT)
               *(short int *) va_arg (ap, void *) = written;
-            else                  /* Must be FMT_MOD_CHAR */
+            else                /* Must be FMT_MOD_CHAR */
               *(char *) va_arg (ap, void *) = written;
           }
         else
@@ -2104,7 +2155,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
               *(long long int *) arglist[position].ptrValue = written;
             else if (length == FMT_MOD_SHORT)
               *(short int *) arglist[position].ptrValue = written;
-            else                  /* Must be FMT_MOD_CHAR */
+            else                /* Must be FMT_MOD_CHAR */
               *(char *) arglist[position].ptrValue = written;
           }
       }
@@ -2153,7 +2204,12 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
     fmt_string:
       string = arglist == NULL ? va_arg (ap, UniChar *) :
         arglist[position].ptrValue;
-      if (length == FMT_MOD_LONG || type == 'S')
+      if (string == NULL)
+        {
+          string = (UniChar *) null_string;
+          string_len = null_string_len;
+        }
+      else if (length == FMT_MOD_LONG || type == 'S')
         {
           string_len = _ustring_length (string, prec);
         }
@@ -2173,7 +2229,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
             }
           GSToUnicode ((const UInt8 *) cstring, string_len,
                        CFStringGetSystemEncoding (), 0, false, string,
-                       string_len, &string_len);
+                       string_len, NULL);
         }
 
     print_string:
@@ -2181,7 +2237,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       if (left_align == false)
         _pad (' ', width);
       _write (string, string_len);
-      if (left_align == true)
+      if (left_align)
         _pad (' ', width);
       if (free_string == true)
         CFAllocatorDeallocate (kCFAllocatorSystemDefault, string);
@@ -2190,7 +2246,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
   if (arglist != NULL)
     CFAllocatorDeallocate (kCFAllocatorSystemDefault, arglist);
 
-  return output_buffer - s;
+  return obuf - s;
 
 handle_error:
   if (arglist != NULL)

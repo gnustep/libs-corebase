@@ -220,11 +220,12 @@ CFStringRef
 CFCopyDescription (CFTypeRef cf)
 {
   CFRuntimeClass *cfclass;
-  CFTypeID typeID = CFGetTypeID (cf);
+  CFTypeID typeID;
 
   if (NULL == cf)
     return NULL;
 
+  typeID = CFGetTypeID (cf);
   CF_OBJC_FUNCDISPATCHV (typeID, CFStringRef, cf, "description");
 
   if (_kCFRuntimeNotATypeID == typeID)
@@ -307,20 +308,19 @@ CFGetRetainCount (CFTypeRef cf)
 CFTypeID
 CFGetTypeID (CFTypeRef cf)
 {
+  if (cf == NULL)
+    return _kCFRuntimeNotATypeID;
 
 #if defined(OBJC_SMALL_OBJECT_MASK) && (HAVE_LIBOBJC || HAVE_LIBOBJC2)
+  CFTypeID typeID = _kCFRuntimeNotATypeID;
 
   /* Small objects in ObjC are not valid pointers,
      hence we must avoid accessing them. */
-
-  CFTypeID typeID = _kCFRuntimeNotATypeID;
-
   if (((uintptr_t) cf & OBJC_SMALL_OBJECT_MASK) == 0)
     typeID = ((CFRuntimeBase *) cf)->_typeID;
 
   CF_OBJC_FUNCDISPATCHV (typeID, CFTypeID, cf, "_cfTypeID");
 #endif
-
   return ((CFRuntimeBase *) cf)->_typeID;
 }
 

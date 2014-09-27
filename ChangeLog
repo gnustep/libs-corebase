@@ -1,3 +1,14 @@
+2014-09-26 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/CFRuntime.c: Handle NULL pointer correctly.
+	* Source/CFString.c: Switch to using GSUnicodeFormatWithArguments.
+	* Source/CFStringFormat.c: Deleted.  New formatting facilities
+	available.
+	* Source/GSUnicode.c: Fixed many bugs found by test suite.
+	* Tests/CFString/format.m: Deleted.
+	* Tests/CFString/format_int.m: Integer only tests.
+	* Tests/CFString/format_misc.m: Miscellaneous tests, including string,
+	character and pointer.
+
 2014-09-19 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFSocket.c: Fix build without libdispatch.
 	* Headers/CoreFoundation/CFBase.h.in,
