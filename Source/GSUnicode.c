@@ -338,8 +338,8 @@ GSUnicodeFromNonLossyASCII (const char *s, CFIndex slen, UniChar lossChar,
                    && CHAR_IS_HEX (s[4]) && CHAR_IS_HEX (s[5]))
             {
               /* The first part of this equation gives us a value between
-               * 0 and 9, the second part adds 9 to that if the char is
-               * alphabetic.
+                 0 and 9, the second part adds 9 to that if the char is
+                 alphabetic.
                */
               c = ((s[5] & 0xF) + (s[5] >> 6) * 9) & 0x000F;
               c |= ((s[4] & 0xF) + (s[4] >> 6) * 9) << 4;
@@ -879,7 +879,9 @@ typedef union format_argument
   long int lintValue;
   long long int llintValue;
   double dblValue;
+#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
   long double ldblValue;
+#endif
   void *ptrValue;
 } format_argument_t;
 
@@ -899,12 +901,12 @@ enum
   FMT_PRECISION,                /* '.' */
   FMT_MOD_CHAR,                 /* 'hh' NOTE: Note in fmt_table[] */
   FMT_MOD_SHORT,                /* 'h' */
-  FMT_MOD_LONG,                 /* 'l' or 'L' */
+  FMT_MOD_LONG,                 /* 'l' */
   FMT_MOD_LONGLONG,             /* 'll' NOTE: Not in fmt_table[] */
   FMT_MOD_SIZE,                 /* 'z' */
   FMT_MOD_PTRDIFF,              /* 't' */
   FMT_MOD_INTMAX,               /* 'j' */
-  FMT_QUADWORD,                 /* 'q' */
+  FMT_MOD_LDBL,                 /* 'L' */
   FMT_PERCENT,                  /* '%' */
   FMT_OBJECT,                   /* '@' */
   FMT_POINTER,                  /* 'p' */
@@ -912,8 +914,8 @@ enum
   FMT_OCTAL,                    /* 'o' or 'O' */
   FMT_HEX,                      /* 'x' or 'X' */
   FMT_UINTEGER,                 /* 'u' */
-  FMT_DOUBLE,                   /* 'e', 'E', 'f', 'F', 'g' or 'G' */
-  FMT_DOUBLEHEX,                /* 'a' or 'A' */
+  FMT_DOUBLE,                   /* 'a', 'A', 'e', 'E', 'f', 'F', 'g' or 'G' */
+  FMT_LONG_DOUBLE,              /* any of above with 'L' modifier */
   FMT_GETCOUNT,                 /* 'n' */
   FMT_CHARACTER,                /* 'c' or 'C' */
   FMT_STRING                    /* 's' or 'S' */
@@ -931,7 +933,7 @@ static const UInt8 fmt_table[] = {
   FMT_NUMBER, FMT_NUMBER, FMT_UNKNOWN, FMT_UNKNOWN,
   FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN,
   /* 0x40 */
-  FMT_OBJECT, FMT_DOUBLEHEX, FMT_UNKNOWN, FMT_CHARACTER,
+  FMT_OBJECT, FMT_DOUBLE, FMT_UNKNOWN, FMT_CHARACTER,
   FMT_INTEGER, FMT_DOUBLE, FMT_DOUBLE, FMT_DOUBLE,
   FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN,
   FMT_MOD_LONG, FMT_UNKNOWN, FMT_UNKNOWN, FMT_OCTAL,
@@ -941,12 +943,12 @@ static const UInt8 fmt_table[] = {
   FMT_HEX, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN,
   FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN,
   /* 0x60 */
-  FMT_UNKNOWN, FMT_DOUBLEHEX, FMT_UNKNOWN, FMT_CHARACTER,
+  FMT_UNKNOWN, FMT_DOUBLE, FMT_UNKNOWN, FMT_CHARACTER,
   FMT_INTEGER, FMT_DOUBLE, FMT_DOUBLE, FMT_DOUBLE,
   FMT_MOD_SHORT, FMT_INTEGER, FMT_MOD_INTMAX, FMT_UNKNOWN,
-  FMT_MOD_LONG, FMT_UNKNOWN, FMT_GETCOUNT, FMT_OCTAL,
+  FMT_MOD_LDBL, FMT_UNKNOWN, FMT_GETCOUNT, FMT_OCTAL,
   /* 0x70 */
-  FMT_POINTER, FMT_QUADWORD, FMT_UNKNOWN, FMT_STRING,
+  FMT_POINTER, FMT_UNKNOWN, FMT_UNKNOWN, FMT_STRING,
   FMT_MOD_PTRDIFF, FMT_UINTEGER, FMT_UNKNOWN, FMT_UNKNOWN,
   FMT_HEX, FMT_UNKNOWN, FMT_MOD_SIZE, FMT_UNKNOWN,
   FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN
@@ -974,6 +976,7 @@ static const UInt8 fmt_table[] = {
       case FMT_MOD_SIZE:    goto mod_size_t; \
       case FMT_MOD_PTRDIFF: goto mod_ptrdiff_t; \
       case FMT_MOD_INTMAX:  goto mod_intmax_t; \
+      case FMT_MOD_LDBL:    goto mod_ldbl; \
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
@@ -983,7 +986,6 @@ static const UInt8 fmt_table[] = {
       case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
       case FMT_DOUBLE:      goto fmt_double; \
-      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
       case FMT_CHARACTER:   goto fmt_character; \
       case FMT_STRING:      goto fmt_string; \
     } \
@@ -1011,6 +1013,7 @@ static const UInt8 fmt_table[] = {
       case FMT_MOD_SIZE:    goto mod_size_t; \
       case FMT_MOD_PTRDIFF: goto mod_ptrdiff_t; \
       case FMT_MOD_INTMAX:  goto mod_intmax_t; \
+      case FMT_MOD_LDBL:    goto mod_ldbl; \
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
@@ -1020,7 +1023,6 @@ static const UInt8 fmt_table[] = {
       case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
       case FMT_DOUBLE:      goto fmt_double; \
-      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
       case FMT_CHARACTER:   goto fmt_character; \
       case FMT_STRING:      goto fmt_string; \
     } \
@@ -1048,6 +1050,7 @@ static const UInt8 fmt_table[] = {
       case FMT_MOD_SIZE:    goto mod_size_t; \
       case FMT_MOD_PTRDIFF: goto mod_ptrdiff_t; \
       case FMT_MOD_INTMAX:  goto mod_intmax_t; \
+      case FMT_MOD_LDBL:    goto mod_ldbl; \
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
@@ -1057,7 +1060,6 @@ static const UInt8 fmt_table[] = {
       case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
       case FMT_DOUBLE:      goto fmt_double; \
-      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
       case FMT_CHARACTER:   goto fmt_character; \
       case FMT_STRING:      goto fmt_string; \
     } \
@@ -1085,6 +1087,7 @@ static const UInt8 fmt_table[] = {
       case FMT_MOD_SIZE:    goto handle_error; \
       case FMT_MOD_PTRDIFF: goto handle_error; \
       case FMT_MOD_INTMAX:  goto handle_error; \
+      case FMT_MOD_LDBL:    goto handle_error; \
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
@@ -1093,8 +1096,7 @@ static const UInt8 fmt_table[] = {
       case FMT_HEX:         goto fmt_hex; \
       case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
-      case FMT_DOUBLE:      goto fmt_double; \
-      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
+      case FMT_DOUBLE:      goto handle_error; \
       case FMT_CHARACTER:   goto fmt_character; \
       case FMT_STRING:      goto fmt_string; \
     } \
@@ -1122,6 +1124,7 @@ static const UInt8 fmt_table[] = {
       case FMT_MOD_SIZE:    goto handle_error; \
       case FMT_MOD_PTRDIFF: goto handle_error; \
       case FMT_MOD_INTMAX:  goto handle_error; \
+      case FMT_MOD_LDBL:    goto handle_error; \
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
@@ -1130,15 +1133,14 @@ static const UInt8 fmt_table[] = {
       case FMT_HEX:         goto fmt_hex; \
       case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
-      case FMT_DOUBLE:      goto fmt_double; \
-      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
+      case FMT_DOUBLE:      goto handle_error; \
       case FMT_CHARACTER:   goto fmt_character; \
       case FMT_STRING:      goto fmt_string; \
     } \
 } while (0)
 
-/* Step 4: Read the conversion specifier */
-#define STEP_4_JUMP do \
+/* Step 4INT: After reading an integer conversion specifier */
+#define STEP_4INT_JUMP do \
 { \
   type = (fmt < fmtlimit) ? *fmt++ : 0; \
   switch ((type >= 0x20 && type <= 0x7A) ? fmt_table[type - 0x20] : 0) \
@@ -1159,6 +1161,7 @@ static const UInt8 fmt_table[] = {
       case FMT_MOD_SIZE:    goto handle_error; \
       case FMT_MOD_PTRDIFF: goto handle_error; \
       case FMT_MOD_INTMAX:  goto handle_error; \
+      case FMT_MOD_LDBL:    goto handle_error; \
       case FMT_PERCENT:     goto fmt_percent; \
       case FMT_OBJECT:      goto fmt_object; \
       case FMT_POINTER:     goto fmt_pointer; \
@@ -1167,10 +1170,46 @@ static const UInt8 fmt_table[] = {
       case FMT_HEX:         goto fmt_hex; \
       case FMT_UINTEGER:    goto fmt_unsigned_decimal; \
       case FMT_GETCOUNT:    goto fmt_getcount; \
-      case FMT_DOUBLE:      goto fmt_double; \
-      case FMT_DOUBLEHEX:   goto fmt_doublehex; \
+      case FMT_DOUBLE:      goto handle_error; \
       case FMT_CHARACTER:   goto fmt_character; \
       case FMT_STRING:      goto fmt_string; \
+    } \
+} while (0)
+
+/* Step 4DBL: after reading a long double conversion specifier */
+#define STEP_4DBL_JUMP do \
+{ \
+  type = (fmt < fmtlimit) ? *fmt++ : 0; \
+  switch ((type >= 0x20 && type <= 0x7A) ? fmt_table[type - 0x20] : 0) \
+    { \
+      case FMT_UNKNOWN:     goto handle_error; \
+      case FMT_SPACE:       goto handle_error; \
+      case FMT_HASH:        goto handle_error; \
+      case FMT_QUOTE:       goto handle_error; \
+      case FMT_PLUS:        goto handle_error; \
+      case FMT_MINUS:       goto handle_error; \
+      case FMT_ZERO:        goto handle_error; \
+      case FMT_NUMBER:      goto handle_error; \
+      case FMT_POSITION:    goto handle_error; \
+      case FMT_WIDTH_AST:   goto handle_error; \
+      case FMT_PRECISION:   goto handle_error; \
+      case FMT_MOD_SHORT:   goto handle_error; \
+      case FMT_MOD_LONG:    goto handle_error; \
+      case FMT_MOD_SIZE:    goto handle_error; \
+      case FMT_MOD_PTRDIFF: goto handle_error; \
+      case FMT_MOD_INTMAX:  goto handle_error; \
+      case FMT_MOD_LDBL:    goto handle_error; \
+      case FMT_PERCENT:     goto handle_error; \
+      case FMT_OBJECT:      goto handle_error; \
+      case FMT_POINTER:     goto handle_error; \
+      case FMT_INTEGER:     goto handle_error; \
+      case FMT_OCTAL:       goto handle_error; \
+      case FMT_HEX:         goto handle_error; \
+      case FMT_UINTEGER:    goto handle_error; \
+      case FMT_GETCOUNT:    goto handle_error; \
+      case FMT_DOUBLE:      goto fmt_long_double; \
+      case FMT_CHARACTER:   goto handle_error; \
+      case FMT_STRING:      goto handle_error; \
     } \
 } while (0)
 
@@ -1243,14 +1282,135 @@ _cstring_length (const char *string, size_t maxlen)
 #endif
 }
 
+/* Returns 0 if number is not infinite.  Will return 1 for positive infinity
+   and -1 for negative infinity
+ */
+static int
+_dbl_is_inf (double d)
+{
+  /* Infinity is defined to be: exponent = 0x7FF, mantissa = 0 */
+  SInt32 l;
+  SInt32 h;
+  SInt32 *dint;
+
+  dint = (SInt32 *)&d;
+#if WORDS_BIGENDIAN
+  l = dint[1];
+  h = dint[0];
+#else
+  l = dint[0];
+  h = dint[1];
+#endif
+  /* Written by J.T. Conklin <jtc@netbsd.org>.
+     Changed to return -1 for -Inf by Ulrich Drepper <drepper@cygnus.com>.
+     Public domain.
+   */
+  l |= (h & 0x7FFFFFFF) ^ 0x7FF00000;
+  l |= -l;
+
+  return ~(l >> 31) & (h >> 30);
+}
+
+/* Returns 0 if number is not nan.  Will return 1 for positive nan and
+   -1 for negative nan.
+ */
+static int
+_dbl_is_nan (double d)
+{
+  SInt32 l;
+  SInt32 h;
+  SInt32 *dint;
+
+  dint = (SInt32 *)&d;
+#if WORDS_BIGENDIAN
+  l = dint[1];
+  h = dint[0];
+#else
+  l = dint[0];
+  h = dint[1];
+#endif
+  l |= (h & 0x000FFFFF);
+  l |= -l;
+  l = 0x7FF00000 - ((h & 0x7FF00000) | ((UInt32)l >> 31));
+
+  return l & (h >> 30);
+}
+
+#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
+#if SIZEOF_LONG_DOUBLE == 12
+#error 96-bit long double currently not supported!
+static Boolean
+_ldbl_is_inf (long double d)
+{
+  return false;
+}
+#elif SIZEOF_LONG_DOUBLE == 16
+static Boolean
+_ldbl_is_inf (long double d)
+{
+  /* Infinity is defined to be: exponent = 0x7FF, mantissa = 0 */
+  SInt64 l;
+  SInt64 h;
+  SInt64 *dint;
+
+  dint = (SInt64 *)&d;
+#if WORDS_BIGENDIAN
+  l = dint[1];
+  h = dint[0];
+#else
+  l = dint[0];
+  h = dint[1];
+#endif
+  /* Written by J.T. Conklin <jtc@netbsd.org>.
+     Changed to return -1 for -Inf by Ulrich Drepper <drepper@cygnus.com>.
+     Public domain.
+   */
+  l |= (h & 0x7FFFFFFFFFFFFFFF) ^ 0x7FFF000000000000;
+  l |= -l;
+
+  return ~(l >> 63) & (h >> 62);
+}
+
+static Boolean
+_ldbl_is_nan (long double d)
+{
+  SInt32 l;
+  SInt32 h;
+  SInt32 *dint;
+
+  dint = (SInt32 *)&d;
+#if WORDS_BIGENDIAN
+  l = dint[1];
+  h = dint[0];
+#else
+  l = dint[0];
+  h = dint[1];
+#endif
+  l |= (h & 0x000FFFFFFFFFFFFF);
+  l |= -l;
+  l = 0x7FF0000000000000 - ((h & 0x7FF0000000000000) | ((UInt32)l >> 63));
+
+  return l & (h >> 62);
+}
+#else
+#error Unsupported size of long double!
+#endif
+#endif
+
 /* format MUST already be pointing to a digit */
 static int
 _read_number (const UniChar ** __restrict__ format)
 {
   int number;
+  const UniChar *start;
 
+  start = *format;
   number = *(*format)++ - '0';
-  while (**format >= '0' && **format <= '9')
+  /* Don't read more than 3 characters (max value '999').  This is already
+   * an unrealistically high number for the types of numbers this function
+   * is used for.
+   */
+  while ((**format >= '0') && (**format <= '9') && (*format - start < 3))
     number = (number * 10) + (*(*format++) - '0');
 
   return number;
@@ -1393,8 +1553,8 @@ GSUnicodeCreateArgumentList (const UniChar * __restrict__ format,
                 {
                   pos = _read_number (&fmt);
                   /* If there isn't a '$' at this point, there is an error in
-                   * the specification.  Return NULL and the error will be
-                   * caught when doing the real parsing later.
+                     the specification.  Return NULL and the error will be
+                     caught when doing the real parsing later.
                    */
                   if (*fmt != '$')
                     return NULL;
@@ -1406,7 +1566,7 @@ GSUnicodeCreateArgumentList (const UniChar * __restrict__ format,
               continue;
             case '.':
               /* Precision is the last possibility for a position argument.
-               * If it is not '*' we can just move on.
+                 If it is not '*' we can just move on.
                */
               if (*++fmt != '*')
                 break;
@@ -1671,11 +1831,14 @@ GSUnicodeFormat (UniChar * __restrict__ s, CFIndex n, CFTypeRef locale,
 }
 
 static const UniChar nil_string[] = { '(', 'n', 'i', 'l', ')' };
-
 static const CFIndex nil_string_len = 5;
-static const UniChar null_string[] = { '(', 'n', 'u', 'l', 'l', ')' };
 
+static const UniChar null_string[] = { '(', 'n', 'u', 'l', 'l', ')' };
 static const CFIndex null_string_len = 6;
+
+static const UniChar nan_string[] = { 'n', 'a', 'n' };
+static const UniChar inf_string[] = { 'i', 'n', 'f' };
+static const CFIndex nan_inf_string_len = 3;
 
 /* String Formatting function.
  * I used GLIBC's implementation of vfprintf() as a model.  This seemed like
@@ -1737,23 +1900,22 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       UniChar buffer[BUFFER_SIZE];
       UniChar *bufend = buffer + BUFFER_SIZE;
       UniChar *string;
+      UniChar type;
       CFIndex string_len;
       int base;
       unsigned long long number;
-      long double dbl_number;
       int position;
-      Boolean free_string = false;
+      Boolean free_string;
       Boolean is_negative;
-      Boolean space_prefix = false;
-      Boolean alternate = false;
-      Boolean grouping = false;
-      Boolean left_align = false;
-      Boolean show_sign = false;
-      Boolean pad_zeros = false;
-      int width = 0;            /* 0 for not specified */
-      int prec = -1;            /* -1 for not specified */
-      int length = FMT_MOD_INT; /* Standard Length */
-      UniChar type = 0;
+      Boolean show_sign;
+      Boolean show_space;
+      Boolean alternate;
+      Boolean grouping;
+      Boolean left_align;
+      Boolean pad_zeros;
+      int width;
+      int prec;
+      int length;
 
       prev = fmt;
       while (fmt < fmtlimit && *fmt != '%')
@@ -1761,12 +1923,25 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       _write (prev, fmt - prev);
       if (!(fmt < fmtlimit))
         break;
-      fmt++;
+      fmt++; /* skip '%' */
+
+      bufend = buffer + BUFFER_SIZE;
+      free_string = false;
+      is_negative = false;
+      show_sign = false;
+      show_space = false;
+      alternate = false;
+      grouping = false;
+      left_align = false;
+      pad_zeros = false;
+      width = 0; /* 0 for not specified */
+      prec = -1; /* -1 for not specified */
+      length = FMT_MOD_INT; /* standard length */
       STEP_0_JUMP;
 
       /* Process the flags */
     flag_space_prefix:
-      space_prefix = true;
+      show_space = true;
       STEP_0_JUMP;
     flag_alternate:
       alternate = true;
@@ -1852,7 +2027,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       /* Process length modifiers */
     mod_char:
       length = FMT_MOD_CHAR;
-      STEP_4_JUMP;
+      STEP_4INT_JUMP;
     mod_short:
       length = FMT_MOD_SHORT;
       STEP_3H_JUMP;
@@ -1861,16 +2036,18 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       STEP_3L_JUMP;
     mod_longlong:
       length = FMT_MOD_LONGLONG;
-      STEP_4_JUMP;
+      STEP_4INT_JUMP;
     mod_size_t:
       length = FMT_MOD_SIZE;
-      STEP_4_JUMP;
+      STEP_4INT_JUMP;
     mod_ptrdiff_t:
       length = FMT_MOD_PTRDIFF;
-      STEP_4_JUMP;
+      STEP_4INT_JUMP;
     mod_intmax_t:
       length = FMT_MOD_INTMAX;
-      STEP_4_JUMP;
+      STEP_4INT_JUMP;
+    mod_ldbl:
+      STEP_4DBL_JUMP;
 
       /* Process specification */
     fmt_percent:
@@ -1945,10 +2122,9 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
           {
             base = 16;
             alternate = true;
-            is_negative = false;
             show_sign = false;
-            space_prefix = false;
-            type = 'x';
+	    show_space = false;
+	    type = 'x';
             number = (unsigned long long) ptr;
             goto fmt_integer;
           }
@@ -1984,7 +2160,8 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
             else                /* Must be FMT_MOD_CHAR */
               signed_number = (char) arglist[position].intValue;
           }
-        is_negative = (signed_number < 0);
+        if (signed_number < 0)
+	  is_negative = true;
         number = is_negative ? (-signed_number) : signed_number;
         base = 10;
       }
@@ -2029,9 +2206,8 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
             number = (unsigned char) arglist[position].intValue;
         }
 
-      is_negative = false;
       show_sign = false;
-      space_prefix = false;
+      show_space = false;
       if (prec == 0 && number == 0)
         {
           /* If number and precision are zero we print nothing, unless
@@ -2046,10 +2222,12 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
         {
         fmt_integer:
 #if 0
-          /* Is is not important that this is part of the build for now as
-             CFString formatting function do not support supplying a locale.
+          /* Is is not important for this to be part of the build as
+             CFString formatting functions do not support supplying a locale.
              Implementing this is a long term goal to support passing both
-             {CF, NS}Dictionary and {CF, NS} Locale objects to help format integers. */
+             {CF, NS}Dictionary and {CF, NS}Locale objects to help format
+	     integers.
+	   */
 
           if (base == 10 && locale != NULL)
             {
@@ -2073,7 +2251,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
               width -= string_len + prec;
 
               /* Account for sign symbols */
-              if (is_negative || show_sign || space_prefix)
+              if (is_negative || show_sign || show_space)
                 --width;
 
               if (!left_align)
@@ -2089,7 +2267,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
                     _write_char ('-');
                   else if (show_sign)
                     _write_char ('+');
-                  else if (space_prefix)
+                  else if (show_space)
                     _write_char (' ');
                   if (base == 16 && alternate)
                     {
@@ -2109,7 +2287,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
                     _write_char ('-');
                   else if (show_sign)
                     _write_char ('+');
-                  else if (space_prefix)
+                  else if (show_space)
                     _write_char (' ');
                   if (base == 16 && alternate)
                     {
@@ -2161,25 +2339,99 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       }
       continue;
 
-    fmt_double:
+    fmt_long_double:
 #if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
-      if (length == FMT_MOD_LONG)
-        {
-          if (arglist == NULL)
-            dbl_number = va_arg (ap, long double);
-          else
-            dbl_number = arglist[position].ldblValue;
-          else
-        }
-#endif
       {
+	long double ldbl_number;
+
+	if (arglist == NULL)
+	  ldbl_number = va_arg (ap, long double);
+	else
+	  ldbl_number = arglist[position].ldblValue;
+	
+	if (_ldbl_is_nan (ldbl_number))
+	  {
+	    string = (UniChar *)nan_string;
+	    string_len = nan_inf_string_len;
+	  }
+	else if (_ldbl_is_inf (ldbl_number))
+	  {
+	    string = (UniChar *)inf_string;
+	    string_len = nan_inf_string_len;
+	  }
+	else
+	  {
+	    string = NULL;
+	  }
+
+	goto fmt_double_parts;
+      }
+#endif
+    fmt_double:
+      {
+	double dbl_number;
+	int ret;
+
         if (arglist == NULL)
           dbl_number = va_arg (ap, double);
         else
           dbl_number = arglist[position].dblValue;
+
+        if ((ret = _dbl_is_nan (dbl_number)))
+	  {
+	    is_negative = ret < 0;
+	    string = (UniChar *)nan_string;
+	    string_len = nan_inf_string_len;
+	  }
+	else if ((ret = _dbl_is_inf (dbl_number)))
+	  {
+	    is_negative = ret < 0;
+	    string = (UniChar *)inf_string;
+	    string_len = nan_inf_string_len;
+	  }
+	else
+	  {
+	    /* FIXME */
+	    string = NULL;
+	  }
       }
 
-    fmt_doublehex:
+#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE /* Avoid unused warning */
+    fmt_double_parts:
+#endif
+      {
+	if (string != NULL)
+	  {
+	    UniChar *buf_start;
+
+	    /* Must be 'nan' or 'inf' */
+	    buf_start = buffer;
+	    if (is_negative || show_sign || show_space)
+	      {
+		string_len += 1;
+	        if (is_negative)
+		  *buf_start++ = '-';
+		else if (show_sign)
+		  *buf_start++ = '+';
+		else if (show_space)
+		  *buf_start++ = ' ';
+	      }
+
+	    buf_start[0] = *string++;
+	    buf_start[1] = *string++;
+	    buf_start[2] = *string;
+	    if (type >= 'A' && type <= 'Z')
+	      {
+		buf_start[0] -= ('a' - 'A');
+		buf_start[1] -= ('a' - 'A');
+		buf_start[2] -= ('a' - 'A');
+	      }
+	    string = buffer;
+
+	    goto print_string;
+	  }
+	goto handle_error;
+      }
 
     fmt_character:
       if (length == FMT_MOD_LONG || type == 'C')
@@ -2234,12 +2486,12 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
 
     print_string:
       width -= string_len;
-      if (left_align == false)
+      if (!left_align)
         _pad (' ', width);
       _write (string, string_len);
       if (left_align)
         _pad (' ', width);
-      if (free_string == true)
+      if (free_string)
         CFAllocatorDeallocate (kCFAllocatorSystemDefault, string);
     }
 
