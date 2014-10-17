@@ -40,8 +40,8 @@
 #define BUFFER_SIZE 512
 
 CFIndex
-GSUnicodeFromUTF8 (const UInt8 * s, CFIndex slen, UniChar lossChar, UniChar * d,
-                   CFIndex dlen, CFIndex * usedLen)
+GSUnicodeFromUTF8 (const UInt8 * s, CFIndex slen, UniChar lossChar,
+                   UniChar * d, CFIndex dlen, CFIndex * usedLen)
 {
   const UInt8 *sstart;
   const UInt8 *slimit;
@@ -627,8 +627,9 @@ GSFromUnicode (const UniChar * s, CFIndex slen,
     }
   else if (enc == kCFStringEncodingNonLossyASCII)
     {
-      converted = GSUnicodeToNonLossyASCII (s, slen, lossChar, (char *) d, dlen,
-                                            usedDstLen);
+      converted =
+        GSUnicodeToNonLossyASCII (s, slen, lossChar, (char *) d, dlen,
+                                  usedDstLen);
     }
   else if (enc == kCFStringEncodingISOLatin1)
     {
@@ -1293,7 +1294,7 @@ _dbl_is_inf (double d)
   SInt32 h;
   SInt32 *dint;
 
-  dint = (SInt32 *)&d;
+  dint = (SInt32 *) & d;
 #if WORDS_BIGENDIAN
   l = dint[1];
   h = dint[0];
@@ -1321,7 +1322,7 @@ _dbl_is_nan (double d)
   SInt32 h;
   SInt32 *dint;
 
-  dint = (SInt32 *)&d;
+  dint = (SInt32 *) & d;
 #if WORDS_BIGENDIAN
   l = dint[1];
   h = dint[0];
@@ -1331,9 +1332,9 @@ _dbl_is_nan (double d)
 #endif
   l |= (h & 0x000FFFFF);
   l |= -l;
-  l = 0x7FF00000 - ((h & 0x7FF00000) | ((UInt32)l >> 31));
+  l = 0x7FF00000 - ((h & 0x7FF00000) | ((UInt32) l >> 31));
 
-  return l & (h >> 30);
+  return (l >> 31) & (h >> 30);
 }
 
 #if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
@@ -1353,7 +1354,7 @@ _ldbl_is_inf (long double d)
   SInt64 h;
   SInt64 *dint;
 
-  dint = (SInt64 *)&d;
+  dint = (SInt64 *) & d;
 #if WORDS_BIGENDIAN
   l = dint[1];
   h = dint[0];
@@ -1378,7 +1379,7 @@ _ldbl_is_nan (long double d)
   SInt32 h;
   SInt32 *dint;
 
-  dint = (SInt32 *)&d;
+  dint = (SInt32 *) & d;
 #if WORDS_BIGENDIAN
   l = dint[1];
   h = dint[0];
@@ -1388,9 +1389,9 @@ _ldbl_is_nan (long double d)
 #endif
   l |= (h & 0x000FFFFFFFFFFFFF);
   l |= -l;
-  l = 0x7FF0000000000000 - ((h & 0x7FF0000000000000) | ((UInt32)l >> 63));
+  l = 0x7FF0000000000000 - ((h & 0x7FF0000000000000) | ((UInt32) l >> 63));
 
-  return l & (h >> 62);
+  return (l >> 63) & (h >> 62);
 }
 #else
 #error Unsupported size of long double!
@@ -1451,41 +1452,45 @@ _uint_to_string (unsigned long long int value, UniChar * bufend,
   return cur;
 }
 
-#define _write_char(_c) do \
-{ \
-  int _left = (UInt8 *)obuf_end - (UInt8 *)obuf; \
-  if (_left > 0) \
-    *obuf = _c; \
-  ++obuf; \
-} while (0)
+static CFIndex
+_write_char (UniChar * obuf, UniChar * obuf_end, const UniChar c)
+{
+  int remain = obuf_end - obuf;
+  if (remain > 0)
+    *obuf = c;
+  return 1;
+}
 
-#define _write(_s, _n) do \
-{ \
-  int _left = (UInt8 *)obuf_end - (UInt8 *)obuf; \
-  int _towrite = sizeof (UniChar) * (_n); \
-  if (_left > 0) \
-    GSMemoryCopy (obuf, (_s), _left < _towrite ? _left : _towrite); \
-  obuf = (UniChar *)((UInt8 *)obuf + _towrite); \
-} while (0)
+static CFIndex
+_write (UniChar * obuf, UniChar * obuf_end, const UniChar * s, CFIndex len)
+{
+  int remain = obuf_end - obuf;
+  if (remain > 0)
+    GSMemoryCopy (obuf, s, remain < len ? remain : len * sizeof (UniChar));
+  return len;
+}
 
 #define PAD_SIZE 8
 static const UniChar _pad_space[] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 static const UniChar _pad_zero[] = { '0', '0', '0', '0', '0', '0', '0', '0' };
 
-#define _pad(_padchar, _count) \
-  if ((_count) > 0) \
-    { \
-      int i; \
-      const UniChar *pad_string; \
-      if (_padchar == ' ') \
-        pad_string = _pad_space; \
-      else \
-        pad_string = _pad_zero; \
-      for (i = (_count); i >= PAD_SIZE; i -= PAD_SIZE) \
-        _write ((char *) pad_string, PAD_SIZE); \
-      if (i > 0) \
-        _write ((char *) pad_string, i); \
-    } \
+static CFIndex
+_pad (UniChar * obuf, UniChar * obuf_end, const UniChar padchar, CFIndex len)
+{
+  CFIndex written = 0;
+  if (len > 0)
+    {
+      const UniChar *pad_string;
+      if (padchar == ' ')
+        pad_string = _pad_space;
+      else
+        pad_string = _pad_zero;
+      for (; len > PAD_SIZE; len -= PAD_SIZE)
+        written += _write (obuf, obuf_end, (UniChar *) pad_string, PAD_SIZE);
+      written += _write (obuf, obuf_end, (UniChar *) pad_string, len);
+    }
+  return written;
+}
 
 CF_INLINE format_argument_t *
 GSUnicodeCreateArgumentList (const UniChar * __restrict__ format,
@@ -1585,8 +1590,8 @@ GSUnicodeCreateArgumentList (const UniChar * __restrict__ format,
 
   arglist =
     (format_argument_t *) CFAllocatorAllocate (kCFAllocatorSystemDefault,
-                                               sizeof (format_argument_t) * max,
-                                               0);
+                                               sizeof (format_argument_t) *
+                                               max, 0);
   lengthlist =
     (UInt8 *) CFAllocatorAllocate (kCFAllocatorSystemDefault,
                                    sizeof (UInt8) * max, 0);
@@ -1831,13 +1836,16 @@ GSUnicodeFormat (UniChar * __restrict__ s, CFIndex n, CFTypeRef locale,
 }
 
 static const UniChar nil_string[] = { '(', 'n', 'i', 'l', ')' };
+
 static const CFIndex nil_string_len = 5;
 
 static const UniChar null_string[] = { '(', 'n', 'u', 'l', 'l', ')' };
+
 static const CFIndex null_string_len = 6;
 
 static const UniChar nan_string[] = { 'n', 'a', 'n' };
 static const UniChar inf_string[] = { 'i', 'n', 'f' };
+
 static const CFIndex nan_inf_string_len = 3;
 
 /* String Formatting function.
@@ -1898,14 +1906,13 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
     {
       const UniChar *prev;
       UniChar buffer[BUFFER_SIZE];
-      UniChar *bufend = buffer + BUFFER_SIZE;
+      UniChar *bufend;
       UniChar *string;
       UniChar type;
       CFIndex string_len;
       int base;
       unsigned long long number;
       int position;
-      Boolean free_string;
       Boolean is_negative;
       Boolean show_sign;
       Boolean show_space;
@@ -1920,13 +1927,12 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       prev = fmt;
       while (fmt < fmtlimit && *fmt != '%')
         fmt++;
-      _write (prev, fmt - prev);
+      obuf += _write (obuf, obuf_end, prev, fmt - prev);
       if (!(fmt < fmtlimit))
         break;
-      fmt++; /* skip '%' */
+      fmt++;                    /* skip '%' */
 
       bufend = buffer + BUFFER_SIZE;
-      free_string = false;
       is_negative = false;
       show_sign = false;
       show_space = false;
@@ -1934,9 +1940,9 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
       grouping = false;
       left_align = false;
       pad_zeros = false;
-      width = 0; /* 0 for not specified */
-      prec = -1; /* -1 for not specified */
-      length = FMT_MOD_INT; /* standard length */
+      width = 0;                /* 0 for not specified */
+      prec = -1;                /* -1 for not specified */
+      length = FMT_MOD_INT;     /* standard length */
       STEP_0_JUMP;
 
       /* Process the flags */
@@ -2051,10 +2057,8 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
 
       /* Process specification */
     fmt_percent:
-      buffer[0] = '%';
-      string = buffer;
-      string_len = 1;
-      goto print_string;
+      _write_char (obuf++, obuf_end, '%');
+      continue;
 
     fmt_object:
       {
@@ -2077,34 +2081,39 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
               desc = cls->copyFormattingDesc (o, locale);
             else
               desc = CFCopyDescription (o);
+
             string = (UniChar *) CFStringGetCharactersPtr (desc);
             string_len = CFStringGetLength (desc);
-            if (string == NULL)
+
+            width -= string_len;
+            if (!left_align)
+              obuf += _pad (obuf, obuf_end, ' ', width);
+            if (string)
               {
-                if (string_len <= BUFFER_SIZE)
+                obuf += _write (obuf, obuf_end, string, string_len);
+              }
+            else
+              {
+                CFRange r;
+
+                width -= string_len;
+                string = buffer;
+                r.location = 0;
+                do
                   {
-                    string = buffer;
-                    CFStringGetCharacters (desc, CFRangeMake (0, string_len),
-                                           string);
+                    r.length = GS_MIN (string_len, BUFFER_SIZE);
+                    CFStringGetCharacters (desc, r, string);
+                    obuf += _write (obuf, obuf_end, string, r.length);
+                    r.location += r.length;
+                    string_len -= BUFFER_SIZE;
                   }
-                else
-                  {
-                    string = CFAllocatorAllocate (kCFAllocatorSystemDefault,
-                                                  string_len * sizeof (UniChar),
-                                                  0);
-                    if (string == NULL)
-                      {
-                        CFRelease (desc);
-                        goto handle_error;
-                      }
-                    free_string = true;
-                    CFStringGetCharacters (desc, CFRangeMake (0, string_len),
-                                           string);
-                  }
+                while (string_len > 0);
               }
             CFRelease (desc);
+            if (left_align)
+              obuf += _pad (obuf, obuf_end, ' ', width);
           }
-        goto print_string;
+        continue;
       }
 
     fmt_pointer:
@@ -2123,8 +2132,8 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
             base = 16;
             alternate = true;
             show_sign = false;
-	    show_space = false;
-	    type = 'x';
+            show_space = false;
+            type = 'x';
             number = (unsigned long long) ptr;
             goto fmt_integer;
           }
@@ -2161,7 +2170,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
               signed_number = (char) arglist[position].intValue;
           }
         if (signed_number < 0)
-	  is_negative = true;
+          is_negative = true;
         number = is_negative ? (-signed_number) : signed_number;
         base = 10;
       }
@@ -2226,8 +2235,8 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
              CFString formatting functions do not support supplying a locale.
              Implementing this is a long term goal to support passing both
              {CF, NS}Dictionary and {CF, NS}Locale objects to help format
-	     integers.
-	   */
+             integers.
+           */
 
           if (base == 10 && locale != NULL)
             {
@@ -2261,46 +2270,46 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
                     width -= 2;
 
                   if (pad_zeros == false && width > 0)
-                    _pad (' ', width);
+                    obuf += _pad (obuf, obuf_end, ' ', width);
 
                   if (is_negative)
-                    _write_char ('-');
+                    _write_char (obuf++, obuf_end, '-');
                   else if (show_sign)
-                    _write_char ('+');
+                    _write_char (obuf++, obuf_end, '+');
                   else if (show_space)
-                    _write_char (' ');
+                    _write_char (obuf++, obuf_end, ' ');
                   if (base == 16 && alternate)
                     {
-                      _write_char ('0');
-                      _write_char (type);
+                      _write_char (obuf++, obuf_end, '0');
+                      _write_char (obuf++, obuf_end, type);
                     }
 
                   if (pad_zeros && width > 0)
                     prec += width;
                   if (prec > 0)
-                    _pad ('0', prec);
-                  _write (string, string_len);
+                    obuf += _pad (obuf, obuf_end, '0', prec);
+                  obuf += _write (obuf, obuf_end, string, string_len);
                 }
               else
                 {
                   if (is_negative)
-                    _write_char ('-');
+                    _write_char (obuf++, obuf_end, '-');
                   else if (show_sign)
-                    _write_char ('+');
+                    _write_char (obuf++, obuf_end, '+');
                   else if (show_space)
-                    _write_char (' ');
+                    _write_char (obuf++, obuf_end, ' ');
                   if (base == 16 && alternate)
                     {
-                      _write_char ('0');
-                      _write_char (type);
+                      _write_char (obuf++, obuf_end, '0');
+                      _write_char (obuf++, obuf_end, type);
                       width -= 2;
                     }
 
                   if (prec > 0)
-                    _pad ('0', prec);
-                  _write (string, string_len);
+                    obuf += _pad (obuf, obuf_end, '0', prec);
+                  obuf += _write (obuf, obuf_end, string, string_len);
                   if (width > 0)
-                    _pad (' ', width);
+                    obuf += _pad (obuf, obuf_end, ' ', width);
                 }
               continue;
             }
@@ -2342,35 +2351,35 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
     fmt_long_double:
 #if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
       {
-	long double ldbl_number;
+        long double ldbl_number;
 
-	if (arglist == NULL)
-	  ldbl_number = va_arg (ap, long double);
-	else
-	  ldbl_number = arglist[position].ldblValue;
-	
-	if (_ldbl_is_nan (ldbl_number))
-	  {
-	    string = (UniChar *)nan_string;
-	    string_len = nan_inf_string_len;
-	  }
-	else if (_ldbl_is_inf (ldbl_number))
-	  {
-	    string = (UniChar *)inf_string;
-	    string_len = nan_inf_string_len;
-	  }
-	else
-	  {
-	    string = NULL;
-	  }
+        if (arglist == NULL)
+          ldbl_number = va_arg (ap, long double);
+        else
+          ldbl_number = arglist[position].ldblValue;
 
-	goto fmt_double_parts;
+        if (_ldbl_is_nan (ldbl_number))
+          {
+            string = (UniChar *) nan_string;
+            string_len = nan_inf_string_len;
+          }
+        else if (_ldbl_is_inf (ldbl_number))
+          {
+            string = (UniChar *) inf_string;
+            string_len = nan_inf_string_len;
+          }
+        else
+          {
+            string = NULL;
+          }
+
+        goto fmt_double_parts;
       }
 #endif
     fmt_double:
       {
-	double dbl_number;
-	int ret;
+        double dbl_number;
+        int ret;
 
         if (arglist == NULL)
           dbl_number = va_arg (ap, double);
@@ -2378,59 +2387,59 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
           dbl_number = arglist[position].dblValue;
 
         if ((ret = _dbl_is_nan (dbl_number)))
-	  {
-	    is_negative = ret < 0;
-	    string = (UniChar *)nan_string;
-	    string_len = nan_inf_string_len;
-	  }
-	else if ((ret = _dbl_is_inf (dbl_number)))
-	  {
-	    is_negative = ret < 0;
-	    string = (UniChar *)inf_string;
-	    string_len = nan_inf_string_len;
-	  }
-	else
-	  {
-	    /* FIXME */
-	    string = NULL;
-	  }
+          {
+            is_negative = ret < 0;
+            string = (UniChar *) nan_string;
+            string_len = nan_inf_string_len;
+          }
+        else if ((ret = _dbl_is_inf (dbl_number)))
+          {
+            is_negative = ret < 0;
+            string = (UniChar *) inf_string;
+            string_len = nan_inf_string_len;
+          }
+        else
+          {
+            /* FIXME */
+            string = NULL;
+          }
       }
 
-#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE /* Avoid unused warning */
+#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE  /* Avoid unused warning */
     fmt_double_parts:
 #endif
       {
-	if (string != NULL)
-	  {
-	    UniChar *buf_start;
+        if (string != NULL)
+          {
+            UniChar *buf_start;
 
-	    /* Must be 'nan' or 'inf' */
-	    buf_start = buffer;
-	    if (is_negative || show_sign || show_space)
-	      {
-		string_len += 1;
-	        if (is_negative)
-		  *buf_start++ = '-';
-		else if (show_sign)
-		  *buf_start++ = '+';
-		else if (show_space)
-		  *buf_start++ = ' ';
-	      }
+            /* Must be 'nan' or 'inf' */
+            buf_start = buffer;
+            if (is_negative || show_sign || show_space)
+              {
+                string_len += 1;
+                if (is_negative)
+                  *buf_start++ = '-';
+                else if (show_sign)
+                  *buf_start++ = '+';
+                else if (show_space)
+                  *buf_start++ = ' ';
+              }
 
-	    buf_start[0] = *string++;
-	    buf_start[1] = *string++;
-	    buf_start[2] = *string;
-	    if (type >= 'A' && type <= 'Z')
-	      {
-		buf_start[0] -= ('a' - 'A');
-		buf_start[1] -= ('a' - 'A');
-		buf_start[2] -= ('a' - 'A');
-	      }
-	    string = buffer;
+            buf_start[0] = *string++;
+            buf_start[1] = *string++;
+            buf_start[2] = *string;
+            if (type >= 'A' && type <= 'Z')
+              {
+                buf_start[0] -= ('a' - 'A');
+                buf_start[1] -= ('a' - 'A');
+                buf_start[2] -= ('a' - 'A');
+              }
+            string = buffer;
 
-	    goto print_string;
-	  }
-	goto handle_error;
+            goto print_string;
+          }
+        goto handle_error;
       }
 
     fmt_character:
@@ -2467,32 +2476,34 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
         }
       else
         {
+          CFIndex tmp_len;
           const char *cstring = (const char *) string;
           string_len = _cstring_length (cstring, prec);
-          if (string_len <= BUFFER_SIZE)
+          width -= string_len;
+          if (!left_align)
+            obuf += _pad (obuf, obuf_end, ' ', width);
+          do
             {
-              string = buffer;
+              tmp_len = GS_MIN (string_len, BUFFER_SIZE);
+              cstring += GSToUnicode ((const UInt8 *) cstring, string_len,
+                                      CFStringGetSystemEncoding (), 0, false,
+                                      buffer, tmp_len, NULL);
+              obuf += _write (obuf, obuf_end, buffer, tmp_len);
+              string_len -= BUFFER_SIZE;
             }
-          else
-            {
-              string = CFAllocatorAllocate (kCFAllocatorSystemDefault,
-                                            string_len * sizeof (UniChar), 0);
-              free_string = true;
-            }
-          GSToUnicode ((const UInt8 *) cstring, string_len,
-                       CFStringGetSystemEncoding (), 0, false, string,
-                       string_len, NULL);
+          while (string_len > 0);
+          if (left_align)
+            obuf += _pad (obuf, obuf_end, ' ', width);
+          continue;
         }
 
     print_string:
       width -= string_len;
       if (!left_align)
-        _pad (' ', width);
-      _write (string, string_len);
+        obuf += _pad (obuf, obuf_end, ' ', width);
+      obuf += _write (obuf, obuf_end, string, string_len);
       if (left_align)
-        _pad (' ', width);
-      if (free_string)
-        CFAllocatorDeallocate (kCFAllocatorSystemDefault, string);
+        obuf += _pad (obuf, obuf_end, ' ', width);
     }
 
   if (arglist != NULL)

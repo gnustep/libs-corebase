@@ -22,7 +22,7 @@ int main (void)
   CFRelease (str1);
 
   str1 = CFStringCreateWithFormat (NULL, NULL, CFSTR("%0#5.4x"), 0x321);
- PASS_CFEQ (str1, CFSTR ("0x0321"), "%%0#5.4x formatted correctly");
+  PASS_CFEQ (str1, CFSTR ("0x0321"), "%%0#5.4x formatted correctly");
   CFRelease (str1);
 
   str1 = CFStringCreateWithFormat (NULL, NULL, CFSTR("%.*X"), 6, 0xabc);

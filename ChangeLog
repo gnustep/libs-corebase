@@ -1,3 +1,6 @@
+2014-10-17 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/GSUnicode.c: Rework some of the string formatting code.
+
 2014-10-07 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/GSUnicode.c: Initial double formatting implementation.
 	Only supports inf and nan for now.

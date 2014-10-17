@@ -523,7 +523,7 @@ CFShow (CFTypeRef obj)
 void
 CFShowStr (CFStringRef s)
 {
-  fprintf (stderr, "Length %ld\n", CFStringGetLength (s));
+  fprintf (stderr, "Length %ld\n", (long)CFStringGetLength (s));
   fprintf (stderr, "IsWide %d\n", CFStringIsUnicode (s));
   fprintf (stderr, "InlineContents %d\n", CFStringIsInline (s));
   fprintf (stderr, "Allocator %p\n", CFGetAllocator (s));
