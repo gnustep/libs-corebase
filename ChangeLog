@@ -1,3 +1,12 @@
+2014-11-13 Stefan Bidigaray <stefanbidi@gmail.com>
+	* configure,
+	* configure.ac: Use '--without-' to compile without a specific library.
+	* Source/config.h.in: Define sizeof double and long double.
+
+2014-11-12 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Headers/CoreFoundation/GSCharUtilities.c: Add new public character
+	utilities API.
+
 2014-10-17 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/GSUnicode.c: Rework some of the string formatting code.
 

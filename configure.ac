@@ -71,6 +71,9 @@ AS_CASE([$gs_cv_c_data_model],
                  AC_SUBST([GS_UINTPTR_T], ["unsigned long"])],
         [AC_MSG_ERROR([Could not identify the architecture's data model.])])
 
+AC_CHECK_SIZEOF([double])
+AC_CHECK_SIZEOF([long double])
+
 #---
 # Check for ICU
 #---
@@ -104,11 +107,11 @@ GS_CHECK_ICU([4.0])
 #---
 # Check for Grand Central Dispatch (libdispatch)
 #---
-AC_ARG_ENABLE([gcd],
-  [AS_HELP_STRING([--disable-gcd],
-    [Disables Grand Central Dispatch support. Leads to a loss of functionality.])],
-  [enable_gcd=$enableval], [enable_gcd=yes])
-AS_IF([test "$enable_gcd" = "yes"],
+AC_ARG_WITH([gcd],
+  [AS_HELP_STRING([--without-gcd],
+    [Compiles without Grand Central Dispatch support. This option leads to a loss of functionality.])],
+  [with_gcd=$enableval], [with_gcd=yes])
+AS_IF([test "$with_gcd" = "yes"],
       [LIBS="$LIBS -ldispatch"
             AC_DEFINE(HAVE_LIBDISPATCH, 1)]
             [AC_CHECK_HEADER(dispatch/dispatch.h)
@@ -122,11 +125,11 @@ AS_IF([test "$enable_gcd" = "yes"],
 #---
 # Check for the Objective-C runtime
 #---
-AC_ARG_ENABLE([objc-bridge],
-  [AS_HELP_STRING([--disable-objc-bridge],
-    [Disables the Objective-C toll-free bridge mechanism.])],
-  [enable_objc_bridge=$enableval], [enable_objc_bridge=yes])
-AS_IF([test "$enable_objc_bridge" = "yes"],
+AC_ARG_WITH([objc-bridge],
+  [AS_HELP_STRING([--without-objc-bridge],
+    [Does not compile the Objective-C toll-free bridge mechanism.])],
+  [with_objc_bridge=$enableval], [with_objc_bridge=yes])
+AS_IF([test "$with_objc_bridge" = "yes"],
       [AC_PATH_PROG(GNUSTEP_CONFIG, [gnustep-config], [no])
       AS_IF([test "$GNUSTEP_CONFIG" != "no"],
             [OBJC_LIBS=`$GNUSTEP_CONFIG --base-libs`

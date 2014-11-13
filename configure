@@ -688,8 +688,8 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-enable_gcd
-enable_objc_bridge
+with_gcd
+with_objc_bridge
 with_zoneinfo_dir
 '
       ac_precious_vars='build_alias
@@ -1307,17 +1307,13 @@ if test -n "$ac_init_help"; then
    esac
   cat <<\_ACEOF
 
-Optional Features:
-  --disable-option-checking  ignore unrecognized --enable/--with options
-  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
-  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --disable-gcd           Disables Grand Central Dispatch support. Leads to a
-                          loss of functionality.
-  --disable-objc-bridge   Disables the Objective-C toll-free bridge mechanism.
-
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --without-gcd           Compiles without Grand Central Dispatch support.
+                          This option leads to a loss of functionality.
+  --without-objc-bridge   Does not compile the Objective-C toll-free bridge
+                          mechanism.
   --with-zoneinfo-dir=DIR Directory of the Time zone object files.
 
 Some influential environment variables:
@@ -4025,6 +4021,73 @@ case $gs_cv_c_data_model in #(
     as_fn_error $? "Could not identify the architecture's data model." "$LINENO" 5 ;;
 esac
 
+# The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of double" >&5
+$as_echo_n "checking size of double... " >&6; }
+if ${ac_cv_sizeof_double+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (double))" "ac_cv_sizeof_double"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_double" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (double)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_double=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_double" >&5
+$as_echo "$ac_cv_sizeof_double" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_DOUBLE $ac_cv_sizeof_double
+_ACEOF
+
+
+# The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long double" >&5
+$as_echo_n "checking size of long double... " >&6; }
+if ${ac_cv_sizeof_long_double+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long double))" "ac_cv_sizeof_long_double"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_long_double" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (long double)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_long_double=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long_double" >&5
+$as_echo "$ac_cv_sizeof_long_double" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_LONG_DOUBLE $ac_cv_sizeof_long_double
+_ACEOF
+
+
+
 #---
 # Check for ICU
 #---
@@ -4163,14 +4226,15 @@ $as_echo "#define HAVE_ICU 1" >>confdefs.h
 #---
 # Check for Grand Central Dispatch (libdispatch)
 #---
-# Check whether --enable-gcd was given.
-if test "${enable_gcd+set}" = set; then :
-  enableval=$enable_gcd; enable_gcd=$enableval
+
+# Check whether --with-gcd was given.
+if test "${with_gcd+set}" = set; then :
+  withval=$with_gcd; with_gcd=$enableval
 else
-  enable_gcd=yes
+  with_gcd=yes
 fi
 
-if test "$enable_gcd" = "yes"; then :
+if test "$with_gcd" = "yes"; then :
   LIBS="$LIBS -ldispatch"
             $as_echo "#define HAVE_LIBDISPATCH 1" >>confdefs.h
 
@@ -4237,14 +4301,15 @@ fi
 #---
 # Check for the Objective-C runtime
 #---
-# Check whether --enable-objc-bridge was given.
-if test "${enable_objc_bridge+set}" = set; then :
-  enableval=$enable_objc_bridge; enable_objc_bridge=$enableval
+
+# Check whether --with-objc-bridge was given.
+if test "${with_objc_bridge+set}" = set; then :
+  withval=$with_objc_bridge; with_objc_bridge=$enableval
 else
-  enable_objc_bridge=yes
+  with_objc_bridge=yes
 fi
 
-if test "$enable_objc_bridge" = "yes"; then :
+if test "$with_objc_bridge" = "yes"; then :
   # Extract the first word of "gnustep-config", so it can be a program name with args.
 set dummy gnustep-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5

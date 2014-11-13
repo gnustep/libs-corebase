@@ -141,11 +141,17 @@
 /* The size of `char', as computed by sizeof. */
 #undef SIZEOF_CHAR
 
+/* The size of `double', as computed by sizeof. */
+#undef SIZEOF_DOUBLE
+
 /* The size of `int', as computed by sizeof. */
 #undef SIZEOF_INT
 
 /* The size of `long', as computed by sizeof. */
 #undef SIZEOF_LONG
+
+/* The size of `long double', as computed by sizeof. */
+#undef SIZEOF_LONG_DOUBLE
 
 /* The size of `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
