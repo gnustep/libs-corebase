@@ -29,7 +29,9 @@
 #include "CoreFoundation/CFByteOrder.h"
 #include "CoreFoundation/CFDictionary.h"
 #include "CoreFoundation/CFLocale.h"
+#include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
+#include "CoreFoundation/GSCharacter.h"
 
 #include "GSPrivate.h"
 #include "GSUnicode.h"
@@ -66,21 +68,22 @@ GSUnicodeFromUTF8 (const UInt8 * s, CFIndex slen, UniChar lossChar,
           UTF32Char u;
           CFIndex count;
 
-          count = GS_UTF8_BYTE_COUNT (*s);
-          if (count == 2 && GS_UTF8_IS_TRAIL (s[1]))
+          count = GSUTF8CharacterCodeUnitCount (*s);
+          if (count == 2 && GSUTF8CharacterIsTrailing (s[1]))
             {
               u = (s[0] & 0x1F) << 6;
               u |= s[1] & 0x3F;
             }
-          else if (count == 3 && GS_UTF8_IS_TRAIL (s[1])
-                   && GS_UTF8_IS_TRAIL (s[2]))
+          else if (count == 3 && GSUTF8CharacterIsTrailing (s[1])
+                   && GSUTF8CharacterIsTrailing (s[2]))
             {
               u = (s[0] & 0x0F) << 12;
               u |= (s[1] & 0x3F) << 6;
               u |= s[2] & 0x3F;
             }
-          else if (count == 4 && GS_UTF8_IS_TRAIL (s[1])
-                   && GS_UTF8_IS_TRAIL (s[2]) && GS_UTF8_IS_TRAIL (s[3]))
+          else if (count == 4 && GSUTF8CharacterIsTrailing (s[1])
+                   && GSUTF8CharacterIsTrailing (s[2])
+                   && GSUTF8CharacterIsTrailing (s[3]))
             {
               u = (s[0] & 0x07) << 18;
               u |= (s[1] & 0x3F) << 12;
@@ -94,7 +97,7 @@ GSUnicodeFromUTF8 (const UInt8 * s, CFIndex slen, UniChar lossChar,
           s += count;
           if (u < 0x10000)
             {
-              if (GS_UTF_IS_SURROGATE (u))
+              if (GSCharacterIsSurrogate (u))
                 break;
               if (dlen != 0)
                 *d = u;
@@ -141,7 +144,7 @@ GSUnicodeToUTF8 (const UniChar * s, CFIndex slen, UniChar lossChar, UInt8 * d,
     {
       UTF32Char u;
 
-      u = *s++;
+      u = GSUTF16CharacterGet (&s, slimit);
       if (u < 0x80)
         {
           if (dlen != 0)
@@ -152,28 +155,15 @@ GSUnicodeToUTF8 (const UniChar * s, CFIndex slen, UniChar lossChar, UInt8 * d,
         {
           CFIndex count;
 
-          if (GS_UTF_IS_SURROGATE (u) && GS_UTF_IS_LEAD_SURROGATE (u)
-              && slimit - s > 0)
+          if (u == 0)
             {
-              UTF16Char u16;
-
-              u16 = *s++;
-              if (GS_UTF_IS_TRAIL_SURROGATE (u16))
-                u = GS_UTF16_GET_CHAR (u, u16);
-              else if (lossChar)
+              if (lossChar)
                 u = lossChar;
               else
                 break;
             }
-          else if (lossChar)
-            {
-              u = lossChar;
-            }
-          else
-            {
-              break;
-            }
-          count = GS_UTF8_LENGTH (u);
+
+          count = GSUTF8CharacterLength (u);
           if (count > 4)
             break;
           if (dlen != 0)
@@ -225,7 +215,7 @@ GSUnicodeFromUTF32 (const UTF32Char * s, CFIndex slen, UniChar lossChar,
       u = *s++;
       if (u < 0x10000)
         {
-          if (GS_UTF_IS_SURROGATE (u))
+          if (GSCharacterIsSurrogate (u))
             break;
           if (dlen != 0)
             *d = u;
@@ -267,18 +257,14 @@ GSUnicodeToUTF32 (const UniChar * s, CFIndex slen, UniChar lossChar,
     {
       UTF32Char u;
 
-      u = *s++;
-      if (GS_UTF_IS_SURROGATE (u))
-        {
-          UTF16Char u16;
-
-          if (slimit - s > 0 || !GS_UTF_IS_LEAD_SURROGATE (u))
-            break;
-          u16 = *s++;
-          if (!GS_UTF_IS_TRAIL_SURROGATE (u))
-            break;
-          u = GS_UTF16_GET_CHAR (u, u16);
-        }
+      u = GSUTF16CharacterGet (&s, slimit);
+      if (u == 0)
+	{
+	  if (lossChar)
+	    u = lossChar;
+	  else
+	    break;
+	}
       if (dlen != 0)
         *d = u;
       d++;
@@ -510,9 +496,9 @@ GSUnicodeToISOLatin1 (const UniChar * s, CFIndex slen, UniChar lossChar,
 }
 
 CFIndex
-GSFromUnicode (const UniChar * s, CFIndex slen,
-               CFStringEncoding enc, UniChar lossChar,
-               Boolean isExtRep, UInt8 * d, CFIndex dlen, CFIndex * usedDstLen)
+GSFromUnicode (const UniChar * s, CFIndex slen, CFStringEncoding enc,
+               UniChar lossChar, Boolean isExtRep, UInt8 * d, CFIndex dlen,
+               CFIndex * usedDstLen)
 {
   CFIndex converted;
 
@@ -541,15 +527,18 @@ GSFromUnicode (const UniChar * s, CFIndex slen,
       dst = (UniChar *) d;
       if (isExtRep && enc == kCFStringEncodingUTF16 && dlen >= 2)
         {
-          *dst = GS_UTF16_BOM;
-          dst++;
+          *dst++ = kGSUTF16CharacterByteOrderMark;
           dlen -= 2;
         }
 
       copyLength =
         (dlen <= slen * sizeof (UniChar)) ? dlen : (slen * sizeof (UniChar));
       memcpy (dst, s, copyLength);
-      if (enc == GS_UTF16_ENCODING_TO_SWAP)
+#if __BIG_ENDIAN__
+      if (enc == kCFStringEncodingUTF16LE && dlen != 0)
+#else
+      if (enc == kCFStringEncodingUTF16BE && dlen != 0)
+#endif
         {
           UniChar *end;
 
@@ -573,7 +562,7 @@ GSFromUnicode (const UniChar * s, CFIndex slen,
       dst = (UTF32Char *) d;
       if (isExtRep && enc == kCFStringEncodingUTF32 && dlen >= 4)
         {
-          *dst++ = GS_UTF32_BOM;
+          *dst++ = kGSUTF32CharacterByteOrderMark;
           dlen -= 4;
         }
       /* round to the nearest multiple of 4 */
@@ -581,7 +570,11 @@ GSFromUnicode (const UniChar * s, CFIndex slen,
       converted =
         GSUnicodeToUTF32 (s, slen / sizeof (UTF32Char), lossChar,
                           (UTF32Char *) d, dlen, usedDstLen);
-      if (enc == GS_UTF32_ENCODING_TO_SWAP && dlen != 0)
+#if __BIG_ENDIAN__
+      if (enc == kCFStringEncodingUTF32LE && dlen != 0)
+#else
+      if (enc == kCFStringEncodingUTF32BE && dlen != 0)
+#endif
         {
           UTF32Char *cur;
           UTF32Char *end;
@@ -698,9 +691,8 @@ GSToUnicode (const UInt8 * s, CFIndex slen, CFStringEncoding enc,
 
   if (enc == kCFStringEncodingUTF8)
     {
-      if (isExtRep && slen > 3
-          && (s[0] == 0xEF && s[1] == 0xBB && s[2] == 0xBF))
-        s += 3;
+      if (isExtRep)
+        GSUTF8CharacterSkipByteOrderMark (&s, s + slen);
 
       converted = GSUnicodeFromUTF8 (s, slen, lossChar, d, dlen, usedDstLen);
     }
@@ -717,37 +709,41 @@ GSToUnicode (const UInt8 * s, CFIndex slen, CFStringEncoding enc,
 
       if (enc == kCFStringEncodingUTF16)
         {
-          UniChar bom;
-
-          bom = (*src == 0xFEFF || *src == 0xFFFE) ? *src++ : 0;
-#if WORDS_BIGENDIAN
-          if (bom == 0xFFFE)
-#else
-          if (bom == 0xFEFF)
-#endif
-            swap = true;
+          if (*src == kGSUTF16CharacterByteOrderMark)
+            {
+              src += 1;
+            }
+          else if (*src == kGSUTF16CharacterSwappedByteOrderMark)
+            {
+              swap = true;
+              src += 1;
+            }
         }
-      else if (enc == GS_UTF16_ENCODING_TO_SWAP)
+#if __BIG_ENDIAN__
+      else if (enc == kCFStringEncodingUTF16LE)
+#else
+      else if (enc == kCFStringEncodingUTF16BE)
+#endif
         {
           swap = true;
         }
 
+      copyLength =
+        (dlen * sizeof (UniChar) <= slen) ? (dlen * sizeof (UniChar)) : slen;
+      memcpy (d, s, copyLength);
       if (swap && slen != 0)
         {
           UniChar *cur;
           UniChar *end;
 
-          cur = (UniChar *) s;
-          end = (UniChar *) (s + slen);
+          cur = d;
+          end = d + (copyLength / sizeof (UniChar));
           while (cur < end)
             {
               *cur = CFSwapInt16 (*cur);
-              ++cur;
+              cur++;
             }
         }
-      copyLength =
-        (dlen * sizeof (UniChar) <= slen) ? (dlen * sizeof (UniChar)) : slen;
-      memcpy (d, s, copyLength);
       if (usedDstLen)
         *usedDstLen = slen;
       converted = copyLength / sizeof (UniChar);
@@ -761,24 +757,29 @@ GSToUnicode (const UInt8 * s, CFIndex slen, CFStringEncoding enc,
 
       src = (const UTF32Char *) s;
       swap = false;
+
       if (enc == kCFStringEncodingUTF32)
         {
-          UTF32Char bom;
-
-          bom = (*src == 0x0000FEFF || *src == 0xFFFE0000) ? *src++ : 0;
-#if WORDS_BIGENDIAN
-          if (bom == 0xFFFE0000)
-#else
-          if (bom == 0x0000FEFF)
-#endif
-            swap = true;
+          if (*src == kGSUTF32CharacterByteOrderMark)
+            {
+              src += 1;
+            }
+          else if (*src == kGSUTF32CharacterSwappedByteOrderMark)
+            {
+              swap = true;
+              src += 1;
+            }
         }
-      else if (enc == GS_UTF32_ENCODING_TO_SWAP)
+#if __BIG_ENDIAN__
+      else if (*src == kCFStringEncodingUTF32LE)
+#else
+      else if (*src == kCFStringEncodingUTF32BE)
+#endif
         {
           swap = true;
         }
       /* round to the nearest multiple of 4 */
-      slen &= ~0x3;
+      slen &= ~3;
       if (swap && slen != 0)
         {
           UTF32Char *cur;
@@ -937,7 +938,7 @@ static const UInt8 fmt_table[] = {
   FMT_OBJECT, FMT_DOUBLE, FMT_UNKNOWN, FMT_CHARACTER,
   FMT_INTEGER, FMT_DOUBLE, FMT_DOUBLE, FMT_DOUBLE,
   FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN,
-  FMT_MOD_LONG, FMT_UNKNOWN, FMT_UNKNOWN, FMT_OCTAL,
+  FMT_MOD_LDBL, FMT_UNKNOWN, FMT_UNKNOWN, FMT_OCTAL,
   /* 0x50 */
   FMT_UNKNOWN, FMT_UNKNOWN, FMT_UNKNOWN, FMT_STRING,
   FMT_UNKNOWN, FMT_UINTEGER, FMT_UNKNOWN, FMT_UNKNOWN,
@@ -947,7 +948,7 @@ static const UInt8 fmt_table[] = {
   FMT_UNKNOWN, FMT_DOUBLE, FMT_UNKNOWN, FMT_CHARACTER,
   FMT_INTEGER, FMT_DOUBLE, FMT_DOUBLE, FMT_DOUBLE,
   FMT_MOD_SHORT, FMT_INTEGER, FMT_MOD_INTMAX, FMT_UNKNOWN,
-  FMT_MOD_LDBL, FMT_UNKNOWN, FMT_GETCOUNT, FMT_OCTAL,
+  FMT_MOD_LONG, FMT_UNKNOWN, FMT_GETCOUNT, FMT_OCTAL,
   /* 0x70 */
   FMT_POINTER, FMT_UNKNOWN, FMT_UNKNOWN, FMT_STRING,
   FMT_MOD_PTRDIFF, FMT_UINTEGER, FMT_UNKNOWN, FMT_UNKNOWN,
@@ -1843,8 +1844,8 @@ static const UniChar null_string[] = { '(', 'n', 'u', 'l', 'l', ')' };
 
 static const CFIndex null_string_len = 6;
 
-static const UniChar nan_string[] = { 'n', 'a', 'n' };
-static const UniChar inf_string[] = { 'i', 'n', 'f' };
+static const UniChar nan_string[] = { 'N', 'A', 'N' };
+static const UniChar inf_string[] = { 'I', 'N', 'F' };
 
 static const CFIndex nan_inf_string_len = 3;
 
@@ -2408,39 +2409,27 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
 #if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE  /* Avoid unused warning */
     fmt_double_parts:
 #endif
-      {
-        if (string != NULL)
-          {
-            UniChar *buf_start;
+      if (string != NULL)
+        {
+          /* Must be 'nan' or 'inf' */
+          if (is_negative || show_sign || show_space)
+            {
+              string_len += 1;
+              if (is_negative)
+                _write_char (obuf++, obuf_end, '-');
+              else if (show_sign)
+                _write_char (obuf++, obuf_end, '+');
+              else if (show_space)
+                _write_char (obuf++, obuf_end, ' ');
+            }
 
-            /* Must be 'nan' or 'inf' */
-            buf_start = buffer;
-            if (is_negative || show_sign || show_space)
-              {
-                string_len += 1;
-                if (is_negative)
-                  *buf_start++ = '-';
-                else if (show_sign)
-                  *buf_start++ = '+';
-                else if (show_space)
-                  *buf_start++ = ' ';
-              }
+          _write_char (obuf++, obuf_end, *string++ | (type & 0x20));
+          _write_char (obuf++, obuf_end, *string++ | (type & 0x20));
+          _write_char (obuf++, obuf_end, *string | (type & 0x20));
 
-            buf_start[0] = *string++;
-            buf_start[1] = *string++;
-            buf_start[2] = *string;
-            if (type >= 'A' && type <= 'Z')
-              {
-                buf_start[0] -= ('a' - 'A');
-                buf_start[1] -= ('a' - 'A');
-                buf_start[2] -= ('a' - 'A');
-              }
-            string = buffer;
-
-            goto print_string;
-          }
-        goto handle_error;
-      }
+          continue;
+        }
+      goto handle_error;
 
     fmt_character:
       if (length == FMT_MOD_LONG || type == 'C')

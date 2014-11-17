@@ -81,12 +81,6 @@ GSUnicodeFormatWithArguments (UniChar *__restrict__ s, CFIndex n,
 /*
  * General Unicode Conversion Macros and Functions
  */
-#define GS_UTF_IS_SURROGATE(c) (((c) & 0xFFFFF800) == 0xD800)
-
-#define GS_UTF_IS_LEAD_SURROGATE(c) (((c) & 0xFFFFFC00) == 0xD800)
-
-#define GS_UTF_IS_TRAIL_SURROGATE(c) (((c) & 0xFFFFFC00) == 0xDC00)
-
 /** @internal
  * Convert from Unicode to a specified encoding.
  * @return Number of characters converted.
@@ -134,18 +128,6 @@ GSToUnicode (const UInt8 * src, CFIndex srcLen, CFStringEncoding encoding,
 /*
  * UTF-8 Conversion Macros and Functions
  */
-#define GS_UTF8_MAX_LENGTH 4
-
-#define GS_UTF8_BYTE_COUNT(c) \
-  (((c) < 0xF8) ? 1 + ((c) >= 0xC0) + ((c) >= 0xE0) + ((c) >= 0xF0) : 0)
-
-/* Get the number of bytes needed for the code point */
-#define GS_UTF8_LENGTH(c) (((c) <= 0x10FFFF ) \
-                           ? 1 + ((c) > 0x007F) + ((c) > 0x07FF) \
-                           + ((c) > 0xFFFF) : 0)
-
-#define GS_UTF8_IS_TRAIL(c) (((c) & 0xC0) == 0x80)
-
 /** @internal
  * Convert from UTF-8 to Unicode
  * @return Number of bytes read.
@@ -184,54 +166,8 @@ GSUnicodeToUTF8 (const UniChar * src, CFIndex srcLen, UniChar lossChar,
 
 
 /*
- * UTF-16 Conversion Macros and Functions
- */
-#define GS_UTF16_BOM 0xFEFF
-
-#define GS_UTF16_APPEND_CHAR(_dest0, _dest1, _c) do \
-  { \
-    _dest0 = (_c >> 10) + 0xD7C0; \
-    _dest1 = (_c & 0x3FF) | 0xDC00; \
-  } while(0)
-
-#define GS_UTF16_GET_CHAR(_lead, _trail) \
-  ((UTF32Char)_lead << 10) + (UTF32Char)_trail - ((0xD7C0 << 10) + 0xDC00)
-
-#if WORDS_BIGENDIAN
-#define GS_UTF16_ENCODING kCFStringEncodingUTF16BE
-#define GS_UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16LE
-#define GS_UTF16_BOM_HI 0xFE
-#define GS_UTF16_BOM_LO 0xFF
-#else
-#define GS_UTF16_ENCODING kCFStringEncodingUTF16LE
-#define GS_UTF16_ENCODING_TO_SWAP kCFStringEncodingUTF16BE
-#define GS_UTF16_BOM_HI 0xFF
-#define GS_UTF16_BOM_LO 0xFE
-#endif
-
-
-
-/*
  * UTF-32 Conversion Macros and Functions
  */
-#define GS_UTF32_BOM 0x0000FEFF
-
-#if WORDS_BIGENDIAN
-#define GS_UTF32_ENCODING kCFStringEncodingUTF32BE
-#define GS_UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32LE
-#define GS_UTF32_BOM_0 0x00
-#define GS_UTF32_BOM_1 0x00
-#define GS_UTF32_BOM_2 0xFE
-#define GS_UTF32_BOM_3 0xFF
-#else
-#define GS_UTF32_ENCODING kCFStringEncodingUTF32LE
-#define GS_UTF32_ENCODING_TO_SWAP kCFStringEncodingUTF32BE
-#define GS_UTF32_BOM_0 0xFF
-#define GS_UTF32_BOM_1 0xFE
-#define GS_UTF32_BOM_2 0x00
-#define GS_UTF32_BOM_3 0x00
-#endif
-
 /** @internal
  * Convert from UTF-32 to Unicode
  * @return Number of bytes read.
