@@ -595,7 +595,12 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 * bytes,
 
   /* We'll need to convert anything that isn't one of these encodings. */
   if (!(encoding == kCFStringEncodingASCII
-        || encoding == kCFStringEncodingUTF16 || encoding == GS_UTF16_ENCODING))
+        || encoding == kCFStringEncodingUTF16
+#if __BIG_ENDIAN__
+	|| encoding == kCFStringEncodingUTF16BE))
+#else
+	|| encoding == kCFStringEncodingUTF16LE))
+#endif
     {
       CFStringEncoding origEncoding = encoding;
       extra = CFStringGetExtraBytes (&encoding, bytes, numBytes, isExtRep);
@@ -632,7 +637,11 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 * bytes,
               new->_count = numBytes;
             }
           else if (encoding == kCFStringEncodingUTF16
-                   || encoding == GS_UTF16_ENCODING)
+#if __BIG_ENDIAN__
+	|| encoding == kCFStringEncodingUTF16BE)
+#else
+	|| encoding == kCFStringEncodingUTF16LE)
+#endif
             {
               memcpy (new->_contents, bytes, numBytes);
               new->_count = numBytes / sizeof (UniChar);
@@ -742,7 +751,7 @@ CFStringCreateWithCharacters (CFAllocatorRef alloc, const UniChar * chars,
 {
   return CFStringCreateWithBytes (alloc, (const UInt8 *) chars,
                                   numChars * sizeof (UniChar),
-                                  GS_UTF16_ENCODING, false);
+                                  kCFStringEncodingUnicode, false);
 }
 
 CFStringRef
@@ -752,7 +761,7 @@ CFStringCreateWithCharactersNoCopy (CFAllocatorRef alloc, const UniChar * chars,
 {
   return CFStringCreateWithBytesNoCopy (alloc, (const UInt8 *) chars,
                                         numChars * sizeof (UniChar),
-                                        GS_UTF16_ENCODING, false,
+                                        kCFStringEncodingUnicode, false,
                                         contentsDeallocator);
 }
 
@@ -852,7 +861,7 @@ CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
 
   if (CFStringIsUnicode (str))
     {
-      enc = GS_UTF16_ENCODING;
+      enc = kCFStringEncodingUnicode;
       len = range.length * sizeof (UniChar);
       contents = ((UniChar *) str->_contents) + range.location;
     }
@@ -985,7 +994,11 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
           range.length = GS_MIN (range.length, maxBufLen / sizeof (UniChar));
           converted = range.length;
           CFStringGetCharacters (str, range, dst);
-          if (enc == GS_UTF16_ENCODING_TO_SWAP)
+#if __BIG_ENDIAN__
+	  if (enc == kCFStringEncodingUTF16LE)
+#else
+          if (enc == kCFStringEncodingUTF16BE)
+#endif
             {
               UniChar *end;
 

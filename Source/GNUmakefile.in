@@ -85,7 +85,8 @@ libgnustep-corebase_HEADER_FILES = \
   CFURLAccess.h \
   CFUUID.h \
   CFXMLNode.h \
-  CFXMLParser.h
+  CFXMLParser.h \
+  GSCharacter.h
 
 libgnustep-corebase_OBJC_FILES = \
   CFBundle.m \

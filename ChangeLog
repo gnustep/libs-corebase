@@ -1,3 +1,14 @@
+2014-11-17 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Headers/CoreFoundation/GSCharUtilities.h,
+	* Headers/CoreFoundation/GSCharacter.h: Rename file.
+	* Headers/CoreFoundation/GSUnicode.h: Add API for Unicode string.
+	Not yet part of build and install.
+	* Source/GSUnicode.c: Update part of the code to use new character
+	utilities.
+	* Source/GSUnicode.h: remove redundant functionality. This file
+	will eventually be completely superceded by GSCharacter.h and
+	GSUnicode.h.
+
 2014-11-13 Stefan Bidigaray <stefanbidi@gmail.com>
 	* configure,
 	* configure.ac: Use '--without-' to compile without a specific library.
