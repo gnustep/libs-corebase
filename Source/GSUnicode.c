@@ -66,22 +66,22 @@ GSUnicodeFromUTF8 (const UInt8 * s, CFIndex slen, UniChar lossChar,
       else
         {
           UTF32Char u;
-          CFIndex count;
+          CFIndex trail;
 
-          count = GSUTF8CharacterCodeUnitCount (*s);
-          if (count == 2 && GSUTF8CharacterIsTrailing (s[1]))
+          trail = GSUTF8CharacterTrailBytesCount (*s);
+          if (trail == 1 && GSUTF8CharacterIsTrailing (s[1]))
             {
               u = (s[0] & 0x1F) << 6;
               u |= s[1] & 0x3F;
             }
-          else if (count == 3 && GSUTF8CharacterIsTrailing (s[1])
+          else if (trail == 2 && GSUTF8CharacterIsTrailing (s[1])
                    && GSUTF8CharacterIsTrailing (s[2]))
             {
               u = (s[0] & 0x0F) << 12;
               u |= (s[1] & 0x3F) << 6;
               u |= s[2] & 0x3F;
             }
-          else if (count == 4 && GSUTF8CharacterIsTrailing (s[1])
+          else if (trail == 3 && GSUTF8CharacterIsTrailing (s[1])
                    && GSUTF8CharacterIsTrailing (s[2])
                    && GSUTF8CharacterIsTrailing (s[3]))
             {
@@ -94,7 +94,7 @@ GSUnicodeFromUTF8 (const UInt8 * s, CFIndex slen, UniChar lossChar,
             {
               break;
             }
-          s += count;
+          s += trail + 1;
           if (u < 0x10000)
             {
               if (GSCharacterIsSurrogate (u))

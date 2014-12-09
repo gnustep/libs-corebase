@@ -1,4 +1,12 @@
 2014-11-17 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Headers/CoreFoundation/GSCharUtilities.h: Added whitespace function,
+	implemented UTF-8 get function, and renamed UTF-8 trailing bytes
+	count function.
+	* Source/GSUnicode.c: Use renamed function.
+	* Tests/CFLocale/displayvalues.m,
+	* Tests/CFTimeZone/general.m: Remove unreliable tests.
+
+2014-11-17 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/GSCharUtilities.h,
 	* Headers/CoreFoundation/GSCharacter.h: Rename file.
 	* Headers/CoreFoundation/GSUnicode.h: Add API for Unicode string.

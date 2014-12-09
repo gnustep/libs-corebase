@@ -30,13 +30,12 @@
 #include <CoreFoundation/CFBase.h>
 #include <stdarg.h>
 
-/** \defgroup StringUtils String Utilities
+/** \defgroup UnicodeUtils Unicode String Utilities
     \{
  */
 /** \name Converter to/from a Unicode String
     \{
  */
-
 /** \brief Convert a buffer with bytes from the specified encoding to an
       array of UTF-16 characters.
     \details The intended use of this function is to convert a continuous
@@ -96,7 +95,6 @@ GSUnicodeToEncoding (CFStringEncoding enc, UInt8 ** d, const UInt8 * d_end,
 /** \name Unicode Formatting
     \{
  */
-
 /** \brief Creates an output according to a format per the printf family
       of functions.
     \param[in] buffer Output buffer.  If NULL, this function returns the number
@@ -134,7 +132,6 @@ GSUnicodeFormatWithArguments (UniChar ** d, const UniChar * d_end,
                               const UniChar * f_end, va_list ap);
 
 /** \} */
-
 /** \} */
 
 #endif /* __GSUNICODE_H__ */

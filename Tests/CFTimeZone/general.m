@@ -19,12 +19,13 @@ int main (void)
        "Time zone named 'CST' was found when abbreviations were searched");
   str = CFTimeZoneGetName (tz);
   PASS_CFEQ(str, CFSTR("America/Chicago"), "Time zone name is 'US/Central'");
-  
+  CFRelease (str);
   CFRelease (tz);
   
   tz = CFTimeZoneCreateWithName (NULL, CFSTR("Europe/Rome"), false);
   str = CFTimeZoneGetName (tz);
   PASS_CFEQ(str, CFSTR("Europe/Rome"), "'Europe/Rome' time zone created.");
+  CFRelease (str);
   
   at = CFTimeZoneGetSecondsFromGMT (tz, 1000000.0);
   PASS_CF(at == 3600.0,
@@ -34,17 +35,9 @@ int main (void)
   
   loc = CFLocaleCreate (NULL, CFSTR("en_GB"));
   
-  testHopeful = true;
-  str = CFTimeZoneCopyLocalizedName (tz, kCFTimeZoneNameStyleStandard, loc);
-  PASS_CFEQ(str, CFSTR("Central European Time"),
-            "Standard localized name is correct.");
-  CFRelease (str);
-  testHopeful = false;
-  
   str = CFTimeZoneCopyLocalizedName (tz, kCFTimeZoneNameStyleShortStandard, loc);
   PASS_CFEQ(str, CFSTR("CET"), "Short standard localized name is correct.");
   CFRelease (str);
-  
   CFRelease (loc);
   
   ti = CFTimeZoneGetDaylightSavingTimeOffset (tz, 0.0);

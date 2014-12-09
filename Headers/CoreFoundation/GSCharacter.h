@@ -35,7 +35,6 @@
 /** \name Unicode Code Point Functions
     \{
  */
-
 /** \brief Determine if a character is an ASCII character (less than 128).
     \param[in] c Character to test.
     \return Return true if character is an ASCII character.
@@ -44,6 +43,19 @@ CF_INLINE Boolean
 GSCharacterIsASCII (const UTF32Char c)
 {
   return c < 128;
+}
+
+/** \brief Determine if a character is a whitespace character.
+    \param[in] c Charater to test.
+    \return True if character is whitespace.
+ */
+CF_INLINE Boolean
+GSCharacterIsWhiteSpace (const UTF32Char c)
+{
+  return (0x0009 <= c && c <= 0x000D) || (c == 0x0020) || (c == 0x0085)
+    || (c == 0x00A0) || (c == 0x1680) || (0x2000 <= c && c <= 0x200A)
+    || (c == 0x2028) || (c == 0x2029) || (c == 0x202F) || (c == 0x205F)
+    || (c == 0x3000);
 }
 
 /** \brief Determine if character is in one of the supplementary planes.
@@ -91,22 +103,20 @@ GSCharacterIsTrailSurrogate (const UTF32Char c)
 /** \name UTF-8 Utilities
     \{
  */
-
 /** \brief The maximum number of UTF-8 code units required to represent
       the highest Unicode code point.
  */
 #define kGSUTF8CharacterMaximumLength 4
 
-/** \brief Determine the number of code units for a UTF-8 character based on
-      the leading code unit.
+/** \brief Determine the number of trailing bytes for a UTF-8 character
+      based on the leading code unit.
     \param[in] c Leading code unit to test.
-    \return The number of UTF-8 code units in this character.
+    \return The number of trailing bytes.
  */
 CF_INLINE CFIndex
-GSUTF8CharacterCodeUnitCount (const UTF8Char c)
+GSUTF8CharacterTrailBytesCount (const UTF8Char c)
 {
-  return (c < 0xF8) ? (c < 128 || c >= 0xC0) + (c >= 0xC0) + (c >= 0xE0)
-    + (c >= 0xF0) : 0;
+  return (c < 0xF5) ? (c >= 0xC0) + (c >= 0xE0) + (c >= 0xF0): 0;
 }
 
 /** \brief Determines if the specified UTF-8 code unit is a trailing code unit.
@@ -226,6 +236,7 @@ GSUTF8CharacterAppend (UTF8Char ** d, UTF8Char * end, UTF32Char c)
       *p++ = ((c >> 6) & 0x3F) | 0x80;
       *p++ = (c & 0x3F) | 0x80;
     }
+  *d = p;
 
   return true;
 }
@@ -246,14 +257,41 @@ GSUTF8CharacterAppend (UTF8Char ** d, UTF8Char * end, UTF32Char c)
 CF_INLINE UTF32Char
 GSUTF8CharacterGet (const UTF8Char ** s, const UTF8Char * end)
 {
-  return 0;
+  UTF32Char c;
+  const UTF8Char *p;
+  static const UTF32Char lead_mask[4] = { 0x0, 0x1F, 0x0F, 0x07 };
+
+  p = *s;
+  c = (p > end) ? *p++ : 0;
+  if (c & 0x80)
+    {
+      CFIndex trail;
+
+      trail = GSUTF8CharacterTrailBytesCount (c);
+      if (trail > (end - p) || trail == 0)
+	return 0;
+      c &= lead_mask[trail];
+      switch (trail)
+	{
+	  case 3:
+	    c = (c << 6) | (*p++ & 0x3F);
+	  case 2:
+	    c = (c << 6) | (*p++ & 0x3F);
+	  case 1:
+	    c = (c << 6) | (*p++ & 0x3F);
+	}
+      if (c > 0x10FFFF)
+	return 0;
+    }
+  *s = p;
+
+  return c;
 }
 /** \} */
 
 /** \name UTF-16 Utilities
     \{
  */
-
 /** \brief The maximum number of UTF-16 code units required to represent the
       highest Unicode code point.
  */
@@ -318,7 +356,7 @@ GSUTF16CharacterGet (const UTF16Char ** s, const UTF16Char * end)
   const UTF16Char *p;
 
   p = *s;
-  c = *p++;
+  c = (p > end) ? *p++ : 0;
   if (GSCharacterIsSurrogate (c))
     {
       if (GSCharacterIsLeadSurrogate (c) && p < end
@@ -336,15 +374,12 @@ GSUTF16CharacterGet (const UTF16Char ** s, const UTF16Char * end)
 /** \name UTF-32 Utilities
     \{
  */
-
 /** \brief The Byte Order Mark for UTF-32 strings. */
 #define kGSUTF32CharacterByteOrderMark 0x0000FEFF
 
 /** \brief The swapped Byte Order Mark for UTF-32 strings. */
 #define kGSUTF32CharacterSwappedByteOrderMark 0xFFFE0000
-
 /** \} */
-
 /** \} */
 
 #endif /* __GSCHARACTER_H__ */

@@ -34,7 +34,7 @@ int main (void)
   
   str = CFLocaleCopyDisplayNameForPropertyValue (locale, kCFLocaleCurrencyCode,
                                                  CFSTR("BRL"));
-  PASS_CFEQ(str, CFSTR("brasilianske realer"),
+  PASS_CFEQ(str, CFSTR("brasilianske real"),
             "Display currency code is correct");
   CFRelease (str);
   
