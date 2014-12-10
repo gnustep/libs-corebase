@@ -1,4 +1,8 @@
-2014-11-17 Stefan Bidigaray <stefanbidi@gmail.com>
+2014-12-09 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Headers/CoreFoundation/GSCharUtilities.h: Fixed function case.
+	* Source/CFString.c: Use new whitespace function.
+
+2014-12-09 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/GSCharUtilities.h: Added whitespace function,
 	implemented UTF-8 get function, and renamed UTF-8 trailing bytes
 	count function.

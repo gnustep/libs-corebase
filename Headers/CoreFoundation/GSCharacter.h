@@ -50,7 +50,7 @@ GSCharacterIsASCII (const UTF32Char c)
     \return True if character is whitespace.
  */
 CF_INLINE Boolean
-GSCharacterIsWhiteSpace (const UTF32Char c)
+GSCharacterIsWhitespace (const UTF32Char c)
 {
   return (0x0009 <= c && c <= 0x000D) || (c == 0x0020) || (c == 0x0085)
     || (c == 0x00A0) || (c == 0x1680) || (0x2000 <= c && c <= 0x200A)

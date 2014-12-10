@@ -33,6 +33,7 @@
 #include "CoreFoundation/CFNumberFormatter.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
+#include "CoreFoundation/GSCharacter.h"
 
 #include "GSPrivate.h"
 #include "GSObjCRuntime.h"
@@ -51,9 +52,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#if HAVE_UNICODE_UCHAR_H
-#include <unicode/uchar.h>
-#endif
 #if HAVE_UNICODE_UNORM_H
 #include <unicode/unorm.h>
 #endif
@@ -1649,12 +1647,6 @@ CFStringTrim (CFMutableStringRef str, CFStringRef trimString)
                           kCFCompareBackwards | kCFCompareAnchored);
 }
 
-#if HAVE_UNICODE_UCHAR_H
-#define _isWhiteSpace(c) u_isUWhiteSpace((UChar32)c)
-#else
-#define _isWhiteSpace(c) ((c) < 0x20)
-#endif
-
 void
 CFStringTrimWhitespace (CFMutableStringRef str)
 {
@@ -1677,7 +1669,7 @@ CFStringTrimWhitespace (CFMutableStringRef str)
 
   idx = 0;
   c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
-  while (_isWhiteSpace ((UChar32) c) && idx < textLength)
+  while (GSCharacterIsWhitespace (c) && idx < textLength)
     c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
   start = idx - 1;
   end = start;
@@ -1685,7 +1677,7 @@ CFStringTrimWhitespace (CFMutableStringRef str)
     {
       c = CFStringGetCharacterFromInlineBuffer (&buffer, idx++);
       /* reset the end point */
-      if (!_isWhiteSpace ((UChar32) c))
+      if (!GSCharacterIsWhitespace (c))
         end = idx;
     }
 
