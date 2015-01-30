@@ -33,9 +33,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `dispatch' library (-ldispatch). */
-#undef HAVE_LIBDISPATCH
-
 /* Define to 1 if you have the `objc' library (-lobjc). */
 #undef HAVE_LIBOBJC
 

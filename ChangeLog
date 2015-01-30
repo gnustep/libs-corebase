@@ -1,3 +1,8 @@
+2014-01-30 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/config.h.in,
+	* configure,
+	* configure.ac: Disable check for GCD as it is broken.
+
 2014-12-09 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/GSCharUtilities.h: Fixed function case.
 	* Source/CFString.c: Use new whitespace function.
