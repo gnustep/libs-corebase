@@ -1333,27 +1333,63 @@ _dbl_is_nan (double d)
 #endif
   l |= (h & 0x000FFFFF);
   l |= -l;
-  l = 0x7FF00000 - ((h & 0x7FF00000) | ((UInt32) l >> 31));
+  l = ((h & 0x7FF00000) ^ 0x7FF00000) - ((UInt32) l >> 31);
 
-  return (l >> 31) & (h >> 30);
+  return l & (h >> 30);
 }
 
 #if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
 #if SIZEOF_LONG_DOUBLE == 12
-/* #error 96-bit long double currently not supported! */
-static Boolean
+static int
 _ldbl_is_inf (long double d)
 {
-  return false;
+  SInt32 h;
+  SInt32 m;
+  SInt32 l;
+  SInt32 *dint;
+
+  dint = (SInt32 *) &d;
+#if WORDS_BIGENDIAN
+  l = dint[2];
+  m = dint[1];
+  h = dint[0];
+#else
+  l = dint[0];
+  m = dint[1];
+  h = dint[2];
+#endif
+  l |= (m & 0x7FFFFFFF) | ((h & 0x7FFF) ^ 0x7FFF);
+  l |= -l;
+
+  return ~(l >> 31) & ((h << 16) >> 30);
 }
 
-static Boolean
+static int
 _ldbl_is_nan (long double d)
 {
-  return false;
+  SInt32 h;
+  SInt32 m;
+  SInt32 l;
+  SInt32 *dint;
+
+  dint = (SInt32 *) &d;
+#if WORDS_BIGENDIAN
+  l = dint[2];
+  m = dint[1];
+  h = dint[0];
+#else
+  l = dint[0];
+  m = dint[1];
+  h = dint[2];
+#endif
+  l |= (m & 0x7FFFFFFF);
+  l |= -l;
+  l = ((h & 0x7FFF) ^ 0x7FFF) - ((UInt32)l >> 31);  
+
+  return l & ((h << 16) >> 30);
 }
 #elif SIZEOF_LONG_DOUBLE == 16
-static Boolean
+static int
 _ldbl_is_inf (long double d)
 {
   /* Infinity is defined to be: exponent = 0x7FF, mantissa = 0 */
@@ -1379,14 +1415,14 @@ _ldbl_is_inf (long double d)
   return ~(l >> 63) & (h >> 62);
 }
 
-static Boolean
+static int
 _ldbl_is_nan (long double d)
 {
-  SInt32 l;
-  SInt32 h;
-  SInt32 *dint;
+  SInt64 l;
+  SInt64 h;
+  SInt64 *dint;
 
-  dint = (SInt32 *) & d;
+  dint = (SInt64 *) & d;
 #if WORDS_BIGENDIAN
   l = dint[1];
   h = dint[0];
@@ -1394,11 +1430,11 @@ _ldbl_is_nan (long double d)
   l = dint[0];
   h = dint[1];
 #endif
-  l |= (h & 0x000FFFFFFFFFFFFF);
+  l |= (h & 0x0000FFFFFFFFFFFF);
   l |= -l;
-  l = 0x7FF0000000000000 - ((h & 0x7FF0000000000000) | ((UInt32) l >> 63));
+  l = ((h & 0x7FFF000000000000) ^ 0x7FFF000000000000) - ((UInt32) l >> 63);
 
-  return (l >> 63) & (h >> 62);
+  return l & (h >> 62);
 }
 #else
 #error Unsupported size of long double!
