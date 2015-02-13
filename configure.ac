@@ -107,21 +107,18 @@ GS_CHECK_ICU([4.0])
 #---
 # Check for Grand Central Dispatch (libdispatch)
 #---
-# WARNING: the check here is broken and needs to be fixed!  Commenting it for now.
-#AC_ARG_WITH([gcd],
-#  [AS_HELP_STRING([--without-gcd],
-#    [Compiles without Grand Central Dispatch support. This option leads to a loss of functionality.])],
-#  [with_gcd=$enableval], [with_gcd=yes])
-#AS_IF([test "$with_gcd" = "yes"],
-#      [LIBS="$LIBS -ldispatch"
-#            AC_DEFINE(HAVE_LIBDISPATCH, 1)]
-#            [AC_CHECK_HEADER(dispatch/dispatch.h)
-#            AS_IF([test "$ac_cv_header_dispatch_dispatch_h" = "no"],
-#                  [AC_MSG_ERROR([Could not find the Grand Central Dispatch header. Use --disable-gcd to disable GCD support or install libdispatch.])
-#            ])
-#            AC_CHECK_LIB(dispatch, dispatch_get_main_queue_eventfd_np)
-#            AS_IF([test "$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" = "no"],
-#                  [AC_MSG_ERROR([Compatible libdispatch not found for GCD support! Use --disable-gcd to disable GCD support.])])])
+AC_ARG_WITH([gcd],
+  [AS_HELP_STRING([--without-gcd],
+    [Explicitly compiles without Grand Central Dispatch support. Configure will attempt to find a compatible library, use this option if you do not wish to have the support.  The opposite option, --with-gcd, is also supported and should be used if Grand Central Dispatch support is absolutely required.  A compatible library will required (http://www.nickhutchinson.me/libdispatch).])],
+  [with_gcd=$withval], [with_gcd=maybe])
+AS_IF([test "$with_gcd" != "no"],
+      [AC_CHECK_HEADER(dispatch/dispatch.h)
+      AS_IF([test x"$ac_cv_header_dispatch_dispatch_h" = "xno"],
+            AS_IF([test x"$with_gcd" = "xyes"],
+                  AC_MSG_ERROR([Could not find the Grand Central Dispatch headers.])),
+      	    AC_CHECK_LIB(dispatch, dispatch_get_main_queue_eventfd_np)
+            AS_IF([test x"$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" = "xno" -a x"$with_gcd" = "xyes"],
+                  AC_MSG_ERROR([Compatible libdispatch not found for GCD support!])))])
 
 #---
 # Check for the Objective-C runtime
@@ -129,7 +126,7 @@ GS_CHECK_ICU([4.0])
 AC_ARG_WITH([objc-bridge],
   [AS_HELP_STRING([--without-objc-bridge],
     [Does not compile the Objective-C toll-free bridge mechanism.])],
-  [with_objc_bridge=$enableval], [with_objc_bridge=yes])
+  [with_objc_bridge=$withval], [with_objc_bridge=yes])
 AS_IF([test "$with_objc_bridge" = "yes"],
       [AC_PATH_PROG(GNUSTEP_CONFIG, [gnustep-config], [no])
       AS_IF([test "$GNUSTEP_CONFIG" != "no"],
@@ -152,7 +149,7 @@ AS_IF([test "$with_objc_bridge" = "yes"],
 AC_ARG_WITH([zoneinfo-dir],
   [AS_HELP_STRING([--with-zoneinfo-dir=DIR],
     [Directory of the Time zone object files.])],
-  [], [with_zoneinfo_dir=no])
+  [with_zoneinfo_dir=$withval], [with_zoneinfo_dir=no])
 AC_MSG_CHECKING([zoneinfo directory])
 AS_IF([test "$with_zoneinfo_dir" = "no"],
       [AS_IF([test -d "/usr/share/zoneinfo"],

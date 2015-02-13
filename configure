@@ -688,6 +688,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_gcd
 with_objc_bridge
 with_zoneinfo_dir
 '
@@ -1309,6 +1310,14 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --without-gcd           Explicitly compiles without Grand Central Dispatch
+                          support. Configure will attempt to find a compatible
+                          library, use this option if you do not wish to have
+                          the support. The opposite option, --with-gcd, is
+                          also supported and should be used if Grand Central
+                          Dispatch support is absolutely required. A
+                          compatible library will required
+                          (http://www.nickhutchinson.me/libdispatch).
   --without-objc-bridge   Does not compile the Objective-C toll-free bridge
                           mechanism.
   --with-zoneinfo-dir=DIR Directory of the Time zone object files.
@@ -4223,21 +4232,76 @@ $as_echo "#define HAVE_ICU 1" >>confdefs.h
 #---
 # Check for Grand Central Dispatch (libdispatch)
 #---
-# WARNING: the check here is broken and needs to be fixed!  Commenting it for now.
-#AC_ARG_WITH([gcd],
-#  [AS_HELP_STRING([--without-gcd],
-#    [Compiles without Grand Central Dispatch support. This option leads to a loss of functionality.])],
-#  [with_gcd=$enableval], [with_gcd=yes])
-#AS_IF([test "$with_gcd" = "yes"],
-#      [LIBS="$LIBS -ldispatch"
-#            AC_DEFINE(HAVE_LIBDISPATCH, 1)]
-#            [AC_CHECK_HEADER(dispatch/dispatch.h)
-#            AS_IF([test "$ac_cv_header_dispatch_dispatch_h" = "no"],
-#                  [AC_MSG_ERROR([Could not find the Grand Central Dispatch header. Use --disable-gcd to disable GCD support or install libdispatch.])
-#            ])
-#            AC_CHECK_LIB(dispatch, dispatch_get_main_queue_eventfd_np)
-#            AS_IF([test "$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" = "no"],
-#                  [AC_MSG_ERROR([Compatible libdispatch not found for GCD support! Use --disable-gcd to disable GCD support.])])])
+
+# Check whether --with-gcd was given.
+if test "${with_gcd+set}" = set; then :
+  withval=$with_gcd; with_gcd=$withval
+else
+  with_gcd=maybe
+fi
+
+if test "$with_gcd" != "no"; then :
+  ac_fn_c_check_header_mongrel "$LINENO" "dispatch/dispatch.h" "ac_cv_header_dispatch_dispatch_h" "$ac_includes_default"
+if test "x$ac_cv_header_dispatch_dispatch_h" = xyes; then :
+
+fi
+
+
+      if test x"$ac_cv_header_dispatch_dispatch_h" = "xno"; then :
+  if test x"$with_gcd" = "xyes"; then :
+  as_fn_error $? "Could not find the Grand Central Dispatch headers." "$LINENO" 5
+fi
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dispatch_get_main_queue_eventfd_np in -ldispatch" >&5
+$as_echo_n "checking for dispatch_get_main_queue_eventfd_np in -ldispatch... " >&6; }
+if ${ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldispatch  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dispatch_get_main_queue_eventfd_np ();
+int
+main ()
+{
+return dispatch_get_main_queue_eventfd_np ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np=yes
+else
+  ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" >&5
+$as_echo "$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" >&6; }
+if test "x$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBDISPATCH 1
+_ACEOF
+
+  LIBS="-ldispatch $LIBS"
+
+fi
+
+            if test x"$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" = "xno" -a x"$with_gcd" = "xyes"; then :
+  as_fn_error $? "Compatible libdispatch not found for GCD support!" "$LINENO" 5
+fi
+fi
+fi
 
 #---
 # Check for the Objective-C runtime
@@ -4245,7 +4309,7 @@ $as_echo "#define HAVE_ICU 1" >>confdefs.h
 
 # Check whether --with-objc-bridge was given.
 if test "${with_objc_bridge+set}" = set; then :
-  withval=$with_objc_bridge; with_objc_bridge=$enableval
+  withval=$with_objc_bridge; with_objc_bridge=$withval
 else
   with_objc_bridge=yes
 fi
@@ -4412,7 +4476,7 @@ fi
 
 # Check whether --with-zoneinfo-dir was given.
 if test "${with_zoneinfo_dir+set}" = set; then :
-  withval=$with_zoneinfo_dir;
+  withval=$with_zoneinfo_dir; with_zoneinfo_dir=$withval
 else
   with_zoneinfo_dir=no
 fi

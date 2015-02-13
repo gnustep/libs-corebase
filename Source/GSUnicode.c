@@ -1340,9 +1340,15 @@ _dbl_is_nan (double d)
 
 #if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
 #if SIZEOF_LONG_DOUBLE == 12
-#error 96-bit long double currently not supported!
+/* #error 96-bit long double currently not supported! */
 static Boolean
 _ldbl_is_inf (long double d)
+{
+  return false;
+}
+
+static Boolean
+_ldbl_is_nan (long double d)
 {
   return false;
 }
