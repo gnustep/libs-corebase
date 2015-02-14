@@ -262,7 +262,7 @@ GSUTF8CharacterGet (const UTF8Char ** s, const UTF8Char * end)
   static const UTF32Char lead_mask[4] = { 0x0, 0x1F, 0x0F, 0x07 };
 
   p = *s;
-  c = (p > end) ? *p++ : 0;
+  c = (p < end) ? *p++ : 0;
   if (c & 0x80)
     {
       CFIndex trail;
@@ -356,7 +356,7 @@ GSUTF16CharacterGet (const UTF16Char ** s, const UTF16Char * end)
   const UTF16Char *p;
 
   p = *s;
-  c = (p > end) ? *p++ : 0;
+  c = (p < end) ? *p++ : 0;
   if (GSCharacterIsSurrogate (c))
     {
       if (GSCharacterIsLeadSurrogate (c) && p < end
