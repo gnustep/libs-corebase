@@ -1,3 +1,6 @@
+2014-02-14 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/GSUnicode.c: Fix logical error in isnan/isinf functions.
+
 2014-02-13 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/GSUnicode.c: Completed isnan/isinf functions for long double.
 

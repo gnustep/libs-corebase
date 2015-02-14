@@ -1335,7 +1335,7 @@ _dbl_is_nan (double d)
   l |= -l;
   l = ((h & 0x7FF00000) ^ 0x7FF00000) - ((UInt32) l >> 31);
 
-  return l & (h >> 30);
+  return (l >> 31) & (h >> 30);
 }
 
 #if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
@@ -1386,7 +1386,7 @@ _ldbl_is_nan (long double d)
   l |= -l;
   l = ((h & 0x7FFF) ^ 0x7FFF) - ((UInt32)l >> 31);  
 
-  return l & ((h << 16) >> 30);
+  return (l >> 31) & ((h << 16) >> 30);
 }
 #elif SIZEOF_LONG_DOUBLE == 16
 static int
@@ -1432,9 +1432,9 @@ _ldbl_is_nan (long double d)
 #endif
   l |= (h & 0x0000FFFFFFFFFFFF);
   l |= -l;
-  l = ((h & 0x7FFF000000000000) ^ 0x7FFF000000000000) - ((UInt32) l >> 63);
+  l = ((h & 0x7FFF000000000000) ^ 0x7FFF000000000000) - ((UInt64) l >> 63);
 
-  return l & (h >> 62);
+  return (l >> 63) & (h >> 62);
 }
 #else
 #error Unsupported size of long double!
