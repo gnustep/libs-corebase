@@ -60,7 +60,7 @@ NSCFTYPE_VARS
 }
 
 - (id) initWithObjects: (const id[])objects
-               forKeys: (const id[])keys
+               forKeys: (const id<NSCopying>[])keys
                  count: (NSUInteger)count
 {
   RELEASE(self);

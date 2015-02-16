@@ -40,7 +40,7 @@ GSRuntimeInitializeConstants (void);
 
 void NSCFInitialize (void)
 {
-  static int requiredClasses = 11;
+  static int requiredClasses = 12;
   --requiredClasses;
   
   if (requiredClasses == 0)

@@ -1,3 +1,7 @@
+2014-02-16 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/NSCFDictionary.m: Add category to match class definition.
+	* Source/NSCFType.m: Use correct number of classes to register.
+
 2014-02-14 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/GSCharacter.h: Fix minor compare bug.
 
