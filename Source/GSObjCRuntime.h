@@ -56,8 +56,15 @@ __CFISAForTypeID (CFTypeID typeID)
 CF_INLINE Boolean
 CF_IS_OBJC (CFTypeID typeID, const void *obj)
 {
+#if defined(OBJC_SMALL_OBJECT_MASK)
+  return (obj && ((objc & OBJC_SMALL_OBJECT_MASK) != 0
+                  || (typeID >= __CFRuntimeClassTableCount
+                      || object_getClass ((id) obj) !=
+                      __CFISAForTypeID (typeID))));
+#else
   return (obj && (typeID >= __CFRuntimeClassTableCount
                   || object_getClass ((id) obj) != __CFISAForTypeID (typeID)));
+#endif
 }
 
 #define CF_OBJC_FUNCDISPATCHV(typeID, rettype, obj, sel, ...) \

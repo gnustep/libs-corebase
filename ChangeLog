@@ -1,4 +1,7 @@
 2014-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/GSObjCRuntime.h: Check for small objects.
+
+2014-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/CFArray.h,
 	* Headers/CoreFoundation/CFBag.h,
 	* Headers/CoreFoundation/CFData.h,
