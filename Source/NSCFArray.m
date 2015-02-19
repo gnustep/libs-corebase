@@ -73,39 +73,41 @@ NSCFTYPE_VARS
   va_end(ap);
 
   self = (NSCFArray*) CFArrayCreateCopy(NULL, temp);
-  RELEASE(temp);
+  RELEASE((id)temp);
 
   return self;
 }
 
 - (NSUInteger) count
 {
-  return (NSUInteger)CFArrayGetCount (self);
+  return (NSUInteger)CFArrayGetCount ((CFArrayRef)self);
 }
 
 - (id) objectAtIndex: (NSUInteger) index
 {
-  return (id)CFArrayGetValueAtIndex (self, (CFIndex)index);
+  return (id)CFArrayGetValueAtIndex ((CFArrayRef)self, (CFIndex)index);
 }
 
 -(void) addObject: (id) anObject
 {
-  CFArrayAppendValue (self, (const void*)anObject);
+  CFArrayAppendValue ((CFMutableArrayRef)self, (const void*)anObject);
 }
 
 - (void) replaceObjectAtIndex: (NSUInteger) index withObject: (id) anObject
 {
-  CFArraySetValueAtIndex (self, (CFIndex)index, (const void*)anObject);
+  CFArraySetValueAtIndex ((CFMutableArrayRef)self, (CFIndex)index,
+                          (const void*)anObject);
 }
 
 - (void) insertObject: (id) anObject atIndex: (NSUInteger) index
 {
-  CFArrayInsertValueAtIndex (self, (CFIndex)index, (const void*)anObject);
+  CFArrayInsertValueAtIndex ((CFMutableArrayRef)self, (CFIndex)index,
+                             (const void*)anObject);
 }
 
 - (void) removeObjectAtIndex: (NSUInteger) index
 {
-  CFArrayRemoveValueAtIndex (self, (CFIndex)index);
+  CFArrayRemoveValueAtIndex ((CFMutableArrayRef)self, (CFIndex)index);
 }
 @end
 

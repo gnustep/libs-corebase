@@ -31,16 +31,8 @@
 
 CF_EXTERN_C_BEGIN
 
-#ifdef __OBJC__
-@class NSData;
-@class NSMutableData;
-typedef NSData* CFDataRef;
-typedef NSMutableData* CFMutableDataRef;
-#else
 typedef const struct __CFData * CFDataRef;
 typedef struct __CFData * CFMutableDataRef;
-#endif
-
 
 /*
  * Creating a CFData Object

@@ -31,15 +31,8 @@
 
 CF_EXTERN_C_BEGIN
 
-#ifdef __OBJC__
-@class NSDate;
-@class NSTimeZone;
-typedef NSDate* CFDateRef;
-typedef NSTimeZone* CFTimeZoneRef;
-#else
 typedef const struct __CFDate *CFDateRef;
 typedef const struct __CFTimeZone *CFTimeZoneRef;
-#endif
 
 typedef double CFTimeInterval;
 typedef CFTimeInterval CFAbsoluteTime;

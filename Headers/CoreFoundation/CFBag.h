@@ -31,15 +31,8 @@
 
 CF_EXTERN_C_BEGIN
 
-#ifdef __OBJC__
-@class NSBag;
-@class NSMutableBag;
-typedef NSBag* CFBagRef;
-typedef NSMutableBag* CFMutableBagRef;
-#else
 typedef const struct __CFBag *CFBagRef;
 typedef struct __CFBag *CFMutableBagRef;
-#endif
 
 typedef void (*CFBagApplierFunction) (const void *value, void *context);
 

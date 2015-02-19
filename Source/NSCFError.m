@@ -56,7 +56,8 @@ NSCFTYPE_VARS
 {
   RELEASE(self);
   
-  return (NSCFError*)CFErrorCreate (NULL, domain, code, userInfo);
+  return (NSCFError*)CFErrorCreate (NULL, (CFStringRef)domain, (CFIndex)code,
+                                    (CFDictionaryRef)userInfo);
 }
 
 - (NSString *) localizedDescription
@@ -96,7 +97,7 @@ NSCFTYPE_VARS
 
 - (NSDictionary*) userInfo
 {
-  return CFErrorCopyUserInfo (self);
+  return (NSDictionary*)CFErrorCopyUserInfo ((CFErrorRef)self);
 }
 
 @end

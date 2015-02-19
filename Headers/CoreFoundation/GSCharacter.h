@@ -210,7 +210,7 @@ GSUTF8CharacterAppend (UTF8Char ** d, UTF8Char * end, UTF32Char c)
   UTF8Char *p;
 
   p = *d;
-  if (c < 0x80)
+  if (c < 0x80 && (end - p) > 1)
     {
       *p++ = c;
     }
@@ -219,22 +219,22 @@ GSUTF8CharacterAppend (UTF8Char ** d, UTF8Char * end, UTF32Char c)
       *p++ = (c >> 6) | 0xC0;
       *p++ = (c & 0x3F) | 0x80;
     }
-  else if (GSCharacterIsSurrogate (c) || c > 0x10FFFF)
-    {
-      return false;
-    }
-  else if (c < 0x10000 && (end - p) > 3)
+  else if (c > 0xDBFF && c < 0x10000 && (end - p) > 3)
     {
       *p++ = (c >> 12) | 0xE0;
       *p++ = ((c >> 6) & 0x3F) | 0x80;
       *p++ = (c & 0x3F) | 0x80;
     }
-  else if (c >= 0x20000 && (end - p) > 4)
+  else if (c < 0x11000 && (end - p) > 4)
     {
       *p++ = (c >> 18) | 0xF0;
       *p++ = ((c >> 12) & 0x3F) | 0x80;
       *p++ = ((c >> 6) & 0x3F) | 0x80;
       *p++ = (c & 0x3F) | 0x80;
+    }
+  else
+    {
+      return false;
     }
   *d = p;
 

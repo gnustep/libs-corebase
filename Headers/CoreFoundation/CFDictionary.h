@@ -31,15 +31,8 @@
 
 CF_EXTERN_C_BEGIN
 
-#ifdef __OBJC__
-@class NSDictionary;
-@class NSMutableDictionary;
-typedef NSDictionary* CFDictionaryRef;
-typedef NSMutableDictionary* CFMutableDictionaryRef;
-#else
 typedef const struct __CFDictionary * CFDictionaryRef;
 typedef struct __CFDictionary * CFMutableDictionaryRef;
-#endif
 
 typedef void (*CFDictionaryApplierFunction) (const void *key,
   const void *value, void *context);

@@ -35,12 +35,7 @@
 
 CF_EXTERN_C_BEGIN
 
-#ifdef __OBJC__
-@class NSURL;
-typedef NSURL *CFURLRef;
-#else
 typedef const struct __CFURL *CFURLRef;
-#endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 typedef CFOptionFlags CFURLBookmarkCreationOptions;

@@ -32,15 +32,8 @@
 
 CF_EXTERN_C_BEGIN
 
-#ifdef __OBJC__
-@class NSArray;
-@class NSMutableArray;
-typedef NSArray* CFArrayRef;
-typedef NSMutableArray* CFMutableArrayRef;
-#else
 typedef const struct __CFArray * CFArrayRef;
 typedef struct __CFArray * CFMutableArrayRef;
-#endif
 
 typedef void (*CFArrayApplierFunction) (const void *value, void *context);
 typedef CFStringRef (*CFArrayCopyDescriptionCallBack) (const void *value);

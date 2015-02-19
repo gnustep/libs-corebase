@@ -31,15 +31,8 @@
 
 CF_EXTERN_C_BEGIN
 
-#ifdef __OBJC__
-@class NSSet;
-@class NSMutableSet;
-typedef NSSet* CFSetRef;
-typedef NSMutableSet* CFMutableSetRef;
-#else
 typedef const struct __CFSet *CFSetRef;
 typedef struct __CFSet *CFMutableSetRef;
-#endif
 
 typedef void (*CFSetApplierFunction) (const void *value, void *context);
 

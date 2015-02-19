@@ -1,3 +1,18 @@
+2014-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Headers/CoreFoundation/CFArray.h,
+	* Headers/CoreFoundation/CFBag.h,
+	* Headers/CoreFoundation/CFData.h,
+	* Headers/CoreFoundation/CFDate.h,
+	* Headers/CoreFoundation/CFDictionary.h,
+	* Headers/CoreFoundation/CFSet.h,
+	* Headers/CoreFoundation/CFURL.h: Do not define CF types as Objective C
+	objects.
+	* Headers/CoreFoundation/GSCharacter.h: Fix bug in UTF-8 conversion
+	function.
+	* Source/NSCFArray.m,
+	* Source/NSCFData.m,
+	* Source/NSCFError.m: Explicitly cast NS to CF objects.
+
 2014-02-16 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/NSCFDictionary.m: Add category to match class definition.
 	* Source/NSCFType.m: Use correct number of classes to register.
