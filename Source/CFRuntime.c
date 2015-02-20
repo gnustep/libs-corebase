@@ -348,15 +348,20 @@ CFMakeCollectable (CFTypeRef cf)
 void
 CFRelease (CFTypeRef cf)
 {
-  CF_OBJC_FUNCDISPATCHV (CFGetTypeID (cf), void, cf, "release");
-
-  if (!((CFRuntimeBase *) cf)->_flags.ro)
+#if defined (OBJC_SMALL_OBJECT_MASK)
+  if (((unsigned long)cf & OBJC_SMALL_OBJECT_MASK) == 0)
+#endif
     {
-      CFIndex result = GSAtomicDecrementCFIndex (&(((obj) cf)[-1].retained));
-      if (result < 0)
+      CF_OBJC_FUNCDISPATCHV (CFGetTypeID (cf), void, cf, "release");
+
+      if (!((CFRuntimeBase *) cf)->_flags.ro)
         {
-          assert (result == -1);
-          GSRuntimeDeallocateInstance (cf);
+          CFIndex result = GSAtomicDecrementCFIndex (&(((obj) cf)[-1].retained));
+          if (result < 0)
+            {
+              assert (result == -1);
+              GSRuntimeDeallocateInstance (cf);
+            }
         }
     }
 }
@@ -364,14 +369,18 @@ CFRelease (CFTypeRef cf)
 CFTypeRef
 CFRetain (CFTypeRef cf)
 {
-  CF_OBJC_FUNCDISPATCHV (CFGetTypeID (cf), CFTypeRef, cf, "retain");
-
-  if (!((CFRuntimeBase *) cf)->_flags.ro)
+#if defined (OBJC_SMALL_OBJECT_MASK)
+  if (((unsigned long)cf & OBJC_SMALL_OBJECT_MASK) == 0)
+#endif
     {
-      CFIndex result = GSAtomicIncrementCFIndex (&(((obj) cf)[-1].retained));
-      assert (result < INT_MAX);
-    }
+      CF_OBJC_FUNCDISPATCHV (CFGetTypeID (cf), CFTypeRef, cf, "retain");
 
+      if (!((CFRuntimeBase *) cf)->_flags.ro)
+        {
+          CFIndex result = GSAtomicIncrementCFIndex (&(((obj) cf)[-1].retained));
+          assert (result < INT_MAX);
+        }
+    }
   return cf;
 }
 

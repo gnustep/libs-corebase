@@ -1,3 +1,8 @@
+2014-02-20 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/CFRuntime.c: Do nothing if CFRetain/CFRelease are
+	called on small objects.
+	* Source/GSObjCRuntime.h: Cast to unsigned int to avoid warning.
+
 2014-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/GSObjCRuntime.h: Check for small objects.
 

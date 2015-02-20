@@ -35,8 +35,6 @@ GS_PRIVATE const void *CFTypeRetainCallBack (CFAllocatorRef alloc,
 
 GS_PRIVATE void CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
 
-
-
 #if HAVE_LIBOBJC || HAVE_LIBOBJC2
 
 #define BOOL OBJC_BOOL
@@ -57,10 +55,9 @@ CF_INLINE Boolean
 CF_IS_OBJC (CFTypeID typeID, const void *obj)
 {
 #if defined(OBJC_SMALL_OBJECT_MASK)
-  return (obj && ((obj & OBJC_SMALL_OBJECT_MASK) != 0
-                  || (typeID >= __CFRuntimeClassTableCount
-                      || object_getClass ((id) obj) !=
-                      __CFISAForTypeID (typeID))));
+  return (obj && (((unsigned long)obj & OBJC_SMALL_OBJECT_MASK) != 0
+                  || typeID >= __CFRuntimeClassTableCount
+                  || object_getClass ((id) obj) != __CFISAForTypeID (typeID)));
 #else
   return (obj && (typeID >= __CFRuntimeClassTableCount
                   || object_getClass ((id) obj) != __CFISAForTypeID (typeID)));
