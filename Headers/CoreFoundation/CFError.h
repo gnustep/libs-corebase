@@ -34,12 +34,7 @@ CF_EXTERN_C_BEGIN
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 
-#if __OBJC__
-@class NSError;
-typedef NSError * CFErrorRef;
-#else
 typedef const struct __CFError * CFErrorRef;
-#endif
 
 CF_EXPORT const CFStringRef kCFErrorDomainPOSIX;
 CF_EXPORT const CFStringRef kCFErrorDomainOSStatus;

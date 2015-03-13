@@ -1,3 +1,8 @@
+2014-03-13 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Headers/CoreFoundation/CFBase.h.in,
+	* Headers/CoreFoundation/CFError.h: Do not define CF types as Objective C
+	objects.
+
 2014-02-20 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFRuntime.c: Do nothing if CFRetain/CFRelease are
 	called on small objects.
