@@ -62,12 +62,12 @@ NSCFTYPE_VARS
 
 - (NSString *) localizedDescription
 {
-  return AUTORELEASE(CFErrorCopyDescription (self));
+  return AUTORELEASE((id) CFErrorCopyDescription ((CFErrorRef) self));
 }
 
 - (NSString *) localizedFailureReason
 {
-  return AUTORELEASE(CFErrorCopyFailureReason (self));
+  return AUTORELEASE((id) CFErrorCopyFailureReason ((CFErrorRef) self));
 }
 
 - (NSArray *) localizedRecoveryOptions
@@ -77,7 +77,7 @@ NSCFTYPE_VARS
 
 - (NSString *) localizedRecoverySuggestion
 {
-  return AUTORELEASE(CFErrorCopyRecoverySuggestion (self));
+  return AUTORELEASE((id) CFErrorCopyRecoverySuggestion ((CFErrorRef) self));
 }
 
 - (id) recoveryAttempter
@@ -87,17 +87,17 @@ NSCFTYPE_VARS
 
 - (NSInteger) code
 {
-  return (NSInteger)CFErrorGetCode (self);
+  return (NSInteger)CFErrorGetCode ((CFErrorRef) self);
 }
 
 - (NSString*) domain
 {
-  return CFErrorGetDomain (self);
+  return (NSString *) CFErrorGetDomain ((CFErrorRef) self);
 }
 
 - (NSDictionary*) userInfo
 {
-  return (NSDictionary*)CFErrorCopyUserInfo ((CFErrorRef)self);
+  return (NSDictionary*)CFErrorCopyUserInfo ((CFErrorRef) self);
 }
 
 @end

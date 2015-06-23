@@ -101,8 +101,9 @@ static CFStringRef NSLocaleKeyToCFLocaleKey(id key)
 - (NSString*) displayNameForKey:(id)key value:(id)value
 {
   CFStringRef cfKey = NSLocaleKeyToCFLocaleKey(key);
-  return (NSString*) CFLocaleCopyDisplayNameForPropertyValue(
-    (CFLocaleRef) self, cfKey, value);
+  return (NSString*)
+    CFLocaleCopyDisplayNameForPropertyValue((CFLocaleRef) self, cfKey,
+                                            (CFStringRef) value);
 }
 
 @end

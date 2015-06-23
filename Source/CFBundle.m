@@ -83,7 +83,7 @@ void* CFBundleGetFunctionPointerForName(CFBundleRef bundle,
 {
 #if !defined(_WIN32)
   [(NSBundle*)bundle load];
-  return dlsym(RTLD_DEFAULT, [functionName UTF8String]);
+  return dlsym(RTLD_DEFAULT, [(NSString *) functionName UTF8String]);
 #else
   return NULL;
 #endif
@@ -94,7 +94,7 @@ void* CFBundleGetDataPointerForName(CFBundleRef bundle,
 {
 #if !defined(_WIN32)
   [(NSBundle*)bundle load];
-  return dlsym(RTLD_DEFAULT, [functionName UTF8String]);
+  return dlsym(RTLD_DEFAULT, [(NSString *) functionName UTF8String]);
 #else
   return NULL;
 #endif

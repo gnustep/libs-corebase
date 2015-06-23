@@ -54,55 +54,55 @@ NSCFTYPE_VARS
 
 - (const void *) bytes
 {
-  return CFDataGetBytePtr ((CFDataRef)self);
+  return CFDataGetBytePtr ((CFDataRef) self);
 }
 
 - (NSString *) description
 {
-  return AUTORELEASE(CFCopyDescription(self));
+  return AUTORELEASE((id) CFCopyDescription(self));
 }
 
 - (void) getBytes: (void *) buffer range: (NSRange) range
 {
-  CFDataGetBytes ((CFDataRef)self, CFRangeMake(range.location, range.length),
+  CFDataGetBytes ((CFDataRef) self, CFRangeMake(range.location, range.length),
                   buffer);
 }
 
 - (BOOL) isEqualToData: (NSData *) other
 {
-  return (BOOL)CFEqual ((CFDataRef)self, other);
+  return (BOOL)CFEqual ((CFDataRef) self, other);
 }
 
 - (NSUInteger) length
 {
-  return (NSUInteger)CFDataGetLength((CFMutableDataRef)self);
+  return (NSUInteger)CFDataGetLength((CFMutableDataRef) self);
 }
 
 - (void) increaseLengthBy: (NSUInteger) extraLength
 {
-  CFDataIncreaseLength ((CFMutableDataRef)self, (CFIndex)extraLength);
+  CFDataIncreaseLength ((CFMutableDataRef) self, (CFIndex)extraLength);
 }
 
 - (void) setLength: (NSUInteger) length
 {
-  CFDataSetLength ((CFMutableDataRef)self, (CFIndex)length);
+  CFDataSetLength ((CFMutableDataRef) self, (CFIndex)length);
 }
 
 - (void *) mutableBytes
 {
-  return CFDataGetMutableBytePtr ((CFMutableDataRef)self);
+  return CFDataGetMutableBytePtr ((CFMutableDataRef) self);
 }
 
 - (void) appendBytes: (const void *) buffer length: (NSUInteger) size
 {
-  CFDataAppendBytes ((CFMutableDataRef)self, buffer, size);
+  CFDataAppendBytes ((CFMutableDataRef) self, buffer, size);
 }
 
 - (void) replaceBytesInRange: (NSRange) range
                    withBytes: (const void *) bytes
                       length: (NSUInteger) length
 {
-  CFDataReplaceBytes ((CFMutableDataRef)self,
+  CFDataReplaceBytes ((CFMutableDataRef) self,
                       CFRangeMake(range.location, range.length), bytes,
                       (CFIndex)length);
 }

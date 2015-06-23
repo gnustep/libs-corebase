@@ -1,17 +1,25 @@
-2014-03-13 Stefan Bidigaray <stefanbidi@gmail.com>
+2015-06-23 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/CFBundle.m,
+	* Source/NSCFData.m,
+	* Source/NSCFError.m,
+	* Source/NSCFLocale.m,
+	* Source/NSCFString.m: Cast between NS and CF types to avoid compiler
+	warnings.
+
+2015-03-13 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/CFBase.h.in,
 	* Headers/CoreFoundation/CFError.h: Do not define CF types as Objective C
 	objects.
 
-2014-02-20 Stefan Bidigaray <stefanbidi@gmail.com>
+2015-02-20 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFRuntime.c: Do nothing if CFRetain/CFRelease are
 	called on small objects.
 	* Source/GSObjCRuntime.h: Cast to unsigned int to avoid warning.
 
-2014-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
+2015-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/GSObjCRuntime.h: Check for small objects.
 
-2014-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
+2015-02-19 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/CFArray.h,
 	* Headers/CoreFoundation/CFBag.h,
 	* Headers/CoreFoundation/CFData.h,
@@ -26,23 +34,23 @@
 	* Source/NSCFData.m,
 	* Source/NSCFError.m: Explicitly cast NS to CF objects.
 
-2014-02-16 Stefan Bidigaray <stefanbidi@gmail.com>
+2015-02-16 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/NSCFDictionary.m: Add category to match class definition.
 	* Source/NSCFType.m: Use correct number of classes to register.
 
-2014-02-14 Stefan Bidigaray <stefanbidi@gmail.com>
+2015-02-14 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/GSCharacter.h: Fix minor compare bug.
 
-2014-02-13 Stefan Bidigaray <stefanbidi@gmail.com>
+2015-02-13 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/GSUnicode.c: Completed isnan/isinf functions for long double.
 
-2014-02-12 Stefan Bidigaray <stefanbidi@gmail.com>
+2015-02-12 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/config.h.in,
 	* configure,
 	* configure.ac: Correctly handle existence of compatible GCD library.
 	* Source/GSUnicode.c: Temperarily disable 96-bit long double error.
 
-2014-01-30 Stefan Bidigaray <stefanbidi@gmail.com>
+2015-01-30 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/config.h.in,
 	* configure,
 	* configure.ac: Disable check for GCD as it is broken.
