@@ -30,108 +30,157 @@
 #include <CoreFoundation/CFBase.h>
 #include <stdarg.h>
 
-/** \defgroup UnicodeUtils Unicode String Utilities
-    \{
+/** @defgroup UnicodeUtils Unicode String Utilities
+    @{
  */
-/** \name Converter to/from a Unicode String
-    \{
+/** @name Convert to/from a Unicode String
+    @{
  */
-/** \brief Convert a buffer with bytes from the specified encoding to an
-      array of UTF-16 characters.
-    \details The intended use of this function is to convert a continuous
-      stream of data to a fixed-size buffer.  Because it updates the
-      position of the source buffer, it can be called repeatedly with a
-      small, fixed-size buffer and the updated source buffer.
-    \param[in] enc Encoding of the source buffer.
-    \param[in,out] d A UTF-16 buffer to which converted characters are written.
-    \param[in] d_end Pointer to memory just after the end of the destination
-      buffer such that the buffer capacity is <code>d_end - d</code>.
-    \param[in,out] s A pointer to a source byte buffer.  After a
-      successful return, points to the location immediately after the
-      last byte consumed.
-    \param[in] s_end Pointer to memory just after the end of the source buffer.
-    \param[in] loss A substitute character for invalid input.  For example,
-      if a UTF-8 input string encodes a surrogate without a pair.  A typical
-      character would be U+FFFD (replacement character).  Specify a value
-      of 0 if you do not want lossy conversion.
-    \param[in] bom If <code>true</code>, assumes the source includes a
+/** @brief Convert a string in some external encoding to Unicode (UTF-16).
+    @detail This function is used internally to convert to Unicode from
+      the various supported encodings.
+
+      The function performs checks on both the input and output
+      to verify the results of the conversion is valid UTF-16 data.
+
+    @note This function always attempts to consume the source buffer
+      <b>s</b> completely. It will only stop if an invalid character
+      and no <b>loss</b> character was provided. Certain encodings, like
+      UTF-7, are stateful and cannot be converted recursively. This differs
+      from the behavior of GSUnicodeToEncoding() and note must be taken.
+
+    @param[in,out] d Pointer to the address the start of the destination
+      buffer. If <code>NULL</code> or pointing to <code>NULL</code>, will
+      cause the function to perform the conversion but not write any
+      data out. On return, points to memory immediately after where the
+      last byte of data was written out.
+    @param[in] dLimit A pointer to memory immediately after the end of the
+      destination buffer.
+    @param[in] enc Encoding of the data in source buffer.
+    @param[in,out] s Pointer to the first character of the source buffer. This
+      value must not point to <code>NULL</code> or be <code>NULL</code>
+      itself.
+    @param[in] sLimit A pointer to memory immediate after the end of the
+      source buffer.
+    @param[in] loss A substitute character for invalid input. For example,
+      if a UTF-8 input string encodes a surrogate without a pair. A typical
+      character would be <b>U+FFFD</b> (replacement character). Specify a
+      value of <code>0</code> if you do not want lossy conversion.
+    @param[in] hasBOM If <code>true</code>, assumes the source includes a
       byte order mark.
-    \return Returns <code>true</code> if:
-      -# The source buffer was completely consumed.
-      -# The destination buffer is full.
- */
-CF_EXPORT Boolean
-GSUnicodeFromEncoding (CFStringEncoding enc, UniChar ** d,
-                       const UniChar * d_end, const UInt8 ** s,
-                       const UInt8 * s_end, const UTF16Char loss, Boolean bom);
+    @return The amount of <code>UniChar</code> characters required to
+      successfully complete the conversion. Will return <b>-1</b> if an
+      error is encountered, such as an invalid character and no <b>loss</b>
+      character was provided. If an error occurs, <b>dLen</b> and <b>sLen</b>
+      are still updated and reflect where the error occurred.
 
-/** \brief Convert a UTF-16 character buffer to the specified encoding.
-    \details The intended use of this function is to convert a continuous
-      stream of data to a fixed-size buffer.  Because it updates the
-      position of the source buffer, it can be called repeatedly with a
-      small, fixed-size buffer and the updated source buffer.
-    \param[in] enc Encoding of the destination buffer.
-    \param[in,out] d A byte buffer to which converted characters are written.
-    \param[in] d_end Pointer to memory just after the end of the destination
-      buffer such that the buffer capacity is <code>d_end - d</code>.
-    \param[in,out] s A pointer to a UTF-16 source buffer.  After a
-      successful return, points to the location immediately after the last
-      character consumed.
-    \param[in] s_end Pointer to memory just after the end of the source buffer.
-    \param[in] loss A substitute characters that cannot be converted to
-      the specified encoding.
-    \param[in] bom If <code>true</code>, will try to add a byter order mark
-      to the output.
-    \return Returns <code>true</code> if:
-      -# The source buffer was completely consumed.
-      -# The destination buffer is full.
+    @see GSUnicodeToEncoding()
  */
-CF_EXPORT Boolean
-GSUnicodeToEncoding (CFStringEncoding enc, UInt8 ** d, const UInt8 * d_end,
-                     const UniChar ** s, const UniChar * s_end,
-                     const char loss, Boolean bom);
-/** \} */
+CF_EXPORT CFIndex
+GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
+                       CFStringEncoding enc, const UInt8 ** s,
+                       const UInt8 * const sLimit, const UTF16Char loss);
 
-/** \name Unicode Formatting
-    \{
+/** @brief Convert a Unicode string (UTF-16) to some external encoding.
+    @detail This function is used internally to convert from Unicode to
+      the various supported encodings.
+
+      The function performs minimal checks on the input data and will only
+      fail if a code point cannot be converted to the specified encoding and
+      a <b>loss</b> character was not provided.
+
+    @note This function only attempts to fill the destination buffer <b>d</b>.
+      Only if <b>d</b> or <b>dLen</b> are <code>NULL</code> will this
+      function attempt to consume the source buffer completely. Additionally,
+      in the case when converting to UTF-16 this function does not perform
+      any checks to ensure the input and output are correct. This differs
+      from the behavior of GSUnicodeFromEncoding() and note must be taken.
+
+    @param[in,out] d Pointer to the address the start of the destination
+      buffer. If <code>NULL</code> or pointing to <code>NULL</code>, will
+      cause the function to perform the conversion but not write any
+      data out. On return, points to memory immediately after where the
+      last byte of data was written out.
+    @param[in] dLimit A pointer to memory immediately after the end of the
+      destination buffer.
+    @param[in] enc Encoding of the data in source buffer.
+    @param[in,out] s Pointer to the first character of the source buffer. This
+      value must not point to <code>NULL</code> or be <code>NULL</code>
+      itself.
+    @param[in] sLimit A pointer to memory immediate after the end of the
+      source buffer.
+    @param[in] loss A substitute character for invalid input.  For example,
+      if a UTF-8 input string encodes a surrogate without a pair.  A typical
+      character would be <b>'?'</b> (replacement character).  Specify a
+      value of <b>0</b> if you do not want lossy conversion.
+    @param[in] addBOM If <code>true</code>, adds a byte order mark to the
+      start of the destination buffer.
+    @return The number of successfully converted converted UTF-16 code points.
+      May return <b>-1</b> if an error is encountered, such as an invalid
+      character and no <b>loss</b> character was provided.
+
+    @see GSUnicodeFromEncoding ()
  */
-/** \brief Creates an output according to a format per the printf family
+CF_EXPORT CFIndex
+GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
+                     CFStringEncoding enc, const UniChar ** s,
+                     const UniChar * const sLimit, const char loss,
+                     Boolean addBOM);
+/** @} */
+
+
+
+CFIndex
+GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
+                              CFTypeRef locale,
+                              const UniChar * __restrict__ format,
+                              CFIndex fmtlen, va_list ap);
+
+CFIndex
+GSUnicodeFormat (UniChar * __restrict__ s, CFIndex n, CFTypeRef locale,
+                 const UniChar * __restrict__ format, CFIndex fmtlen, ...);
+#if 0
+/** @name Printf-like Unicode Formatting
+    @{
+ */
+/** @brief Creates an output according to a format per the printf family
       of functions.
-    \param[in] buffer Output buffer.  If NULL, this function returns the number
+    @param[in] buffer Output buffer.  If NULL, this function returns the number
       of characters needed.
-    \param[in] size Maximum size of buffer.
-    \param[in] locale This may be a CFDictionaryRef containing locale
+    @param[in] size Maximum size of buffer.
+    @param[in] locale This may be a CFDictionaryRef containing locale
       information or a CFLocaleRef object.  Pass NULL for POSIX locale.
-    \param[in] format The formatted string with printf-style specifiers.
-    \return On success, return the number of characters printed, excluding
+    @param[in] format The formatted string with printf-style specifiers.
+    @return On success, return the number of characters printed, excluding
       NULL byte.  If buffer is not long enough, returns how many
       characters would be required.
-    \see GSUnicodeFormatWithArguments ()
+    @see GSUnicodeFormatWithArguments ()
  */
-CF_EXPORT Boolean
-GSUnicodeFormat (UniChar ** d, const UniChar * d_end, CFTypeRef locale,
-                 const UniChar ** f, const UniChar * f_end, ...);
+CF_EXPORT CFIndex
+GSUnicodeFormat (UniChar * d, UniChar * const dLimit, CFTypeRef locale,
+                 const UniChar * f, const UniChar * const fLimit, ...);
 
-/** \brief Creates an output according to a format per the printf family
+/** @brief Creates an output according to a format per the printf family
       of functions.
-    \param[in] buffer Output buffer.  If NULL, this function returns the number
+    @param[in] buffer Output buffer.  If NULL, this function returns the number
       of characters needed.
-    \param[in] size Maximum size of buffer.
-    \param[in] locale This may be a CFDictionaryRef containing locale
+    @param[in] size Maximum size of buffer.
+    @param[in] locale This may be a CFDictionaryRef containing locale
       information or a CFLocaleRef object.  Pass NULL for POSIX locale.
-    \param[in] format The formatted string with printf-style directives.
-    \param[in] arguments The variable argument list of values to be formatted.
-    \return On success, return the number of characters printed, excluding
+    @param[in] format The formatted string with printf-style directives.
+    @param[in] arguments The variable argument list of values to be formatted.
+    @return On success, return the number of characters printed, excluding
       NULL byte.  If buffer is not long enough, returns how many
       characters would be required.
-    \see GSUnicodeFormat()
+    @see GSUnicodeFormat()
  */
-CF_EXPORT Boolean
-GSUnicodeFormatWithArguments (UniChar ** d, const UniChar * d_end,
-                              CFTypeRef locale, const UniChar ** f,
-                              const UniChar * f_end, va_list ap);
+CF_EXPORT CFIndex
+GSUnicodeFormatWithArguments (UniChar * d, UniChar * const dLimit,
+                              CFTypeRef locale, const UniChar * f,
+                              const UniChar * fLimit, va_list ap);
 
-/** \} */
-/** \} */
+/** @} */
+#endif
+/** @} */
 
 #endif /* __GSUNICODE_H__ */

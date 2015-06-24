@@ -32,12 +32,6 @@ int main (void)
              "Display collation identifier is correct");
   CFRelease (str);
   
-  str = CFLocaleCopyDisplayNameForPropertyValue (locale, kCFLocaleCurrencyCode,
-                                                 CFSTR("BRL"));
-  PASS_CFEQ(str, CFSTR("brasilianske real"),
-            "Display currency code is correct");
-  CFRelease (str);
-  
   return 0;
 }
 

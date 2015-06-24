@@ -95,7 +95,7 @@ enum CFStringBuiltInEncodings
 /** @def CFSTR(x)
     @brief Creates a constant string object.
     
-    @warning This macro will create the constant string at runtime.
+    @note This macro will create the constant string at runtime.
  */
 /* The 'pure' attribute tells the compiler that this function will always
    return the same result with the same input.  If it has any skill, then
@@ -123,6 +123,31 @@ CF_EXPORT CFStringRef
 CFStringCreateFromExternalRepresentation (CFAllocatorRef alloc, CFDataRef data,
   CFStringEncoding encoding);
 
+/** @brief Creates a CFString using the character buffer in the specified
+      encoding.
+    @detail This is the basic CFString creation function. It will check and
+      interpret any byte order marks, and perform the necessary
+      transformations, storing the string in one of the internal encodings.
+      This function create immutable CFString objects with inlined characters.
+
+    @note If the characters in the buffer (<b>bytes</b>) have a different
+      encoding than specified by <b>encoding</b> the results of this
+      function are undefined. If this is the case, the function will
+      succeed or fail in nontrivial and unexpected ways.  For example,
+      the invalid character may be replaced by the replacement
+      character (U+FFFD), included in the internal buffer, or cause the
+      function to return <code>NULL</code>.
+
+    @param[in] alloc @allocator_details
+    @param[in] bytes A character buffer in the encoding specified by
+      <b>encoding</b>.
+    @param[in] numBytes The length of the character buffer in bytes.
+    @param[in] encoding The encoding of the character buffer.
+    @param[in] isExternalRepresentation A hint to indicate whether a byte
+      order mark is to be expected.
+    @return An immutable CFString object, or NULL in case of failure. The
+      object may not be unique.
+ */
 CF_EXPORT CFStringRef
 CFStringCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes,
   CFIndex numBytes, CFStringEncoding encoding, Boolean isExternalRepresentation);

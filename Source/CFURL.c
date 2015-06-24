@@ -35,10 +35,10 @@
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFURL.h"
+#include "CoreFoundation/GSUnicode.h"
 
 #include "GSPrivate.h"
 #include "GSObjCRuntime.h"
-#include "GSUnicode.h"
 
 #include <string.h>
 
@@ -1393,16 +1393,18 @@ CFURLAppendPercentEscapedForCharacter (char **dst, UniChar c,
 {
   CFIndex len;
   UInt8 buffer[MAX_BYTES];
+  UInt8 *target;
+  const UInt8 *end;
   const UniChar *source;
-  
+
+  target = buffer;
+  end = buffer + MAX_BYTES;
   source = &c;
-  if ((len =
-      GSFromUnicode(source, 1, enc, 0, false, buffer, MAX_BYTES, NULL)))
+  len = GSUnicodeToEncoding (&target, end, enc, &source, source + 1, 0, 0);
+  if (len > 0)
     {
       UInt8 hi;
       UInt8 lo;
-      UInt8 *target;
-      const UInt8 *end;
       
       target = buffer;
       end = target + len;
@@ -1532,10 +1534,11 @@ CFURLCharacterForPercentEscape (CFStringInlineBuffer *src, CFIndex *idx,
 {
   UInt8 bytes[MAX_BYTES];
   UInt8 tmp;
-  UInt8 *str;
+  const UInt8 *str;
   UniChar c1;
   UniChar c2;
   UniChar c;
+  UniChar *out;
   CFIndex num;
   CFIndex i;
   CFIndex j;
@@ -1566,9 +1569,10 @@ CFURLCharacterForPercentEscape (CFStringInlineBuffer *src, CFIndex *idx,
              && j < MAX_BYTES);
   
   c = 0;
-  str = bytes;
-  num = GSToUnicode ((const UInt8*)str, j, enc, 0, false, &c, 1, NULL);
-  if (num)
+  out = &c;
+  str = (const UInt8 *) bytes;
+  num = GSUnicodeFromEncoding (&out, out + 1, enc, &str, str + j, 0);
+  if (num > 0)
     {
       // For the first percent 2 characters get used, for all later three
       (*idx) += 2 + 3 * (num - 1);

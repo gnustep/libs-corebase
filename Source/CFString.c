@@ -26,7 +26,6 @@
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFBase.h"
-#include "CoreFoundation/CFByteOrder.h"
 #include "CoreFoundation/CFArray.h"
 #include "CoreFoundation/CFData.h"
 #include "CoreFoundation/CFDictionary.h"
@@ -34,10 +33,11 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
 #include "CoreFoundation/GSCharacter.h"
+#include "CoreFoundation/GSUnicode.h"
 
 #include "GSPrivate.h"
 #include "GSObjCRuntime.h"
-#include "GSUnicode.h"
+#include "GSMemory.h"
 
 /* Need the next few includes so we can initialize the string constants */
 #include "CoreFoundation/CFError.h"
@@ -67,7 +67,8 @@
 CONST_STRING_DECL (kCFStringTransformStripCombiningMarks,
                    "NFD; [:nonspacing mark:]Remove; NFC");
 CONST_STRING_DECL (kCFStringTransformToLatin, "Any-Latin");
-CONST_STRING_DECL (kCFStringTransformFullwidthHalfwidth, "Fullwidth-Halfwidth");
+CONST_STRING_DECL (kCFStringTransformFullwidthHalfwidth,
+                   "Fullwidth-Halfwidth");
 CONST_STRING_DECL (kCFStringTransformLatinKatakana, "Latin-Katakana");
 CONST_STRING_DECL (kCFStringTransformLatinHiragana, "Latin-Hiragana");
 CONST_STRING_DECL (kCFStringTransformHiraganaKatakana, "Hiragana-Katakana");
@@ -149,7 +150,8 @@ CF_INLINE Boolean
 CFStringHasNullByte (CFStringRef str)
 {
   return
-    ((CFRuntimeBase *) str)->_flags.info & _kCFStringHasNullByte ? true : false;
+    ((CFRuntimeBase *) str)->
+    _flags.info & _kCFStringHasNullByte ? true : false;
 }
 
 CF_INLINE void
@@ -211,7 +213,8 @@ CFStringHash (CFTypeRef cf)
           if (CFStringIsUnicode (str))
             {
               len = CFStringGetLength (str) * sizeof (UniChar);
-              ((struct __CFString *) str)->_hash = GSHashBytes (str->_contents, len);
+              ((struct __CFString *) str)->_hash =
+                GSHashBytes (str->_contents, len);
               return str->_hash;
             }
         }
@@ -221,14 +224,14 @@ CFStringHash (CFTypeRef cf)
 
   len = CFStringGetLength (str) * sizeof (UniChar);
 
-  buf = CFAllocatorAllocate(kCFAllocatorSystemDefault, len, 0);
-  CFStringGetCharacters (str, CFRangeMake(0, len/2), buf);
+  buf = CFAllocatorAllocate (kCFAllocatorSystemDefault, len, 0);
+  CFStringGetCharacters (str, CFRangeMake (0, len / 2), buf);
 
   hash = GSHashBytes (buf, len);
   if (!isObjc)
     ((struct __CFString *) str)->_hash = hash;
 
-  CFAllocatorDeallocate(kCFAllocatorSystemDefault, buf);
+  CFAllocatorDeallocate (kCFAllocatorSystemDefault, buf);
   return hash;
 }
 
@@ -286,7 +289,8 @@ __CFStringMakeConstantString (const char *str)
     {
       struct __CFString *new_const_str;
 
-      new_const_str = CFAllocatorAllocate (NULL, sizeof (struct __CFString), 0);
+      new_const_str =
+        CFAllocatorAllocate (NULL, sizeof (struct __CFString), 0);
       assert (new_const_str);
 
       /* Using _CFRuntimeInitStaticInstance() guarantees that any CFRetain or
@@ -298,7 +302,8 @@ __CFStringMakeConstantString (const char *str)
       new_const_str->_hash = 0;
       new_const_str->_deallocator = NULL;
 
-      CFDictionaryAddValue (static_strings, str, (const void *) new_const_str);
+      CFDictionaryAddValue (static_strings, str,
+                            (const void *) new_const_str);
       old = new_const_str;
     }
   GSMutexUnlock (&static_strings_lock);
@@ -330,7 +335,8 @@ CFStringInitialize (void)
                          _kCFStringTypeID);
   GSRuntimeConstantInit (kCFStringTransformLatinKatakana, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFStringTransformLatinHiragana, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFStringTransformHiraganaKatakana, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStringTransformHiraganaKatakana,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFStringTransformMandarinLatin, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFStringTransformLatinHangul, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFStringTransformLatinArabic, _kCFStringTypeID);
@@ -358,7 +364,8 @@ CFStringInitialize (void)
   GSRuntimeConstantInit (kCFLocaleCollationIdentifier, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFLocaleUsesMetricSystem, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFLocaleCollatorIdentifier, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFLocaleQuotationBeginDelimiterKey, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFLocaleQuotationBeginDelimiterKey,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFLocaleQuotationEndDelimiterKey, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFLocaleAlternateQuotationBeginDelimiterKey,
                          _kCFStringTypeID);
@@ -388,7 +395,8 @@ CFStringInitialize (void)
   GSRuntimeConstantInit (kCFDateFormatterMonthSymbols, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFDateFormatterShortMonthSymbols, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFDateFormatterWeekdaySymbols, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFDateFormatterShortWeekdaySymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterShortWeekdaySymbols,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFDateFormatterAMSymbol, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFDateFormatterPMSymbol, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFDateFormatterLongEraSymbols, _kCFStringTypeID);
@@ -409,20 +417,24 @@ CFStringInitialize (void)
   GSRuntimeConstantInit (kCFDateFormatterVeryShortStandaloneWeekdaySymbols,
                          _kCFStringTypeID);
   GSRuntimeConstantInit (kCFDateFormatterQuarterSymbols, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFDateFormatterShortQuarterSymbols, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterShortQuarterSymbols,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFDateFormatterStandaloneQuarterSymbols,
                          _kCFStringTypeID);
   GSRuntimeConstantInit (kCFDateFormatterShortStandaloneQuarterSymbols,
                          _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFDateFormatterGregorianStartDate, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFDateFormatterGregorianStartDate,
+                         _kCFStringTypeID);
 
   GSRuntimeConstantInit (kCFNumberFormatterCurrencyCode, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFNumberFormatterDecimalSeparator, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterDecimalSeparator,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterCurrencyDecimalSeparator,
                          _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterAlwaysShowDecimalSeparator,
                          _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFNumberFormatterGroupingSeparator, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterGroupingSeparator,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterUseGroupingSeparator,
                          _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterPercentSymbol, _kCFStringTypeID);
@@ -433,18 +445,24 @@ CFStringInitialize (void)
   GSRuntimeConstantInit (kCFNumberFormatterPlusSign, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterCurrencySymbol, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterExponentSymbol, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFNumberFormatterMinIntegerDigits, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFNumberFormatterMaxIntegerDigits, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFNumberFormatterMinFractionDigits, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFNumberFormatterMaxFractionDigits, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMinIntegerDigits,
+                         _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMaxIntegerDigits,
+                         _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMinFractionDigits,
+                         _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterMaxFractionDigits,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterGroupingSize, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterSecondaryGroupingSize,
                          _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterRoundingMode, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFNumberFormatterRoundingIncrement, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterRoundingIncrement,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterFormatWidth, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterPaddingPosition, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFNumberFormatterPaddingCharacter, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFNumberFormatterPaddingCharacter,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterDefaultFormat, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterMultiplier, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFNumberFormatterPositivePrefix, _kCFStringTypeID);
@@ -468,13 +486,15 @@ CFStringInitialize (void)
   GSRuntimeConstantInit (kCFRunLoopDefaultMode, _kCFStringTypeID);
 
   GSRuntimeConstantInit (kCFStreamPropertyDataWritten, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFStreamPropertySocketNativeHandle, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStreamPropertySocketNativeHandle,
+                         _kCFStringTypeID);
   GSRuntimeConstantInit (kCFStreamPropertySocketRemoteHostName,
                          _kCFStringTypeID);
   GSRuntimeConstantInit (kCFStreamPropertySocketRemotePortNumber,
                          _kCFStringTypeID);
   GSRuntimeConstantInit (kCFStreamPropertyAppendToFile, _kCFStringTypeID);
-  GSRuntimeConstantInit (kCFStreamPropertyFileCurrentOffset, _kCFStringTypeID);
+  GSRuntimeConstantInit (kCFStreamPropertyFileCurrentOffset,
+                         _kCFStringTypeID);
 
   GSRuntimeConstantInit (kCFXMLTreeErrorDescription, _kCFStringTypeID);
   GSRuntimeConstantInit (kCFXMLTreeErrorLineNumber, _kCFStringTypeID);
@@ -521,7 +541,7 @@ CFShow (CFTypeRef obj)
 void
 CFShowStr (CFStringRef s)
 {
-  fprintf (stderr, "Length %ld\n", (long)CFStringGetLength (s));
+  fprintf (stderr, "Length %ld\n", (long) CFStringGetLength (s));
   fprintf (stderr, "IsWide %d\n", CFStringIsUnicode (s));
   fprintf (stderr, "InlineContents %d\n", CFStringIsInline (s));
   fprintf (stderr, "Allocator %p\n", CFGetAllocator (s));
@@ -536,49 +556,13 @@ CFStringGetTypeID (void)
   return _kCFStringTypeID;
 }
 
-CF_INLINE CFIndex
-CFStringGetExtraBytes (CFStringEncoding * encoding, const UInt8 * bytes,
-                       CFIndex numBytes, Boolean isExtRep)
-{
-  CFIndex needed;
-
-  if (__CFStringEncodingIsSupersetOfASCII (*encoding))
-    {
-      const UInt8 *start;
-      const UInt8 *end;
-      Boolean isASCII;
-
-      start = bytes;
-      end = start + numBytes;
-      isASCII = true;
-      while (start < end)
-        {
-          if (*start++ > 127)
-            {
-              isASCII = false;
-              break;
-            }
-        }
-
-      if (isASCII)
-        {
-          *encoding = kCFStringEncodingASCII;
-          return numBytes;
-        }
-    }
-
-  GSToUnicode (bytes, numBytes, *encoding, 0, isExtRep, NULL, 0, &needed);
-
-  return needed;
-}
-
-/* The CFString create function will return an inlined string whenever
+/* CFStringCreateImmutable function will return an inlined string whenever
    possible.  The contents may or may not be inlined if a NoCopy function
    is called. With this in mind, CFStringCreateWithBytes will return a
    string with the content inlined and CFStringCreateWithBytesNoCopy will not
    have inlined content if, and only if, the input bytes are in one of the
-   internal encodings. */
-
+   internal encodings (ASCII or UTF-16).
+ */
 #define CFSTRING_SIZE \
   sizeof(struct __CFString) - sizeof(struct __CFRuntimeBase)
 
@@ -589,80 +573,121 @@ CFStringCreateImmutable (CFAllocatorRef alloc, const UInt8 * bytes,
                          Boolean copy)
 {
   struct __CFString *new;
+  UniChar b[BUFFER_SIZE];
+  UniChar *buffer;
+  UniChar *bufferStart;
+  CFIndex need;
   CFIndex extra;
 
-  /* We'll need to convert anything that isn't one of these encodings. */
-  if (!(encoding == kCFStringEncodingASCII
-        || encoding == kCFStringEncodingUTF16
-#if __BIG_ENDIAN__
-	|| encoding == kCFStringEncodingUTF16BE))
-#else
-	|| encoding == kCFStringEncodingUTF16LE))
-#endif
-    {
-      CFStringEncoding origEncoding = encoding;
-      extra = CFStringGetExtraBytes (&encoding, bytes, numBytes, isExtRep);
+  buffer = b;
+  bufferStart = b;
 
-      /* We force a copy of the data if we can't represent it in one
-       * of the internal encodings.
-       */
-      if (encoding == origEncoding && extra != numBytes)
-        copy = true;
-      if (copy)                 /* Add space for '\0' */
-        extra += encoding == kCFStringEncodingASCII ? 1 : sizeof (UniChar);
+  /* Check if we can store this string as ASCII */
+  if (__CFStringEncodingIsSupersetOfASCII (encoding))
+    {
+      const UInt8 *s;
+      const UInt8 *limit;
+
+      s = bytes;
+      limit = s + numBytes;
+      while (s < limit)
+        {
+          if (*s++ > 0x7F)
+            break;
+        }
+      if (s >= limit)
+        encoding = kCFStringEncodingASCII;
+    }
+
+  if (encoding == kCFStringEncodingASCII)
+    {
+      need = numBytes;
+      extra = numBytes + 1;
     }
   else
     {
-      extra = copy ? numBytes : 0;
+      const UInt8 *src;
+
+      src = bytes;
+      /* We'll include a loss character for this conversion in case
+         there is an error in the input stream. We dont' want to fail
+         just because someone included an invalid code point/unit.
+         The loss character will be the Unicode replacement character U+FFFD.
+       */
+      need = GSUnicodeFromEncoding (&buffer, buffer + BUFFER_SIZE, encoding,
+                                    &src, src + numBytes, 0xFFFD);
+      if (need < 0)             /* There is something seriously wrong! */
+        return NULL;
+      extra = (need + 1) * sizeof (UniChar);
+    }
+  if (!copy)
+    {
+      if (encoding == kCFStringEncodingUTF16)
+        {
+          UniChar c;
+
+          c = *((const UniChar *) bytes);
+          if (c == kGSUTF16CharacterSwappedByteOrderMark)
+            copy = true;
+        }
+      else if (encoding != kCFStringEncodingASCII)
+        {
+          copy = true;
+        }
+#if __BIG_ENDIAN__
+      else if (encoding == kCFStringEncodingUTF16LE)
+        {
+          copy = true;
+        }
+#else
+      else if (encoding == kCFStringEncodingUTF16BE)
+        {
+          copy = true;
+        }
+#endif
     }
 
   new = (struct __CFString *) _CFRuntimeCreateInstance (alloc,
                                                         _kCFStringTypeID,
-                                                        CFSTRING_SIZE + extra,
-                                                        NULL);
+                                                        CFSTRING_SIZE +
+                                                        extra, NULL);
   if (new)
     {
       if (contentsDealloc == NULL)
         contentsDealloc = CFAllocatorGetDefault ();
+      new->_deallocator = CFRetain (contentsDealloc);
 
       if (copy)
         {
-          new->_contents = (void *) &(new[1]);
+          new->_contents = &(new[1]);
 
           if (encoding == kCFStringEncodingASCII)
             {
-              memcpy (new->_contents, bytes, numBytes);
-              new->_count = numBytes;
+              GSMemoryCopy (new->_contents, bytes, numBytes);
             }
-          else if (encoding == kCFStringEncodingUTF16
-#if __BIG_ENDIAN__
-	|| encoding == kCFStringEncodingUTF16BE)
-#else
-	|| encoding == kCFStringEncodingUTF16LE)
-#endif
+          else if (extra <= BUFFER_SIZE)
             {
-              memcpy (new->_contents, bytes, numBytes);
-              new->_count = numBytes / sizeof (UniChar);
+              GSMemoryCopy (new->_contents, bufferStart,
+                            need * sizeof (UniChar));
               CFStringSetUnicode (new);
             }
           else
             {
-              CFIndex count;
+              UniChar *contents;
 
-              GSToUnicode (bytes, numBytes, encoding, 0, isExtRep,
-                           new->_contents, extra / sizeof (UniChar), &count);
-
-              new->_count = count / sizeof (UniChar);
+              contents = new->_contents;
+              GSUnicodeFromEncoding (&contents, contents + need, encoding,
+                                     &bytes, bytes + numBytes, 0xFFFD);
               CFStringSetUnicode (new);
             }
-          new->_deallocator = contentsDealloc;
+
+          new->_count = need;
           CFStringSetInline (new);
           CFStringHasNullByte (new);
         }
       else
         {
           new->_contents = (void *) bytes;
-          new->_deallocator = contentsDealloc;
           new->_count = encoding == kCFStringEncodingASCII
             ? numBytes : numBytes / sizeof (UniChar);
           if (encoding != kCFStringEncodingASCII)
@@ -689,8 +714,8 @@ CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 * bytes,
                                CFAllocatorRef contentsDeallocator)
 {
   return CFStringCreateImmutable (alloc, bytes, numBytes, encoding,
-                                  isExternalRepresentation, contentsDeallocator,
-                                  false);
+                                  isExternalRepresentation,
+                                  contentsDeallocator, false);
 }
 
 CFStringRef
@@ -735,7 +760,8 @@ CFStringCreateWithFileSystemRepresentation (CFAllocatorRef alloc,
 }
 
 CFStringRef
-CFStringCreateFromExternalRepresentation (CFAllocatorRef alloc, CFDataRef data,
+CFStringCreateFromExternalRepresentation (CFAllocatorRef alloc,
+                                          CFDataRef data,
                                           CFStringEncoding encoding)
 {
   const UInt8 *bytes = CFDataGetBytePtr (data);
@@ -753,8 +779,8 @@ CFStringCreateWithCharacters (CFAllocatorRef alloc, const UniChar * chars,
 }
 
 CFStringRef
-CFStringCreateWithCharactersNoCopy (CFAllocatorRef alloc, const UniChar * chars,
-                                    CFIndex numChars,
+CFStringCreateWithCharactersNoCopy (CFAllocatorRef alloc,
+                                    const UniChar * chars, CFIndex numChars,
                                     CFAllocatorRef contentsDeallocator)
 {
   return CFStringCreateWithBytesNoCopy (alloc, (const UInt8 *) chars,
@@ -818,31 +844,31 @@ CFStringCreateWithFormatAndArguments (CFAllocatorRef alloc,
 
       free_fmt_str = true;
       fmt_str = CFAllocatorAllocate (kCFAllocatorSystemDefault,
-				     fmt_str_len * sizeof (UniChar), 0);
+                                     fmt_str_len * sizeof (UniChar), 0);
       range = CFRangeMake (0, fmt_str_len);
-      CFStringGetCharacters (format, range, (UniChar *)fmt_str);
+      CFStringGetCharacters (format, range, (UniChar *) fmt_str);
     }
   str_len = GSUnicodeFormatWithArguments (str, BUFFER_SIZE, formatOptions,
-					  fmt_str, fmt_str_len,
-				          arguments);
+                                          fmt_str, fmt_str_len, arguments);
   if (str_len > BUFFER_SIZE)
     {
       /* The buffer was not long enough for the formatted string, so we will
        * need to allocate a longer buffer and try again.
        */
       str = CFAllocatorAllocate (kCFAllocatorSystemDefault,
-	                         str_len * sizeof (UniChar), 0);
+                                 str_len * sizeof (UniChar), 0);
       str_len = GSUnicodeFormatWithArguments (str, str_len, formatOptions,
-					      fmt_str, fmt_str_len, arguments);
+                                              fmt_str, fmt_str_len,
+                                              arguments);
 
     }
   if (str_len < 0)
     return NULL;
 
-  fmted_str = CFStringCreateWithCharacters (alloc, (const UniChar *)str,
-					    str_len);
+  fmted_str = CFStringCreateWithCharacters (alloc, (const UniChar *) str,
+                                            str_len);
   if (free_fmt_str)
-    CFAllocatorDeallocate (kCFAllocatorSystemDefault, (void *)fmt_str);
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, (void *) fmt_str);
   if (str != buf)
     CFAllocatorDeallocate (kCFAllocatorSystemDefault, str);
 
@@ -877,7 +903,8 @@ CFStringCreateWithSubstring (CFAllocatorRef alloc, CFStringRef str,
 CFDataRef
 CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
                                       CFStringRef str,
-                                      CFStringEncoding encoding, UInt8 lossByte)
+                                      CFStringEncoding encoding,
+                                      UInt8 lossByte)
 {
   UInt8 *buffer;
   CFRange range;
@@ -904,12 +931,10 @@ CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
 const UniChar *
 CFStringGetCharactersPtr (CFStringRef str)
 {
-  CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, const UniChar *, str,
-                         "cStringUsingEncoding:",
-                         CFStringConvertEncodingToNSStringEncoding
-                         (kCFStringEncodingUTF16));
+  if (!CF_IS_OBJC (_kCFStringTypeID, str) && CFStringIsUnicode (str))
+    return str->_contents;
 
-  return CFStringIsUnicode (str) ? str->_contents : NULL;
+  return NULL;
 }
 
 const char *
@@ -919,8 +944,9 @@ CFStringGetCStringPtr (CFStringRef str, CFStringEncoding enc)
                          "cStringUsingEncoding:",
                          CFStringConvertEncodingToNSStringEncoding (enc));
 
-  return (!CFStringIsUnicode (str) && __CFStringEncodingIsSupersetOfASCII (enc))
-    ? str->_contents : NULL;
+  return (!CFStringIsUnicode (str)
+          && __CFStringEncodingIsSupersetOfASCII (enc)) ? str->
+    _contents : NULL;
 }
 
 CFIndex
@@ -928,8 +954,9 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
                   UInt8 lossByte, Boolean isExtRep, UInt8 * buffer,
                   CFIndex maxBufLen, CFIndex * usedBufLen)
 {
+  UInt8 *bufferStart;
+  const UniChar *sUnicode;
   CFIndex converted;
-  const UniChar *characters;
 
   if (CF_IS_OBJC (_kCFStringTypeID, str))
     {
@@ -956,92 +983,53 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
        */
     }
 
-  characters = CFStringGetCharactersPtr (str);
-  if (characters)
-    {
-      const UniChar *src;
+  bufferStart = buffer;
+  sUnicode = CFStringGetCharactersPtr (str);
 
-      characters += range.location;
-      src = characters;
-      converted = GSFromUnicode (src, range.length, enc, lossByte, isExtRep,
-                                 buffer, maxBufLen, usedBufLen);
+  if (sUnicode)
+    {
+      const UniChar *sUnicodeStart;
+      const UniChar *sLimit;
+
+      sUnicodeStart = sUnicode + range.location;
+      sUnicode = sUnicodeStart;
+      sLimit = sUnicodeStart + range.length;
+      /* It is safe to discard the return value in this case. */
+      GSUnicodeToEncoding (&buffer, buffer + maxBufLen, enc, &sUnicode,
+                           sLimit, lossByte, isExtRep);
+      converted = sUnicode - sUnicodeStart;
     }
-  else
+  else if (__CFStringEncodingIsSupersetOfASCII (enc))
     {
-      /* We can simply copy the ASCII characters into an ASCII superset
-       * encoding.  We don't do this for UTF-8 because it may require a BOM.
-       */
-      if (__CFStringEncodingIsSupersetOfASCII (enc))
-        {
-          memcpy (buffer, ((char *) str->_contents) + range.location,
-                  range.length);
-          converted = range.length;
-        }
-      else if (enc == kCFStringEncodingUTF16
-               || enc == kCFStringEncodingUTF16BE
-               || enc == kCFStringEncodingUTF16LE)
-        {
-          UniChar *dst;
+      const char *sCString;
 
-          dst = (UniChar *) buffer;
-          if (isExtRep && enc == kCFStringEncodingUTF16)
-            {
-              *dst = 0xFEFF;
-              dst++;
-            }
-          range.length = GS_MIN (range.length, maxBufLen / sizeof (UniChar));
-          converted = range.length;
-          CFStringGetCharacters (str, range, dst);
-#if __BIG_ENDIAN__
-	  if (enc == kCFStringEncodingUTF16LE)
-#else
-          if (enc == kCFStringEncodingUTF16BE)
-#endif
-            {
-              UniChar *end;
-
-              end = dst + converted;
-              while (dst < end)
-                {
-                  *dst = CFSwapInt16 (*dst);
-                  ++dst;
-                }
-            }
+      sCString = CFStringGetCStringPtr (str, kCFStringEncodingASCII);
+      if (sCString)
+        {
+          sCString += range.location;
+          converted = range.length > maxBufLen ? maxBufLen : range.length;
+          GSMemoryCopy (buffer, sCString, converted);
+          buffer += converted;
         }
       else
         {
-          /* We'll use a pivot to first convert to Unicode and then to
-           * whatever encoding was specified.
-           */
-          const UInt8 *bytes;
-          const UInt8 *end;
-          UniChar pivot[BUFFER_SIZE];
-
           converted = 0;
-          bytes = (UInt8 *) str->_contents + range.location;
-          end = bytes + range.length;
-          while (bytes < end)
-            {
-              /* No need to worry about lossByte since ASCII can be converted
-               * to any encoding.
-               */
-              converted += GSToUnicode (bytes, range.length,
-                                        kCFStringEncodingASCII, 0, false,
-                                        pivot, BUFFER_SIZE, NULL);
-              converted += GSFromUnicode (pivot, converted, enc, 0, isExtRep,
-                                          buffer, maxBufLen, NULL);
-
-              maxBufLen -= converted;
-              buffer += converted;
-              bytes += converted;
-            }
         }
     }
-
+  else if (enc == kCFStringEncodingUnicode)
+    {
+      range.length =
+        range.length >
+        (maxBufLen / sizeof (UniChar)) ? maxBufLen /
+        sizeof (UniChar) : range.length;
+      CFStringGetCharacters (str, range, (UniChar *) buffer);
+      buffer += range.length * sizeof (UniChar);
+      converted = range.length;
+    }
   if (usedBufLen)
-    *usedBufLen = converted;
+    *usedBufLen = buffer - bufferStart;
 
-  return converted;
+  return converted;             /* FIXME */
 }
 
 void
@@ -1076,7 +1064,8 @@ CFStringGetCString (CFStringRef str, char *buffer, CFIndex bufferSize,
 
   CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, Boolean, str,
                          "getCString:maxLength:encoding:", buffer, bufferSize,
-                         CFStringConvertEncodingToNSStringEncoding (encoding));
+                         CFStringConvertEncodingToNSStringEncoding
+                         (encoding));
 
   if (CFStringGetBytes (str, CFRangeMake (0, len), encoding, 0, false,
                         (UInt8 *) buffer, bufferSize, &used) == len
@@ -1116,10 +1105,12 @@ CFStringGetLength (CFStringRef str)
 }
 
 CFRange
-CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef str, CFIndex theIndex)
+CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef str,
+                                             CFIndex theIndex)
 {
   CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, CFRange, str,
-                         "rangeOfComposedCharacterSequenceAtIndex:", theIndex);
+                         "rangeOfComposedCharacterSequenceAtIndex:",
+                         theIndex);
 
   if (CFStringIsUnicode (str))
     {
@@ -1346,7 +1337,8 @@ CFStringFindAndReplace (CFMutableStringRef str, CFStringRef stringToFind,
 void
 CFStringAppend (CFMutableStringRef str, CFStringRef appendString)
 {
-  CFStringReplace (str, CFRangeMake (CFStringGetLength (str), 0), appendString);
+  CFStringReplace (str, CFRangeMake (CFStringGetLength (str), 0),
+                   appendString);
 }
 
 void
@@ -1402,22 +1394,36 @@ CFStringAppendCString (CFMutableStringRef str, const char *cStr,
       return;
     }
 
-  UniChar uBuffer[BUFFER_SIZE];
-  CFIndex cStrLen;
+  UniChar b[BUFFER_SIZE];
+  UniChar *buffer;
+  UniChar *bufferStart;
+  const UInt8 *cStrStart;
+  const UInt8 *cStrLimit;
   CFIndex numChars;
-  CFIndex neededChars;
 
-  cStrLen = strlen (cStr);
-  numChars = BUFFER_SIZE;
-  do
+  buffer = b;
+  bufferStart = b;
+  cStrStart = (const UInt8 *) cStr;
+  cStrLimit = (const UInt8 *) cStr + strlen (cStr);
+
+  numChars = GSUnicodeFromEncoding (&buffer, buffer + BUFFER_SIZE, encoding,
+                                    (const UInt8 **) &cStr, cStrLimit, 0);
+  if (numChars <= BUFFER_SIZE)
     {
-      numChars =
-        GSToUnicode ((const UInt8 *) cStr, cStrLen, encoding, 0, false, uBuffer,
-                     numChars, &neededChars);
-
-      CFStringAppendCharacters (str, uBuffer, numChars);
+      CFStringAppendCharacters (str, bufferStart, numChars);
     }
-  while (numChars < (neededChars / sizeof (UniChar)));
+  else
+    {
+      UniChar *tmp;
+      UniChar *tmpStart;
+
+      tmp = CFAllocatorAllocate (kCFAllocatorSystemDefault,
+                                 numChars * sizeof (UniChar), 0);
+      tmpStart = tmp;
+      GSUnicodeFromEncoding (&tmp, tmp + numChars, encoding,
+                             (const UInt8 **) &cStrStart, cStrLimit, 0);
+      CFStringAppendCharacters (str, tmpStart, numChars);
+    }
 }
 
 void
@@ -1450,29 +1456,29 @@ CFStringAppendFormatAndArguments (CFMutableStringRef str,
 
       free_fmt_str = true;
       fmt_str = CFAllocatorAllocate (kCFAllocatorSystemDefault,
-				     fmt_str_len * sizeof (UniChar), 0);
+                                     fmt_str_len * sizeof (UniChar), 0);
       range = CFRangeMake (0, fmt_str_len);
-      CFStringGetCharacters (format, range, (UniChar *)fmt_str);
+      CFStringGetCharacters (format, range, (UniChar *) fmt_str);
     }
   str_len = GSUnicodeFormatWithArguments (fmted_str, BUFFER_SIZE, options,
-					  fmt_str, fmt_str_len, args);
+                                          fmt_str, fmt_str_len, args);
   if (str_len > BUFFER_SIZE)
     {
       /* The buffer was not long enough for the formatted string, so we will
        * need to allocate a longer buffer and try again.
        */
       fmted_str = CFAllocatorAllocate (kCFAllocatorSystemDefault,
-		                       str_len * sizeof (UniChar), 0);
+                                       str_len * sizeof (UniChar), 0);
       str_len = GSUnicodeFormatWithArguments (fmted_str, str_len, options,
-					      fmt_str, fmt_str_len, args);
+                                              fmt_str, fmt_str_len, args);
 
     }
   if (str_len < 0)
     return;
 
-  CFStringAppendCharacters (str, (const UniChar *)fmted_str, str_len);
+  CFStringAppendCharacters (str, (const UniChar *) fmted_str, str_len);
   if (free_fmt_str)
-    CFAllocatorDeallocate (kCFAllocatorSystemDefault, (void *)fmt_str);
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, (void *) fmt_str);
   if (fmted_str != buf)
     CFAllocatorDeallocate (kCFAllocatorSystemDefault, str);
 }
@@ -1532,7 +1538,8 @@ CFStringPad (CFMutableStringRef str, CFStringRef padString,
       end = ((UniChar *) str->_contents) + length;
 
       padLength = CFStringGetLength (padString);
-      padContents = CFAllocatorAllocate (NULL, padLength * sizeof (UniChar), 0);
+      padContents =
+        CFAllocatorAllocate (NULL, padLength * sizeof (UniChar), 0);
       CFStringGetCharacters (padString, CFRangeMake (0, padLength),
                              padContents);
 
@@ -1551,7 +1558,8 @@ CFStringPad (CFMutableStringRef str, CFStringRef padString,
 }
 
 void
-CFStringReplace (CFMutableStringRef str, CFRange range, CFStringRef replacement)
+CFStringReplace (CFMutableStringRef str, CFRange range,
+                 CFStringRef replacement)
 {
   CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, void, str,
                          "replaceCharactersInRange:withString:", range,
@@ -1624,7 +1632,8 @@ CFStringReplaceAll (CFMutableStringRef theString, CFStringRef replacement)
   if (!CFStringCheckCapacityAndGrow (theString, textLength + 1, NULL))
     return;
 
-  CFStringInitInlineBuffer (replacement, &buffer, CFRangeMake (0, textLength));
+  CFStringInitInlineBuffer (replacement, &buffer,
+                            CFRangeMake (0, textLength));
   contents = (UniChar *) theString->_contents;
   idx = 0;
   while (idx < textLength)
@@ -1868,26 +1877,27 @@ CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
      return UNORM_YES. */
   oldContents = (UniChar *) CFStringGetCharactersPtr (str);
   oldContentsLength = CFStringGetLength (str);
-  
+
   if (oldContents != NULL)
     {
-      checkResult = unorm_quickCheck (oldContents, oldContentsLength, mode, &err);
+      checkResult =
+        unorm_quickCheck (oldContents, oldContentsLength, mode, &err);
       if (U_FAILURE (err) || checkResult == UNORM_YES)
         return;
     }
-  
+
   if (CF_IS_OBJC (_kCFStringTypeID, str))
     {
       objc = str;
-      str = CFStringCreateMutableCopy(kCFAllocatorDefault, 0, objc);
+      str = CFStringCreateMutableCopy (kCFAllocatorDefault, 0, objc);
     }
 
   /* unorm_normalize requires that source/dest buffers don't overlap */
   mStr = (struct __CFMutableString *) str;
-  oldContents = CFAllocatorAllocate(mStr->_allocator,
-    oldContentsLength * sizeof(UniChar), 0);
-  CFStringGetCharacters(str, CFRangeMake (0, oldContentsLength),
-    oldContents);
+  oldContents = CFAllocatorAllocate (mStr->_allocator,
+                                     oldContentsLength * sizeof (UniChar), 0);
+  CFStringGetCharacters (str, CFRangeMake (0, oldContentsLength),
+                         oldContents);
 
   /* Works just like CFStringCaseMap() above... */
   do
@@ -1905,11 +1915,11 @@ CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
 
   if (oldContents != mStr->_contents)
     CFAllocatorDeallocate (mStr->_allocator, (void *) oldContents);
-  
+
   if (objc != NULL)
     {
       CF_OBJC_VOIDCALLV (objc, "setString:", str);
-      CFRelease(str);
+      CFRelease (str);
     }
 #else
   /* FIXME */
@@ -1957,7 +1967,7 @@ CFStringTransform (CFMutableStringRef str, CFRange * range,
   if (CF_IS_OBJC (_kCFStringTypeID, str))
     {
       mStr = (struct __CFMutableString *)
-             CFStringCreateMutableCopy(kCFAllocatorDefault, 0, str);
+        CFStringCreateMutableCopy (kCFAllocatorDefault, 0, str);
     }
   else
     {
@@ -1968,10 +1978,10 @@ CFStringTransform (CFMutableStringRef str, CFRange * range,
                       mStr->_capacity, start, (int32_t *) & limit, &err);
   utrans_close (utrans);
 
-  if ( ((CFMutableStringRef) mStr) != str) /* ObjC case */
+  if (((CFMutableStringRef) mStr) != str)       /* ObjC case */
     {
       CF_OBJC_VOIDCALLV (str, "setString:", mStr);
-      CFRelease(mStr);
+      CFRelease (mStr);
     }
 
   if (U_FAILURE (err))

@@ -32,251 +32,16 @@
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/GSCharacter.h"
+#include "CoreFoundation/GSUnicode.h"
 
 #include "GSPrivate.h"
-#include "GSUnicode.h"
 #include "GSMemory.h"
 
 #include <unicode/ucnv.h>
 
 #define BUFFER_SIZE 512
 
-CFIndex
-GSUnicodeFromUTF8 (const UInt8 * s, CFIndex slen, UniChar lossChar,
-                   UniChar * d, CFIndex dlen, CFIndex * usedLen)
-{
-  const UInt8 *sstart;
-  const UInt8 *slimit;
-  UniChar *dstart;
-  UniChar *dlimit;
-
-  sstart = s;
-  slimit = sstart + slen;
-  dstart = d;
-  dlimit = dstart + dlen;
-  while (s < slimit && (dlen == 0 || d < dlimit))
-    {
-      if (*s < 0x80)
-        {
-          if (dlen != 0)
-            *d = *s;
-          d++;
-          s++;
-        }
-      else
-        {
-          UTF32Char u;
-          CFIndex trail;
-
-          trail = GSUTF8CharacterTrailBytesCount (*s);
-          if (trail == 1 && GSUTF8CharacterIsTrailing (s[1]))
-            {
-              u = (s[0] & 0x1F) << 6;
-              u |= s[1] & 0x3F;
-            }
-          else if (trail == 2 && GSUTF8CharacterIsTrailing (s[1])
-                   && GSUTF8CharacterIsTrailing (s[2]))
-            {
-              u = (s[0] & 0x0F) << 12;
-              u |= (s[1] & 0x3F) << 6;
-              u |= s[2] & 0x3F;
-            }
-          else if (trail == 3 && GSUTF8CharacterIsTrailing (s[1])
-                   && GSUTF8CharacterIsTrailing (s[2])
-                   && GSUTF8CharacterIsTrailing (s[3]))
-            {
-              u = (s[0] & 0x07) << 18;
-              u |= (s[1] & 0x3F) << 12;
-              u |= (s[2] & 0x3F) << 6;
-              u |= s[3] & 0x3F;
-            }
-          else
-            {
-              break;
-            }
-          s += trail + 1;
-          if (u < 0x10000)
-            {
-              if (GSCharacterIsSurrogate (u))
-                break;
-              if (dlen != 0)
-                *d = u;
-              d++;
-            }
-          else if (u < 0x10FFFF)
-            {
-              if (dlen != 0)
-                {
-                  d[0] = (u >> 10) + 0xD7C0;
-                  d[1] = (u & 0x3FF) | 0xDC00;
-                }
-              d += 2;
-            }
-          else
-            {
-              break;
-            }
-        }
-    }
-
-  if (usedLen)
-    *usedLen = ((UInt8 *) d) - ((UInt8 *) dstart);
-
-  return s - sstart;
-}
-
-static UInt8 utf8[] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0 };
-
-CFIndex
-GSUnicodeToUTF8 (const UniChar * s, CFIndex slen, UniChar lossChar, UInt8 * d,
-                 CFIndex dlen, CFIndex * usedLen)
-{
-  const UniChar *sstart;
-  const UniChar *slimit;
-  UInt8 *dstart;
-  UInt8 *dlimit;
-
-  sstart = s;
-  slimit = sstart + slen;
-  dstart = d;
-  dlimit = dstart + dlen;
-  while (s < slimit && (dlen == 0 || d < dlimit))
-    {
-      UTF32Char u;
-
-      u = GSUTF16CharacterGet (&s, slimit);
-      if (u < 0x80)
-        {
-          if (dlen != 0)
-            *d = (UInt8) u;
-          d++;
-        }
-      else
-        {
-          CFIndex count;
-
-          if (u == 0)
-            {
-              if (lossChar)
-                u = lossChar;
-              else
-                break;
-            }
-
-          count = GSUTF8CharacterLength (u);
-          if (count > 4)
-            break;
-          if (dlen != 0)
-            {
-              if (count < dlimit - d)
-                break;
-              switch (count)
-                {
-                case 4:
-                  d[3] = (u & 0x3F) | 0x80;
-                  u = u >> 6;
-                case 3:
-                  d[2] = (u & 0x3F) | 0x80;
-                  u = u >> 6;
-                case 2:
-                  d[1] = (u & 0x3F) | 0x80;
-                  u = u >> 6;
-                case 1:
-                  d[0] = (u & 0x3F) | utf8[count];
-                }
-            }
-          d += count;
-        }
-    }
-
-  if (usedLen)
-    *usedLen = ((UInt8 *) d) - ((UInt8 *) dstart);
-
-  return s - sstart;
-}
-
-CFIndex
-GSUnicodeFromUTF32 (const UTF32Char * s, CFIndex slen, UniChar lossChar,
-                    UniChar * d, CFIndex dlen, CFIndex * usedLen)
-{
-  const UTF32Char *sstart;
-  const UTF32Char *slimit;
-  UniChar *dstart;
-  UniChar *dlimit;
-
-  sstart = s;
-  slimit = sstart + slen;
-  dstart = d;
-  dlimit = dstart + dlen;
-  while (s < slimit && (dlen == 0 || d < dlimit))
-    {
-      UTF32Char u;
-
-      u = *s++;
-      if (u < 0x10000)
-        {
-          if (GSCharacterIsSurrogate (u))
-            break;
-          if (dlen != 0)
-            *d = u;
-          d++;
-        }
-      else
-        {
-          if (u >= 0x10FFFF)
-            break;
-          if (dlen != 0)
-            {
-              d[0] = (u >> 10) + 0xD7C0;
-              d[1] = (u & 0x3FF) | 0xDC00;
-            }
-          d += 2;
-        }
-    }
-
-  if (usedLen)
-    *usedLen = ((UInt8 *) d) - ((UInt8 *) dstart);
-
-  return s - sstart;
-}
-
-CFIndex
-GSUnicodeToUTF32 (const UniChar * s, CFIndex slen, UniChar lossChar,
-                  UTF32Char * d, CFIndex dlen, CFIndex * usedLen)
-{
-  const UniChar *sstart;
-  const UniChar *slimit;
-  UTF32Char *dstart;
-  UTF32Char *dlimit;
-
-  sstart = s;
-  slimit = sstart + slen;
-  dstart = d;
-  dlimit = dstart + dlen;
-  while (s < slimit && (dlen == 0 || d < dlimit))
-    {
-      UTF32Char u;
-
-      u = GSUTF16CharacterGet (&s, slimit);
-      if (u == 0)
-	{
-	  if (lossChar)
-	    u = lossChar;
-	  else
-	    break;
-	}
-      if (dlen != 0)
-        *d = u;
-      d++;
-    }
-
-  if (usedLen)
-    *usedLen = ((UInt8 *) d) - ((UInt8 *) dstart);
-
-  return s - sstart;
-}
-
-CFIndex
+static CFIndex
 GSUnicodeFromNonLossyASCII (const char *s, CFIndex slen, UniChar lossChar,
                             UniChar * d, CFIndex dlen, CFIndex * usedLen)
 {
@@ -356,7 +121,7 @@ GSUnicodeFromNonLossyASCII (const char *s, CFIndex slen, UniChar lossChar,
 
 static const char *base16 = "0123456789ABCDEF";
 
-CFIndex
+static CFIndex
 GSUnicodeToNonLossyASCII (const UniChar * s, CFIndex slen, UniChar lossChar,
                           char *d, CFIndex dlen, CFIndex * usedLen)
 {
@@ -427,452 +192,380 @@ GSUnicodeToNonLossyASCII (const UniChar * s, CFIndex slen, UniChar lossChar,
 }
 
 CFIndex
-GSUnicodeFromISOLatin1 (const UInt8 * s, CFIndex slen, UniChar lossChar,
-                        UniChar * d, CFIndex dlen, CFIndex * usedLen)
+GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
+                       CFStringEncoding enc, const UInt8 ** s,
+                       const UInt8 * const sLimit, const UniChar loss)
 {
-  const UInt8 *sstart;
-  const UInt8 *slimit;
-  UniChar *dstart;
-  UniChar *dlimit;
+  UniChar *dStart;
+  UniChar *dWorking;
 
-  sstart = s;
-  slimit = sstart + slen;
-  if (d == NULL)
-    dlen = 0;
-  dstart = d;
-  dlimit = dstart + dlen;
-  while (s < slimit && (dlen == 0 || d < dlimit))
+  dStart = d ? *d : NULL;
+  dWorking = dStart;
+
+  if (enc == kCFStringEncodingUTF8)
     {
-      UInt8 c;
+      UTF32Char c;
 
-      c = *s++;
-      if (dlen != 0)
-        *d = c;
-      d++;
-    }
-
-  if (usedLen)
-    *usedLen = d - dstart;
-
-  return s - sstart;
-}
-
-CFIndex
-GSUnicodeToISOLatin1 (const UniChar * s, CFIndex slen, UniChar lossChar,
-                      UInt8 * d, CFIndex dlen, CFIndex * usedLen)
-{
-  const UniChar *sstart;
-  const UniChar *slimit;
-  UInt8 *dstart;
-  UInt8 *dlimit;
-
-  sstart = s;
-  slimit = sstart + slen;
-  if (d == NULL)
-    dlen = 0;
-  dstart = d;
-  dlimit = dstart + dlen;
-  while (s < slimit && (dlen == 0 || d < dlimit))
-    {
-      UniChar u;
-
-      u = *s++;
-      if (u > 0xFF)
+      GSUTF8CharacterSkipByteOrderMark (s, sLimit);
+      while (*s < sLimit)
         {
-          if (lossChar)
-            u = lossChar;
-          else
+          c = GSUTF8CharacterGet (s, sLimit, loss);
+          /* RFC 3629 (https://tools.ietf.org/html/rfc3629) specifically
+             prohibits encoding surrogates in UTF-8.
+           */
+          if (GSCharacterIsSurrogate (c))
+            c = loss;
+          if (c == 0)
             break;
+          dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
         }
-      if (dlen != 0)
-        *d = u;
-      d++;
-    }
-
-  if (usedLen)
-    *usedLen = d - dstart;
-
-  return s - sstart;
-}
-
-CFIndex
-GSFromUnicode (const UniChar * s, CFIndex slen, CFStringEncoding enc,
-               UniChar lossChar, Boolean isExtRep, UInt8 * d, CFIndex dlen,
-               CFIndex * usedDstLen)
-{
-  CFIndex converted;
-
-  converted = 0;
-  if (d == NULL)
-    dlen = 0;
-
-  if (enc == kCFStringEncodingUTF8)
-    {
-      if (isExtRep && dlen > 3)
-        {
-          *d++ = 0xEF;
-          *d++ = 0xBB;
-          *d++ = 0xBF;
-          dlen -= 3;
-        }
-      converted = GSUnicodeToUTF8 (s, slen, lossChar, d, dlen, usedDstLen);
     }
   else if (enc == kCFStringEncodingUTF16
            || enc == kCFStringEncodingUTF16BE
            || enc == kCFStringEncodingUTF16LE)
     {
-      UniChar *dst;
-      CFIndex copyLength;
-
-      dst = (UniChar *) d;
-      if (isExtRep && enc == kCFStringEncodingUTF16 && dlen >= 2)
-        {
-          *dst++ = kGSUTF16CharacterByteOrderMark;
-          dlen -= 2;
-        }
-
-      copyLength =
-        (dlen <= slen * sizeof (UniChar)) ? dlen : (slen * sizeof (UniChar));
-      memcpy (dst, s, copyLength);
-#if __BIG_ENDIAN__
-      if (enc == kCFStringEncodingUTF16LE && dlen != 0)
-#else
-      if (enc == kCFStringEncodingUTF16BE && dlen != 0)
-#endif
-        {
-          UniChar *end;
-
-          end = dst + converted;
-          while (dst < end)
-            {
-              *dst = CFSwapInt16 (*dst);
-              ++dst;
-            }
-        }
-      if (usedDstLen)
-        *usedDstLen = slen + (isExtRep ? 2 : 0);
-      converted = copyLength / sizeof (UniChar);
-    }
-  else if (enc == kCFStringEncodingUTF32
-           || enc == kCFStringEncodingUTF32BE
-           || enc == kCFStringEncodingUTF32LE)
-    {
-      UTF32Char *dst;
-
-      dst = (UTF32Char *) d;
-      if (isExtRep && enc == kCFStringEncodingUTF32 && dlen >= 4)
-        {
-          *dst++ = kGSUTF32CharacterByteOrderMark;
-          dlen -= 4;
-        }
-      /* round to the nearest multiple of 4 */
-      dlen &= ~0x3;
-      converted =
-        GSUnicodeToUTF32 (s, slen / sizeof (UTF32Char), lossChar,
-                          (UTF32Char *) d, dlen, usedDstLen);
-#if __BIG_ENDIAN__
-      if (enc == kCFStringEncodingUTF32LE && dlen != 0)
-#else
-      if (enc == kCFStringEncodingUTF32BE && dlen != 0)
-#endif
-        {
-          UTF32Char *cur;
-          UTF32Char *end;
-
-          cur = (UTF32Char *) d;
-          end = (UTF32Char *) (d + dlen);
-          while (cur < end)
-            {
-              *cur = CFSwapInt32 (*cur);
-              cur++;
-            }
-        }
-    }
-  else if (enc == kCFStringEncodingASCII)
-    {
-      UInt8 *dstart;
-      const UInt8 *dlimit;
-      const UniChar *sstart;
-      const UniChar *slimit;
-
-      sstart = s;
-      slimit = s + slen;
-      dstart = (UInt8 *) d;
-      dlimit = dstart + dlen;
-      while (s < slimit && (dlen == 0 || d < dlimit))
-        {
-          if (*s < 0x80)
-            {
-              *d++ = (UInt8) * s++;
-            }
-          else
-            {
-              if (!lossChar)
-                break;
-              *d++ = (UInt8) lossChar;
-              s++;
-            }
-        }
-      if (usedDstLen)
-        *usedDstLen = (d - dstart);
-
-      converted = (CFIndex) (s - sstart);
-    }
-  else if (enc == kCFStringEncodingNonLossyASCII)
-    {
-      converted =
-        GSUnicodeToNonLossyASCII (s, slen, lossChar, (char *) d, dlen,
-                                  usedDstLen);
-    }
-  else if (enc == kCFStringEncodingISOLatin1)
-    {
-      converted = GSUnicodeToISOLatin1 (s, slen, lossChar, d, dlen, usedDstLen);
-    }
-#if 0
-  else
-    {
-      UConverter *ucnv;
-
-      ucnv = GSStringOpenConverter (enc, lossChar);
-      if (ucnv)
-        {
-          char *target;
-          const char *targetLimit;
-          const UniChar *source;
-          const UniChar *sourceLimit;
-          UErrorCode err = U_ZERO_ERROR;
-
-          target = (char *) d;
-          targetLimit = target + dlen;
-          source = s;
-          sourceLimit = source + slen;
-
-          ucnv_fromUnicode (ucnv, &target, targetLimit, &source, sourceLimit,
-                            NULL, true, &err);
-          converted = (CFIndex) (target - (char *) d);
-          if (usedDstLen)
-            {
-              *usedDstLen = converted;
-              if (err == U_BUFFER_OVERFLOW_ERROR)
-                {
-                  char ibuffer[256];    /* Arbitrary buffer size */
-
-                  targetLimit = ibuffer + 255;
-                  do
-                    {
-                      target = ibuffer;
-                      err = U_ZERO_ERROR;
-                      ucnv_fromUnicode (ucnv, &target, targetLimit, &source,
-                                        sourceLimit, NULL, true, &err);
-                      *usedDstLen += (CFIndex) (target - ibuffer);
-                    }
-                  while (err == U_BUFFER_OVERFLOW_ERROR);
-                }
-            }
-
-          GSStringCloseConverter (ucnv);
-        }
-    }
-#endif
-
-  return converted;
-}
-
-CFIndex
-GSToUnicode (const UInt8 * s, CFIndex slen, CFStringEncoding enc,
-             UniChar lossChar, Boolean isExtRep, UniChar * d, CFIndex dlen,
-             CFIndex * usedDstLen)
-{
-  CFIndex converted;
-
-  converted = 0;
-  if (d == NULL)
-    dlen = 0;
-
-  if (enc == kCFStringEncodingUTF8)
-    {
-      if (isExtRep)
-        GSUTF8CharacterSkipByteOrderMark (&s, s + slen);
-
-      converted = GSUnicodeFromUTF8 (s, slen, lossChar, d, dlen, usedDstLen);
-    }
-  else if (enc == kCFStringEncodingUTF16
-           || enc == kCFStringEncodingUTF16BE
-           || enc == kCFStringEncodingUTF16LE)
-    {
-      const UniChar *src;
-      CFIndex copyLength;
+      const UTF16Char *sWorking;
       Boolean swap;
+      UTF32Char c;
 
-      src = (const UniChar *) s;
+      sWorking = (const UTF16Char *) *s;
       swap = false;
 
       if (enc == kCFStringEncodingUTF16)
         {
-          if (*src == kGSUTF16CharacterByteOrderMark)
-            {
-              src += 1;
-            }
-          else if (*src == kGSUTF16CharacterSwappedByteOrderMark)
-            {
-              swap = true;
-              src += 1;
-            }
+          c = *sWorking;
+          if (c == kGSUTF16CharacterByteOrderMark
+              || c == kGSUTF16CharacterSwappedByteOrderMark)
+            sWorking++;
+          if (c == kGSUTF16CharacterSwappedByteOrderMark)
+            swap = true;
         }
 #if __BIG_ENDIAN__
-      else if (enc == kCFStringEncodingUTF16LE)
+      if (enc == kCFStringEncodingUTF16LE)
+        swap = true;
 #else
-      else if (enc == kCFStringEncodingUTF16BE)
+      if (enc == kCFStringEncodingUTF16BE)
+        swap = true;
 #endif
-        {
-          swap = true;
-        }
 
-      copyLength =
-        (dlen * sizeof (UniChar) <= slen) ? (dlen * sizeof (UniChar)) : slen;
-      memcpy (d, s, copyLength);
-      if (swap && slen != 0)
+      /* This is not the most efficient way to check for invalid
+         character in a UTF-16 string and copy it over to the
+         destination buffer, but it'll do for now.
+       */
+      if (swap)
         {
-          UniChar *cur;
-          UniChar *end;
+          const UTF16Char *sPrevious;
 
-          cur = d;
-          end = d + (copyLength / sizeof (UniChar));
-          while (cur < end)
+          while (sWorking < (const UTF16Char *) sLimit)
             {
-              *cur = CFSwapInt16 (*cur);
-              cur++;
+              sPrevious = sWorking;
+              /* We have to mimic GSUTF16CharacterGet () here but swap the
+                 endianness while we're at it.
+               */
+              c = CFSwapInt16 (*sWorking++);
+              if (GSCharacterIsSurrogate (c))
+                {
+                  if (GSCharacterIsLeadSurrogate (c)
+                      && sWorking < (const UTF16Char *) sLimit
+                      && GSCharacterIsTrailSurrogate (*sWorking))
+                    c =
+                      (c << 10) + CFSwapInt16 (*sWorking++) -
+                      ((0xD7C0 << 10) + 0xDC00);
+                  else
+                    c = loss;
+                }
+              if (c == 0)
+                {
+                  sWorking = sPrevious;
+                  break;
+                }
+              dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
             }
         }
-      if (usedDstLen)
-        *usedDstLen = slen;
-      converted = copyLength / sizeof (UniChar);
+      else
+        {
+          while (sWorking < (const UTF16Char *) sLimit)
+            {
+              c =
+                GSUTF16CharacterGet (&sWorking, (const UTF16Char *) sLimit,
+                                     loss);
+              if (c == 0)
+                break;
+              dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
+            }
+        }
+      *s = (const UInt8 *) sWorking;
     }
   else if (enc == kCFStringEncodingUTF32
            || enc == kCFStringEncodingUTF32BE
            || enc == kCFStringEncodingUTF32LE)
     {
-      const UTF32Char *src;
+      const UTF32Char *sWorking;
       Boolean swap;
+      UTF32Char c;
 
-      src = (const UTF32Char *) s;
+      sWorking = (const UTF32Char *) *s;
       swap = false;
 
       if (enc == kCFStringEncodingUTF32)
         {
-          if (*src == kGSUTF32CharacterByteOrderMark)
-            {
-              src += 1;
-            }
-          else if (*src == kGSUTF32CharacterSwappedByteOrderMark)
-            {
-              swap = true;
-              src += 1;
-            }
+          c = *sWorking;
+          if (c == kGSUTF32CharacterByteOrderMark
+              || c == kGSUTF32CharacterSwappedByteOrderMark)
+            sWorking++;
+          if (c == kGSUTF32CharacterSwappedByteOrderMark)
+            swap = true;
         }
 #if __BIG_ENDIAN__
-      else if (*src == kCFStringEncodingUTF32LE)
+      if (enc == kCFStringEncodingUTF32LE)
+        swap = true;
 #else
-      else if (*src == kCFStringEncodingUTF32BE)
+      if (enc == kCFStringEncodingUTF32BE)
+        swap = true;
 #endif
-        {
-          swap = true;
-        }
-      /* round to the nearest multiple of 4 */
-      slen &= ~3;
-      if (swap && slen != 0)
-        {
-          UTF32Char *cur;
-          UTF32Char *end;
 
-          cur = (UTF32Char *) s;
-          end = (UTF32Char *) (s + slen);
-          while (cur < end)
+      if (swap)
+        {
+          const UTF32Char *sPrevious;
+
+          while (sWorking < (const UTF32Char *) sLimit)
             {
-              *cur = CFSwapInt32 (*cur);
-              cur++;
+              sPrevious = sWorking;
+              c = CFSwapInt32 (*sWorking++);
+              if (GSCharacterIsSurrogate (c) || c > 0x10FFFF)
+                c = loss;
+              if (c == 0)
+                {
+                  sWorking = sPrevious;
+                  break;
+                }
+              dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
             }
         }
-      converted =
-        GSUnicodeFromUTF32 ((const UTF32Char *) s, slen / sizeof (UTF32Char),
-                            lossChar, d, dlen, usedDstLen);
-    }
-  else if (enc == kCFStringEncodingASCII)
-    {
-      UniChar *dstart;
-      const UniChar *dlimit;
+      else
+        {
+          const UTF32Char *sPrevious;
 
-      if (dlen > slen)
-        dlen = slen;
-      dstart = d;
-      dlimit = d + dlen;
-      while (d < dlimit)
-        *d++ = *s++;
-      if (usedDstLen)
-        *usedDstLen = slen;
-      converted = d - dstart;
+          while (sWorking < (const UTF32Char *) sLimit)
+            {
+              sPrevious = sWorking;
+              c = *sWorking++;
+              if (GSCharacterIsSurrogate (c) || c > 0x10FFFF)
+                c = loss;
+              if (c == 0)
+                {
+                  sWorking = sPrevious;
+                  break;
+                }
+              dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
+            }
+        }
+      *s = (const UInt8 *) sWorking;
+    }
+  else if (enc == kCFStringEncodingASCII || enc == kCFStringEncodingISOLatin1)
+    {
+      const UInt8 *sWorking;
+      UInt8 c;
+
+      sWorking = *s;
+
+      while (sWorking < sLimit)
+        {
+          c = *sWorking++;
+          if (dWorking < dLimit)
+            *dWorking = c;
+          ++dWorking;
+        }
+      *s = sWorking;
     }
   else if (enc == kCFStringEncodingNonLossyASCII)
     {
-      converted =
-        GSUnicodeFromNonLossyASCII ((const char *) s, slen, lossChar, d, dlen,
-                                    usedDstLen);
+      /* FIXME */
+    }
+  else
+    {
+      /* FIXME */
+    }
+
+  *d = (dWorking > dLimit) ? (UniChar *) dLimit : dWorking;
+
+  /* Return -1 if we were not to process the whole source buffer. */
+  return *s < sLimit ? -1 : dWorking - dStart;
+}
+
+CFIndex
+GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
+                     CFStringEncoding enc, const UniChar ** s,
+                     const UniChar * const sLimit, const char loss,
+                     Boolean addBOM)
+{
+  UInt8 *dStart;
+  UInt8 *dStop;
+
+  dStart = d ? *d : NULL;
+  dStop = dStart;
+
+  if (enc == kCFStringEncodingUTF8)
+    {
+      UTF32Char c;
+
+      if (addBOM)
+        dStop += GSUTF8CharacterAppendByteOrderMark (dStop, dLimit);
+      while (*s < sLimit && (dLimit == NULL || dStop < dLimit))
+        {
+          c = GSUTF16CharacterGet (s, sLimit, loss);
+          if (GSCharacterIsSurrogate (c))
+            c = loss;
+          if (c == 0)
+            break;
+          dStop += GSUTF8CharacterAppend (dStop, dLimit, c);
+        }
+    }
+  else if (enc == kCFStringEncodingUTF16
+           || enc == kCFStringEncodingUTF16BE
+           || enc == kCFStringEncodingUTF16LE)
+    {
+      UTF16Char *dWorking;
+      CFIndex dLen;
+      CFIndex sLen;
+      CFIndex bytesToCopy;
+
+      dWorking = (UTF16Char *) dStart;
+
+      if (addBOM && dWorking < (UTF16Char *) dLimit)
+        {
+          if (dLimit != NULL)
+            *dWorking = kGSUTF16CharacterByteOrderMark;
+          ++dWorking;
+        }
+
+      dLen = dLimit - dStart;
+      sLen = sLimit - *s;
+      bytesToCopy = dLen > sLen ? sLen : dLen;
+      GSMemoryCopy (dWorking, *s, bytesToCopy);
+
+#if __BIG_ENDIAN__
+      if (enc == kCFStringEncodingUTF32LE)
+#else
+      if (enc == kCFStringEncodingUTF32BE)
+#endif
+        {
+          dWorking = (UTF16Char *) dStart;
+          while (dWorking < (UTF16Char *) dLimit)
+            {
+              *dWorking = CFSwapInt16 (*dWorking);
+              ++dWorking;
+            }
+          dStop = (UInt8 *) dWorking;
+        }
+      else
+        {
+          dStop += bytesToCopy;
+        }
+
+      *s += bytesToCopy / sizeof (UniChar);
+    }
+  else if (enc == kCFStringEncodingUTF32
+           || enc == kCFStringEncodingUTF32BE
+           || enc == kCFStringEncodingUTF32LE)
+    {
+      UTF32Char *dWorking;
+      UTF32Char c;
+
+      dWorking = (UTF32Char *) dStart;
+
+      if (addBOM && dWorking < (UTF32Char *) dLimit)
+        {
+          if (dLimit != NULL)
+            *dWorking = kGSUTF32CharacterByteOrderMark;
+          ++dWorking;
+        }
+      while (*s < sLimit
+             && (dLimit == NULL || dWorking < (UTF32Char *) dLimit))
+        {
+          c = GSUTF16CharacterGet (s, sLimit, loss);
+          if (GSCharacterIsSurrogate (c))
+            c = loss;
+          if (c == 0)
+            break;
+          if (dWorking < (UTF32Char *) dLimit)
+            *dWorking = c;
+          ++dWorking;
+        }
+
+#if __BIG_ENDIAN__
+      if (enc == kCFStringEncodingUTF32LE)
+#else
+      if (enc == kCFStringEncodingUTF32BE)
+#endif
+        {
+          dWorking = (UTF32Char *) dStart;
+          while (dWorking < (UTF32Char *) dLimit)
+            {
+              *dWorking = CFSwapInt32 (*dWorking);
+              ++dWorking;
+            }
+        }
+
+      dStop = (UInt8 *) dWorking;
+    }
+  else if (enc == kCFStringEncodingASCII)
+    {
+      UInt8 *dWorking;
+      const UniChar *sWorking;
+      UniChar c;
+
+      dWorking = dStart;
+      sWorking = *s;
+
+      while (sWorking < sLimit && (dLimit == NULL || dWorking < dLimit))
+        {
+          c = *sWorking++;
+          if (c > 0x7F)
+            c = loss;
+          if (c == 0)
+            break;
+          if (dWorking < dLimit)
+            *dWorking = c;
+          ++dWorking;
+        }
+      dStop = dWorking;
+      *s = sWorking;
     }
   else if (enc == kCFStringEncodingISOLatin1)
     {
-      converted = GSUnicodeFromISOLatin1 (s, slen, lossChar, d, dlen,
-                                          usedDstLen);
+      UInt8 *dWorking;
+      const UniChar *sWorking;
+      UniChar c;
+
+      dWorking = dStart;
+      sWorking = *s;
+
+      while (sWorking < sLimit && (dLimit == NULL || dWorking < dLimit))
+        {
+          c = *sWorking++;
+          if (c > 0xFF)
+            c = loss;
+          if (c == 0)
+            break;
+          if (dWorking < dLimit)
+            *dWorking = c;
+          ++dWorking;
+        }
+      dStop = dWorking;
+      *s = sWorking;
     }
-#if 0
+  else if (enc == kCFStringEncodingNonLossyASCII)
+    {
+    }
   else
     {
-      UConverter *ucnv;
-
-      ucnv = GSStringOpenConverter (enc, 0);
-      converted = 0;
-      if (ucnv)
-        {
-          UniChar *target;
-          const UniChar *targetLimit;
-          const char *source;
-          const char *sourceLimit;
-          UErrorCode err = U_ZERO_ERROR;
-
-          target = d;
-          targetLimit = target + dlen;
-          source = (char *) s;
-          sourceLimit = source + slen;
-
-          ucnv_toUnicode (ucnv, &target, targetLimit, &source, sourceLimit,
-                          NULL, true, &err);
-          converted = (CFIndex) (target - d);
-          if (usedDstLen)
-            {
-              *usedDstLen = converted;
-              if (err == U_BUFFER_OVERFLOW_ERROR)
-                {
-                  UniChar ibuffer[256]; /* Arbitrary buffer size */
-
-                  targetLimit = ibuffer + 255;
-                  do
-                    {
-                      target = ibuffer;
-                      err = U_ZERO_ERROR;
-                      ucnv_toUnicode (ucnv, &target, targetLimit, &source,
-                                      sourceLimit, NULL, true, &err);
-                      *usedDstLen +=
-                        (CFIndex) ((char *) target - (char *) ibuffer);
-                    }
-                  while (err == U_BUFFER_OVERFLOW_ERROR);
-                }
-            }
-
-          GSStringCloseConverter (ucnv);
-        }
+      /* FIXME */
     }
-#endif
 
-  return converted;
+  *d = dStop;
+
+  return dLimit == NULL && *s < sLimit ? -1 : dStop - dStart;
 }
 
 typedef union format_argument
@@ -1348,7 +1041,7 @@ _ldbl_is_inf (long double d)
   SInt32 l;
   SInt32 *dint;
 
-  dint = (SInt32 *) &d;
+  dint = (SInt32 *) & d;
 #if WORDS_BIGENDIAN
   l = dint[2];
   m = dint[1];
@@ -1372,7 +1065,7 @@ _ldbl_is_nan (long double d)
   SInt32 l;
   SInt32 *dint;
 
-  dint = (SInt32 *) &d;
+  dint = (SInt32 *) & d;
 #if WORDS_BIGENDIAN
   l = dint[2];
   m = dint[1];
@@ -1384,7 +1077,7 @@ _ldbl_is_nan (long double d)
 #endif
   l |= (m & 0x7FFFFFFF);
   l |= -l;
-  l = ((h & 0x7FFF) ^ 0x7FFF) - ((UInt32)l >> 31);  
+  l = ((h & 0x7FFF) ^ 0x7FFF) - ((UInt32) l >> 31);
 
   return (l >> 31) & ((h << 16) >> 30);
 }
@@ -1460,11 +1153,13 @@ _read_number (const UniChar ** __restrict__ format)
   return number;
 }
 
-static const UniChar _lookup_upper[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+static const UniChar _lookup_upper[] =
+  { '0', '1', '2', '3', '4', '5', '6', '7',
   '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 };
 
-static const UniChar _lookup_lower[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+static const UniChar _lookup_lower[] =
+  { '0', '1', '2', '3', '4', '5', '6', '7',
   '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
 };
 
@@ -1514,7 +1209,8 @@ _write (UniChar * obuf, UniChar * obuf_end, const UniChar * s, CFIndex len)
 }
 
 #define PAD_SIZE 8
-static const UniChar _pad_space[] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
+static const UniChar _pad_space[] =
+  { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 static const UniChar _pad_zero[] = { '0', '0', '0', '0', '0', '0', '0', '0' };
 
 static CFIndex
@@ -2507,19 +2203,21 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
         }
       else
         {
-          CFIndex tmp_len;
-          const char *cstring = (const char *) string;
-          string_len = _cstring_length (cstring, prec);
+          UniChar *tmp;
+          const UniChar *tmp_limit;
+          const UInt8 *cstring = (const UInt8 *) string;
+          string_len = _cstring_length ((const char *)cstring, prec);
           width -= string_len;
           if (!left_align)
             obuf += _pad (obuf, obuf_end, ' ', width);
+          tmp_limit = buffer + BUFFER_SIZE;
           do
             {
-              tmp_len = GS_MIN (string_len, BUFFER_SIZE);
-              cstring += GSToUnicode ((const UInt8 *) cstring, string_len,
-                                      CFStringGetSystemEncoding (), 0, false,
-                                      buffer, tmp_len, NULL);
-              obuf += _write (obuf, obuf_end, buffer, tmp_len);
+              tmp = buffer;
+              GSUnicodeFromEncoding (&tmp, tmp_limit,
+                                     CFStringGetSystemEncoding (), &cstring,
+                                     cstring + string_len, 0);
+              obuf += _write (obuf, obuf_end, buffer, tmp - buffer);
               string_len -= BUFFER_SIZE;
             }
           while (string_len > 0);
