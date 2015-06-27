@@ -205,18 +205,24 @@ GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
   if (enc == kCFStringEncodingUTF8)
     {
       UTF32Char c;
+      CFIndex add;
 
       GSUTF8CharacterSkipByteOrderMark (s, sLimit);
       while (*s < sLimit)
         {
-          c = GSUTF8CharacterGet (s, sLimit, loss);
+          add = GSUTF8CharacterGet (*s, sLimit, &c);
           /* RFC 3629 (https://tools.ietf.org/html/rfc3629) specifically
              prohibits encoding surrogates in UTF-8.
            */
-          if (GSCharacterIsSurrogate (c))
-            c = loss;
-          if (c == 0)
-            break;
+          if (add == 0 || GSCharacterIsSurrogate (c) || c > 0x10FFFF)
+            {
+              if (loss)
+                c = loss;
+              else
+                break;
+              add = 1;
+            }
+          *s += add;
           dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
         }
     }
@@ -254,11 +260,8 @@ GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
        */
       if (swap)
         {
-          const UTF16Char *sPrevious;
-
           while (sWorking < (const UTF16Char *) sLimit)
             {
-              sPrevious = sWorking;
               /* We have to mimic GSUTF16CharacterGet () here but swap the
                  endianness while we're at it.
                */
@@ -268,29 +271,42 @@ GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
                   if (GSCharacterIsLeadSurrogate (c)
                       && sWorking < (const UTF16Char *) sLimit
                       && GSCharacterIsTrailSurrogate (*sWorking))
-                    c =
-                      (c << 10) + CFSwapInt16 (*sWorking++) -
-                      ((0xD7C0 << 10) + 0xDC00);
+                    {
+                      c =
+                        (c << 10) + CFSwapInt16 (*sWorking++) -
+                        ((0xD7C0 << 10) + 0xDC00);
+                    }
+                  else if (loss)
+                    {
+                      c = loss;
+                    }
                   else
-                    c = loss;
-                }
-              if (c == 0)
-                {
-                  sWorking = sPrevious;
-                  break;
+                    {
+                      --sWorking;
+                      break;
+                    }
                 }
               dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
             }
         }
       else
         {
+          CFIndex add;
+
           while (sWorking < (const UTF16Char *) sLimit)
             {
-              c =
-                GSUTF16CharacterGet (&sWorking, (const UTF16Char *) sLimit,
-                                     loss);
-              if (c == 0)
-                break;
+              add =
+                GSUTF16CharacterGet (sWorking, (const UTF16Char *) sLimit,
+                                     &c);
+              if (add == 0)
+                {
+                  if (loss)
+                    c = loss;
+                  else
+                    break;
+                  add = 1;
+                }
+              sWorking += add;
               dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
             }
         }
@@ -326,37 +342,27 @@ GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
 
       if (swap)
         {
-          const UTF32Char *sPrevious;
-
           while (sWorking < (const UTF32Char *) sLimit)
             {
-              sPrevious = sWorking;
-              c = CFSwapInt32 (*sWorking++);
+              c = CFSwapInt32 (*sWorking);
               if (GSCharacterIsSurrogate (c) || c > 0x10FFFF)
                 c = loss;
-              if (c == 0)
-                {
-                  sWorking = sPrevious;
-                  break;
-                }
+              else
+                break;
+              ++sWorking;
               dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
             }
         }
       else
         {
-          const UTF32Char *sPrevious;
-
           while (sWorking < (const UTF32Char *) sLimit)
             {
-              sPrevious = sWorking;
-              c = *sWorking++;
-              if (GSCharacterIsSurrogate (c) || c > 0x10FFFF)
+              c = *sWorking;
+              if ((GSCharacterIsSurrogate (c) || c > 0x10FFFF) && loss)
                 c = loss;
-              if (c == 0)
-                {
-                  sWorking = sPrevious;
-                  break;
-                }
+              else
+                break;
+              ++sWorking;
               dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
             }
         }
@@ -408,16 +414,22 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
   if (enc == kCFStringEncodingUTF8)
     {
       UTF32Char c;
+      CFIndex add;
 
       if (addBOM)
         dStop += GSUTF8CharacterAppendByteOrderMark (dStop, dLimit);
       while (*s < sLimit && (dLimit == NULL || dStop < dLimit))
         {
-          c = GSUTF16CharacterGet (s, sLimit, loss);
-          if (GSCharacterIsSurrogate (c))
-            c = loss;
-          if (c == 0)
-            break;
+          add = GSUTF16CharacterGet (*s, sLimit, &c);
+          if (add == 0)
+            {
+              if (loss)
+                c = loss;
+              else
+                break;
+              add = 1;
+            }
+          *s += add;
           dStop += GSUTF8CharacterAppend (dStop, dLimit, c);
         }
     }
@@ -439,7 +451,7 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
           ++dWorking;
         }
 
-      dLen = dLimit - dStart;
+      dLen = dLimit - (const UInt8*) dWorking;
       sLen = sLimit - *s;
       bytesToCopy = dLen > sLen ? sLen : dLen;
       GSMemoryCopy (dWorking, *s, bytesToCopy);
@@ -471,6 +483,7 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
     {
       UTF32Char *dWorking;
       UTF32Char c;
+      CFIndex add;
 
       dWorking = (UTF32Char *) dStart;
 
@@ -483,11 +496,15 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
       while (*s < sLimit
              && (dLimit == NULL || dWorking < (UTF32Char *) dLimit))
         {
-          c = GSUTF16CharacterGet (s, sLimit, loss);
-          if (GSCharacterIsSurrogate (c))
-            c = loss;
-          if (c == 0)
-            break;
+          add = GSUTF16CharacterGet (*s, sLimit, &c);
+          if (add == 0)
+            {
+              if (loss)
+                c = loss;
+              else
+                break;
+            }
+          *s += add;
           if (dWorking < (UTF32Char *) dLimit)
             *dWorking = c;
           ++dWorking;
@@ -523,8 +540,6 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
           c = *sWorking++;
           if (c > 0x7F)
             c = loss;
-          if (c == 0)
-            break;
           if (dWorking < dLimit)
             *dWorking = c;
           ++dWorking;
@@ -546,8 +561,6 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
           c = *sWorking++;
           if (c > 0xFF)
             c = loss;
-          if (c == 0)
-            break;
           if (dWorking < dLimit)
             *dWorking = c;
           ++dWorking;
@@ -2206,7 +2219,7 @@ GSUnicodeFormatWithArguments (UniChar * __restrict__ s, CFIndex n,
           UniChar *tmp;
           const UniChar *tmp_limit;
           const UInt8 *cstring = (const UInt8 *) string;
-          string_len = _cstring_length ((const char *)cstring, prec);
+          string_len = _cstring_length ((const char *) cstring, prec);
           width -= string_len;
           if (!left_align)
             obuf += _pad (obuf, obuf_end, ' ', width);

@@ -1,3 +1,10 @@
+2015-06-26 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Headers/CoreFoundation/GSCharacter.h,
+	* Source/GSUnicode.c: Modified UTF conversion functions slightly to better
+	support conversions.
+	* Source/CFURL.c: Rewrite CFURL function that replaces percent escaped
+	strings.
+
 2015-06-24 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/GSCharacter.h,
 	* Headers/CoreFoundation/GSUnicode.h,

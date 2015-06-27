@@ -233,63 +233,62 @@ GSUTF8CharacterAppend (UTF8Char * d, const UTF8Char * limit, UTF32Char c)
     @param[in] loss If this value is non-zero, it is used in case an invalid
       character is found in the input buffer.  Must be a valid Unicode
       character.
-    @return A valid Unicode code unit or a UTF-16 surrogate.
+    @return A valid Unicode code unit.
       Will return 0 if:
       -# The UTF-8 code unit is also a 0.
       -# An invalid code point or code unit is encountered and <b>loss</b>
       was not specified.
  */
-CF_INLINE UTF32Char
-GSUTF8CharacterGet (const UTF8Char ** s, const UTF8Char * limit,
-                    const UTF32Char loss)
+CF_INLINE CFIndex
+GSUTF8CharacterGet (const UTF8Char * s, const UTF8Char * limit, UTF32Char *c)
 {
-  UTF32Char c;
-  const UTF8Char *p;
   static const UTF32Char utf8LeadMask[4] = { 0x0, 0x1F, 0x0F, 0x07 };
+  const UTF8Char *start;
+  UTF32Char ch;
 
-  p = *s;
-  c = *p++;
-  if (c > 0x7F)
+  start = s;
+  ch = *s++;
+
+  if (ch > 0x7F)
     {
       CFIndex trail;
 
-      trail = GSUTF8CharacterTrailBytesCount (c);
-      if (limit - p < trail)
-        return loss;
-      c &= utf8LeadMask[trail];
+      trail = GSUTF8CharacterTrailBytesCount (ch);
+      if (limit - s < trail)
+        trail = 0; /* Force an error */
+      ch &= utf8LeadMask[trail];
       switch (trail)
         {
           case 3:
-            if (!GSUTF8CharacterIsTrailing (*p))
+            if (!GSUTF8CharacterIsTrailing (*s))
               {
-                c = loss;
+                s = start;
                 break;
               }
-            c = (c << 6) | (*p++ & 0x3F);
+            ch = (ch << 6) | (*s++ & 0x3F);
           case 2:
-            if (!GSUTF8CharacterIsTrailing (*p))
+            if (!GSUTF8CharacterIsTrailing (*s))
               {
-                c = loss;
+                s = start;
                 break;
               }
-            c = (c << 6) | (*p++ & 0x3F);
+            ch = (ch << 6) | (*s++ & 0x3F);
           case 1:
-            if (!GSUTF8CharacterIsTrailing (*p))
+            if (!GSUTF8CharacterIsTrailing (*s))
               {
-                c = loss;
+                s = start;
                 break;
               }
-            c = (c << 6) | (*p++ & 0x3F);
+            ch = (ch << 6) | (*s++ & 0x3F);
             break;
           case 0:
-            c = loss;
+            s = start;
+            break;
         }
-      if (c > 0x10FFFF)
-        c = loss;
     }
-  *s = p;
+  *c = ch;
 
-  return c;
+  return s - start;
 }
 
 /** @} */
@@ -320,10 +319,9 @@ GSUTF8CharacterGet (const UTF8Char ** s, const UTF8Char * limit,
 CF_INLINE CFIndex
 GSUTF16CharacterAppend (UTF16Char * d, const UTF16Char * limit, UTF32Char c)
 {
-  if (c <= 0xFFFF && !GSCharacterIsSurrogate (c))
+  if (c <= 0xFFFF)
     {
-      if (d < limit)
-        *d = c;
+      *d = c;
       return 1;
     }
   else if (c <= 0x10FFFF)
@@ -352,26 +350,26 @@ GSUTF16CharacterAppend (UTF16Char * d, const UTF16Char * limit, UTF32Char c)
       unit.
       -# The leading UTF-16 code unit does not have a trailing pair.
  */
-CF_INLINE UTF32Char
-GSUTF16CharacterGet (const UTF16Char ** s, const UTF16Char * limit,
-                     const UTF32Char loss)
+CF_INLINE CFIndex
+GSUTF16CharacterGet (const UTF16Char * s, const UTF16Char * limit, UTF32Char *c)
 {
-  UTF32Char c;
-  const UTF16Char *p;
+  const UTF16Char *start;
+  UTF32Char ch;
 
-  p = *s;
-  c = *p++;
-  if (GSCharacterIsSurrogate (c))
+  start = s;
+  ch = *s++;
+
+  if (GSCharacterIsSurrogate (ch))
     {
-      if (GSCharacterIsLeadSurrogate (c) && p < limit
-          && GSCharacterIsTrailSurrogate (*p))
-        c = (c << 10) + (*p++) - ((0xD7C0 << 10) + 0xDC00);
+      if (GSCharacterIsLeadSurrogate (ch) && s < limit
+          && GSCharacterIsTrailSurrogate (*s))
+        ch = (ch << 10) + (*s++) - ((0xD7C0 << 10) + 0xDC00);
       else
-        c = loss;
+        --s;
     }
-  *s = p;
+  *c = ch;
 
-  return c;
+  return s - start;
 }
 
 /** @} */

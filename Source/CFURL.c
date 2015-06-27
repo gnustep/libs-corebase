@@ -42,6 +42,8 @@
 
 #include <string.h>
 
+#define BUFFER_SIZE 256
+
 #if defined(_WIN32)
 #define CFURL_DEFAULT_PATH_STYLE kCFURLWindowsPathStyle
 #else
@@ -1528,114 +1530,147 @@ CFURLCreateStringByReplacingPercentEscapes (CFAllocatorRef alloc,
     origString, leaveEscaped, kCFStringEncodingUTF8);
 }
 
-CF_INLINE char
-CFURLCharacterForPercentEscape (CFStringInlineBuffer *src, CFIndex *idx,
-  CFStringEncoding enc)
-{
-  UInt8 bytes[MAX_BYTES];
-  UInt8 tmp;
-  const UInt8 *str;
-  UniChar c1;
-  UniChar c2;
-  UniChar c;
-  UniChar *out;
-  CFIndex num;
-  CFIndex i;
-  CFIndex j;
-  
-  i = (*idx);
-  j = 0;
-  do
-    {
-      c1 = CFStringGetCharacterFromInlineBuffer (src, i++);
-      c2 = CFStringGetCharacterFromInlineBuffer (src, i++);
-      
-      if (c1 <= '9')
-        tmp = c1 - '0';
-      else if (c1 <= 'F')
-        tmp = c1 - 'A' + 10;
-      else
-        tmp = c1 - 'a' + 10;
-      tmp = (tmp & 0x0F) << 4;
-      if (c2 <= '9')
-        tmp |= c2 - '0';
-      else if (c2 <= 'F')
-        tmp |= c2 - 'A' + 10;
-      else
-        tmp |= c2 - 'a' + 10;
-      
-      bytes[j++] = tmp;
-    } while (CFStringGetCharacterFromInlineBuffer(src, i++) == '%'
-             && j < MAX_BYTES);
-  
-  c = 0;
-  out = &c;
-  str = (const UInt8 *) bytes;
-  num = GSUnicodeFromEncoding (&out, out + 1, enc, &str, str + j, 0);
-  if (num > 0)
-    {
-      // For the first percent 2 characters get used, for all later three
-      (*idx) += 2 + 3 * (num - 1);
-    }
-  return c;
-}
-
 CFStringRef
 CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
   CFStringRef origString, CFStringRef leaveEscaped, CFStringEncoding encoding)
 {
-  CFStringInlineBuffer iBuffer;
-  CFStringRef ret;
-  CFIndex sLength;
-  CFIndex idx;
-  UniChar *dst;
-  UniChar *dpos;
-  UniChar c;
-  
-  sLength = CFStringGetLength (origString);
-  CFStringInitInlineBuffer (origString, &iBuffer, CFRangeMake (0, sLength));
-  
-  dst = NULL;
-  dpos = dst;
-  idx = 0;
-  while (idx < sLength)
+  CFIndex origLen;
+  CFRange origRange;
+  CFRange escapeRange;
+  Boolean success;
+  CFMutableStringRef retString;
+
+  if (leaveEscaped == NULL) /* Leave all escaped */
+    return CFStringCreateCopy (alloc, origString);
+
+  origLen = CFStringGetLength (origString);
+  origRange = CFRangeMake (0, origLen);
+  success = true;
+  retString = NULL;
+
+  while (success
+         && CFStringFindWithOptions (origString, CFSTR ("%"), origRange, 0,
+                                     &escapeRange))
     {
-      c = CFStringGetCharacterFromInlineBuffer (&iBuffer, idx++);
-      if (c == '%' && leaveEscaped && (idx + 2) < sLength)
+      CFIndex subLen;
+      CFIndex i;
+      UniChar ch;
+      UInt8 buffer[BUFFER_SIZE];
+      UInt8 *current;
+      UInt8 *limit;
+      CFStringRef unescapedString;
+
+      if (retString == NULL)
         {
-          UniChar repChar;
-          
-          if (dst == NULL)
+          retString = CFStringCreateMutable (alloc, origLen);
+          if (retString == NULL)
             {
-              dst = CFAllocatorAllocate (alloc, sizeof(UniChar) * sLength, 0);
-              CFStringGetCharacters (origString, CFRangeMake(0, idx - 1),
-                dst);
-              dpos = dst + idx - 1;
+              success = false;
+              break;
             }
-          repChar = CFURLCharacterForPercentEscape (&iBuffer, &idx, encoding);
-          if (CFURLStringContainsCharacter(leaveEscaped, repChar))
-            /* Skip the '%' */
-            (*dpos++) = c;
-          else
-            (*dpos++) = repChar;
         }
-      else if (dst != NULL)
+      subLen = escapeRange.location - origRange.location;
+      while (subLen > 0)
         {
-          (*dpos++) = c;
+          CFIndex len;
+          CFRange range;
+          UniChar b[BUFFER_SIZE];
+
+          len = subLen > BUFFER_SIZE ? BUFFER_SIZE : subLen;
+          range = CFRangeMake (origRange.location, len);
+          CFStringGetCharacters (origString, range, b);
+          CFStringAppendCharacters (retString, b, len);
+          subLen -= BUFFER_SIZE;
+        }
+
+      /* FIXME: The code currently does not support escaped string longer
+         than BUFFER_SIZE continuously.  This is obviously a problem.
+       */
+      i = escapeRange.location;
+      current = buffer;
+      limit = buffer + BUFFER_SIZE;
+      do
+        {
+          ch = CFStringGetCharacterAtIndex (origString, ++i);
+          if (ch >= '0' && ch <= '9')
+            {
+              *current = ch - '0';
+            }
+          else if ((ch | 0x20) >= 'a' && (ch | 0x20) <= 'z')
+            {
+              *current = 10 + ((ch | 0x20) - 'a');
+            }
+          else
+            {
+              success = false;
+              break;
+            }
+          *current <<= 4;
+          ch = CFStringGetCharacterAtIndex (origString, ++i);
+          if (ch >= '0' && ch <= '9')
+            {
+              *current |= ch - '0';
+            }
+          else if ((ch | 0x20) >= 'a' && (ch | 0x20) <= 'z')
+            {
+              *current |= 10 + ((ch | 0x20) - 'a');
+            }
+          else
+            {
+              success = false;
+              break;
+            }
+          ++current;
+          ch = CFStringGetCharacterAtIndex (origString, ++i);
+        }
+      while (current < limit && ch == '%');
+      if (success == false)
+        break;
+
+      unescapedString = CFStringCreateWithBytes (kCFAllocatorSystemDefault,
+                                                 (const UInt8 *) buffer,
+                                                 current - buffer, encoding,
+                                                 false);
+      if (unescapedString == NULL)
+        {
+          success = false;
+          break;
+        }
+      CFStringAppend (retString, unescapedString);
+      CFRelease (unescapedString);
+
+      origRange.location = i;
+      origRange.length = origLen - i;
+    }
+  /* FIXME: Use leaveUnescaped */
+
+  if (success == false)
+    {
+      if (retString)
+        CFRelease (retString);
+      return NULL;
+    }
+  else if (retString)
+    {
+      /* Need to append the rest of the string. */
+      CFIndex subLen;
+
+      subLen = origRange.length;
+      while (subLen > 0)
+        {
+          CFIndex len;
+          CFRange range;
+          UniChar b[BUFFER_SIZE];
+
+          len = subLen > BUFFER_SIZE ? BUFFER_SIZE : subLen;
+          range = CFRangeMake (origRange.location, len);
+          CFStringGetCharacters (origString, range, b);
+          CFStringAppendCharacters (retString, b, len);
+          subLen -= BUFFER_SIZE;
         }
     }
-  
-  if (dst)
-    {
-      ret = CFStringCreateWithCharacters (alloc, dst, (CFIndex)(dpos - dst));
-      CFAllocatorDeallocate (alloc, dst);
-    }
-  else
-    {
-      ret = CFRetain (origString);
-    }
-  
-  return ret;
+
+  return retString ? retString : CFStringCreateCopy (alloc, origString);
 }
 
 CFStringRef
