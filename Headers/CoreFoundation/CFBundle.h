@@ -83,6 +83,13 @@ CFDictionaryRef CFBundleGetLocalInfoDictionary(CFBundleRef bundle);
 CFTypeRef CFBundleGetValueForInfoDictionaryKey(CFBundleRef bundle,
                                                CFStringRef key);
 
+CF_EXPORT const CFStringRef kCFBundleInfoDictionaryVersionKey;
+CF_EXPORT const CFStringRef kCFBundleExecutableKey;
+CF_EXPORT const CFStringRef kCFBundleIdentifierKey;
+CF_EXPORT const CFStringRef kCFBundleVersionKey;
+CF_EXPORT const CFStringRef kCFBundleNameKey;
+CF_EXPORT const CFStringRef kCFBundleLocalizationsKey;
+
 CF_EXTERN_C_END
 
 #endif /* __COREFOUNDATION_CFBUNDLE__ */
