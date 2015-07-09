@@ -1,3 +1,9 @@
+2015-07-09 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/CFPropertyList.c: Implemented reading and writing OpenStep format
+	property lists.
+	* Tests/CFPropertyList/openstep.m: Simple tests for OpenStep format
+	property lists.
+
 2015-06-26 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/GSCharacter.h,
 	* Source/GSUnicode.c: Modified UTF conversion functions slightly to better

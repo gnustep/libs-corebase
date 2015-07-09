@@ -34,8 +34,12 @@
 #include "CoreFoundation/CFSet.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStream.h"
+#include "CoreFoundation/GSCharacter.h"
+#include "CoreFoundation/GSUnicode.h"
 
 #include "GSPrivate.h"
+#include "GSCArray.h"
+#include "GSMemory.h"
 
 static CFTypeID _kCFArrayTypeID = 0;
 static CFTypeID _kCFBooleanTypeID = 0;
@@ -46,7 +50,60 @@ static CFTypeID _kCFNumberTypeID = 0;
 static CFTypeID _kCFStringTypeID = 0;
 static Boolean _kCFPropertyListTypeIDsInitialized = false;
 
-struct CFPListIsValidContext
+static const UInt32 _kCFOpenStepPlistQuotables[4] =
+  { 0xFFFFFFFF, 0xFC00FFFF, 0xF8000001, 0xF8000001 };
+#define CFOpenStepPlistCharacterIsQuotable(c) \
+  (((c) > 128) \
+   || ((_kCFOpenStepPlistQuotables[(c) >> 5] & (1 << ((c) & 0x1F))) > 0))
+
+#if 0
+static const UInt8 *_kCFPlistXMLArrayTag = (const UInt8 *) "array";
+static const UInt8 *_kCFPlistXMLDictTag = (const UInt8 *) "dict";
+static const UInt8 *_kCFPlistXMLKeyTag = (const UInt8 *) "key";
+static const UInt8 *_kCFPlistXMLValueTag = (const UInt8 *) "value";
+static const UInt8 *_kCFPlistXMLDataTag = (const UInt8 *) "data";
+static const UInt8 *_kCFPlistXMLDateTag = (const UInt8 *) "date";
+static const UInt8 *_kCFPlistXMLIntegerTag = (const UInt8 *) "integer";
+static const UInt8 *_kCFPlistXMLRealTag = (const UInt8 *) "real";
+static const UInt8 *_kCFPlistXMLTrueTag = (const UInt8 *) "true";
+static const UInt8 *_kCFPlistXMLFalseTag = (const UInt8 *) "false";
+
+static const CFIndex _kCFPlistXMLArrayTagLength = 5;
+static const CFIndex _kCFPlistXMLDictTagLength = 4;
+static const CFIndex _kCFPlistXMLKeyTagLength = 3;
+static const CFIndex _kCFPlistXMLValueTagLength = 5;
+static const CFIndex _kCFPlistXMLDataTagLength = 4;
+static const CFIndex _kCFPlistXMLDateTagLength = 4;
+static const CFIndex _kCFPlistXMLIntegerTagLength = 7;
+static const CFIndex _kCFPlistXMLRealTagLength = 4;
+static const CFIndex _kCFPlistXMLTrueTagLength = 4;
+static const CFIndex _kCFPlistXMLFalseTagLength = 5;
+#endif
+
+#define _kCFPlistBufferSize 1024
+
+typedef struct
+{
+  CFWriteStreamRef stream;
+  CFOptionFlags options;
+  CFErrorRef error;
+  CFIndex written;
+  UInt8 *cursor;
+  const UInt8 *limit;
+  UInt8 buffer[_kCFPlistBufferSize];
+} CFPlistWriteStream;
+
+typedef struct
+{
+  UniChar *buffer;
+  CFOptionFlags options;
+  CFErrorRef error;
+  CFMutableSetRef unique;
+  UniChar *cursor;
+  const UniChar *limit;
+} CFPlistString;
+
+struct CFPlistIsValidContext
 {
   Boolean isValid;
   CFPropertyListFormat fmt;
@@ -59,7 +116,6 @@ CFPropertyListInitTypeIDs (void)
   if (_kCFPropertyListTypeIDsInitialized)
     return;
 
-  _kCFPropertyListTypeIDsInitialized = true;
   _kCFArrayTypeID = CFArrayGetTypeID ();
   _kCFBooleanTypeID = CFBooleanGetTypeID ();
   _kCFDataTypeID = CFDataGetTypeID ();
@@ -67,36 +123,40 @@ CFPropertyListInitTypeIDs (void)
   _kCFDictionaryTypeID = CFDictionaryGetTypeID ();
   _kCFNumberTypeID = CFNumberGetTypeID ();
   _kCFStringTypeID = CFStringGetTypeID ();
+  _kCFPropertyListTypeIDsInitialized = true;
 }
 
 static Boolean
-CFPListTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
+CFPlistTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
                     CFMutableSetRef set);
 
 static void
 CFArrayIsValidFunction (const void *value, void *context)
 {
-  struct CFPListIsValidContext *ctx = (struct CFPListIsValidContext *) context;
+  struct CFPlistIsValidContext *ctx =
+    (struct CFPlistIsValidContext *) context;
 
   if (ctx->isValid)
-    ctx->isValid = value && CFPListTypeIsValid (value, ctx->fmt, ctx->set);
+    ctx->isValid = value && CFPlistTypeIsValid (value, ctx->fmt, ctx->set);
 }
 
 static void
-CFDictionaryIsValidFunction (const void *key, const void *value, void *context)
+CFDictionaryIsValidFunction (const void *key, const void *value,
+                             void *context)
 {
-  struct CFPListIsValidContext *ctx = (struct CFPListIsValidContext *) context;
+  struct CFPlistIsValidContext *ctx =
+    (struct CFPlistIsValidContext *) context;
 
   if (ctx->isValid)
     {
       ctx->isValid = key
         && (CFGetTypeID (key) == _kCFStringTypeID)
-        && value && CFPListTypeIsValid (value, ctx->fmt, ctx->set);
+        && value && CFPlistTypeIsValid (value, ctx->fmt, ctx->set);
     }
 }
 
 static Boolean
-CFPListTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
+CFPlistTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
                     CFMutableSetRef set)
 {
   CFTypeID typeID;
@@ -121,7 +181,7 @@ CFPListTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
   if (typeID == _kCFArrayTypeID)
     {
       CFRange range;
-      struct CFPListIsValidContext ctx;
+      struct CFPlistIsValidContext ctx;
 
       range = CFRangeMake (0, CFArrayGetCount (plist));
       ctx.isValid = true;
@@ -134,7 +194,7 @@ CFPListTypeIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt,
     }
   else if (typeID == _kCFDictionaryTypeID)
     {
-      struct CFPListIsValidContext ctx;
+      struct CFPlistIsValidContext ctx;
 
       ctx.isValid = true;
       ctx.fmt = fmt;
@@ -154,12 +214,12 @@ CFPropertyListIsValid (CFPropertyListRef plist, CFPropertyListFormat fmt)
   CFMutableSetRef set;
   Boolean ret;
   set = CFSetCreateMutable (NULL, 0, &kCFTypeSetCallBacks);
-  ret = CFPListTypeIsValid (plist, fmt, set);
+  ret = CFPlistTypeIsValid (plist, fmt, set);
   CFRelease (set);
   return ret;
 }
 
-struct CFPListCopyContext
+struct CFPlistCopyContext
 {
   CFOptionFlags opts;
   CFAllocatorRef alloc;
@@ -170,7 +230,7 @@ static void
 CFArrayCopyFunction (const void *value, void *context)
 {
   CFPropertyListRef newValue;
-  struct CFPListCopyContext *ctx = (struct CFPListCopyContext *) context;
+  struct CFPlistCopyContext *ctx = (struct CFPlistCopyContext *) context;
   CFMutableArrayRef array = (CFMutableArrayRef) ctx->container;
 
   newValue = CFPropertyListCreateDeepCopy (ctx->alloc, value, ctx->opts);
@@ -182,7 +242,7 @@ static void
 CFDictionaryCopyFunction (const void *key, const void *value, void *context)
 {
   CFPropertyListRef newValue;
-  struct CFPListCopyContext *ctx = (struct CFPListCopyContext *) context;
+  struct CFPlistCopyContext *ctx = (struct CFPlistCopyContext *) context;
   CFMutableDictionaryRef dict = (CFMutableDictionaryRef) ctx->container;
 
   newValue = CFPropertyListCreateDeepCopy (ctx->alloc, value, ctx->opts);
@@ -218,12 +278,13 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
           array = CFArrayCreate (alloc, values, cnt, &kCFTypeArrayCallBacks);
           for (i = 0; i < cnt; ++i)
             CFRelease (values[i]);
+          CFAllocatorDeallocate (alloc, values);
 
           copy = array;
         }
       else
         {
-          struct CFPListCopyContext ctx;
+          struct CFPlistCopyContext ctx;
           CFMutableArrayRef array;
           CFRange range;
 
@@ -258,13 +319,17 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
                                      &kCFCopyStringDictionaryKeyCallBacks,
                                      &kCFTypeDictionaryValueCallBacks);
           for (i = 0; i < cnt; ++i)
-            CFRelease (values[i]);
+            {
+              CFRelease (keys[i]);
+              CFRelease (values[i]);
+            }
+          CFAllocatorDeallocate (alloc, keys);
 
           copy = dict;
         }
       else
         {
-          struct CFPListCopyContext ctx;
+          struct CFPlistCopyContext ctx;
           CFMutableDictionaryRef dict;
 
           dict = CFDictionaryCreateMutable (alloc, cnt,
@@ -318,6 +383,7 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
   return copy;
 }
 
+#if 0
 /* Binary property list object ref */
 #define PL_BOOL 0x0
 #define PL_INT  0x1
@@ -332,21 +398,9 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
 #define PL_DICT 0xD
 
 static void
-CFBinaryPListAppendObject (CFPropertyListRef plist, CFMutableDataRef data,
-                           CFIndex level, CFOptionFlags options)
+CFBinaryPlistWriteObject (CFPropertyListRef plist, CFPlistWriteStream stream,
+                          CFIndex lev, CFOptionFlags opts)
 {
-  /* HEADER:
-   *  'bplist00'
-   *
-   * OBJECTS:
-   *  
-   *
-   * OBJECT TABLE:
-   *  
-   *
-   * METADATA:
-   *  
-   */
   CFTypeID typeID;
 
   typeID = CFGetTypeID (plist);
@@ -383,82 +437,520 @@ CFBinaryPListAppendObject (CFPropertyListRef plist, CFMutableDataRef data,
       return;
     }
 }
+#endif
+
+static CFErrorRef
+CFPlistCreateError (CFIndex code, CFStringRef message)
+{
+  const void *key[1];
+  const void *value[1];
+  CFErrorRef error;
+
+  key[0] = kCFErrorDescriptionKey;
+  value[0] = message;
+  error = CFErrorCreateWithUserInfoKeysAndValues (kCFAllocatorSystemDefault,
+                                                  kCFErrorDomainCocoa,
+                                                  code, key, value, 1);
+
+  return error;
+}
+
+static Boolean
+CFPlistStringSkipWhitespace (CFPlistString * string)
+{
+  UniChar ch;
+
+  while (string->cursor < string->limit)
+    {
+      ch = *string->cursor;
+      while (string->cursor < string->limit && GSCharacterIsWhitespace (ch))
+        {
+          string->cursor++;
+          ch = *string->cursor;
+        }
+      if (ch == '/')
+        {
+          string->cursor++;
+          ch = *string->cursor;
+          if (ch == '/')
+            {
+              do
+                {
+                  string->cursor++;
+                  ch = *string->cursor;
+                  if (ch == '\n')
+                    break;
+                }
+              while (ch);
+            }
+          else if (ch == '*')
+            {
+              do
+                {
+                  string->cursor++;
+                  ch = *string->cursor;
+                  if (ch == '*')
+                    {
+                      string->cursor++;
+                      ch = *string->cursor;
+                      if (ch == '/')
+                        break;
+                    }
+                }
+              while (ch);
+            }
+          else
+            {
+              string->cursor--;
+              break;
+            }
+        }
+      else
+        {
+          return true;
+        }
+    }
+
+  return false;
+}
+
+CF_INLINE UInt8
+getNibble (UniChar c)
+{
+  if (c >= '0' && c <= '9')
+    return c - '0';
+  else if ((c | 0x20) >= 'a' && (c | 0x20) <= 'z')
+    return (c | 0x20) - 'a';
+
+  return 0xFF; /* This function return 0xFF on error. */
+}
+
+static CFDataRef
+CFOpenStepPlistParseData (CFAllocatorRef alloc, CFPlistString * string)
+{
+  UInt8 bytes[_kCFPlistBufferSize];
+  UInt8 nibble1;
+  UInt8 nibble2;
+  CFMutableDataRef obj;
+  UniChar ch;
+  CFIndex i;
+
+  if (!CFPlistStringSkipWhitespace (string))
+    return NULL;
+
+  obj = CFDataCreateMutable (alloc, 0);
+  i = 0;
+  ch = *string->cursor++;
+  nibble1 = getNibble (ch);
+
+  while (nibble1 < 0x10 && string->cursor < string->limit)
+    {
+      ch = *string->cursor++;
+      nibble2 = getNibble (ch);
+      if (nibble2 > 0x0F)
+        {
+          string->error = CFPlistCreateError (kCFPropertyListReadCorruptError,
+              CFSTR ("Unexpected character while reading property list data."));
+          break;
+        }
+      bytes[i++] = (nibble1 << 4) | nibble2;
+
+      if (i == _kCFPlistBufferSize)
+        {
+          CFDataAppendBytes (obj, bytes, _kCFPlistBufferSize);
+          i = 0;
+        }
+      if (!CFPlistStringSkipWhitespace (string)
+          && string->cursor < string->limit)
+        break;
+
+      ch = *string->cursor++;
+      nibble1 = getNibble (ch);
+    }
+
+  if (!CFPlistStringSkipWhitespace (string))
+    {
+      string->error = CFPlistCreateError (kCFPropertyListReadCorruptError,
+          CFSTR (""));
+    }
+  if (ch == '>')
+    {
+      CFDataAppendBytes (obj, bytes, i);
+    }
+  else
+    {
+      CFRelease (obj);
+      obj = NULL;
+    }
+
+  return obj;
+}
+
+static CFStringRef
+CFOpenStepPlistParseString (CFAllocatorRef alloc, CFPlistString * string)
+{
+  UniChar ch;
+  CFStringRef obj;
+
+  if (string->error || !CFPlistStringSkipWhitespace (string))
+    return NULL;
+
+  obj = NULL;
+  ch = *string->cursor;
+
+  if (ch == '\"')
+    {
+      const UniChar *mark;
+      CFIndex len;
+      CFMutableStringRef tmp;
+
+      string->cursor++;
+      mark = string->cursor;
+      tmp = NULL;
+
+      while (string->cursor < string->limit)
+        {
+          ch = *string->cursor++;
+          if (ch == '\"')
+            {
+              break;
+            }
+          else if (ch == '\\')
+            {
+              if (tmp == NULL)
+                tmp = CFStringCreateMutable (alloc, 0);
+
+              CFStringAppendCharacters (tmp, mark, string->cursor - mark);
+
+              ch = *string->cursor++;
+              if (ch >= '0' && ch <= '9')
+                {
+                }
+              else if (ch == 'u' || ch == 'U')
+                {
+                }
+              else
+                {
+                }
+            }
+        }
+
+      len = string->cursor - mark;
+      if (tmp == NULL)
+        {
+          if (string->options == kCFPropertyListMutableContainersAndLeaves)
+            {
+              obj = CFStringCreateMutable (alloc, len);
+              CFStringAppendCharacters ((CFMutableStringRef) obj,
+                                        (const UniChar *) mark, len);
+            }
+          else
+            {
+              obj = CFStringCreateWithCharacters (alloc, mark, len);
+            }
+        }
+      else
+        {
+          CFStringAppendCharacters (tmp, mark, len);
+
+          if (string->options == kCFPropertyListMutableContainersAndLeaves)
+            {
+              obj = (CFStringRef) tmp;
+            }
+          else
+            {
+              obj = CFStringCreateCopy (alloc, tmp);
+              CFRelease (tmp);
+            }
+        }
+    }
+  else if (!CFOpenStepPlistCharacterIsQuotable (ch))
+    {
+      UniChar *mark;
+
+      mark = string->cursor;
+      while (string->cursor < string->limit)
+        {
+          if (CFOpenStepPlistCharacterIsQuotable (ch))
+            break;
+          string->cursor++;
+          ch = *string->cursor;
+        }
+
+      if (mark != string->cursor)
+        {
+          CFIndex len;
+
+          len = string->cursor - mark;
+
+          if (string->options == kCFPropertyListMutableContainersAndLeaves)
+            {
+              obj = CFStringCreateMutable (alloc, len);
+              CFStringAppendCharacters ((CFMutableStringRef) obj,
+                                        (const UniChar *) mark, len);
+            }
+          else
+            {
+              obj = CFStringCreateWithCharacters (alloc, mark, len);
+            }
+        }
+    }
+
+  return obj;
+}
 
 static CFPropertyListRef
-CFBinaryPListCreateWithData (CFAllocatorRef alloc, CFDataRef data,
-                             CFOptionFlags opts, CFErrorRef * err)
+CFOpenStepPlistParseObject (CFAllocatorRef alloc, CFPlistString * string)
 {
-  return NULL;
-}
+  UniChar ch;
+  CFPropertyListRef obj;
 
-static void
-CFBinaryPListWriteToData (CFPropertyListRef plist, CFMutableDataRef data,
-                          CFOptionFlags opts, CFErrorRef * err)
-{
-  //CFIndex level;
+  /* If we have an error, return immediately. */
+  if (string->error)
+    return NULL;
 
-}
+  if (!CFPlistStringSkipWhitespace (string))
+    return NULL;
+  ch = *string->cursor++;
 
-static const char *indentString = "\t\t\t\t\t\t\t\t";
-#define MAX_DEPTH 8
-
-static void
-CFPListAppendIndentation (CFIndex level, CFMutableDataRef data,
-                          CFOptionFlags options)
-{
-  while (level > MAX_DEPTH)
+  if (ch == '{')
     {
-      CFDataAppendBytes (data, (const UInt8 *) indentString, MAX_DEPTH);
-      level -= MAX_DEPTH;
+      CFMutableDictionaryRef dict;
+      CFStringRef key;
+      CFPropertyListRef value;
+
+      dict =
+        CFDictionaryCreateMutable (alloc, 0,
+                                   &kCFCopyStringDictionaryKeyCallBacks,
+                                   &kCFTypeDictionaryValueCallBacks);
+      key = CFOpenStepPlistParseString (alloc, string);
+
+      while (key)
+        {
+          if (!CFPlistStringSkipWhitespace (string) || *string->cursor != '=')
+            {
+              CFRelease (key);
+              break;
+            }
+
+          string->cursor++;
+          value = CFOpenStepPlistParseObject (alloc, string);
+          if (value == NULL)
+            {
+              CFRelease (key);
+              break;
+            }
+
+          CFDictionaryAddValue (dict, key, value);
+          CFRelease (key);
+          CFRelease (value);
+
+          if (!CFPlistStringSkipWhitespace (string) || *string->cursor != ';')
+            {
+              key = NULL;
+            }
+          else
+            {
+              string->cursor++;
+              key = CFOpenStepPlistParseString (alloc, string);
+            }
+        }
+
+      if (*string->cursor == '}')
+        {
+          string->cursor++;
+          obj = dict;
+        }
+      else
+        {
+          CFRelease (dict);
+          obj = NULL;
+        }
     }
-  CFDataAppendBytes (data, (const UInt8 *) indentString, level);
+  else if (ch == '(')
+    {
+      CFMutableArrayRef array;
+      CFPropertyListRef value;
+
+      array = CFArrayCreateMutable (alloc, 0, &kCFTypeArrayCallBacks);
+      value = CFOpenStepPlistParseObject (alloc, string);
+
+      while (value)
+        {
+          CFArrayAppendValue (array, value);
+          CFRelease (value);
+
+          if (!CFPlistStringSkipWhitespace (string) || *string->cursor != ',')
+            {
+              value = NULL;
+            }
+          else
+            {
+              string->cursor++;
+              value = CFOpenStepPlistParseObject (alloc, string);
+            }
+        }
+
+      if (*string->cursor == ')')
+        {
+          string->cursor++;
+          obj = array;
+        }
+      else
+        {
+          CFRelease (array);
+          obj = NULL;
+        }
+    }
+  else if (ch == '<')
+    {
+      obj = CFOpenStepPlistParseData (alloc, string);
+    }
+  else
+    {
+      string->cursor--;
+      obj = CFOpenStepPlistParseString (alloc, string);
+    }
+
+  return obj;
 }
 
-
 static void
-CFPListAppendBase16Data (CFDataRef obj, CFDataRef data, CFOptionFlags options)
+CFPlistWriteStreamFlush (CFPlistWriteStream * stream)
 {
+  CFIndex ret;
+  UInt8 *buf;
 
+  /* If an error has already been set, return immediately.
+   */
+  if (stream->error)
+    return;
+
+  buf = stream->buffer;
+  ret = CFWriteStreamWrite (stream->stream, buf, stream->cursor - buf);
+  if (ret < 0)
+    {
+      CFErrorRef error;
+
+      error = CFWriteStreamCopyError (stream->stream);
+      if (error)
+        {
+          stream->error = error;
+        }
+      else
+        {
+          stream->error = CFPlistCreateError (kCFPropertyListWriteStreamError,
+                                              CFSTR ("Unknown stream error encountered while trying to write property list."));
+        }
+    }
+  else if (ret == 0)
+    {
+      stream->error = CFPlistCreateError (kCFPropertyListWriteStreamError,
+                                          CFSTR ("Property list write could not be completed. Stream is full."));
+    }
+
+  stream->written += ret;
+  stream->cursor = stream->buffer;
 }
 
 static void
-CFPListAppendBase64Data (CFDataRef obj, CFDataRef data, CFOptionFlags options)
+CFPlistWriteStreamWrite (CFPlistWriteStream * stream, const UInt8 * buf,
+                         CFIndex len)
 {
-
-}
-
-#define BUFFER_SIZE 256
-
-static void
-CFPListAppendString (CFStringRef str, CFMutableDataRef data,
-                     CFOptionFlags options)
-{
-  UInt8 buffer[BUFFER_SIZE];
-  CFIndex length;
-  CFIndex read;
-  CFIndex used;
-
-  length = CFStringGetLength (str);
-  read = 0;
   do
     {
-      read = CFStringGetBytes (str, CFRangeMake (read, length),
-                               kCFStringEncodingUTF8, 0, false, buffer,
-                               BUFFER_SIZE, &used);
-      CFDataAppendBytes (data, (const UInt8 *) buffer, used);
-      read += used;
-      length -= used;
+      CFIndex writeLen;
+
+      /* Flush buffer is needed */
+      if (stream->cursor == stream->buffer + _kCFPlistBufferSize)
+        CFPlistWriteStreamFlush (stream);
+
+      /* If an error was set, return immediately.
+       */
+      if (stream->error != NULL)
+        return;
+
+      if (len > _kCFPlistBufferSize - (stream->cursor - stream->buffer))
+        writeLen = _kCFPlistBufferSize - (stream->cursor - stream->buffer);
+      else
+        writeLen = len;
+      GSMemoryCopy (stream->cursor, buf, writeLen);
+      stream->cursor += writeLen;
+      buf += writeLen;
+      len -= writeLen;
     }
-  while (length > 0);
+  while (len > 0);
+}
+
+static const UInt8 *indentString = (const UInt8 *) "\t\t\t\t\t\t\t\t";
+#define _kCFPlistIndentStringLength 8
+
+static void
+CFPlistIndent (CFPlistWriteStream * stream, CFIndex lev)
+{
+  while (lev > _kCFPlistIndentStringLength)
+    {
+      CFPlistWriteStreamWrite (stream, indentString,
+                               _kCFPlistIndentStringLength);
+      lev -= _kCFPlistIndentStringLength;
+    }
+  CFPlistWriteStreamWrite (stream, indentString, lev);
+}
+
+static const UInt8 *base16 = (const UInt8 *) "0123456789ABCDEF";
+
+static void
+CFPlistWriteDataBase16 (CFDataRef data, CFPlistWriteStream * stream)
+{
+  CFIndex len;
+  CFIndex i;
+  const UInt8 *d;
+  const UInt8 *dLimit;
+  UInt8 buffer[_kCFPlistBufferSize];
+
+  CFPlistWriteStreamFlush (stream);
+
+  len = CFDataGetLength (data);
+  if (len == 0)
+    return;
+
+  d = CFDataGetBytePtr (data);
+  dLimit = d + len;
+  i = 0;
+
+  while (d < dLimit)
+    {
+      buffer[i++] = base16[((*d) >> 4)];
+      buffer[i++] = base16[(*d) & 0xF];
+      d++;
+
+      if (i == _kCFPlistBufferSize)
+        {
+          CFPlistWriteStreamWrite (stream, buffer, _kCFPlistBufferSize);
+          i = 0;
+        }
+    }
+  CFPlistWriteStreamWrite (stream, buffer, i);
 }
 
 static void
-CFXMLPListAppendObject (CFPropertyListRef plist, CFMutableDataRef data,
-                        CFIndex level, CFOptionFlags options)
+CFPlistWriteDataBase64 (CFDataRef data, CFPlistWriteStream * stream)
+{
+
+}
+
+static void
+CFPlistWriteXMLString (CFStringRef str, CFPlistWriteStream * stream)
+{
+}
+
+static void
+CFXMLPlistWriteObject (CFPropertyListRef plist, CFPlistWriteStream * stream,
+                       CFIndex lev)
 {
   CFTypeID typeID;
 
-  CFPListAppendIndentation (level, data, options);
+  CFPlistIndent (stream, lev);
   typeID = CFGetTypeID (plist);
   if (typeID == CFArrayGetTypeID ())
     {
@@ -471,34 +963,35 @@ CFXMLPListAppendObject (CFPropertyListRef plist, CFMutableDataRef data,
       CFIndex idx;
       CFIndex count;
 
-      CFDataAppendBytes (data, (const UInt8 *) "<array>\n", 8);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "<array>", 7);
 
-      count = CFArrayGetCount ((CFArrayRef)plist);
+      count = CFArrayGetCount ((CFArrayRef) plist);
       for (idx = 0; idx < count; ++idx)
         {
           CFPropertyListRef obj;
+
           obj = CFArrayGetValueAtIndex ((CFArrayRef) plist, idx);
-          CFXMLPListAppendObject (obj, data, level + 1, options);
+          CFXMLPlistWriteObject (obj, stream, lev + 1);
         }
-      CFPListAppendIndentation (level, data, options);
-      CFDataAppendBytes (data, (const UInt8 *) "</array>", 8);
+      CFPlistIndent (stream, lev);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "</array>", 8);
     }
   else if (typeID == CFBooleanGetTypeID ())
     {
       /* <true/> or <false/>
        */
       if (plist == kCFBooleanTrue)
-        CFDataAppendBytes (data, (const UInt8 *) "<true/>", 7);
+        CFPlistWriteStreamWrite (stream, (const UInt8 *) "<true/>", 7);
       else if (plist == kCFBooleanFalse)
-        CFDataAppendBytes (data, (const UInt8 *) "<false/>", 8);
+        CFPlistWriteStreamWrite (stream, (const UInt8 *) "<false/>", 8);
     }
   else if (typeID == CFDataGetTypeID ())
     {
       /* <data>Base64 Data</data>
        */
-      CFDataAppendBytes (data, (const UInt8 *) "<data>", 6);
-      CFPListAppendBase64Data ((CFDataRef) plist, data, options);
-      CFDataAppendBytes (data, (const UInt8 *) "</data>", 7);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "<data>", 6);
+      CFPlistWriteDataBase64 ((CFDataRef) plist, stream);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "</data>", 7);
     }
   else if (typeID == CFDateGetTypeID ())
     {
@@ -516,9 +1009,9 @@ CFXMLPListAppendObject (CFPropertyListRef plist, CFMutableDataRef data,
                          (SInt32) gdate.second);
       if (printed < 20)
         return;                 /* Do something with the error? */
-      CFDataAppendBytes (data, (const UInt8 *) "<date>", 6);
-      CFDataAppendBytes (data, (const UInt8 *) buffer, 20);
-      CFDataAppendBytes (data, (const UInt8 *) "</date>", 7);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "<date>", 6);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) buffer, 20);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "</date>", 7);
     }
   else if (typeID == CFDictionaryGetTypeID ())
     {
@@ -528,177 +1021,489 @@ CFXMLPListAppendObject (CFPropertyListRef plist, CFMutableDataRef data,
     {
       if (CFNumberIsFloatType ((CFNumberRef) plist))
         {
-          CFDataAppendBytes (data, (const UInt8 *) "<real>", 6);
+          CFPlistWriteStreamWrite (stream, (const UInt8 *) "<real>", 6);
 
-          CFDataAppendBytes (data, (const UInt8 *) "</real>", 7);
+          CFPlistWriteStreamWrite (stream, (const UInt8 *) "</real>", 7);
         }
       else
         {
-          CFDataAppendBytes (data, (const UInt8 *) "<integer>", 9);
+          CFPlistWriteStreamWrite (stream, (const UInt8 *) "<integer>", 9);
 
-          CFDataAppendBytes (data, (const UInt8 *) "</integer>", 10);
+          CFPlistWriteStreamWrite (stream, (const UInt8 *) "</integer>", 10);
         }
     }
   else if (typeID == CFStringGetTypeID ())
     {
       /* <string>String</string>
        */
-      CFDataAppendBytes (data, (const UInt8 *) "<string>", 8);
-      CFPListAppendString ((CFStringRef) plist, data, options);
-      CFDataAppendBytes (data, (const UInt8 *) "</string>", 9);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "<string>", 8);
+      CFPlistWriteXMLString ((CFStringRef) plist, stream);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "</string>", 9);
     }
   else
     {
+      
       return;
     }
 
-  CFDataAppendBytes (data, (const UInt8 *) "\n", 1);
+  CFPlistWriteStreamWrite (stream, (const UInt8 *) "\n", 1);
 }
 
-static CFPropertyListRef
-CFXMLPListCreateWithData (CFAllocatorRef alloc, CFDataRef data,
-                          CFOptionFlags opts, CFErrorRef * err)
+static Boolean
+CFOpenStepPlistStringHasQuotables (CFStringRef str)
 {
-  return NULL;
+  UniChar ch;
+  UniChar *cursor;
+  UniChar buffer[_kCFPlistBufferSize];
+  CFIndex loc;
+  CFIndex len;
+  CFIndex read;
+
+  loc = 0;
+  len = CFStringGetLength (str);
+  do
+    {
+      read = len > _kCFPlistBufferSize ? _kCFPlistBufferSize : len;
+      CFStringGetCharacters (str, CFRangeMake (loc, read), buffer);
+      cursor = buffer;
+      do
+        {
+          ch = *cursor++;
+          if (CFOpenStepPlistCharacterIsQuotable (ch))
+            return true;
+        }
+      while (cursor < (buffer + read));
+
+      loc += read;
+      len -= read;
+    }
+  while (len > 0);
+
+  return false;
 }
 
 static void
-CFXMLPListWriteToData (CFPropertyListRef plist, CFMutableDataRef data,
-                       CFOptionFlags opts, CFErrorRef * err)
+CFPlistWriteOpenStepString (CFStringRef str, CFPlistWriteStream * stream)
 {
+  /* An encoding parameter could be added to this function, but we write
+     every string on human readable property lists (OpenStep and XML) in
+     UTF-8 encoding, so this is not necessary.
+   */
+  UInt8 buffer[_kCFPlistBufferSize];
+  CFIndex length;
+  CFIndex loc;
+  CFIndex read;
+  CFIndex used;
 
+  length = CFStringGetLength (str);
+  loc = 0;
+  if (length == 0)
+    {
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "\"\"", 2);
+    }
+  else if (CFOpenStepPlistStringHasQuotables (str))
+    {
+      const UInt8 *mark;
+      const UInt8 *cursor;
+      UInt8 ch;
+
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "\"", 1);
+
+      do
+        {
+          read = CFStringGetBytes (str, CFRangeMake (loc, length),
+                                   kCFStringEncodingUTF8, 0, false, buffer,
+                                   _kCFPlistBufferSize, &used);
+          mark = (const UInt8 *) buffer;
+          cursor = (const UInt8 *) buffer;
+          while ((cursor - mark) < read)
+            {
+              ch = *cursor++;
+              if (ch == '\a' || ch == '\b' || ch == '\v' || ch == '\f'
+                  || ch == '\"')
+                {
+                  CFPlistWriteStreamWrite (stream, mark, cursor - mark);
+                  CFPlistWriteStreamWrite (stream, (const UInt8 *) "\\", 1);
+                  if (ch == '\a')
+                    CFPlistWriteStreamWrite (stream, (const UInt8 *) "a", 1);
+                  else if (ch == '\b')
+                    CFPlistWriteStreamWrite (stream, (const UInt8 *) "b", 1);
+                  else if (ch == '\v')
+                    CFPlistWriteStreamWrite (stream, (const UInt8 *) "v", 1);
+                  else if (ch == '\f')
+                    CFPlistWriteStreamWrite (stream, (const UInt8 *) "f", 1);
+                  else if (ch == '\"')
+                    CFPlistWriteStreamWrite (stream, (const UInt8 *) "\"", 1);
+                }
+            }
+          CFPlistWriteStreamWrite (stream, mark, cursor - mark);
+          loc += read;
+          length -= read;
+        }
+      while (length > 0);
+
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "\"", 1);
+    }
+  else
+    {
+      do
+        {
+          read = CFStringGetBytes (str, CFRangeMake (loc, length),
+                                   kCFStringEncodingUTF8, 0, false, buffer,
+                                   _kCFPlistBufferSize, &used);
+          CFPlistWriteStreamWrite (stream, (const UInt8 *) buffer, used);
+          loc += read;
+          length -= read;
+        }
+      while (length > 0);
+    }
 }
 
 static void
-CFOpenStepPListAppendObject (CFPropertyListRef plist, CFMutableDataRef data,
-                             CFIndex level, CFOptionFlags options)
+CFOpenStepPlistWriteObject (CFPropertyListRef plist,
+                            CFPlistWriteStream * stream, CFIndex lev)
 {
   CFTypeID typeID;
 
-  CFPListAppendIndentation (level, data, options);
+  if (stream->error)
+    return;
+
   typeID = CFGetTypeID (plist);
   if (typeID == CFArrayGetTypeID ())
     {
       /* (
-       *   Object 1
-       *   Object 2
-       *   ...
-       * )
+           Object1,
+           Object2,
+           ...
+         )
        */
-      CFIndex idx;
+      CFIndex i;
       CFIndex count;
 
-      CFDataAppendBytes (data, (const UInt8 *) "(\n", 2);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "(\n", 2);
 
-      count = CFArrayGetCount ((CFArrayRef)plist);
-      for (idx = 0; idx < count; ++idx)
+      i = 0;
+      count = CFArrayGetCount ((CFArrayRef) plist);
+      while (i < count)
         {
           CFPropertyListRef obj;
-          obj = CFArrayGetValueAtIndex ((CFArrayRef) plist, idx);
-          CFOpenStepPListAppendObject (obj, data, level + 1, options);
+
+          obj = CFArrayGetValueAtIndex ((CFArrayRef) plist, i++);
+          CFPlistIndent (stream, lev + 1);
+          CFOpenStepPlistWriteObject (obj, stream, 0);
+          if (i < count)
+            CFPlistWriteStreamWrite (stream, (const UInt8 *) ",\n", 2);
         }
 
-      CFPListAppendIndentation (level, data, options);
-      CFDataAppendBytes (data, (const UInt8 *) ")", 1);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "\n", 1);
+      CFPlistIndent (stream, lev);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) ")", 1);
     }
   else if (typeID == CFDataGetTypeID ())
     {
       /* <Hexadecimal Data>
        */
-      CFDataAppendBytes (data, (const UInt8 *) "<", 1);
-      CFPListAppendBase16Data ((CFDataRef) plist, data, options);
-      CFDataAppendBytes (data, (const UInt8 *) ">", 1);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "<", 1);
+      CFPlistWriteDataBase16 ((CFDataRef) plist, stream);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) ">", 1);
     }
   else if (typeID == CFDictionaryGetTypeID ())
     {
+      /* {
+           Key1 = Value1;
+           Key2 = Value2;
+           ...
+         }
+       */
+      CFIndex count;
+      CFIndex i;
+      const void **keys;
 
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "{\n", 2);
+
+      count = CFDictionaryGetCount ((CFDictionaryRef) plist);
+      keys = CFAllocatorAllocate (kCFAllocatorSystemDefault,
+                                  sizeof (void *) * count, 0);
+      CFDictionaryGetKeysAndValues ((CFDictionaryRef) plist, keys, NULL);
+      GSCArrayQuickSort (keys, count, (CFComparatorFunction) CFStringCompare,
+                         NULL);
+      for (i = 0; i < count; ++i)
+        {
+          CFPropertyListRef obj;
+
+          CFPlistIndent (stream, lev + 1);
+          CFPlistWriteOpenStepString ((CFStringRef) keys[i], stream);
+
+          CFPlistWriteStreamWrite (stream, (const UInt8 *) " = ", 3);
+
+          obj = CFDictionaryGetValue ((CFDictionaryRef) plist, keys[i]);
+          CFOpenStepPlistWriteObject (obj, stream, lev + 1);
+
+          CFPlistWriteStreamWrite (stream, (const UInt8 *) ";\n", 2);
+        }
+
+      CFPlistIndent (stream, lev);
+      CFPlistWriteStreamWrite (stream, (const UInt8 *) "}\n", 2);
     }
   else if (typeID == CFStringGetTypeID ())
     {
-      /* String or "String"
-       */
-      CFDataAppendBytes (data, (const UInt8 *) "\"", 1);
-      CFPListAppendString ((CFStringRef) plist, data, options);
-      CFDataAppendBytes (data, (const UInt8 *) "\"", 1);
+      /* String or "Quotable String"
+       */ CFPlistWriteOpenStepString ((CFStringRef) plist, stream);
     }
   else
     {
-      return;
+      stream->error = CFPlistCreateError (0, CFSTR ("Invalid property list item encountered while writing OpenStep format."));
     }
-
-  CFDataAppendBytes (data, (const UInt8 *) "\n", 1);
 }
 
+#if 0
 static CFPropertyListRef
-CFOpenStepPListCreateWithData (CFAllocatorRef alloc, CFDataRef data,
-                               CFOptionFlags opts, CFErrorRef * err)
+CFBinaryPlistCreate (CFAllocatorRef alloc, CFDataRef data,
+                     CFOptionFlags opts, CFErrorRef * err)
+{
+  return NULL;
+}
+#endif
+
+static CFPropertyListRef
+CFXMLPlistCreate (CFAllocatorRef alloc, CFPlistString * stream)
 {
   return NULL;
 }
 
-static void
-CFOpenStepPListWriteToData (CFPropertyListRef plist, CFMutableDataRef data,
-                            CFOptionFlags opts, CFErrorRef * err)
-{
+static const UInt8 *_kCFBinaryPlistHeader = (const UInt8 *) "bplist00";
+static const CFIndex _kCFBinaryPlistHeaderLength =
+  sizeof (_kCFBinaryPlistHeader) - 1;
 
+static void
+CFBinaryPlistWrite (CFPropertyListRef plist, CFPlistWriteStream * stream)
+{
+}
+
+static const UInt8 *_kCFXMLPlistHeader = (const UInt8 *)
+  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+  "<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" \"http://www.gnustep.org/plist-0_9.dtd\">\n"
+  "<plist version=\"0.9\">\n";
+static const CFIndex _kCFXMLPlistHeaderLength =
+  sizeof (_kCFXMLPlistHeader) - 1;
+
+static void
+CFXMLPlistWrite (CFPropertyListRef plist, CFPlistWriteStream * stream)
+{
+  CFPlistWriteStreamWrite (stream, _kCFXMLPlistHeader,
+                           _kCFXMLPlistHeaderLength);
+
+  CFXMLPlistWriteObject (plist, stream, 0);
+
+  CFPlistWriteStreamWrite (stream, (const UInt8 *) "</plist>\n", 9);
+  CFPlistWriteStreamFlush (stream);
+}
+
+static const UInt8 UTF8BOM[3] = { 0xEF, 0xBB, 0xBF };
+
+static void
+CFOpenStepPlistWrite (CFPropertyListRef plist, CFPlistWriteStream * stream)
+{
+  /* We'll include a UTF-8 BOM to OpenStep formatted property lists.
+   */
+  CFPlistWriteStreamWrite (stream, UTF8BOM, 3);
+  CFOpenStepPlistWriteObject (plist, stream, 0);
+  CFPlistWriteStreamFlush (stream);
+}
+
+static CFStringEncoding
+CFPlistGetEncoding (CFDataRef data)
+{
+  return kCFStringEncodingUTF8; /* FIXME */
 }
 
 CFPropertyListRef
 CFPropertyListCreateWithData (CFAllocatorRef alloc, CFDataRef data,
                               CFOptionFlags opts, CFPropertyListFormat * fmt,
-                              CFErrorRef * error)
+                              CFErrorRef * err)
 {
-  /* FIXME */
+  CFPropertyListRef result;
+  CFStringEncoding enc;
+  CFIndex count;
+  CFIndex dataLen;
+  UniChar *start;
+  UniChar *tmp;
+  UniChar buffer[_kCFPlistBufferSize];
+  const UInt8 *bytes;
+  CFPlistString string;
+
+  enc = CFPlistGetEncoding (data);
+  if (enc == kCFStringEncodingInvalidId)
+    {
+      if (err)
+        *err = NULL;
+#if 0
+      *err = CFPlistCreateError (kCFPropertyListReadCorruptError,
+                                 CFSTR
+                                 ("Property list is in an unknown string encoding."));
+#endif
+      return NULL;
+    }
+
+
+  bytes = CFDataGetBytePtr (data);
+  dataLen = CFDataGetLength (data);
+  start = buffer;
+  tmp = buffer;
+
+  count = GSUnicodeFromEncoding (&tmp, start + _kCFPlistBufferSize, enc,
+                                 &bytes, bytes + dataLen, 0);
+  if (count < 0)
+    return NULL;
+  
+  if (count > _kCFPlistBufferSize)
+    {
+      start = CFAllocatorAllocate (kCFAllocatorSystemDefault,
+                                   count * sizeof (UniChar), 0);
+      if (start == NULL)
+        return NULL;
+      tmp = start;
+      bytes = CFDataGetBytePtr (data);
+      GSUnicodeFromEncoding (&tmp, start + count, enc, &bytes,
+                             bytes + dataLen, 0);
+    }
+
+  string.buffer = start;
+  string.options = opts;
+  string.error = NULL;
+  string.unique = NULL;
+  string.cursor = string.buffer;
+  string.limit = string.buffer + count;
+
+  result = CFXMLPlistCreate (alloc, &string);
+  if (result)
+    {
+      if (fmt)
+        *fmt = kCFPropertyListXMLFormat_v1_0;
+      return result;
+    }
+
+  result = CFOpenStepPlistParseObject (alloc, &string);
+  if (result)
+    {
+      if (fmt)
+        *fmt = kCFPropertyListOpenStepFormat;
+      return result;
+    }
+
+  if (start != buffer)
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, tmp);
+
   return NULL;
-}
-
-CFDataRef
-CFPropertyListCreateData (CFAllocatorRef alloc, CFPropertyListRef plist,
-                          CFPropertyListFormat fmt, CFOptionFlags opts,
-                          CFErrorRef * error)
-{
-  CFMutableDataRef tmp;
-  CFDataRef data;
-
-  tmp = CFDataCreateMutable (alloc, 0);
-  if (fmt == kCFPropertyListOpenStepFormat)
-    CFOpenStepPListWriteToData (plist, tmp, opts, error);
-  else if (fmt == kCFPropertyListXMLFormat_v1_0)
-    CFXMLPListWriteToData (plist, tmp, opts, error);
-  else if (fmt == kCFPropertyListBinaryFormat_v1_0)
-    CFBinaryPListWriteToData (plist, tmp, opts, error);
-  data = CFDataCreateCopy (alloc, tmp);
-  CFRelease (tmp);
-
-  return data;
 }
 
 CFPropertyListRef
 CFPropertyListCreateWithStream (CFAllocatorRef alloc, CFReadStreamRef stream,
                                 CFIndex len, CFOptionFlags opts,
-                                CFPropertyListFormat * fmt, CFErrorRef * error)
+                                CFPropertyListFormat * fmt, CFErrorRef * err)
 {
-  return NULL;
+  CFMutableDataRef data;
+  UInt8 buffer[_kCFPlistBufferSize];
+  CFIndex read;
+  CFPropertyListRef result;
+
+  /* We'll read the stream completely into a CFDataRef object for processing.
+   */
+  data = CFDataCreateMutable (kCFAllocatorSystemDefault, len);
+  do
+    {
+      CFIndex toRead;
+
+      if (len == 0 || len > _kCFPlistBufferSize)
+        toRead = _kCFPlistBufferSize;
+      else
+        toRead = len;
+
+      read = CFReadStreamRead (stream, buffer, toRead);
+      if (read > 0)
+        CFDataAppendBytes (data, buffer, read);
+      len -= read;
+    }
+  while (read > 0);
+
+  if (read < 0)
+    {
+      CFErrorRef streamError;
+
+      streamError = CFReadStreamCopyError (stream);
+      if (streamError && err)
+        *err = streamError;
+
+      return NULL;
+    }
+
+  result = CFPropertyListCreateWithData (alloc, data, opts, fmt, err);
+  CFRelease (data);
+
+  return result;
+}
+
+CFDataRef
+CFPropertyListCreateData (CFAllocatorRef alloc, CFPropertyListRef plist,
+                          CFPropertyListFormat fmt, CFOptionFlags opts,
+                          CFErrorRef * err)
+{
+  CFWriteStreamRef stream;
+  CFIndex written;
+  CFDataRef data;
+
+  stream = CFWriteStreamCreateWithAllocatedBuffers (alloc, alloc);
+  CFWriteStreamOpen (stream);
+  written = CFPropertyListWrite (plist, stream, fmt, opts, err);
+  data = NULL;
+  if (written > 0)
+    data = CFWriteStreamCopyProperty (stream, kCFStreamPropertyDataWritten);
+  CFWriteStreamClose (stream);
+  CFRelease (stream);
+
+  return data;
 }
 
 CFIndex
 CFPropertyListWrite (CFPropertyListRef plist, CFWriteStreamRef stream,
                      CFPropertyListFormat fmt, CFOptionFlags opts,
-                     CFErrorRef * error)
+                     CFErrorRef * err)
 {
-  return 0;
+  CFPlistWriteStream plStream;
+
+  plStream.stream = stream;
+  plStream.options = opts;
+  plStream.error = NULL;
+  plStream.written = 0;
+  plStream.cursor = plStream.buffer;
+
+  if (fmt == kCFPropertyListOpenStepFormat)
+    CFOpenStepPlistWrite (plist, &plStream);
+  else if (fmt == kCFPropertyListXMLFormat_v1_0)
+    CFXMLPlistWrite (plist, &plStream);
+  else if (fmt == kCFPropertyListBinaryFormat_v1_0)
+    CFBinaryPlistWrite (plist, &plStream);
+
+  if (plStream.error)
+    {
+      if (err)
+        *err = plStream.error;
+      else
+        CFRelease (plStream.error);
+      return 0;
+    }
+
+  return plStream.written;
 }
 
-
-
 /* The following functions are marked as obsolete as of Mac OS X 10.6.  They
- * will be implemented here as wrappers around the new functions.
+ * will be implemented as wrappers around the new functions.
  */
 CFDataRef
 CFPropertyListCreateXMLData (CFAllocatorRef alloc, CFPropertyListRef plist)
 {
-  return CFPropertyListCreateData (alloc, plist, kCFPropertyListXMLFormat_v1_0,
-                                   0, NULL);
+  return CFPropertyListCreateData (alloc, plist,
+                                   kCFPropertyListXMLFormat_v1_0, 0, NULL);
 }
 
 CFIndex
@@ -746,7 +1551,8 @@ CFPropertyListCreateFromStream (CFAllocatorRef alloc, CFReadStreamRef stream,
   CFPropertyListRef plist;
   CFErrorRef err = NULL;
 
-  plist = CFPropertyListCreateWithStream (alloc, stream, len, opts, fmt, &err);
+  plist =
+    CFPropertyListCreateWithStream (alloc, stream, len, opts, fmt, &err);
   if (err)
     {
       if (errStr)
