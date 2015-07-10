@@ -1,4 +1,9 @@
 2015-07-09 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/config.h.in,
+	* configure,
+	* configure.ac: Add better checks for features.
+
+2015-07-09 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFPropertyList.c: Implemented reading and writing OpenStep format
 	property lists.
 	* Tests/CFPropertyList/openstep.m: Simple tests for OpenStep format
