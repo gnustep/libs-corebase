@@ -50,7 +50,7 @@ General Public License version 2.1</a> or a later version.
     <td>\ref CFRuntimeUtils</td>
   </tr>
   <tr>
-    <td>\ref CFBagRef "CFBagString"</td>
+    <td>\ref CFBagRef "CFBag"</td>
     <td>\ref CFSocketUtils</td>
   </tr>
   <tr>
@@ -195,7 +195,7 @@ General Public License version 2.1</a> or a later version.
     <td>\ref CFWriteStreamRef "CFWriteStream"</td>
   </tr>
   <tr>
-    <td>\ref CFXMLNodeRef "CFXMLNode \em (deprecated)"</td>
+    <td>\ref CFXMLNodeRef "CFXMLNode (deprecated)"</td>
   </tr>
   <tr>
     <td>\ref CFXMLParserRef "CFXMLParser (deprecated)"</td>
