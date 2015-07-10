@@ -32,16 +32,34 @@
 
 #include <CoreFoundation/CFBase.h>
 
+/** \defgroup CFByteOrderUtils Byte Order Utilities
+    \brief 
+    \{
+ */
+/** \name Byte Order Flags
+    \{
+    Flags that identify the system's byte order.
+ */
 typedef enum
 {
-  CFByteOrderUnknown,
-  CFByteOrderLittleEndian,
-  CFByteOrderBigEndian
+  CFByteOrderUnknown, /**< Unknown byte order. */
+  CFByteOrderLittleEndian, /**< Specifies that multi-byte values are stored
+			     least-significant byte first. */
+  CFByteOrderBigEndian /**< Specifies that multi-byte values are stored
+			 most-significant byte first. */
 } CFByteOrder;
+/** \} */
 
 typedef UInt32 CFSwappedFloat32;  /* Same as GNUstep NSSwappedFloat */
 typedef UInt64 CFSwappedFloat64;  /* Same as GNUstep NSSwappedDouble */
 
+/** \name Host System Information
+    \{
+ */
+/** Find the byte order of the host computer.
+    \return The byte order of the host system.
+    \see CFByteOrder
+ */
 CF_INLINE CFByteOrder
 CFByteOrderGetCurrent()
 {
@@ -51,6 +69,7 @@ CFByteOrderGetCurrent()
   return CFByteOrderLittleEndian;
 #endif
 }
+/** \} */
 
 CF_INLINE UInt16
 CFSwapInt16(UInt16 in)
@@ -102,8 +121,6 @@ CFSwapInt64(UInt64 in)
   return dst.num;
 }
 
-
-
 #if __BIG_ENDIAN__
 
 CF_INLINE UInt16
@@ -252,8 +269,6 @@ CFSwapInt64LittleToHost(UInt64 in)
 
 #endif
 
-
-
 union dconv
 {
   double           d;
@@ -268,6 +283,9 @@ union fconv
   CFSwappedFloat32 sf;
 };
 
+/** \name Floating Point Function
+    \{
+ */
 CF_INLINE CFSwappedFloat64
 CFConvertFloat64HostToSwapped (Float64 in)
 {
@@ -331,6 +349,9 @@ CFConvertFloatSwappedToHost(CFSwappedFloat32 in)
   conv.sf = CFSwapInt32 (in);
   return conv.f;
 }
+/** \} */
+
+/** \} */
 
 #endif /* __COREFOUNDATION_CFBYTEORDER_H__ */
 

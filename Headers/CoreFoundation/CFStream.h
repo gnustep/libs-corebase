@@ -1,12 +1,12 @@
 /* CFStream.h
-   
+
    Copyright (C) 2010 Free Software Foundation, Inc.
-   
+
    Written by: Stefan Bidigaray
    Date: January, 2010
-   
+
    This file is part of GNUstep CoreBase Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -34,13 +34,15 @@
 #include <CoreFoundation/CFURL.h>
 
 CF_EXTERN_C_BEGIN
-
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_1, GS_API_LATEST)
+/** \ingroup CFWriteStreamRef */
 typedef struct __CFWriteStream *CFWriteStreamRef;
+/** \ingroup CFReadStreamRef */
 typedef struct __CFReadStream *CFReadStreamRef;
 
-
-
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_1, GS_API_LATEST)
+/** \defgroup CFStreamUtils Stream Utilities
+    \{
+ */
 CF_EXPORT const CFStringRef kCFStreamPropertyDataWritten;
 CF_EXPORT const CFStringRef kCFStreamPropertySocketNativeHandle;
 CF_EXPORT const CFStringRef kCFStreamPropertySocketRemoteHostName;
@@ -100,54 +102,71 @@ typedef enum
   kCFStreamEventEndEncountered = 16
 } CFStreamEventType;
 
-typedef void (*CFWriteStreamClientCallBack) (CFWriteStreamRef stream,
-  CFStreamEventType eventType, void *clientCallBackInfo);
-
-typedef void (*CFReadStreamClientCallBack) (CFReadStreamRef stream,
-  CFStreamEventType eventType, void *clientCallBackInfo);
-
-
-
-/*
- * NSStream functions
+/** \name NSStream functions
+    \{
  */
 CF_EXPORT void
 CFStreamCreatePairWithSocketToHost (CFAllocatorRef alloc, CFStringRef host,
-                                    UInt32 port, CFReadStreamRef *readStream,
-                                    CFWriteStreamRef *writeStream);
+                                    UInt32 port, CFReadStreamRef * readStream,
+                                    CFWriteStreamRef * writeStream);
 
-/*
- * Creating a Write Stream
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
+CF_EXPORT void
+CFStreamCreatePairWithPeerSocketSignature (CFAllocatorRef alloc,
+                                           const CFSocketSignature * signature,
+                                           CFReadStreamRef * readStream,
+                                           CFWriteStreamRef * writeStream);
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+CF_EXPORT void
+CFStreamCreateBoundPair (CFAllocatorRef alloc, CFReadStreamRef * readStream,
+                         CFWriteStreamRef * writeStream,
+                         CFIndex transferBufferSize);
+#endif
+/** \} */
+/** \} */
+
+/** \defgroup CFWriteStreamRef CFWriteStream Reference 
+    \{
+ */
+typedef void (*CFWriteStreamClientCallBack) (CFWriteStreamRef stream,
+                                             CFStreamEventType eventType,
+                                             void *clientCallBackInfo);
+
+/** \name Creating a Write Stream
+    \{
  */
 CF_EXPORT CFWriteStreamRef
 CFWriteStreamCreateWithAllocatedBuffers (CFAllocatorRef alloc,
                                          CFAllocatorRef bufferAllocator);
 
 CF_EXPORT CFWriteStreamRef
-CFWriteStreamCreateWithBuffer (CFAllocatorRef alloc, UInt8 *buffer,
+CFWriteStreamCreateWithBuffer (CFAllocatorRef alloc, UInt8 * buffer,
                                CFIndex bufferCapacity);
 
 CF_EXPORT CFWriteStreamRef
 CFWriteStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL);
+/** \} */
 
-/*
- * Opening and Closing a Write Stream
+/** \name Opening and Closing a Write Stream
+    \{
  */
-CF_EXPORT void
-CFWriteStreamClose (CFWriteStreamRef stream);
+CF_EXPORT void CFWriteStreamClose (CFWriteStreamRef stream);
 
-CF_EXPORT Boolean
-CFWriteStreamOpen (CFWriteStreamRef stream);
+CF_EXPORT Boolean CFWriteStreamOpen (CFWriteStreamRef stream);
+/** \} */
 
-/*
- * Writing to a Stream
+/** \name Writing to a Stream
+    \{
  */
 CF_EXPORT CFIndex
-CFWriteStreamWrite (CFWriteStreamRef stream, const UInt8 *buffer,
+CFWriteStreamWrite (CFWriteStreamRef stream, const UInt8 * buffer,
                     CFIndex bufferLength);
+/** \} */
 
-/*
- * Scheduling a Write Stream
+/** \name Scheduling a Write Stream
+    \{
  */
 CF_EXPORT void
 CFWriteStreamScheduleWithRunLoop (CFWriteStreamRef stream,
@@ -158,64 +177,74 @@ CF_EXPORT void
 CFWriteStreamUnscheduleFromRunLoop (CFWriteStreamRef stream,
                                     CFRunLoopRef runLoop,
                                     CFStringRef runLoopMode);
+/** \} */
 
-/*
- * Examining Write Stream Properties
+/** \name Examining Write Stream Properties
+    \{
  */
-CF_EXPORT Boolean
-CFWriteStreamCanAcceptBytes (CFWriteStreamRef stream);
+CF_EXPORT Boolean CFWriteStreamCanAcceptBytes (CFWriteStreamRef stream);
 
 CF_EXPORT CFTypeRef
 CFWriteStreamCopyProperty (CFWriteStreamRef stream, CFStringRef propertyName);
+/** \} */
 
 /* Deprecated function */
-CF_EXPORT CFStreamError
-CFWriteStreamGetError (CFWriteStreamRef stream);
+CF_EXPORT CFStreamError CFWriteStreamGetError (CFWriteStreamRef stream);
 
-CF_EXPORT CFStreamStatus
-CFWriteStreamGetStatus (CFWriteStreamRef stream);
+CF_EXPORT CFStreamStatus CFWriteStreamGetStatus (CFWriteStreamRef stream);
 
-/*
- * Setting Write Stream Properties
+/** \name Setting Write Stream Properties
+    \{
  */
 CF_EXPORT Boolean
 CFWriteStreamSetClient (CFWriteStreamRef stream, CFOptionFlags streamEvents,
                         CFWriteStreamClientCallBack clientCB,
-                        CFStreamClientContext *clientContext);
+                        CFStreamClientContext * clientContext);
+/** \} */
 
-/*
- * Getting the CFWriteStream Type ID
+/** \name Getting the CFWriteStream Type ID
+    \{
  */
-CF_EXPORT CFTypeID
-CFWriteStreamGetTypeID (void);
+CF_EXPORT CFTypeID CFWriteStreamGetTypeID (void);
+/** \} */
+/** \} */
 
-/*
- * Creating a Read Stream
+/** \defgroup CFReadStreamRef CFReadStream Reference 
+    \{
+ */
+typedef void (*CFReadStreamClientCallBack) (CFReadStreamRef stream,
+                                            CFStreamEventType eventType,
+                                            void *clientCallBackInfo);
+
+/** \name Creating a Read Stream
+    \{
  */
 CF_EXPORT CFReadStreamRef
-CFReadStreamCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
-                                   CFIndex length, CFAllocatorRef bytesDeallocator);
+CFReadStreamCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 * bytes,
+                                   CFIndex length,
+                                   CFAllocatorRef bytesDeallocator);
 
 CF_EXPORT CFReadStreamRef
 CFReadStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL);
+/** \} */
 
-/*
- * Opening and Closing a Read Stream
+/** \name Opening and Closing a Read Stream
+    \{
  */
-CF_EXPORT void
-CFReadStreamClose (CFReadStreamRef stream);
+CF_EXPORT void CFReadStreamClose (CFReadStreamRef stream);
 
-CF_EXPORT Boolean
-CFReadStreamOpen (CFReadStreamRef stream);
+CF_EXPORT Boolean CFReadStreamOpen (CFReadStreamRef stream);
+/** \} */
 
-/*
- * Reading from a Read Stream
+/** \name Reading from a Read Stream
+    \{
  */
 CF_EXPORT CFIndex
-CFReadStreamRead (CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength);
+CFReadStreamRead (CFReadStreamRef stream, UInt8 * buffer, CFIndex bufferLength);
+/** \} */
 
-/*
- * Scheduling a Read Stream
+/** \name Scheduling a Read Stream
+    \{
  */
 CF_EXPORT void
 CFReadStreamScheduleWithRunLoop (CFReadStreamRef stream, CFRunLoopRef runLoop,
@@ -224,51 +253,44 @@ CFReadStreamScheduleWithRunLoop (CFReadStreamRef stream, CFRunLoopRef runLoop,
 CF_EXPORT void
 CFReadStreamUnscheduleFromRunLoop (CFReadStreamRef stream, CFRunLoopRef runLoop,
                                    CFStringRef runLoopMode);
+/** \} */
 
-/*
- * Examining Stream Properties
+/** \name Examining Stream Properties
+    \{
  */
 CF_EXPORT CFTypeRef
 CFReadStreamCopyProperty (CFReadStreamRef stream, CFStringRef propertyName);
 
-CF_EXPORT const UInt8 *
-CFReadStreamGetBuffer (CFReadStreamRef stream, CFIndex maxBytesToRead,
-                       CFIndex *numBytesRead);
+CF_EXPORT const UInt8 *CFReadStreamGetBuffer (CFReadStreamRef stream,
+                                              CFIndex maxBytesToRead,
+                                              CFIndex * numBytesRead);
+/** \} */
 
 /* Deprecated function */
-CF_EXPORT CFStreamError
-CFReadStreamGetError (CFReadStreamRef stream);
+CF_EXPORT CFStreamError CFReadStreamGetError (CFReadStreamRef stream);
 
 
-CF_EXPORT CFStreamStatus
-CFReadStreamGetStatus (CFReadStreamRef stream);
+CF_EXPORT CFStreamStatus CFReadStreamGetStatus (CFReadStreamRef stream);
 
-CF_EXPORT Boolean
-CFReadStreamHasBytesAvailable (CFReadStreamRef stream);
+CF_EXPORT Boolean CFReadStreamHasBytesAvailable (CFReadStreamRef stream);
 
-/*
- * Setting Stream Properties
+/** \name Setting Stream Properties
+    \{
  */
 CF_EXPORT Boolean
 CFReadStreamSetClient (CFReadStreamRef stream, CFOptionFlags streamEvents,
                        CFReadStreamClientCallBack clientCB,
-                       CFStreamClientContext *clientContext);
+                       CFStreamClientContext * clientContext);
+/** \} */
 
-/*
- * Getting the CFReadStream Type ID
+/** \name Getting the CFReadStream Type ID
+    \{
  */
-CF_EXPORT CFTypeID
-CFReadStreamGetTypeID (void);
-
-
+CF_EXPORT CFTypeID CFReadStreamGetTypeID (void);
+/** \} */
+/** \} */
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
-CF_EXPORT void
-CFStreamCreatePairWithPeerSocketSignature (CFAllocatorRef alloc,
-                                           const CFSocketSignature *signature,
-                                           CFReadStreamRef *readStream,
-                                           CFWriteStreamRef *writeStream);
-
 CF_EXPORT Boolean
 CFWriteStreamSetProperty (CFWriteStreamRef stream, CFStringRef propertyName,
                           CFTypeRef propertyValue);
@@ -279,20 +301,12 @@ CFReadStreamSetProperty (CFReadStreamRef stream, CFStringRef propertyName,
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
-CF_EXPORT void
-CFStreamCreateBoundPair (CFAllocatorRef alloc, CFReadStreamRef *readStream,
-                         CFWriteStreamRef *writeStream, CFIndex transferBufferSize);
+CF_EXPORT CFErrorRef CFWriteStreamCopyError (CFWriteStreamRef stream);
 
-CF_EXPORT CFErrorRef
-CFWriteStreamCopyError (CFWriteStreamRef stream);
-
-CF_EXPORT CFErrorRef
-CFReadStreamCopyError (CFReadStreamRef stream);
+CF_EXPORT CFErrorRef CFReadStreamCopyError (CFReadStreamRef stream);
 #endif
 
 #endif /* MAC_OS_X_VERSION_10_1 */
 
 CF_EXTERN_C_END
-
 #endif /* __COREFOUNDATION_CFSTREAM_H__ */
-

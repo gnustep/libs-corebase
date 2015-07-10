@@ -33,8 +33,11 @@
 
 CF_EXTERN_C_BEGIN
 
-/*
- * File URL Properties
+/** \defgroup CFURLAccessUtils URL Access Utilities (deprecated)
+    \{
+ */
+/** \name File URL Properties
+    \{
  */
 CF_EXPORT const CFStringRef kCFURLFileExists; /* CFBoolean */
 CF_EXPORT const CFStringRef kCFURLFileDirectoryContents; /* CFArray */
@@ -42,15 +45,17 @@ CF_EXPORT const CFStringRef kCFURLFileLength; /* CFNumber */
 CF_EXPORT const CFStringRef kCFURLFileLastModificationTime; /* CFDate */
 CF_EXPORT const CFStringRef kCFURLFilePOSIXMode; /* CFNumber */
 CF_EXPORT const CFStringRef kCFURLFileOwnerID; /* CFNumber */
+/** \} */
 
-/*
- * HTTP URL Properties
+/** \name HTTP URL Properties
+    \{
  */
 CF_EXPORT const CFStringRef kCFURLHTTPStatusCode; /*CFNumber */
 CF_EXPORT const CFStringRef kCFURLHTTPStatusLine; /* CFString */
+/** \} */
 
-/*
- * Error Codes
+/** \name Error Codes
+    \{
  */
 typedef enum
 {
@@ -64,6 +69,7 @@ typedef enum
   kCFURLPropertyKeyUnavailableError =  -17,
   kCFURLTimeoutError =                 -18
 } CFURLError;
+/** \} */
 
 CF_EXPORT Boolean
 CFURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc, CFURLRef url,
@@ -80,6 +86,7 @@ CFURLDestroyResource (CFURLRef url, SInt32 *errorCode);
 CF_EXPORT Boolean
 CFURLWriteDataAndPropertiesToResource (CFURLRef url, CFDataRef dataToWrite,
   CFDictionaryRef propertiesToWrite, SInt32 *errorCode);
+/** \} */
 
 CF_EXTERN_C_END
 

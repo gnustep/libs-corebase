@@ -230,9 +230,7 @@ GSUTF8CharacterAppend (UTF8Char * d, const UTF8Char * limit, UTF32Char c)
       This value is updated after a call to the function.
     @param[in] limit The position just after the end of the buffer. Must
       be at least <code>*s + 1</code>.
-    @param[in] loss If this value is non-zero, it is used in case an invalid
-      character is found in the input buffer.  Must be a valid Unicode
-      character.
+    @param[out] c On return, the character.
     @return A valid Unicode code unit.
       Will return 0 if:
       -# The UTF-8 code unit is also a 0.
@@ -338,12 +336,11 @@ GSUTF16CharacterAppend (UTF16Char * d, const UTF16Char * limit, UTF32Char c)
 }
 
 /** @brief Get a Unicode code point from a UTF-16 string buffer.
-    @param[in,out] s A pointer to the current position of the buffer.
+    @param[in] s A pointer to the current position of the buffer.
       This value is updated after a call to the function.
     @param[in] limit The position just after the end of the buffer. Must
       be at least <code>*s + 1</code>.
-    @param[in] loss If this value is non-zero, it is used in case an invalid
-      character is found in the input.  Must be a valid Unicode character.
+    @param[out] c On return, the character.
     @return A valid Unicode code point.  Will return 0 if:
       -# The UTF-16 code unit is also a 0.
       -# The UTF-16 code unit pointed to by <b>s</b> is not a leading code

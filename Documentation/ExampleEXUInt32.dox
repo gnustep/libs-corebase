@@ -1,0 +1,40 @@
+/**
+\page ExampleEXUInt32 Creating a CF opaque type (EXUInt32)
+
+The GNUstep CoreBase Library supports the creating of new opaque types
+through the functions provided by the \ref CFRuntimeUtils.
+
+Creating new opaque types is easy, but requires some knowledge about
+structures used internally by the runtime.  In particular, a \ref
+__CFRuntimeClass "CFRuntimeClass" structure will need to be defined
+and registered with the runtime.  The only required fields for this
+structure is <code>version</code> and <code>className</code>.  For more
+information, see the documentation for the \ref __CFRuntimeClass
+"CFRuntimeClass structure".
+
+\note This example utilizes functions that are marked as private and may
+  not work across all implementations of the Core Foundation API.
+\note Caution should be taken when porting to other implementations.
+
+The opaque type described in this example is a simple container for UInt32
+integers.  Firstly, define the public interface to the new opaque type.  The
+functions are prefixed with <b><code>EX</code></b> for EXample.  This allows
+for a rudimentary form of namespace.
+
+EXUInt32 type only provides 3 functions:
+  -# Getting the CFTypeID
+  -# Creating a new instance
+  -# Fetch the value associated with this instance
+
+\include EXUInt32.h
+
+The implementation of opaque types require that not only the public interface
+is implemented, but also the CFRuntimeClass and a structure to represent
+our EXUInt32Ref instances.
+
+\note The __EXUInt32ClassInitialize() function must be called during
+  initialization of your software.  This function registers this opaque
+  type with the runtime.
+
+\include EXUInt32.c
+*/

@@ -24,8 +24,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef __CFRuntime_h_GNUSTEP_COREBASE_INCLUDE
-#define __CFRuntime_h_GNUSTEP_COREBASE_INCLUDE
+#ifndef __COREFOUNDATION_CFRUNTIME_H__
+#define __COREFOUNDATION_CFRUNTIME_H__
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
@@ -33,21 +33,26 @@
 
 CF_EXTERN_C_BEGIN
 
-/** @defgroup CFRuntime
- *  @{
+/** \defgroup CFRuntimeUtils Runtime Utilities
+    \brief 
+    \par Examples:
+      \ref ExampleEXUInt32
+    \warning The CFRuntime functions are not thread-safe.
+    \{
  */
 
+/** \name Garbage Collection
+    \brief Garbage Collection is not supported.  All macros and functions
+      relating to GC return false or NULL, but are provided for compatibility.
+    \{
+ */
 CF_EXPORT Boolean kCFUseCollectableAllocator;
 CF_EXPORT Boolean (*__CFObjCIsCollectable)(void *);
 
 #define CF_USING_COLLECTABLE_MEMORY (kCFUseCollectableAllocator)
-#define CF_IS_COLLECTABLE_ALLOCATOR(allocator) \
-  (kCFUseCollectableAllocator \
-  && (NULL == (allocator) \
-      || kCFAllocatorSystemDefault == (allocator) \
-      || _CFAllocatorIsGCRefZero(allocator)))
-#define CF_IS_COLLECTABLE(obj) \
-  (__CFObjCIsCollectable ? __CFObjCIsCollectable((void*)obj) : false)
+#define CF_IS_COLLECTABLE_ALLOCATOR(allocator) 0
+#define CF_IS_COLLECTABLE(obj) 0
+/** \} */
 
 enum
 {
@@ -91,30 +96,28 @@ struct __CFRuntimeClass
 
 /** Registers a new CF class with the runtime.  This function locks the
     class table and so is thread-safe.
-    
-    @param cls A constant CFRuntimeClass.
-    @return The next available CFTypeID or _kCFRuntimeNotATypeID
+    \param cls A constant CFRuntimeClass.
+    \return The next available CFTypeID or _kCFRuntimeNotATypeID
     if none are available.
-    @see _CFRuntimeUnregisterClassWithTypeID()
+    \see _CFRuntimeUnregisterClassWithTypeID()
  */
-CFTypeID
+CF_EXPORT CFTypeID
 _CFRuntimeRegisterClass (const CFRuntimeClass * const cls);
 
-/** Gets the class structure associated with the @a typeID.
+/** Gets the class structure associated with the \a typeID.
     
-    @param typeID A CFTypeID to look up.
-    @return The CFRuntimeClass for the @typeID
+    \param typeID A CFTypeID to look up.
+    \return The CFRuntimeClass for the \b typeID
  */
-const CFRuntimeClass *
+CF_EXPORT const CFRuntimeClass *
 _CFRuntimeGetClassWithTypeID (CFTypeID typeID);
 
 /** Unregisters a class.
-    @warning This function is not thread-safe.
-    
-    @param typeID The CFTypeID to unregister.
-    @see _CFRuntimeRegisterClass()
+    \param typeID The CFTypeID to unregister.
+    \see _CFRuntimeRegisterClass()
+    \warning This function is not thread-safe.
  */
-void
+CF_EXPORT void
 _CFRuntimeUnregisterClassWithTypeID (CFTypeID typeID);
 
 
@@ -123,54 +126,65 @@ typedef struct __CFRuntimeBase CFRuntimeBase;
 struct __CFRuntimeBase
 {
   void *_isa;
+    /**< The Objective-C class for this object.  Used for the Objective-C
+	 bridge.  <em>For internal use only.</em> */
   SInt16 _typeID;
   struct
     {
-      SInt16 ro:       1; /* 0 = read-only object */
-      SInt16 reserved: 7; /* For internal CFRuntime use */
-      SInt16 info:     8; /* Can be used by CF type */
+      SInt16 ro:       1;
+      SInt16 reserved: 7;
+      SInt16 info:     8;
     } _flags;
 };
 
-#define INIT_CFRUNTIME_BASE(...) { 0, 0, { 1, 0, 0 } }
+//#define INIT_CFRUNTIME_BASE(...) { 0, 0, { 1, 0, 0 } }
+#define INIT_CFRUNTIME_BASE(...) { 0, 0x00008000 }
 
-/** Creates a new CF instance.
-    
-    @param allocator The CFAllocatorRef to use or NULL for the default
+/** Creates a new CF type instance.
+    \param allocator The CFAllocatorRef to use or NULL for the default
     allocator.
-    @param typeID The CFTypeID of the class.
-    @param extraBytes The amount of extra bytes over a CFRuntimeBase type
+    \param typeID The CFTypeID of the class.
+    \param extraBytes The amount of extra bytes over a CFRuntimeBase type
     needed by this instance.
-    @param category Currently unused, use NULL.
-    @return A newly allocator object.
-    @see CFRetain()
-    @see CFRelease()
+    \param category Currently unused, use NULL.
+    \return A newly allocated object.
+    \see CFRetain()
+    \see CFRelease()
  */
-CFTypeRef
+CF_EXPORT CFTypeRef
 _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
                           CFIndex extraBytes, unsigned char *category);
 
-/** Sets the CFTypeID for an instance.
-    
-    @param cf The object instance to set the type ID.
-    @param typeID The new CFTypeID.
+/** Set the CFTypeID for an instance.
+    \param cf The object instance to set the type ID.
+    \param typeID The new CFTypeID.
  */
-void
+CF_EXPORT void
 _CFRuntimeSetInstanceTypeID (CFTypeRef cf, CFTypeID typeID);
 
 /** Initializes a static CF object instance.
-    
-    @param memory A pointer to a static CF object instance.
-    @param typeID The CFTypeID of the instance.
+    \param memory A pointer to a static CF object instance.
+    \param typeID The CFTypeID of the instance.
  */
-void
+CF_EXPORT void
 _CFRuntimeInitStaticInstance (void *memory, CFTypeID typeID);
 #define CF_HAS_INIT_STATIC_INSTANCE 1
 
-/** @}
+/** \} */
+
+/** \example EXUInt32.h
+    Example of how to create a new CF class.
+
+    See \ref EXUInt32.c for the implementation details of this simple CF type.
+ */
+
+/** \example EXUInt32.c
+    Example of how to create a new CF class.
+
+    See \ref EXUInt32.h for the interface details of this simple CF type.
  */
 
 CF_EXTERN_C_END
 
-#endif /* __CFRuntime_h_GNUSTEP_COREBASE_INCLUDE */
+#endif /* __COREFOUNDATION_CFRUNTIME_H__ */
 

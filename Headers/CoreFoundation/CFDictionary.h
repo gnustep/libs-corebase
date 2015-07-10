@@ -1,12 +1,12 @@
 /* CFDictionary.h
-   
+
    Copyright (C) 2010 Free Software Foundation, Inc.
-   
+
    Written by: Stefan Bidigaray
    Date: January, 2010
-   
-   This file is part of CoreBase.
-   
+
+   This file is part of the GNUstep CoreBase Library.
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -22,29 +22,33 @@
    If not, see <http://www.gnu.org/licenses/> or write to the 
    Free Software Foundation, 51 Franklin Street, Fifth Floor, 
    Boston, MA 02110-1301, USA.
-*/ 
+*/
 
 #ifndef __COREFOUNDATION_CFDICTIONARY_H__
-#define __COREFOUNDATION_CFDICTIONARY_H__
+#define __COREFOUNDATION_CFDICTIONARY_H__ 1
 
 #include <CoreFoundation/CFBase.h>
 
 CF_EXTERN_C_BEGIN
+/** \ingroup CFDictionaryRef */
+typedef const struct __CFDictionary *CFDictionaryRef;
+/** \ingroup CFMutableDictionaryRef */
+typedef struct __CFDictionary *CFMutableDictionaryRef;
 
-typedef const struct __CFDictionary * CFDictionaryRef;
-typedef struct __CFDictionary * CFMutableDictionaryRef;
-
+/** \defgroup CFDictionaryRef CFDictionary Reference
+    \{
+ */
 typedef void (*CFDictionaryApplierFunction) (const void *key,
-  const void *value, void *context);
+                                             const void *value, void *context);
 
-typedef CFStringRef (*CFDictionaryCopyDescriptionCallBack)(const void *value);
-typedef Boolean  (*CFDictionaryEqualCallBack) (const void *value1,
-  const void *value2);
-typedef CFHashCode    (*CFDictionaryHashCallBack) (const void *value);
+typedef CFStringRef (*CFDictionaryCopyDescriptionCallBack) (const void *value);
+typedef Boolean (*CFDictionaryEqualCallBack) (const void *value1,
+                                              const void *value2);
+typedef CFHashCode (*CFDictionaryHashCallBack) (const void *value);
 typedef void (*CFDictionaryReleaseCallBack) (CFAllocatorRef allocator,
-  const void *value);
+                                             const void *value);
 typedef const void *(*CFDictionaryRetainCallBack) (CFAllocatorRef allocator,
-  const void *value);
+                                                   const void *value);
 
 typedef struct _CFDictionaryKeyCallBacks CFDictionaryKeyCallBacks;
 struct _CFDictionaryKeyCallBacks
@@ -60,107 +64,111 @@ struct _CFDictionaryKeyCallBacks
 typedef struct _CFDictionaryValueCallBacks CFDictionaryValueCallBacks;
 struct _CFDictionaryValueCallBacks
 {
-   CFIndex version;
-   CFDictionaryRetainCallBack retain;
-   CFDictionaryReleaseCallBack release;
-   CFDictionaryCopyDescriptionCallBack copyDescription;
-   CFDictionaryEqualCallBack equal;
+  CFIndex version;
+  CFDictionaryRetainCallBack retain;
+  CFDictionaryReleaseCallBack release;
+  CFDictionaryCopyDescriptionCallBack copyDescription;
+  CFDictionaryEqualCallBack equal;
 };
 
 CF_EXPORT const CFDictionaryKeyCallBacks kCFCopyStringDictionaryKeyCallBacks;
 CF_EXPORT const CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks;
 CF_EXPORT const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks;
 
-
-
-/*
- * Creating a dictionary
+/** \name Creating a dictionary
+    \{
  */
-CFDictionaryRef
+CF_EXPORT CFDictionaryRef
 CFDictionaryCreate (CFAllocatorRef allocator, const void **keys,
-  const void **values, CFIndex numValues,
-  const CFDictionaryKeyCallBacks *keyCallBacks,
-  const CFDictionaryValueCallBacks *valueCallBacks);
+                    const void **values, CFIndex numValues,
+                    const CFDictionaryKeyCallBacks * keyCallBacks,
+                    const CFDictionaryValueCallBacks * valueCallBacks);
 
-CFDictionaryRef
+CF_EXPORT CFDictionaryRef
 CFDictionaryCreateCopy (CFAllocatorRef allocator, CFDictionaryRef theDict);
+/** \} */
 
-/*
- * Examining a dictionary
+/** \name Examining a dictionary
+    \{
  */
-Boolean
+CF_EXPORT Boolean
 CFDictionaryContainsKey (CFDictionaryRef theDict, const void *key);
 
-Boolean
+CF_EXPORT Boolean
 CFDictionaryContainsValue (CFDictionaryRef theDict, const void *value);
 
-CFIndex
-CFDictionaryGetCount (CFDictionaryRef theDict);
+CF_EXPORT CFIndex CFDictionaryGetCount (CFDictionaryRef theDict);
 
-CFIndex
+CF_EXPORT CFIndex
 CFDictionaryGetCountOfKey (CFDictionaryRef theDict, const void *key);
 
-CFIndex
+CF_EXPORT CFIndex
 CFDictionaryGetCountOfValue (CFDictionaryRef theDict, const void *value);
 
-void
+CF_EXPORT void
 CFDictionaryGetKeysAndValues (CFDictionaryRef theDict, const void **keys,
-  const void **values);
+                              const void **values);
 
-const void *
-CFDictionaryGetValue (CFDictionaryRef theDict, const void *key);
+CF_EXPORT const void *CFDictionaryGetValue (CFDictionaryRef theDict,
+                                            const void *key);
 
-Boolean
+CF_EXPORT Boolean
 CFDictionaryGetValueIfPresent (CFDictionaryRef theDict, const void *key,
-  const void **value);
+                               const void **value);
+/** \} */
 
-/*
- * Applying a funcation to a dictionary
+/** \name Applying a funcation to a dictionary
+    \{
  */
-void
+CF_EXPORT void
 CFDictionaryApplyFunction (CFDictionaryRef theDict,
-  CFDictionaryApplierFunction applier, void *context);
+                           CFDictionaryApplierFunction applier, void *context);
+/** \} */
 
-/*
- * Getting the CFDictionary type ID
+/** \name Getting the CFDictionary type ID
+    \{
  */
-CFTypeID
-CFDictionaryGetTypeID (void);
+CF_EXPORT CFTypeID CFDictionaryGetTypeID (void);
+/** \} */
+/** \} */
 
-/*
- * Creating a Mutable Dictionary
+/** \defgroup CFMutableDictionaryRef CFMutableDictionary Reference
+    \{
  */
-CFMutableDictionaryRef
+/** \name Creating a Mutable Dictionary
+    \{
+ */
+CF_EXPORT CFMutableDictionaryRef
 CFDictionaryCreateMutable (CFAllocatorRef allocator, CFIndex capacity,
-  const CFDictionaryKeyCallBacks *keyCallBacks,
-  const CFDictionaryValueCallBacks *valueCallBacks);
+                           const CFDictionaryKeyCallBacks * keyCallBacks,
+                           const CFDictionaryValueCallBacks * valueCallBacks);
 
-CFMutableDictionaryRef
+CF_EXPORT CFMutableDictionaryRef
 CFDictionaryCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
-  CFDictionaryRef theDict);
+                               CFDictionaryRef theDict);
+/** \} */
 
-/*
- * Modifying a Dictionary
+/** \name Modifying a Dictionary
+    \{
  */
-void
+CF_EXPORT void
 CFDictionaryAddValue (CFMutableDictionaryRef theDict, const void *key,
-  const void *value);
+                      const void *value);
 
-void
-CFDictionaryRemoveAllValues (CFMutableDictionaryRef theDict);
+CF_EXPORT void CFDictionaryRemoveAllValues (CFMutableDictionaryRef theDict);
 
-void
+CF_EXPORT void
 CFDictionaryRemoveValue (CFMutableDictionaryRef theDict, const void *key);
 
-void
+CF_EXPORT void
 CFDictionaryReplaceValue (CFMutableDictionaryRef theDict, const void *key,
-  const void *value);
+                          const void *value);
 
-void
+CF_EXPORT void
 CFDictionarySetValue (CFMutableDictionaryRef theDict, const void *key,
-  const void *value);
+                      const void *value);
+/** \} */
+/** \} */
 
 CF_EXTERN_C_END
-
 #endif /* __COREFOUNDATION_CFDICTIONARY_H__ */
-

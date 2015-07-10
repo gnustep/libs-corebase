@@ -36,8 +36,8 @@
 
 CF_EXTERN_C_BEGIN
 
-/** @defgroup CFLocale
-    @brief CFLocale provides basic functionality for language and/or region
+/** \defgroup CFLocaleRef CFLocale Reference
+    \brief CFLocale provides basic functionality for language and/or region
     specific operations.
     
     Locale-sensitive operations, such as collation, calendars and
@@ -46,7 +46,7 @@ CF_EXTERN_C_BEGIN
   
     CFLocale is "toll-free bridged" to NSLocale.
     
-    @{
+    \{
  */
 typedef const struct __CFLocale *CFLocaleRef;
 
@@ -62,8 +62,8 @@ enum
 };
 typedef CFIndex CFLocaleLanguageDirection;
 
-/** @name CFLocale Property Keys
-    @{
+/** \name CFLocale Property Keys
+    \{
  */
 CF_EXPORT const CFStringRef kCFLocaleMeasurementSystem; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleDecimalSeparator; /* CFString */
@@ -89,11 +89,10 @@ CF_EXPORT const CFStringRef kCFLocaleQuotationEndDelimiterKey; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationBeginDelimiterKey; /* CFString */
 CF_EXPORT const CFStringRef kCFLocaleAlternateQuotationEndDelimiterKey; /* CFString */
 #endif
-/** @}
- */
+/** \} */
 
-/** @name CFCalendar Identifiers
-    @{
+/** \name CFCalendar Identifiers
+    \{
  */
 CF_EXPORT const CFStringRef kCFGregorianCalendar;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
@@ -110,8 +109,7 @@ CF_EXPORT const CFStringRef kCFPersianCalendar;
 CF_EXPORT const CFStringRef kCFIndianCalendar;
 CF_EXPORT const CFStringRef kCFISO8601Calendar;
 #endif
-/** @}
- */
+/** \} */
 
 /** CFLocale Change Notification
  */
@@ -119,8 +117,8 @@ CF_EXPORT const CFStringRef kCFLocaleCurrentLocaleDidChangeNotification;
 
 
 
-/*
- * Creating a Locale
+/** \name Creating a Locale
+    \{
  */
 CF_EXPORT CFLocaleRef
 CFLocaleCopyCurrent (void);
@@ -135,17 +133,19 @@ CFLocaleCreateCopy (CFAllocatorRef allocator,
 
 CF_EXPORT CFLocaleRef
 CFLocaleGetSystem (void);
+/** \} */
 
-/*
- * Getting System Locale Information
+/** \name Getting System Locale Information
+    \{
  */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT CFArrayRef
 CFLocaleCopyAvailableLocaleIdentifiers (void);
 #endif
+/** \} */
 
-/*
- * Getting ISO Information
+/** \name Getting ISO Information
+    \{
  */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 CF_EXPORT CFArrayRef
@@ -162,17 +162,27 @@ CFLocaleCopyISOCurrencyCodes (void);
 CF_EXPORT CFArrayRef
 CFLocaleCopyCommonISOCurrencyCodes (void);
 #endif
+/** \{ */
 
-/*
- * Language Preferences
+/** \name Accessing Language Information
+    \{
  */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 CF_EXPORT CFArrayRef
 CFLocaleCopyPreferredLanguages (void);
 #endif
 
-/*
- * Getting Information About a Locale
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+CF_EXPORT CFLocaleLanguageDirection
+CFLocaleGetLanguageCharacterDirection (CFStringRef isoLangCode);
+
+CF_EXPORT CFLocaleLanguageDirection
+CFLocaleGetLanguageLineDirection (CFStringRef isoLangCode);
+#endif
+/** \} */
+
+/** \name Getting Information About a Locale
+    \{
  */
 CF_EXPORT CFStringRef
 CFLocaleCopyDisplayNameForPropertyValue (CFLocaleRef displayLocale,
@@ -185,9 +195,10 @@ CFLocaleGetValue (CFLocaleRef locale,
 
 CF_EXPORT CFStringRef
 CFLocaleGetIdentifier (CFLocaleRef locale);
+/** \} */
 
-/*
- * Getting and Creating Locale Identifiers
+/** \name Getting and Creating Locale Identifiers
+    \{
  */
 CF_EXPORT CFStringRef
 CFLocaleCreateCanonicalLocaleIdentifierFromString (CFAllocatorRef allocator,
@@ -206,33 +217,29 @@ CF_EXPORT CFStringRef
 CFLocaleCreateLocaleIdentifierFromComponents (CFAllocatorRef allocator,
                                               CFDictionaryRef dictionary);
 #endif
+/** \} */
 
-/*
- * Getting the CFLocale Type ID
- */
-CF_EXPORT CFTypeID
-CFLocaleGetTypeID (void);
-
-/*
- * New Functions
+/** \name Windows Locale Codes
+    \{
  */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 CF_EXPORT CFStringRef
 CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode (CFAllocatorRef allocator,
                                                      UInt32 lcid);
 
-CF_EXPORT CFLocaleLanguageDirection
-CFLocaleGetLanguageCharacterDirection (CFStringRef isoLangCode);
-
-CF_EXPORT CFLocaleLanguageDirection
-CFLocaleGetLanguageLineDirection (CFStringRef isoLangCode);
-
 CF_EXPORT UInt32
 CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier (CFStringRef localeIdent);
 #endif
+/** \} */
 
-/** @}
+/** \name Getting the CFLocale Type ID
+    \{
  */
+CF_EXPORT CFTypeID
+CFLocaleGetTypeID (void);
+/** \} */
+
+/** \} */
 
 CF_EXTERN_C_END
 

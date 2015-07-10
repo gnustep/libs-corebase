@@ -37,7 +37,7 @@
     @{
  */
 /** @brief Convert a string in some external encoding to Unicode (UTF-16).
-    @detail This function is used internally to convert to Unicode from
+    @details This function is used internally to convert to Unicode from
       the various supported encodings.
 
       The function performs checks on both the input and output
@@ -66,8 +66,6 @@
       if a UTF-8 input string encodes a surrogate without a pair. A typical
       character would be <b>U+FFFD</b> (replacement character). Specify a
       value of <code>0</code> if you do not want lossy conversion.
-    @param[in] hasBOM If <code>true</code>, assumes the source includes a
-      byte order mark.
     @return The amount of <code>UniChar</code> characters required to
       successfully complete the conversion. Will return <b>-1</b> if an
       error is encountered, such as an invalid character and no <b>loss</b>
@@ -82,7 +80,7 @@ GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
                        const UInt8 * const sLimit, const UTF16Char loss);
 
 /** @brief Convert a Unicode string (UTF-16) to some external encoding.
-    @detail This function is used internally to convert from Unicode to
+    @details This function is used internally to convert from Unicode to
       the various supported encodings.
 
       The function performs minimal checks on the input data and will only

@@ -38,11 +38,12 @@
 
 CF_EXTERN_C_BEGIN
 
-/** @defgroup CFString
-    @brief The CFString type defines opaque objects representing strings.
-    
+/** \defgroup CFStringRef CFString Reference
+    \brief The CFString type defines opaque objects representing strings.
+
     CFString is "toll-free bridged" to NSString.
-    @{
+
+    \{
  */
 
 /*
@@ -92,10 +93,10 @@ enum CFStringBuiltInEncodings
 # define kCFStringEncodingInvalidId (0xffffffffU)
 #endif
 
-/** @def CFSTR(x)
-    @brief Creates a constant string object.
+/** \def CFSTR(x)
+    \brief Creates a constant string object.
     
-    @note This macro will create the constant string at runtime.
+    \note This macro will create the constant string at runtime.
  */
 /* The 'pure' attribute tells the compiler that this function will always
    return the same result with the same input.  If it has any skill, then
@@ -105,8 +106,8 @@ CF_EXPORT CFStringRef
 __CFStringMakeConstantString (const char *str) GS_PURE_FUNCTION;
 #define CFSTR(x) __CFStringMakeConstantString("" x "")
 
-/** @name Creating a CFString
-    @{
+/** \name Creating a CFString
+    \{
  */
 CF_EXPORT CFArrayRef
 CFStringCreateArrayBySeparatingStrings (CFAllocatorRef alloc,
@@ -123,31 +124,6 @@ CF_EXPORT CFStringRef
 CFStringCreateFromExternalRepresentation (CFAllocatorRef alloc, CFDataRef data,
   CFStringEncoding encoding);
 
-/** @brief Creates a CFString using the character buffer in the specified
-      encoding.
-    @detail This is the basic CFString creation function. It will check and
-      interpret any byte order marks, and perform the necessary
-      transformations, storing the string in one of the internal encodings.
-      This function create immutable CFString objects with inlined characters.
-
-    @note If the characters in the buffer (<b>bytes</b>) have a different
-      encoding than specified by <b>encoding</b> the results of this
-      function are undefined. If this is the case, the function will
-      succeed or fail in nontrivial and unexpected ways.  For example,
-      the invalid character may be replaced by the replacement
-      character (U+FFFD), included in the internal buffer, or cause the
-      function to return <code>NULL</code>.
-
-    @param[in] alloc @allocator_details
-    @param[in] bytes A character buffer in the encoding specified by
-      <b>encoding</b>.
-    @param[in] numBytes The length of the character buffer in bytes.
-    @param[in] encoding The encoding of the character buffer.
-    @param[in] isExternalRepresentation A hint to indicate whether a byte
-      order mark is to be expected.
-    @return An immutable CFString object, or NULL in case of failure. The
-      object may not be unique.
- */
 CF_EXPORT CFStringRef
 CFStringCreateWithBytes (CFAllocatorRef alloc, const UInt8 *bytes,
   CFIndex numBytes, CFStringEncoding encoding, Boolean isExternalRepresentation);
@@ -192,11 +168,10 @@ CFStringCreateWithBytesNoCopy (CFAllocatorRef alloc, const UInt8 *bytes,
   CFIndex numBytes, CFStringEncoding encoding, Boolean isExternalReprentation,
   CFAllocatorRef contentsDeallocator);
 #endif
-/** @}
- */
+/** \} */
 
-/** @name Searching CFStrings
-    @{
+/** \name Searching CFStrings
+    \{
  */
 CF_EXPORT CFArrayRef
 CFStringCreateArrayWithFindResults (CFAllocatorRef alloc, CFStringRef theString,
@@ -231,11 +206,10 @@ CF_EXPORT void
 CFStringGetParagraphBounds (CFStringRef string, CFRange range,
   CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex);
 #endif
-/** @}
- */
+/** \} */
 
-/** @name Comparing String
-    @{
+/** \name Comparing String
+    \{
  */
 CF_EXPORT CFComparisonResult
 CFStringCompare (CFStringRef theString1, CFStringRef theString2,
@@ -257,11 +231,10 @@ CFStringCompareWithOptionsAndLocale (CFStringRef theString1,
   CFStringRef theString2, CFRange rangeToCOmpare,
   CFStringCompareFlags compareOptions, CFLocaleRef locale);
 #endif
-/** @}
- */
+/** \} */
 
-/** @name Accessing Characters
-    @{
+/** \name Accessing Characters
+    \{
  */
 CF_EXPORT CFDataRef
 CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
@@ -310,11 +283,10 @@ CFStringIsSurrogateHighCharacter (UniChar character);
 CF_EXPORT Boolean
 CFStringIsSurrogateLowCharacter (UniChar character);
 #endif
-/** @}
- */
+/** \} */
 
-/** @name Working with Encodings
-    @{
+/** \name Working with Encodings
+    \{
  */
 CF_EXPORT CFStringRef
 CFStringConvertEncodingToIANACharSetName (CFStringEncoding encoding);
@@ -366,22 +338,20 @@ CFStringGetFileSystemRepresentation (CFStringRef string, char *buffer,
 CF_EXPORT CFIndex
 CFStringGetMaximumSizeOfFileSystemRepresentation (CFStringRef string);
 #endif
-/** @}
- */
+/** \} */
 
-/** @name Getting Numeric Values
-    @{
+/** \name Getting Numeric Values
+    \{
  */
 CF_EXPORT double
 CFStringGetDoubleValue (CFStringRef str);
 
 CF_EXPORT SInt32
 CFStringGetIntValue (CFStringRef str);
-/** @}
- */
+/** \} */
 
-/** @name Getting String Properties
-    @{
+/** \name Getting String Properties
+    \{
  */
 CF_EXPORT void
 CFShow (CFTypeRef obj);
@@ -391,13 +361,12 @@ CFShowStr (CFStringRef str);
 
 CF_EXPORT CFTypeID
 CFStringGetTypeID (void);
-/** @}
- */
+/** \} */
 
 
 
-/** @name Pascal Strings
-    @{
+/** \name Pascal Strings
+    \{
  */
 CF_EXPORT CFStringRef
 CFStringCreateWithPascalString (CFAllocatorRef alloc, ConstStr255Param pStr,
@@ -414,15 +383,13 @@ CFStringGetPascalString (CFStringRef theString, StringPtr buffer,
 
 CF_EXPORT ConstStringPtr
 CFStringGetPascalStringPtr (CFStringRef theString, CFStringEncoding encoding);
-/** @}
- */
-/** @}
- */
+/** \} */
+/** \} */
 
 
 
-/** @defgroup CFMutableString
- *  @{
+/** \defgroup CFMutableStringRef CFMutableString Reference
+ *  \{
  */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 typedef enum
@@ -548,13 +515,13 @@ CF_EXPORT void
 CFStringFold (CFMutableStringRef theString, CFOptionFlags theFlags,
   CFLocaleRef theLocale);
 #endif
-/** @}
- */
+/** \} */
 
 
 
-/** @defgroup CFStringInlineBuffer
- *  @{
+/** \ingroup CFStringRef
+    \name CFStringInlineBuffer
+    \{
  */
 #define __kCFStringInlineBufferLength 64
 struct CFStringInlineBuffer
@@ -612,8 +579,7 @@ CFStringGetCharacterFromInlineBuffer (CFStringInlineBuffer *buf, CFIndex idx)
   
   return buf->buffer[(idx - buf->bufferedRangeStart)];
 }
-/** @}
- */
+/** \} */
 
 CF_EXTERN_C_END
 

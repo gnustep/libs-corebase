@@ -31,13 +31,18 @@
 
 CF_EXTERN_C_BEGIN
 
+/** \ingroup CFBitVectorRef */
 typedef const struct __CFBitVector *CFBitVectorRef;
+/** \ingruop CFMutableBitVectorRef */
 typedef struct __CFBitVector *CFMutableBitVectorRef;
 
+/** \defgroup CFBitVectorRef CFBitVector Reference
+    \{
+ */
 typedef UInt32 CFBit;
 
-/*
- * Creating a Bit Vector
+/** \name Creating a Bit Vector
+    \{
  */
 CF_EXPORT CFBitVectorRef
 CFBitVectorCreate (CFAllocatorRef allocator, const UInt8 *bytes,
@@ -45,9 +50,10 @@ CFBitVectorCreate (CFAllocatorRef allocator, const UInt8 *bytes,
 
 CF_EXPORT CFBitVectorRef
 CFBitVectorCreateCopy (CFAllocatorRef allocator, CFBitVectorRef bv);
+/** \} */
 
-/*
- * Getting Information About a Bit Vector
+/** \name Getting Information About a Bit Vector
+    \{
  */
 CF_EXPORT Boolean
 CFBitVectorContainsBit (CFBitVectorRef bv, CFRange range, CFBit value);
@@ -69,17 +75,20 @@ CFBitVectorGetFirstIndexOfBit (CFBitVectorRef bv, CFRange range, CFBit value);
 
 CF_EXPORT CFIndex
 CFBitVectorGetLastIndexOfBit (CFBitVectorRef bv, CFRange range, CFBit value);
+/** \} */
 
-/*
- * Getting the CFBitVector Type ID
+/** \name Getting the CFBitVector Type ID
  */
 CF_EXPORT CFTypeID
 CFBitVectorGetTypeID (void);
+/** \} */
+/** \} */
 
-
-
-/*
- * CFMutableBitVector
+/** \defgroup CFMutableBitVectorRef CFMutableBitVector Reference
+    \{
+ */
+/** \name Creating a mutable Bit Vector
+    \{
  */
 CF_EXPORT CFMutableBitVectorRef
 CFBitVectorCreateMutable (CFAllocatorRef allocator, CFIndex capacity);
@@ -87,7 +96,11 @@ CFBitVectorCreateMutable (CFAllocatorRef allocator, CFIndex capacity);
 CF_EXPORT CFMutableBitVectorRef
 CFBitVectorCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
   CFBitVectorRef bv);
+/** \} */
 
+/** \name Manipulating a Bit Vector
+    \{
+ */
 CF_EXPORT void
 CFBitVectorFlipBitAtIndex (CFMutableBitVectorRef bv, CFIndex idx);
 
@@ -105,6 +118,8 @@ CFBitVectorSetBits (CFMutableBitVectorRef bv, CFRange range, CFBit value);
 
 CF_EXPORT void
 CFBitVectorSetCount (CFMutableBitVectorRef bv, CFIndex count);
+/** \} */
+/** \} */
 
 CF_EXTERN_C_END
 

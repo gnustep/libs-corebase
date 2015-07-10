@@ -31,9 +31,10 @@
 
 CF_EXTERN_C_BEGIN
 
+/** \defgroup CFBinaryHeapRef CFBinaryHeap Reference
+    \{
+ */
 typedef struct __CFBinaryHeap *CFBinaryHeapRef;
-
-
 
 typedef void (*CFBinaryHeapApplierFunction) (const void *val, void *context);
 
@@ -68,9 +69,6 @@ struct CFBinaryHeapCompareContext
 CF_EXPORT const CFBinaryHeapCallBacks kCFStringBinaryHeapCallBacks;
 
 
-
-CF_EXPORT CFTypeID
-CFBinaryHeapGetTypeID (void);
 
 CF_EXPORT CFBinaryHeapRef
 CFBinaryHeapCreate (CFAllocatorRef allocator, CFIndex capacity,
@@ -111,6 +109,11 @@ CFBinaryHeapRemoveAllValues (CFBinaryHeapRef heap);
 
 CF_EXPORT void
 CFBinaryHeapRemoveMinimumValue (CFBinaryHeapRef heap);
+
+CF_EXPORT CFTypeID
+CFBinaryHeapGetTypeID (void);
+
+/** \} */
 
 CF_EXTERN_C_END
 

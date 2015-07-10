@@ -1,0 +1,35 @@
+/**
+\page CompilingApplications Compiling Applications
+The information in this page describes how to compile application that
+make use of functionality provided GNUstep CoreBase Library.
+
+To compile tools and/or application that make use of the GNUstep CoreBase
+Library, you will need tell the compiler where to find the header files, and
+the linker to use library and where it is located.  Most modern compilers
+allow you to do this in a single command.  For example, to compile a simple
+'hello world' program you would type the following:
+\code{.sh}
+  cc -I/path/to/header/files/ hello.c -L/path/to/library/ -lgnustep-corebase -o hello
+\endcode
+Where <b><code>cc</code></b> is the C Compiler.  If GNUstep CoreBase was
+installed to a standard location you can omit the <b><code>-I</code></b> and
+<b><code>-L</code></b> options.
+
+To compile an application using GNUstep Make, simply add
+<b><code>-lgnustep-corebase</code></b> to \$(NAME)_LIBRARIES_DEPEND_UPON.
+An example GNUmakefile for a simple 'hello world' program using GNUstep
+CoreBase would be:
+\code
+  include $(GNUSTEP_MAKEFILES)/common.make
+  
+  CTOOL_NAME = hello
+  $(CTOOL_NAME)_C_FILES = hello.c
+  $(CTOOL_NAME)_LIBRARIES_DEPEND_UPON = -lgnustep-corebase
+
+  include $(GNUSTEP_MAKEFILES)/ctool.make
+\endcode
+
+For more information about how to create GNUstep Make makefiles, visit the
+<a href="http://www.gnustep.org/resources/documentation/Developer/Make/Manual/gnustep-make.html">
+Make Utility</a> manual.
+*/

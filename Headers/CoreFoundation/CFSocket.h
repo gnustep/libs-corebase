@@ -1,17 +1,17 @@
 /* CFSocket.h
-   
+
    Copyright (C) 2012 Free Software Foundation, Inc.
-   
+
    Author: Stefan Bidigaray <stefanbidi@gmail.com>
    Date: September, 2012
-   
+
    This file is part of the GNUstep CoreBase Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2.1 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -32,8 +32,10 @@
 #include <CoreFoundation/CFDate.h>
 
 CF_EXTERN_C_BEGIN
-
-typedef struct __CFSocket * CFSocketRef;
+/** \defgroup CFSocketRef CFSocket Reference
+    \{
+ */
+typedef struct __CFSocket *CFSocketRef;
 
 #if defined(_WIN32)
 #include <winsock2.h>
@@ -63,24 +65,24 @@ struct CFSocketSignature
 
 typedef enum
 {
-  kCFSocketNoCallBack =      0,
-  kCFSocketReadCallBack =    1,
-  kCFSocketAcceptCallBack =  2,
-  kCFSocketDataCallBack =    3,
+  kCFSocketNoCallBack = 0,
+  kCFSocketReadCallBack = 1,
+  kCFSocketAcceptCallBack = 2,
+  kCFSocketDataCallBack = 3,
   kCFSocketConnectCallBack = 4
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
-  ,
-  kCFSocketWriteCallBack =   8
+    ,
+  kCFSocketWriteCallBack = 8
 #endif
 } CFSocketCallBackType;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 enum
 {
-  kCFSocketAutomaticallyReenableReadCallBack =   1,
+  kCFSocketAutomaticallyReenableReadCallBack = 1,
   kCFSocketAutomaticallyReenableAcceptCallBack = 2,
-  kCFSocketAutomaticallyReenableDataCallBack =   3,
-  kCFSocketAutomaticallyReenableWriteCallBack =  8,
+  kCFSocketAutomaticallyReenableDataCallBack = 3,
+  kCFSocketAutomaticallyReenableWriteCallBack = 8,
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
   kCFSocketLeaveErrors = 64,
 #endif
@@ -90,17 +92,20 @@ enum
 
 typedef enum
 {
-  kCFSocketSuccess =  0,
-  kCFSocketError =   -1,
+  kCFSocketSuccess = 0,
+  kCFSocketError = -1,
   kCFSocketTimeout = -2
 } CFSocketError;
 
 typedef void (*CFSocketCallBack) (CFSocketRef s,
                                   CFSocketCallBackType callbackType,
                                   CFDataRef address,
-                                  const void *data,
-                                  void *info);
+                                  const void *data, void *info);
+/** \} */
 
+/** \defgroup CFSocketUtils Socket Name Server Utilities
+    \{
+ */
 CF_EXPORT const CFStringRef kCFSocketCommandKey;
 CF_EXPORT const CFStringRef kCFSocketNameKey;
 CF_EXPORT const CFStringRef kCFSocketValueKey;
@@ -108,59 +113,56 @@ CF_EXPORT const CFStringRef kCFSocketResultKey;
 CF_EXPORT const CFStringRef kCFSocketErrorKey;
 CF_EXPORT const CFStringRef kCFSocketRegisterCommand;
 CF_EXPORT const CFStringRef kCFSocketRetrieveCommand;
+/** \} */
 
+CF_EXPORT CFTypeID CFSocketGetTypeID (void);
 
-
-CF_EXPORT CFTypeID
-CFSocketGetTypeID (void);
-
-/*
- * Creating Sockets
+/** \ingroup CFSocketRef
+    \{
+ */
+/** \name Creating Sockets
+    \{
  */
 CF_EXPORT CFSocketRef
 CFSocketCreate (CFAllocatorRef allocator, SInt32 protocolFamily,
                 SInt32 socketType, SInt32 protocol,
                 CFOptionFlags callBackTypes, CFSocketCallBack callout,
-                const CFSocketContext *context);
+                const CFSocketContext * context);
 
 CF_EXPORT CFSocketRef
 CFSocketCreateConnectedToSocketSignature (CFAllocatorRef allocator,
-                                          const CFSocketSignature *signature,
+                                          const CFSocketSignature * signature,
                                           CFOptionFlags callBackTypes,
                                           CFSocketCallBack callout,
-                                          const CFSocketContext *context,
+                                          const CFSocketContext * context,
                                           CFTimeInterval timeout);
 
 CF_EXPORT CFSocketRef
 CFSocketCreateWithNative (CFAllocatorRef allocator, CFSocketNativeHandle sock,
                           CFOptionFlags callBackTypes,
                           CFSocketCallBack callout,
-                          const CFSocketContext *context);
+                          const CFSocketContext * context);
 
 CF_EXPORT CFSocketRef
 CFSocketCreateWithSocketSignature (CFAllocatorRef allocator,
-                                   const CFSocketSignature *signature,
+                                   const CFSocketSignature * signature,
                                    CFOptionFlags callBackTypes,
                                    CFSocketCallBack callout,
-                                   const CFSocketContext *context);
+                                   const CFSocketContext * context);
+/** \} */
 
-/*
- * Configuring Sockets
+/** \name Configuring Sockets
+    \{
  */
-CF_EXPORT CFDataRef
-CFSocketCopyAddress (CFSocketRef s);
+CF_EXPORT CFDataRef CFSocketCopyAddress (CFSocketRef s);
 
-CF_EXPORT CFDataRef
-CFSocketCopyPeerAddress (CFSocketRef s);
+CF_EXPORT CFDataRef CFSocketCopyPeerAddress (CFSocketRef s);
 
-CF_EXPORT void
-CFSocketGetContext (CFSocketRef s, CFSocketContext *context);
+CF_EXPORT void CFSocketGetContext (CFSocketRef s, CFSocketContext * context);
 
-CF_EXPORT CFSocketNativeHandle
-CFSocketGetNative (CFSocketRef s);
+CF_EXPORT CFSocketNativeHandle CFSocketGetNative (CFSocketRef s);
 
-CF_EXPORT CFSocketError
-CFSocketSetAddress (CFSocketRef s, CFDataRef address);
+CF_EXPORT CFSocketError CFSocketSetAddress (CFSocketRef s, CFDataRef address);
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 CF_EXPORT void
@@ -169,15 +171,14 @@ CFSocketDisableCallBacks (CFSocketRef s, CFOptionFlags callBackTypes);
 CF_EXPORT void
 CFSocketEnableCallBacks (CFSocketRef s, CFOptionFlags callBackTypes);
 
-CF_EXPORT CFOptionFlags
-CFSocketGetSocketFlags (CFSocketRef s);
+CF_EXPORT CFOptionFlags CFSocketGetSocketFlags (CFSocketRef s);
 
-CF_EXPORT void
-CFSocketSetSocketFlags (CFSocketRef s, CFOptionFlags flags);
+CF_EXPORT void CFSocketSetSocketFlags (CFSocketRef s, CFOptionFlags flags);
 #endif
+/** \} */
 
-/*
- * Using Sockets
+/** \name Using Sockets
+    \{
  */
 CF_EXPORT CFSocketError
 CFSocketConnectToAddress (CFSocketRef s, CFDataRef address,
@@ -187,56 +188,52 @@ CF_EXPORT CFRunLoopSourceRef
 CFSocketCreateRunLoopSource (CFAllocatorRef allocator, CFSocketRef s,
                              CFIndex order);
 
-CF_EXPORT void
-CFSocketInvalidate (CFSocketRef s);
+CF_EXPORT void CFSocketInvalidate (CFSocketRef s);
 
-CF_EXPORT Boolean
-CFSocketIsValid (CFSocketRef s);
+CF_EXPORT Boolean CFSocketIsValid (CFSocketRef s);
 
 CF_EXPORT CFSocketError
 CFSocketSendData (CFSocketRef s, CFDataRef address, CFDataRef data,
                   CFTimeInterval timeout);
+/** \} */
+/** \} */
 
-/*
- * Socket Name Server Utilities
+/** \ingroup CFSocketUtils
+    \{
  */
 CF_EXPORT CFSocketError
-CFSocketCopyRegisteredSocketSignature (const CFSocketSignature *nameServerSignature,
-                                       CFTimeInterval timeout,
-                                       CFStringRef name,
-                                       CFSocketSignature *signature,
-                                       CFDataRef *nameServerAddress);
+CFSocketCopyRegisteredSocketSignature (const CFSocketSignature *
+                                       nameServerSignature,
+                                       CFTimeInterval timeout, CFStringRef name,
+                                       CFSocketSignature * signature,
+                                       CFDataRef * nameServerAddress);
 
 CF_EXPORT CFSocketError
-CFSocketCopyRegisteredValue (const CFSocketSignature *nameServerSignature,
+CFSocketCopyRegisteredValue (const CFSocketSignature * nameServerSignature,
                              CFTimeInterval timeout,
                              CFStringRef name,
-                             CFPropertyListRef *value,
-                             CFDataRef *nameServerAddress);
+                             CFPropertyListRef * value,
+                             CFDataRef * nameServerAddress);
 
-CF_EXPORT UInt16
-CFSocketGetDefaultNameRegistryPortNumber (void);
+CF_EXPORT UInt16 CFSocketGetDefaultNameRegistryPortNumber (void);
 
 CF_EXPORT CFSocketError
-CFSocketRegisterSocketSignature (const CFSocketSignature *nameServerSignature,
+CFSocketRegisterSocketSignature (const CFSocketSignature * nameServerSignature,
                                  CFTimeInterval timeout,
                                  CFStringRef name,
-                                 const CFSocketSignature *signature);
+                                 const CFSocketSignature * signature);
 
 CF_EXPORT CFSocketError
-CFSocketRegisterValue (const CFSocketSignature *nameServerSignature,
+CFSocketRegisterValue (const CFSocketSignature * nameServerSignature,
                        CFTimeInterval timeout,
-                       CFStringRef name,
-                       CFPropertyListRef value);
+                       CFStringRef name, CFPropertyListRef value);
 
-CF_EXPORT void
-CFSocketSetDefaultNameRegistryPortNumber (UInt16 port);
+CF_EXPORT void CFSocketSetDefaultNameRegistryPortNumber (UInt16 port);
 
 CF_EXPORT CFSocketError
-CFSocketUnregister (const CFSocketSignature *nameServerSignature,
+CFSocketUnregister (const CFSocketSignature * nameServerSignature,
                     CFTimeInterval timeout, CFStringRef name);
+/** \} */
 
 CF_EXTERN_C_END
-
 #endif /* __COREFOUNDATION_CFSOCKET_H__ */
-

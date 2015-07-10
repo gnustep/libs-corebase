@@ -36,14 +36,14 @@
 
 CF_EXTERN_C_BEGIN
 
-/** @defgroup CFNumberFormatter
-    @brief CFNumberFormatter can be used to format and parse CFStrings
+/** \defgroup CFNumberFormatterRef CFNUmberFormatter Reference
+    \brief CFNumberFormatter can be used to format and parse CFStrings
     into numbers.
     
     Unlike other Core Foundation types with similar names to Cocoa classes
     CFNumberFormatter is @b not "toll-free bridged" to NSNumberFormatter.
     
-    @{
+    \{
  */
 typedef struct __CFNumberFormatter *CFNumberFormatterRef;
 
@@ -202,8 +202,7 @@ CFNumberFormatterGetStyle (CFNumberFormatterRef formatter);
 CFTypeID
 CFNumberFormatterGetTypeID (void);
 
-/** @}
-*/
+/** \} */
 
 CF_EXTERN_C_END
 

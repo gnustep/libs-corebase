@@ -1,0 +1,85 @@
+/**
+\page ConfiguringAndCompiling Configuring and Compiling
+How to compile the GNUstep CoreBase Library.
+
+\tableofcontents
+
+\section ConfiguringAndCompilingIntroduction Introduction
+  The GNUstep CoreBase Library uses the GNU autoconf for package
+  configuration, and the GNUStep Make tool for generating object files and
+  building the shared library.  The recommended sequence for compiling and
+  install the library is by running the following commands:
+    \code{.sh}
+      $ ./configure
+      $ make
+      # make install
+    \endcode
+  Note that the \shcmd{make install} command must be executed as
+  system administrator (\em root on UNIX-like operating systems).
+
+\section ConfiguringAndCompilingDependencies Dependencies
+  Before configuring and compiling the GNUstep CoreBase Library you will
+  need to have various tools, libraries and development headers installed
+  on your system.
+
+  The following tools are required by GNUstep CoreBase before 
+  - <b>C Compiler</b> An ISO C99 compilant C compiler is required.  The
+    recommended compilers are the <a href="http://gcc.gnu.org">GNU
+    Compiler Collection</a> or <a href="http://clang.llvm.org">Clang
+    with LLVM</a>.  For
+    <a href="http://en.wikipedia.org/wiki/Blocks_%28C_language_extension%29">
+    Blocks</a> support, Clang is required.
+  - <b>Objective-C Compiler</b> Additionally, GNUstep CoreBase also makes
+    use of some Objective-C features.  Both C compilers recommended above
+    are able to compile Objective-C code.
+  - <b>GNU make</b> The GNUstep CoreBase makefiles use features specific
+    to <a href="http://www.gnu.org/software/make">GNU make</a>, and will
+    will not be correctly built if other make variants.  If your default
+    <b>make</b> tool is not GNU make, please install it before attempting
+    to compile.  Be mindful that in some systems, the GNU make tool is
+    invoked as \shcmd{gmake}.
+  - <b>GNUstep Make</b> In addition to the GNU make tool, the
+    <a href="http://wwwmain.gnustep.org/resources/downloads.php">GNUstep
+    Make </a> package is required.
+  - <b>Zoneinfo Database</b> To support Time Zones, a complete zoneinfo
+    database must be installed on your system.
+  - <b>Doxygen</b> <em>(Recommended)</em> Documentation is extracted from
+    the sources by the <b>doxygen</b> tool.  This is a recommended tool,
+    but not required.  If the <b>doxygen</b> tool is not found during the
+    configuration process, API documentation will not be generated and
+    installed.
+      
+  In addition to the tools listed above, GNUstep CoreBase also depends on
+  other libraries.  To successfully configure and compile, you will need
+  to install the libraries listed below along with their development headers.
+  - <b>C standard library</b> A POSIX compilant C standard library is
+    required and provides basic functionalities, such as memory allocation
+    and socket support.
+  - <b>Objective-C Runtime Library</b> To support "toll-free bridging",
+    a modern Objective-C Runtime in required.  See \ref
+    ConfiguringAndCompilingOptions for information on how to compile
+    without this package.
+  - <b>GNUstep Base Library</b> Required for "toll-free bridging" support.
+  - <b>International Components for Unicode</b> The ICU package provides
+    robust Unicode and Internationalization support.
+  - <b>Grand Central Dispatch</b> <em>(Recommended)</em> The \ref CFRunLoopRef
+    "CFRunLoop type" uses GCD for compatibility.  Compiling without
+    this library leads to a loss of functionality.  See \ref
+    ConfiguringAndCompilingOptions for information on how to compile
+    without this package.
+
+\section ConfiguringAndCompilingOptions Configuration Options
+
+  \par \--without-gcd
+    Compiles the library without Grand Central Dispatch Support.  Leads to
+    loss of functionality.
+  \par \--without-objc (not recommended)
+    Compiles the library without Objective-C runtime support.  This
+    leads to the loss the of the toll-free bridge capability between objects
+    created by this library and those created by the GNUstep Base library.
+  \par \--with-zoneinfo-dir=DIR
+    Specify the directory where the zoneinfo database can be found.  The
+    configure script looks for the database files in some standard location
+    and this option only needs to be used if the zoneinfo database is in
+    a non-standard directory.  DIR is an absolute path.
+*/

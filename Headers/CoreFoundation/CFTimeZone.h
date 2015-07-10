@@ -36,6 +36,9 @@
 
 CF_EXTERN_C_BEGIN
 
+/** \defgroup CFTimeZoneRef CFTimeZone Reference
+    \{
+ */
 CF_EXPORT const CFStringRef kCFTimeZoneSystemTimeZoneDidChangeNotification;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
@@ -111,6 +114,7 @@ CF_EXPORT CFAbsoluteTime
 CFTimeZoneGetNextDaylightSavingTimeTransition (CFTimeZoneRef tz,
   CFAbsoluteTime at);
 #endif
+/** \} */
 
 CF_EXTERN_C_END
 

@@ -34,8 +34,12 @@ CF_EXTERN_C_BEGIN
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 
+/** \ingroup CFErrorRef */
 typedef const struct __CFError * CFErrorRef;
 
+/** \defgroup CFErrorRef CFError Reference
+    \{
+ */
 CF_EXPORT const CFStringRef kCFErrorDomainPOSIX;
 CF_EXPORT const CFStringRef kCFErrorDomainOSStatus;
 CF_EXPORT const CFStringRef kCFErrorDomainMach;
@@ -49,8 +53,8 @@ CF_EXPORT const CFStringRef kCFErrorUnderlyingErrorKey;
 
 
 
-/*
- * Creating a CFError
+/** \name Creating a CFError
+    \{
  */
 CF_EXPORT CFErrorRef
 CFErrorCreate (CFAllocatorRef allocator, CFStringRef domain, CFIndex code,
@@ -60,9 +64,10 @@ CF_EXPORT CFErrorRef
 CFErrorCreateWithUserInfoKeysAndValues (CFAllocatorRef allocator,
   CFStringRef domain, CFIndex code, const void *const *userInfoKeys,
   const void *const *userInfoValues, CFIndex numUserInfoValues);
+/** \} */
 
-/*
- * Getting Information About an Error
+/** \name Getting Information About an Error
+    \{
  */
 CF_EXPORT CFStringRef
 CFErrorGetDomain (CFErrorRef err);
@@ -81,12 +86,15 @@ CFErrorCopyFailureReason (CFErrorRef err);
 
 CF_EXPORT CFStringRef
 CFErrorCopyRecoverySuggestion (CFErrorRef err);
+/** \} */
 
-/*
- * Getting the CFError Type ID
+/** \name Getting the CFError Type ID
+    \{
  */
 CF_EXPORT CFTypeID
 CFErrorGetTypeID (void);
+/** \} */
+/** \} */
 
 #endif /* MAC_OS_X_VERSION_10_5 */
 

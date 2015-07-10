@@ -1,0 +1,207 @@
+/**
+\mainpage GNUstep CoreBase Library Manual
+
+The GNUstep CoreBase Library is a
+<a href="http://www.gnu.org/philosophy/free-sw.html">free software</a>,
+cross-platform general-purpose utility library implementing the API of
+Apple's Core Foundation framework.  It works on many UNIX-like platforms
+such as GNU/Linux, FreeBSD, OpenBSD, NetBSD and Windows, and is
+frequently tested on x86, AMD64 and ARM CPU architectures.
+
+GNUstep CoreBase provides abstractions to common data types such as strings,
+raw data, numbers, arrays and dictionaries, supports internationalization
+by providing native support for Unicode strings and locale-based formatting,
+and includes a suite of utilities for property lists, run loops, sockets
+and much more.
+
+The library is part of the <a href="http://www.gnu.org">GNU Project</a> and
+licensed under the <a href="https://www.gnu.org/licenses/lgpl-2.1.html">GNU
+General Public License version 2.1</a> or a later version.
+
+\tableofcontents
+
+\section Overview Overview
+- \ref ConfiguringAndCompiling
+- \ref CompilingApplications
+
+\section Examples Examples
+- \ref ExampleEXUInt32
+
+\section LibraryReference Library Reference
+<code>\#include <CoreFoundation/CoreFoundation.h></code>
+<table style="width:80%">
+  <tr>
+    <th align="left" style="width:35%">Opaque Type References</th>
+    <th align="left" style="width:35%">Utilities</th>
+    <th align="left" style="width:30%">GNUstep Additions</th>
+  </tr>
+  <tr>
+    <td>\ref CFAllocatorRef "CFAllocator"</td>
+    <td>\ref BaseUtils</td>
+    <td>\ref CharUtils</tr>
+  </tr>
+  <tr>
+    <td>\ref CFArrayRef "CFArray"</td>
+    <td>\ref CFByteOrderUtils</td>
+    <td>\ref UnicodeUtils</td>
+  </tr>
+  <tr>
+    <td>\ref CFAttributedStringRef "CFAttributedtring"</td>
+    <td>\ref CFRuntimeUtils</td>
+  </tr>
+  <tr>
+    <td>\ref CFBagRef "CFBagString"</td>
+    <td>\ref CFSocketUtils</td>
+  </tr>
+  <tr>
+    <td>\ref CFBinaryHeapRef "CFBinaryHeap"</td>
+    <td>\ref CFStreamUtils</td>
+  </tr>
+  <tr>
+    <td>\ref CFBitVectorRef "CFBitVector"</td>
+    <td>\ref TimeUtils</td>
+  </tr>
+  <tr>
+    <td>\ref CFBooleanRef "CFBoolean"</td>
+    <td>\ref CFURLAccessUtils</td>
+  </tr>
+  <tr>
+    <td>CFBundle <em>(unimplemented)</em></td>
+  </tr>
+  <tr>
+    <td>\ref CFCalendarRef "CFCalendar"</td>
+  </tr>
+  <tr>
+    <td>\ref CFCharacterSetRef "CFCharacterSet"</td>
+  </tr>
+  <tr>
+    <td>\ref CFDataRef "CFData"</td>
+  </tr>
+  <tr>
+    <td>\ref CFDateRef "CFDate"</td>
+  </tr>
+  <tr>
+    <td>\ref CFDateFormatterRef "CFDateFormatter"</td>
+  </tr>
+  <tr>
+    <td>\ref CFDictionaryRef "CFDictionary"</td>
+  </tr>
+  <tr>
+    <td>\ref CFErrorRef "CFError"</td>
+  </tr>
+  <tr>
+    <td>CFFileDescriptor <em>(unimplemented)</em></td>
+  </tr>
+  <tr>
+    <td>\ref CFLocaleRef "CFLocale"</td>
+  </tr>
+  <tr>
+    <td>CFMessagePort <em>(unimplemented)</em></td>
+  </tr>
+  <tr>
+    <td>\ref CFMutableArrayRef "CFMutableArray"</td>
+  </tr>
+  <tr>
+    <td>\ref CFMutableAttributedStringRef "CFMutableAttributedString"</td>
+  </tr>
+  <tr>
+    <td>\ref CFMutableBagRef "CFMutableBag"</td>
+  </tr>
+  <tr>
+    <td>\ref CFMutableBitVectorRef "CFMutableBitVector"</td>
+  </tr>
+  <tr>
+    <td>\ref CFMutableCharacterSetRef "CFMutableCharacterSet"</td>
+  </tr>
+  <tr>
+    <td>\ref CFMutableDataRef "CFMutableData"</td>
+  </tr>
+  <tr>
+    <td>\ref CFMutableDictionaryRef "CFMutableDictionary"</td>
+  </tr>
+  <tr>
+    <td>\ref CFMutableSetRef "CFMutableSet"</td>
+  </tr>
+  <tr>
+    <td>\ref CFMutableStringRef "CFMutableString"</td>
+  </tr>
+  <tr>
+    <td>CFNotificationCenter <em>(unimplemented)</em></td>
+  </tr>
+  <tr>
+    <td>\ref CFNullRef "CFNull"</td>
+  </tr>
+  <tr>
+    <td>\ref CFNumberRef "CFNumber"</td>
+  </tr>
+  <tr>
+    <td>\ref CFNumberFormatterRef "CFNumberFormatter"</td>
+  </tr>
+  <tr>
+    <td>CFPlugIn <em>(unimplemented)</em></td>
+  </tr>
+  <tr>
+    <td>CFPlugInInstance <em>(unimplemented)</em></td>
+  </tr>
+  <tr>
+    <td>\ref CFPropertyListRef "CFPropertyList"</td>
+  </tr>
+  <tr>
+    <td>\ref CFReadStreamRef "CFReadStream"</td>
+  </tr>
+  <tr>
+    <td>\ref CFRunLoopRef "CFRunLoop"</td>
+  </tr>
+  <tr>
+    <td>\ref CFRunLoopObserverRef "CFRunLoopObserver"</td>
+  </tr>
+  <tr>
+    <td>\ref CFRunLoopSourceRef "CFRunLoopSource"</td>
+  </tr>
+  <tr>
+    <td>\ref CFRunLoopTimerRef "CFRunLoopTimer"</td>
+  </tr>
+  <tr>
+    <td>\ref CFSetRef "CFSet"</td>
+  </tr>
+  <tr>
+    <td>\ref CFSocketRef "CFSocket"</td>
+  </tr>
+  <tr>
+    <td>\ref CFStringRef "CFString"</td>
+  </tr>
+  <tr>
+    <td>CFStringTokenizer <em>(unimplemented)</em></td>
+  </tr>
+  <tr>
+    <td>\ref CFTimeZoneRef "CFTimeZone"</td>
+  </tr>
+  <tr>
+    <td>\ref CFTreeRef "CFTree"</td>
+  </tr>
+  <tr>
+    <td>\ref CFTypeRef "CFType"</td>
+  </tr>
+  <tr>
+    <td>\ref CFURLRef "CFURL"</td>
+  </tr>
+  <tr>
+    <td>CFUserNotification <em>(unimplemented)</em></td>
+  </tr>
+  <tr>
+    <td>\ref CFUUIDRef "CFUUID"</td>
+  </tr>
+  <tr>
+    <td>\ref CFWriteStreamRef "CFWriteStream"</td>
+  </tr>
+  <tr>
+    <td>\ref CFXMLNodeRef "CFXMLNode \em (deprecated)"</td>
+  </tr>
+  <tr>
+    <td>\ref CFXMLParserRef "CFXMLParser (deprecated)"</td>
+  </tr>
+  <tr>
+    <td>\ref CFXMLTreeRef "CFXMLTree (deprecated)"</td>
+  </tr>
+</table>
+*/

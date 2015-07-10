@@ -623,6 +623,7 @@ CFOpenStepPlistParseString (CFAllocatorRef alloc, CFPlistString * string)
               CFStringAppendCharacters (tmp, mark, string->cursor - mark);
 
               ch = *string->cursor++;
+              /* FIXME */
               if (ch >= '0' && ch <= '9')
                 {
                 }
@@ -861,7 +862,7 @@ CFPlistWriteStreamWrite (CFPlistWriteStream * stream, const UInt8 * buf,
     {
       CFIndex writeLen;
 
-      /* Flush buffer is needed */
+      /* Flush buffer if needed */
       if (stream->cursor == stream->buffer + _kCFPlistBufferSize)
         CFPlistWriteStreamFlush (stream);
 
@@ -978,8 +979,7 @@ CFXMLPlistWriteObject (CFPropertyListRef plist, CFPlistWriteStream * stream,
     }
   else if (typeID == CFBooleanGetTypeID ())
     {
-      /* <true/> or <false/>
-       */
+      /* <true/> or <false/> */
       if (plist == kCFBooleanTrue)
         CFPlistWriteStreamWrite (stream, (const UInt8 *) "<true/>", 7);
       else if (plist == kCFBooleanFalse)
@@ -987,16 +987,14 @@ CFXMLPlistWriteObject (CFPropertyListRef plist, CFPlistWriteStream * stream,
     }
   else if (typeID == CFDataGetTypeID ())
     {
-      /* <data>Base64 Data</data>
-       */
+      /* <data>Base64 Data</data> */
       CFPlistWriteStreamWrite (stream, (const UInt8 *) "<data>", 6);
       CFPlistWriteDataBase64 ((CFDataRef) plist, stream);
       CFPlistWriteStreamWrite (stream, (const UInt8 *) "</data>", 7);
     }
   else if (typeID == CFDateGetTypeID ())
     {
-      /* <date>%04d-%02d-%02dT%02d:%02d:%02dZ</date>
-       */
+      /* <date>%04d-%02d-%02dT%02d:%02d:%02dZ</date> */
       CFAbsoluteTime at;
       CFGregorianDate gdate;
       int printed;
@@ -1034,15 +1032,13 @@ CFXMLPlistWriteObject (CFPropertyListRef plist, CFPlistWriteStream * stream,
     }
   else if (typeID == CFStringGetTypeID ())
     {
-      /* <string>String</string>
-       */
+      /* <string>String</string> */
       CFPlistWriteStreamWrite (stream, (const UInt8 *) "<string>", 8);
       CFPlistWriteXMLString ((CFStringRef) plist, stream);
       CFPlistWriteStreamWrite (stream, (const UInt8 *) "</string>", 9);
     }
   else
     {
-      
       return;
     }
 
@@ -1201,8 +1197,7 @@ CFOpenStepPlistWriteObject (CFPropertyListRef plist,
     }
   else if (typeID == CFDataGetTypeID ())
     {
-      /* <Hexadecimal Data>
-       */
+      /* <Hexadecimal Data> */
       CFPlistWriteStreamWrite (stream, (const UInt8 *) "<", 1);
       CFPlistWriteDataBase16 ((CFDataRef) plist, stream);
       CFPlistWriteStreamWrite (stream, (const UInt8 *) ">", 1);
@@ -1247,8 +1242,8 @@ CFOpenStepPlistWriteObject (CFPropertyListRef plist,
     }
   else if (typeID == CFStringGetTypeID ())
     {
-      /* String or "Quotable String"
-       */ CFPlistWriteOpenStepString ((CFStringRef) plist, stream);
+      /* String or "Quotable String" */
+      CFPlistWriteOpenStepString ((CFStringRef) plist, stream);
     }
   else
     {

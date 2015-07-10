@@ -32,9 +32,14 @@
 
 CF_EXTERN_C_BEGIN
 
+/** \ingroup CFCharacterSetRef */
 typedef const struct __CFCharacterSet * CFCharacterSetRef;
+/** \ingroup CFMutableCharacterSetRef */
 typedef struct __CFCharacterSet * CFMutableCharacterSetRef;
 
+/** \defgroup CFCharacterSetRef CFCharacterSet Reference
+    \{
+ */
 typedef enum
 {
   kCFCharacterSetControl = 1,
@@ -62,14 +67,8 @@ typedef enum
 
 
 
-/*
- * Getting the Character Set Type Identifier
- */
-CF_EXPORT CFTypeID
-CFCharacterSetGetTypeID (void);
-
-/*
- * Creating Character Sets
+/** \name Creating Character Sets
+    \{
  */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_3, GS_API_LATEST)
 CF_EXPORT CFCharacterSetRef
@@ -92,15 +91,17 @@ CFCharacterSetCreateWithCharactersInString (CFAllocatorRef alloc,
 CF_EXPORT CFCharacterSetRef
 CFCharacterSetCreateWithBitmapRepresentation (CFAllocatorRef alloc,
   CFDataRef data);
+/** \} */
 
-/*
- * Getting Predefined Character Sets
+/** \name Getting Predefined Character Sets
+    \{
  */
 CF_EXPORT CFCharacterSetRef
 CFCharacterSetGetPredefined (CFCharacterSetPredefinedSet setIdentifier);
+/** \} */
 
-/*
- * Querying Character Sets
+/** \name Querying Character Sets
+    \{
  */
 CF_EXPORT CFDataRef
 CFCharacterSetCreateBitmapRepresentation (CFAllocatorRef alloc,
@@ -120,11 +121,18 @@ CF_EXPORT Boolean
 CFCharacterSetIsSupersetOfSet (CFCharacterSetRef set,
   CFCharacterSetRef otherSet);
 #endif
+/** \} */
 
+/** \name Getting the Character Set Type Identifier
+    \{
+ */
+CF_EXPORT CFTypeID
+CFCharacterSetGetTypeID (void);
+/** \} */
+/** \} */
 
-
-/*
- * CFMutableCharacterSet
+/** \defgroup CFMutableCharacterSetRef CFMutableCharacterSet Reference
+    \{
  */
 CF_EXPORT CFMutableCharacterSetRef
 CFCharacterSetCreateMutable (CFAllocatorRef alloc);
@@ -157,6 +165,7 @@ CFCharacterSetInvert (CFMutableCharacterSetRef set);
 
 CF_EXPORT void
 CFCharacterSetUnion (CFMutableCharacterSetRef set, CFCharacterSetRef otherSet);
+/** \} */
 
 CF_EXTERN_C_END
 

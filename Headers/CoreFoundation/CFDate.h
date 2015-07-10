@@ -1,12 +1,12 @@
 /* CFDate.h
-   
+
    Copyright (C) 2010 Free Software Foundation, Inc.
-   
+
    Written by: Stefan Bidigaray
    Date: January, 2010
-   
+
    This file is part of GNUstep CoreBase Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -31,9 +31,17 @@
 
 CF_EXTERN_C_BEGIN
 
+/** \ingroup CFDateRef */
 typedef const struct __CFDate *CFDateRef;
+/** \ingroup CFTimeZoneRef */
 typedef const struct __CFTimeZone *CFTimeZoneRef;
 
+/** \defgroup TimeUtils Time Utilities
+    \{
+ */
+/** \name Data Types
+    \{
+ */
 typedef double CFTimeInterval;
 typedef CFTimeInterval CFAbsoluteTime;
 
@@ -69,21 +77,23 @@ typedef enum
   kCFGregorianUnitsSeconds = (1 << 5),
   kCFGregorianAllUnits = 0x00FFFFFF
 } CFGregorianUnitFlags;
+/** \} */
 
+/** \name Constants
+    \{
+ */
 CF_EXPORT const CFTimeInterval kCFAbsoluteTimeIntervalSince1970;
 CF_EXPORT const CFTimeInterval kCFAbsoluteTimeIntervalSince1904;
+/** \} */
 
-
-
-/*
- * Time Utilities
+/** \name Time Utilities Functions
+    \{
  */
 CF_EXPORT CFAbsoluteTime
 CFAbsoluteTimeAddGregorianUnits (CFAbsoluteTime at, CFTimeZoneRef tz,
-  CFGregorianUnits units);
+                                 CFGregorianUnits units);
 
-CF_EXPORT CFAbsoluteTime
-CFAbsoluteTimeGetCurrent (void);
+CF_EXPORT CFAbsoluteTime CFAbsoluteTimeGetCurrent (void);
 
 CF_EXPORT SInt32
 CFAbsoluteTimeGetDayOfWeek (CFAbsoluteTime at, CFTimeZoneRef tz);
@@ -93,7 +103,9 @@ CFAbsoluteTimeGetDayOfYear (CFAbsoluteTime at, CFTimeZoneRef tz);
 
 CF_EXPORT CFGregorianUnits
 CFAbsoluteTimeGetDifferenceAsGregorianUnits (CFAbsoluteTime at1,
-  CFAbsoluteTime at2, CFTimeZoneRef tz, CFOptionFlags unitFlags);
+                                             CFAbsoluteTime at2,
+                                             CFTimeZoneRef tz,
+                                             CFOptionFlags unitFlags);
 
 CF_EXPORT CFGregorianDate
 CFAbsoluteTimeGetGregorianDate (CFAbsoluteTime at, CFTimeZoneRef tz);
@@ -106,26 +118,28 @@ CFGregorianDateGetAbsoluteTime (CFGregorianDate gdate, CFTimeZoneRef tz);
 
 CF_EXPORT Boolean
 CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags);
+/** \} */
+/** \} */
 
-/*
- * CFDate Functions
+/** \defgroup CFDateRef CFData Reference
+    \{
+ */
+/** \name CFDate Functions
+    \{
  */
 CF_EXPORT CFComparisonResult
 CFDateCompare (CFDateRef theDate, CFDateRef otherDate, void *context);
 
-CF_EXPORT CFDateRef
-CFDateCreate (CFAllocatorRef allocator, CFAbsoluteTime at);
+CF_EXPORT CFDateRef CFDateCreate (CFAllocatorRef allocator, CFAbsoluteTime at);
 
-CF_EXPORT CFAbsoluteTime
-CFDateGetAbsoluteTime (CFDateRef theDate);
+CF_EXPORT CFAbsoluteTime CFDateGetAbsoluteTime (CFDateRef theDate);
 
 CF_EXPORT CFTimeInterval
 CFDateGetTimeIntervalSinceDate (CFDateRef theDate, CFDateRef otherDate);
 
-CF_EXPORT CFTypeID
-CFDateGetTypeID (void);
+CF_EXPORT CFTypeID CFDateGetTypeID (void);
+/** \} */
+/** \} */
 
 CF_EXTERN_C_END
-
 #endif /* __COREFOUNDATION_CFDATE_H__ */
-

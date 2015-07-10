@@ -31,100 +31,117 @@
 #include <CoreFoundation/CFDictionary.h>
 
 CF_EXTERN_C_BEGIN
+/** \ingroup CFAttributedStringRef */
+typedef const struct __CFAttributedString *CFAttributedStringRef;
+/** \ingroup CFMutableAttributedStringRef */
+typedef struct __CFAttributedString *CFMutableAttributedStringRef;
 
-typedef const struct __CFAttributedString * CFAttributedStringRef;
-typedef struct __CFAttributedString * CFMutableAttributedStringRef;
-
-/*
- * Getting Attributed String Properties
+/** \defgroup CFAttributedStringRef CFAttributedString Reference
+    \{
  */
-CF_EXPORT CFTypeID
-CFAttributedStringGetTypeID (void);
-
-/*
- * Creating a CFAttributedString
+/** \name Creating a CFAttributedString
+    \{
  */
 CF_EXPORT CFAttributedStringRef
 CFAttributedStringCreate (CFAllocatorRef alloc, CFStringRef str,
-  CFDictionaryRef attribs);
+                          CFDictionaryRef attribs);
 
 CF_EXPORT CFAttributedStringRef
 CFAttributedStringCreateCopy (CFAllocatorRef alloc, CFAttributedStringRef str);
 
 CF_EXPORT CFAttributedStringRef
 CFAttributedStringCreateWithSubstring (CFAllocatorRef alloc,
-  CFAttributedStringRef str, CFRange range);
+                                       CFAttributedStringRef str,
+                                       CFRange range);
 
-CF_EXPORT CFIndex
-CFAttributedStringGetLength (CFAttributedStringRef str);
+CF_EXPORT CFIndex CFAttributedStringGetLength (CFAttributedStringRef str);
 
-CF_EXPORT CFStringRef
-CFAttributedStringGetString (CFAttributedStringRef str);
+CF_EXPORT CFStringRef CFAttributedStringGetString (CFAttributedStringRef str);
+/** \} */
 
-/*
- * Accessing Attributes
+/** \name Accessing Attributes
+    \{
  */
 CF_EXPORT CFTypeRef
 CFAttributedStringGetAttribute (CFAttributedStringRef str, CFIndex loc,
-  CFStringRef attrName, CFRange *effRange);
+                                CFStringRef attrName, CFRange * effRange);
 
 CF_EXPORT CFDictionaryRef
 CFAttributedStringGetAttributes (CFAttributedStringRef str, CFIndex loc,
-  CFRange *effRange);
+                                 CFRange * effRange);
 
 CF_EXPORT CFTypeRef
-CFAttributedStringGetAttributeAndLongestEffectiveRange (
-  CFAttributedStringRef str, CFIndex loc, CFStringRef attrName,
-  CFRange inRange, CFRange *longestEffRange);
+CFAttributedStringGetAttributeAndLongestEffectiveRange (CFAttributedStringRef
+                                                        str, CFIndex loc,
+                                                        CFStringRef attrName,
+                                                        CFRange inRange,
+                                                        CFRange *
+                                                        longestEffRange);
 
 CF_EXPORT CFDictionaryRef
-CFAttributedStringGetAttributesAndLongestEffectiveRange (
-  CFAttributedStringRef str, CFIndex loc, CFRange inRange,
-  CFRange *longestEffRange);
+CFAttributedStringGetAttributesAndLongestEffectiveRange (CFAttributedStringRef
+                                                         str, CFIndex loc,
+                                                         CFRange inRange,
+                                                         CFRange *
+                                                         longestEffRange);
+/** \} */
 
-/*
- * Creating a CFMutableAttributedString
+/** \name Getting Attributed String Properties
+    \{
+ */
+CF_EXPORT CFTypeID CFAttributedStringGetTypeID (void);
+/** \} */
+/** \} */
+
+/** \defgroup CFMutableAttributedStringRef CFMutableAttributedString Reference
+    \{
+ */
+/** \name Creating a CFMutableAttributedString
+    \{
  */
 CF_EXPORT CFMutableAttributedStringRef
 CFAttributedStringCreateMutable (CFAllocatorRef alloc, CFIndex maxLength);
 
 CF_EXPORT CFMutableAttributedStringRef
 CFAttributedStringCreateMutableCopy (CFAllocatorRef alloc, CFIndex maxLength,
-  CFAttributedStringRef str);
+                                     CFAttributedStringRef str);
+/** \} */
 
-/*
- * Modifying a CFMutableAttributedString
+/** \name Modifying a CFMutableAttributedString
+    \{
  */
 CF_EXPORT void
 CFAttributedStringBeginEditing (CFMutableAttributedStringRef str);
 
-CF_EXPORT void
-CFAttributedStringEndEditing (CFMutableAttributedStringRef str);
+CF_EXPORT void CFAttributedStringEndEditing (CFMutableAttributedStringRef str);
 
 CF_EXPORT CFMutableStringRef
 CFAttributedStringGetMutableString (CFMutableAttributedStringRef str);
 
 CF_EXPORT void
 CFAttributedStringRemoveAttribute (CFMutableAttributedStringRef str,
-  CFRange range, CFStringRef attrName);
+                                   CFRange range, CFStringRef attrName);
 
 CF_EXPORT void
 CFAttributedStringReplaceString (CFMutableAttributedStringRef str,
-  CFRange range, CFStringRef repl);
+                                 CFRange range, CFStringRef repl);
 
 CF_EXPORT void
 CFAttributedStringReplaceAttributedString (CFMutableAttributedStringRef str,
-  CFRange range, CFAttributedStringRef repl);
+                                           CFRange range,
+                                           CFAttributedStringRef repl);
 
 CF_EXPORT void
 CFAttributedStringSetAttribute (CFMutableAttributedStringRef str,
-  CFRange range, CFStringRef attrName, CFTypeRef value);
+                                CFRange range, CFStringRef attrName,
+                                CFTypeRef value);
 
 CF_EXPORT void
 CFAttributedStringSetAttributes (CFMutableAttributedStringRef str,
-  CFRange range, CFDictionaryRef repl, Boolean clearOtherAttribs);
+                                 CFRange range, CFDictionaryRef repl,
+                                 Boolean clearOtherAttribs);
+/** \} */
+/** \} */
 
 CF_EXTERN_C_END
-
 #endif /* __COREFOUNDATION_CFATTRIBUTEDSTIRNG_H__ */
-

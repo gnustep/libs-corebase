@@ -1,12 +1,12 @@
 /* CFXMLNode.h
-   
+
    Copyright (C) 2010 Free Software Foundation, Inc.
-   
+
    Written by: Stefan Bidigaray
    Date: December, 2011
-   
+
    This file is part of the GNUstep CoreBase Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -34,16 +34,18 @@
 #include <CoreFoundation/CFURL.h>
 
 CF_EXTERN_C_BEGIN
-
+/** \defgroup CFXMLNodeRef CFXMLNode Reference (deprecated)
+    \{
+ */
 typedef const struct __CFXMLNode *CFXMLNodeRef;
 
 typedef enum
 {
-  kCFXMLEntityTypeParameter =      0,
+  kCFXMLEntityTypeParameter = 0,
   kCFXMLEntityTypeParsedInternal = 1,
   kCFXMLEntityTypeParsedExternal = 2,
-  kCFXMLEntityTypeUnparsed =       3,
-  kCFXMLEntityTypeCharacter =      4
+  kCFXMLEntityTypeUnparsed = 3,
+  kCFXMLEntityTypeCharacter = 4
 } CFXMLEntityTypeCode;
 
 enum
@@ -53,20 +55,20 @@ enum
 
 typedef enum
 {
-  kCFXMLNodeTypeDocument =                  1,
-  kCFXMLNodeTypeElement =                   2,
-  kCFXMLNodeTypeAttribute =                 3,
-  kCFXMLNodeTypeProcessingInstruction =     4,
-  kCFXMLNodeTypeComment =                   5,
-  kCFXMLNodeTypeText =                      6,
-  kCFXMLNodeTypeCDATASection =              7,
-  kCFXMLNodeTypeDocumentFragment =          8,
-  kCFXMLNodeTypeEntity =                    9,
-  kCFXMLNodeTypeEntityReference =          10,
-  kCFXMLNodeTypeDocumentType =             11,
-  kCFXMLNodeTypeWhitespace =               12,
-  kCFXMLNodeTypeNotation =                 13,
-  kCFXMLNodeTypeElementTypeDeclaration =   14,
+  kCFXMLNodeTypeDocument = 1,
+  kCFXMLNodeTypeElement = 2,
+  kCFXMLNodeTypeAttribute = 3,
+  kCFXMLNodeTypeProcessingInstruction = 4,
+  kCFXMLNodeTypeComment = 5,
+  kCFXMLNodeTypeText = 6,
+  kCFXMLNodeTypeCDATASection = 7,
+  kCFXMLNodeTypeDocumentFragment = 8,
+  kCFXMLNodeTypeEntity = 9,
+  kCFXMLNodeTypeEntityReference = 10,
+  kCFXMLNodeTypeDocumentType = 11,
+  kCFXMLNodeTypeWhitespace = 12,
+  kCFXMLNodeTypeNotation = 13,
+  kCFXMLNodeTypeElementTypeDeclaration = 14,
   kCFXMLNodeTypeAttributeListDeclaration = 15
 } CFXMLNodeTypeCode;
 
@@ -85,7 +87,8 @@ struct CFXMLAttributeDeclarationInfo
   CFStringRef defaultString;
 };
 
-typedef struct CFXMLAttributeListDeclarationInfo  CFXMLAttributeListDeclarationInfo;
+typedef struct CFXMLAttributeListDeclarationInfo
+  CFXMLAttributeListDeclarationInfo;
 struct CFXMLAttributeListDeclarationInfo
 {
   CFIndex numberOfAttributes;
@@ -146,44 +149,31 @@ struct CFXMLProcessingInstructionInfo
   CFStringRef dataString;
 };
 
-
-
-CF_EXPORT CFTypeID
-CFXMLNodeGetTypeID (void);
+CF_EXPORT CFTypeID CFXMLNodeGetTypeID (void);
 
 CF_EXPORT CFXMLNodeRef
 CFXMLNodeCreate (CFAllocatorRef alloc, CFXMLNodeTypeCode xmlType,
-  CFStringRef dataString, const void *additionalInfoPtr, CFIndex version);
+                 CFStringRef dataString, const void *additionalInfoPtr,
+                 CFIndex version);
 
 CF_EXPORT CFXMLNodeRef
 CFXMLNodeCreateCopy (CFAllocatorRef alloc, CFXMLNodeRef origNode);
 
-CF_EXPORT const void *
-CFXMLNodeGetInfoPtr (CFXMLNodeRef node);
+CF_EXPORT const void *CFXMLNodeGetInfoPtr (CFXMLNodeRef node);
 
-CF_EXPORT CFStringRef
-CFXMLNodeGetString (CFXMLNodeRef node);
+CF_EXPORT CFStringRef CFXMLNodeGetString (CFXMLNodeRef node);
 
-CF_EXPORT CFXMLNodeTypeCode
-CFXMLNodeGetTypeCode (CFXMLNodeRef node);
+CF_EXPORT CFXMLNodeTypeCode CFXMLNodeGetTypeCode (CFXMLNodeRef node);
 
-CF_EXPORT CFIndex
-CFXMLNodeGetVersion (CFXMLNodeRef node);
+CF_EXPORT CFIndex CFXMLNodeGetVersion (CFXMLNodeRef node);
 
-
-
-/*
- * CFXMLTree
- */
 typedef CFTreeRef CFXMLTreeRef;
 
 CF_EXPORT CFXMLTreeRef
 CFXMLTreeCreateWithNode (CFAllocatorRef allocator, CFXMLNodeRef node);
 
-CF_EXPORT CFXMLNodeRef
-CFXMLTreeGetNode (CFXMLTreeRef xmlTree);
+CF_EXPORT CFXMLNodeRef CFXMLTreeGetNode (CFXMLTreeRef xmlTree);
+/** \} */
 
 CF_EXTERN_C_END
-
 #endif /* __CFCOREFOUNDATION_CFXMLNODE_H__ */
-

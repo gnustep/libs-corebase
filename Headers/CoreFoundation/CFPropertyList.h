@@ -34,6 +34,9 @@
 
 CF_EXTERN_C_BEGIN
 
+/** \defgroup CFPropertyListRef CFPropertyList Reference
+    \{
+ */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2, GS_API_LATEST)
 typedef enum
 {
@@ -59,8 +62,6 @@ enum
    kCFPropertyListWriteStreamError = 3851,
 };
 #endif
-
-
 
 CF_EXPORT CFPropertyListRef
 CFPropertyListCreateDeepCopy (CFAllocatorRef allocator,
@@ -123,6 +124,7 @@ CFPropertyListWriteToStream (CFPropertyListRef propertyList,
                              CFPropertyListFormat format,
                              CFStringRef *errorString);
 #endif
+/** \} */
 
 CF_EXTERN_C_END
 

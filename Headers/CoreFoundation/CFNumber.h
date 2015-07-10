@@ -1,12 +1,12 @@
 /* CFNumber.h
-   
+
    Copyright (C) 2010 Free Software Foundation, Inc.
-   
+
    Written by: Stefan Bidigaray
    Date: January, 2010
-   
+
    This file is part of GNUstep CoreBase Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -30,22 +30,25 @@
 #include <CoreFoundation/CFBase.h>
 
 CF_EXTERN_C_BEGIN
+/** \ingroup CFBooleanRef */
+typedef const struct __CFBoolean *CFBooleanRef;
+/** \ingroup CFNumberRef */
+typedef const struct __CFNumber *CFNumberRef;
 
-typedef const struct __CFBoolean * CFBooleanRef;
-
+/** \defgroup CFBooleanRef CFBoolean Reference
+    \{
+ */
 CF_EXPORT const CFBooleanRef kCFBooleanTrue;
 CF_EXPORT const CFBooleanRef kCFBooleanFalse;
 
-CF_EXPORT CFTypeID
-CFBooleanGetTypeID (void);
+CF_EXPORT CFTypeID CFBooleanGetTypeID (void);
 
-CF_EXPORT Boolean
-CFBooleanGetValue (CFBooleanRef boolean);
+CF_EXPORT Boolean CFBooleanGetValue (CFBooleanRef boolean);
+/** \} */
 
-
-
-typedef const struct __CFNumber * CFNumberRef;
-
+/** \defgroup CFNumberRef CFNumber Reference
+    \{
+ */
 CF_EXPORT const CFNumberRef kCFNumberNaN;
 CF_EXPORT const CFNumberRef kCFNumberNegativeInfinity;
 CF_EXPORT const CFNumberRef kCFNumberPositiveInfinity;
@@ -75,43 +78,40 @@ typedef enum
 #endif
 } CFNumberType;
 
-
-
-/*
- * Creating a Number
+/** \name Creating a Number
+    \{
  */
 CF_EXPORT CFNumberRef
 CFNumberCreate (CFAllocatorRef allocator, CFNumberType theType,
-  const void *valuePtr);
+                const void *valuePtr);
+/** \} */
 
-/*
- * Getting Information About Numbers
+/** \name Getting Information About Numbers
+    \{
  */
-CF_EXPORT CFIndex
-CFNumberGetByteSize (CFNumberRef number);
+CF_EXPORT CFIndex CFNumberGetByteSize (CFNumberRef number);
 
-CF_EXPORT CFNumberType
-CFNumberGetType (CFNumberRef number);
+CF_EXPORT CFNumberType CFNumberGetType (CFNumberRef number);
 
 CF_EXPORT Boolean
 CFNumberGetValue (CFNumberRef number, CFNumberType theType, void *valuePtr);
 
-CF_EXPORT Boolean
-CFNumberIsFloatType (CFNumberRef number);
+CF_EXPORT Boolean CFNumberIsFloatType (CFNumberRef number);
+/** \} */
 
-/*
- * Comparing Numbers
+/** \name Comparing Numbers
+    \{
  */
 CF_EXPORT CFComparisonResult
 CFNumberCompare (CFNumberRef number, CFNumberRef otherNumber, void *context);
+/** \} */
 
-/*
- * Getting the CFNumber Type ID
+/** \name Getting the CFNumber Type ID
+    \{
  */
-CF_EXPORT CFTypeID
-CFNumberGetTypeID (void);
+CF_EXPORT CFTypeID CFNumberGetTypeID (void);
+/** \} */
+/** \} */
 
 CF_EXTERN_C_END
-
 #endif /* __COREFOUNDATION_CFNUMBER_H__ */
-

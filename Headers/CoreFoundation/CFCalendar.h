@@ -34,7 +34,9 @@
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 
 CF_EXTERN_C_BEGIN
-
+/** \defgroup CFCalendarRef CFCalendar Reference
+    \{
+ */
 /** CFCalendar is "toll-free bridged" to NSCalendar.
  */
 typedef struct __CFCalendar *CFCalendarRef;
@@ -61,106 +63,104 @@ enum
   kCFCalendarComponentsWrap = (1UL << 0)
 };
 
-/*
- * Creating a Calendar
+/** \name Creating a Calendar
+    \{
  */
-CFCalendarRef
-CFCalendarCopyCurrent (void);
+CF_EXPORT CFCalendarRef CFCalendarCopyCurrent (void);
 
-CFCalendarRef
+CF_EXPORT CFCalendarRef
 CFCalendarCreateWithIdentifier (CFAllocatorRef allocator, CFStringRef ident);
+/** \} */
 
-/*
- * Calendrical Calculations
+/** \name Calendrical Calculations
+    \{
  */
-Boolean
-CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime *at,
-  CFOptionFlags options, const char *componentDesc, ...);
+CF_EXPORT Boolean
+CFCalendarAddComponents (CFCalendarRef cal, CFAbsoluteTime * at,
+                         CFOptionFlags options, const char *componentDesc, ...);
 
-Boolean
-CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime *at,
-  const char *componentDesc, ...);
+CF_EXPORT Boolean
+CFCalendarComposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime * at,
+                               const char *componentDesc, ...);
 
-Boolean
+CF_EXPORT Boolean
 CFCalendarDecomposeAbsoluteTime (CFCalendarRef cal, CFAbsoluteTime at,
-  const char *componentDesc, ...);
+                                 const char *componentDesc, ...);
 
-Boolean
+CF_EXPORT Boolean
 CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startinAT,
-  CFAbsoluteTime resultAT, CFOptionFlags options,
-  const char *componentDesc, ...);
+                                  CFAbsoluteTime resultAT,
+                                  CFOptionFlags options,
+                                  const char *componentDesc, ...);
+/** \} */
 
-/*
- * Getting Ranges of Units
+/** \name Getting Ranges of Units
+    \{
  */
-CFRange
+CF_EXPORT CFRange
 CFCalendarGetRangeOfUnit (CFCalendarRef cal, CFCalendarUnit smallerUnit,
-  CFCalendarUnit biggerUnit, CFAbsoluteTime at);
+                          CFCalendarUnit biggerUnit, CFAbsoluteTime at);
 
-CFIndex
+CF_EXPORT CFIndex
 CFCalendarGetOrdinalityOfUnit (CFCalendarRef cal, CFCalendarUnit smallerUnit,
-  CFCalendarUnit biggerUnit, CFAbsoluteTime at);
+                               CFCalendarUnit biggerUnit, CFAbsoluteTime at);
 
-CFRange
+CF_EXPORT CFRange
 CFCalendarGetMaximumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit);
 
-CFRange
+CF_EXPORT CFRange
 CFCalendarGetMinimumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit);
 
-/*
- * Getting and Setting the Time Zone
- */
-CFTimeZoneRef
-CFCalendarCopyTimeZone (CFCalendarRef cal);
-
-void
-CFCalendarSetTimeZone (CFCalendarRef cal, CFTimeZoneRef tz);
-
-/*
- * Getting the Identifier
- */
-CFStringRef
-CFCalendarGetIdentifier (CFCalendarRef cal);
-
-/*
- * Getting and Setting the Locale
- */
-CFLocaleRef
-CFCalendarCopyLocale (CFCalendarRef cal);
-
-void
-CFCalendarSetLocale (CFCalendarRef cal, CFLocaleRef locale);
-
-/*
- * Getting and Setting Day Information
- */
-CFIndex
-CFCalendarGetFirstWeekday (CFCalendarRef cal);
-
-void
-CFCalendarSetFirstWeekday (CFCalendarRef cal, CFIndex wkdy);
-
-CFIndex
-CFCalendarGetMinimumDaysInFirstWeek (CFCalendarRef cal);
-
-void
-CFCalendarSetMinimumDaysInFirstWeek (CFCalendarRef cal, CFIndex mwd);
-
-/*
- * Getting the Type ID
- */
-CFTypeID
-CFCalendarGetTypeID (void);
-
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
-Boolean
+CF_EXPORT Boolean
 CFCalendarGetTimeRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit,
-  CFAbsoluteTime at, CFAbsoluteTime *startp, CFTimeInterval *tip);
+                              CFAbsoluteTime at, CFAbsoluteTime * startp,
+                              CFTimeInterval * tip);
 #endif
+/** \} */
+
+/** \name Getting and Setting the Time Zone
+    \{
+ */
+CF_EXPORT CFTimeZoneRef CFCalendarCopyTimeZone (CFCalendarRef cal);
+
+CF_EXPORT void CFCalendarSetTimeZone (CFCalendarRef cal, CFTimeZoneRef tz);
+/** \} */
+
+/** \name Getting the Identifier
+    \{
+ */
+CF_EXPORT CFStringRef CFCalendarGetIdentifier (CFCalendarRef cal);
+/** \} */
+
+/** \name Getting and Setting the Locale
+    \{
+ */
+CF_EXPORT CFLocaleRef CFCalendarCopyLocale (CFCalendarRef cal);
+
+CF_EXPORT void CFCalendarSetLocale (CFCalendarRef cal, CFLocaleRef locale);
+/** \} */
+
+/** \name Getting and Setting Day Information
+    \{
+ */
+CF_EXPORT CFIndex CFCalendarGetFirstWeekday (CFCalendarRef cal);
+
+CF_EXPORT void CFCalendarSetFirstWeekday (CFCalendarRef cal, CFIndex wkdy);
+
+CF_EXPORT CFIndex CFCalendarGetMinimumDaysInFirstWeek (CFCalendarRef cal);
+
+CF_EXPORT void
+CFCalendarSetMinimumDaysInFirstWeek (CFCalendarRef cal, CFIndex mwd);
+/** \} */
+
+/** \name Getting the Type ID
+    \{
+ */
+CF_EXPORT CFTypeID CFCalendarGetTypeID (void);
+/** \} */
+/** \} */
 
 CF_EXTERN_C_END
-
 #endif /* MAC_OS_X_VERSION_10_4 */
-
 #endif /* __COREFOUNDATION_CFCALENDAR__ */
-

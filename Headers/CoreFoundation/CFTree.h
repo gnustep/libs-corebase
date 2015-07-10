@@ -1,12 +1,12 @@
 /* CFTree.h
-   
+
    Copyright (C) 2010 Free Software Foundation, Inc.
-   
+
    Written by: Stefan Bidigaray
    Date: December, 2011
-   
+
    This file is part of the GNUstep CoreBase Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
@@ -31,6 +31,9 @@
 
 CF_EXTERN_C_BEGIN
 
+/** \defgroup CFTreeRef CFTree Reference
+    \{
+ */
 typedef struct __CFTree *CFTreeRef;
 
 typedef void (*CFTreeApplierFunction) (const void *value, void *context);
@@ -49,14 +52,15 @@ struct _CFTreeContext
   CFTreeCopyDescriptionCallBack copyDescription;
 };
 
-/*
- * Creating Trees
+/** \name Creating Trees
+    \{
  */
 CF_EXPORT CFTreeRef
 CFTreeCreate (CFAllocatorRef allocator, const CFTreeContext *context);
+/** \} */
 
-/*
- * Modifying a Tree
+/** \name Modifying a Tree
+    \{
  */
 CF_EXPORT void
 CFTreeAppendChild (CFTreeRef tree, CFTreeRef newChild);
@@ -75,15 +79,17 @@ CFTreeRemove (CFTreeRef tree);
 
 CF_EXPORT void
 CFTreeSetContext (CFTreeRef tree, const CFTreeContext *context);
+/** \} */
 
-/*
- * Sorting a Tree
+/** \name Sorting a Tree
+    \{
  */
 CF_EXPORT void
 CFTreeSortChildren (CFTreeRef tree, CFComparatorFunction comp, void *context);
+/** \} */
 
-/*
- * Examining a Tree
+/** \name Examining a Tree
+    \{
  */
 CF_EXPORT CFTreeRef
 CFTreeFindRoot (CFTreeRef tree);
@@ -108,19 +114,23 @@ CFTreeGetNextSibling (CFTreeRef tree);
 
 CF_EXPORT CFTreeRef
 CFTreeGetParent (CFTreeRef tree);
+/** \} */
 
-/*
- * Performing an Operation on Tree Elements
+/** \name Performing an Operation on Tree Elements
+    \{
  */
 CF_EXPORT void
 CFTreeApplyFunctionToChildren (CFTreeRef tree, CFTreeApplierFunction applier,
   void *context);
+/** \} */
 
-/*
- * Getting the Tree Type ID
+/** \name Getting the Tree Type ID
+    \{
  */
 CF_EXPORT CFTypeID
 CFTreeGetTypeID (void);
+/** \} */
+/** \} */
 
 CF_EXTERN_C_END
 
