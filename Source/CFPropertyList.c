@@ -1266,7 +1266,7 @@ CFXMLPlistCreate (CFAllocatorRef alloc, CFPlistString * stream)
   return NULL;
 }
 
-static const UInt8 *_kCFBinaryPlistHeader = (const UInt8 *) "bplist00";
+static const UInt8 _kCFBinaryPlistHeader[] = "bplist00";
 static const CFIndex _kCFBinaryPlistHeaderLength =
   sizeof (_kCFBinaryPlistHeader) - 1;
 
@@ -1275,7 +1275,7 @@ CFBinaryPlistWrite (CFPropertyListRef plist, CFPlistWriteStream * stream)
 {
 }
 
-static const UInt8 *_kCFXMLPlistHeader = (const UInt8 *)
+static const UInt8 _kCFXMLPlistHeader[] =
   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
   "<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" \"http://www.gnustep.org/plist-0_9.dtd\">\n"
   "<plist version=\"0.9\">\n";

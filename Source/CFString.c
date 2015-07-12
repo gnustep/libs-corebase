@@ -908,22 +908,28 @@ CFStringCreateExternalRepresentation (CFAllocatorRef alloc,
 {
   UInt8 *buffer;
   CFRange range;
-  CFIndex numBytes;
+  CFIndex converted;
   CFIndex strLen;
   CFIndex len;
   CFIndex usedLen = 0;
 
   strLen = CFStringGetLength (str);
   range = CFRangeMake (0, strLen);
-  len = strLen + 1;             /* include space for a NULL byte. */
+  converted = CFStringGetBytes (str, range, encoding, lossByte, true, NULL, 0, &len);
+  if (converted == 0)
+    return NULL;
+  len += 1;             /* include space for a NULL byte. */
 
   buffer = CFAllocatorAllocate (alloc, len, 0);
 
-  numBytes = CFStringGetBytes (str, range, encoding, lossByte,
-                               true, buffer, len, &usedLen);
+  converted = CFStringGetBytes (str, range, encoding, lossByte,
+                                true, buffer, len, &usedLen);
 
-  if (numBytes == 0)
-    return NULL;
+  if (converted == 0)
+    {
+      CFAllocatorDeallocate (alloc, buffer);
+      return NULL;
+    }
 
   return CFDataCreateWithBytesNoCopy (alloc, buffer, usedLen, alloc);
 }

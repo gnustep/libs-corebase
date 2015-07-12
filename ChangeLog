@@ -1,3 +1,7 @@
+2015-07-12 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/CFPropertyList.c: Fix string size bug.
+	* Source/CFString.c: Fix string conversion bug.
+
 2015-07-10 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Doxyfile: Adjust documentation options.
 	* Documentation/MainPage.dox: Fix typo.
