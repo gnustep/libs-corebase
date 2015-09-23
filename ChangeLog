@@ -1,3 +1,9 @@
+2015-09-23 Riccardo Mottola <rm@gnu.org>
+
+	* configure.ac
+	* configure
+	Use gnustep make compilers if CC/CXX not overridden
+
 2015-07-12 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFPropertyList.c: Fix string size bug.
 	* Source/CFString.c: Fix string conversion bug.
