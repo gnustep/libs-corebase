@@ -29,6 +29,8 @@
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSURL.h>
 
+#include "GSPrivate.h"
+
 #if !defined(_WIN32)
 #include <dlfcn.h>
 #ifndef RTLD_DEFAULT
@@ -37,6 +39,13 @@
 #endif
 
 static CFTypeID _kCFBundleTypeID = 0;
+
+CONST_STRING_DECL(kCFBundleInfoDictionaryVersionKey, "CFBundleInfoDictionaryVersion");
+CONST_STRING_DECL(kCFBundleExecutableKey, "CFBundleExecutable");
+CONST_STRING_DECL(kCFBundleIdentifierKey, "CFBundleIdentifier");
+CONST_STRING_DECL(kCFBundleVersionKey, "CFBundleVersion");
+CONST_STRING_DECL(kCFBundleNameKey, "CFBundleName");
+CONST_STRING_DECL(kCFBundleLocalizationsKey, "CFBundleLocalizations");
 
 @implementation NSBundle (CoreBaseAdditions)
 - (CFTypeID) _cfTypeID
