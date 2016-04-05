@@ -138,7 +138,6 @@ struct __CFRuntimeBase
 };
 
 #define INIT_CFRUNTIME_BASE(...) { 0, 0, { 1, 0, 0 } }
-//#define INIT_CFRUNTIME_BASE(...) { 0, 0x00008000 }
 
 /** Creates a new CF type instance.
     \param allocator The CFAllocatorRef to use or NULL for the default
