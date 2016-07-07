@@ -2190,15 +2190,6 @@ ac_config_headers="$ac_config_headers Source/config.h"
 #--------------------------------------------------------------------
 # Find the compiler
 #--------------------------------------------------------------------
-if test "$CC" = ""; then
-  CC=`gnustep-config --variable=CC`
-fi
-if test "$CPP" = ""; then
-  CPP=`gnustep-config --variable=CPP`
-fi
-if test "$CXX" = ""; then
-  CXX=`gnustep-config --variable=CXX`
-fi
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3124,15 +3115,6 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-MAKECC=`gnustep-config --variable=CC`
-if test "$CC" != "$MAKECC"; then
-  as_fn_error $? "You are running configure with the compiler ($CC) set to a diffe
-rent value from that used by gnustep-make ($MAKECC).  Please run configure again with
- your environment set to match your gnustep-make" "$LINENO" 5
-  exit 1
-fi
 
 
 # Check for header files.
@@ -4297,7 +4279,12 @@ fi
 
 
   if test x"$GNUSTEP_CONFIG" != "xno"; then :
-  OBJC_LIBS=`$GNUSTEP_CONFIG --base-libs`
+  MAKECC=`gnustep-config --variable=CC`
+    if test "$CC" != "$MAKECC"; then
+      as_fn_error $? "You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  Please run configure again with your environment set to match your gnustep-make" "$LINENO" 5
+      exit 1
+    fi
+    OBJC_LIBS=`$GNUSTEP_CONFIG --base-libs`
     LIBS="$LIBS $OBJC_LIBS"
     $as_echo "#define HAVE_LIBOBJC 1" >>confdefs.h
 

@@ -9,26 +9,8 @@ AC_CONFIG_HEADERS([Source/config.h])
 #--------------------------------------------------------------------
 # Find the compiler
 #--------------------------------------------------------------------
-if test "$CC" = ""; then
-  CC=`gnustep-config --variable=CC`
-fi
-if test "$CPP" = ""; then
-  CPP=`gnustep-config --variable=CPP`
-fi
-if test "$CXX" = ""; then
-  CXX=`gnustep-config --variable=CXX`
-fi
 AC_PROG_CC
 AC_PROG_CPP
-
-MAKECC=`gnustep-config --variable=CC`
-if test "$CC" != "$MAKECC"; then
-  AC_MSG_ERROR([You are running configure with the compiler ($CC) set to a diffe
-rent value from that used by gnustep-make ($MAKECC).  Please run configure again with
- your environment set to match your gnustep-make])
-  exit 1
-fi
-
 
 # Check for header files.
 AC_HEADER_STDC
@@ -152,7 +134,12 @@ AC_ARG_WITH([objc],
 AS_IF([test "x$with_objc" != xno],
   [AC_PATH_PROG(GNUSTEP_CONFIG, [gnustep-config], [no])
   AS_IF([test x"$GNUSTEP_CONFIG" != "xno"],
-    [OBJC_LIBS=`$GNUSTEP_CONFIG --base-libs`
+    [MAKECC=`gnustep-config --variable=CC`
+    if test "$CC" != "$MAKECC"; then
+      AC_MSG_ERROR([You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  Please run configure again with your environment set to match your gnustep-make])
+      exit 1
+    fi
+    OBJC_LIBS=`$GNUSTEP_CONFIG --base-libs`
     LIBS="$LIBS $OBJC_LIBS"
     AC_DEFINE(HAVE_LIBOBJC, 1)],
     [AC_CHECK_HEADER(objc/runtime.h)
