@@ -1,3 +1,10 @@
+2016-07-09 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/CFConstantString.c,
+	* Source/CFString.c: Move constant string initialization to separate
+	file.
+	* Source/CFRuntime.c: Initialize CFConstantString.
+	* Source/GSObjCRuntime.h: Include GSPrivate.h to avoid error.
+
 2016-07-08 Stefan Bidigaray <stefanbidi@gmail.com>
 	* configure,
 	* configure.ac:	Put CC/CXX test after checking for gnustep-config.

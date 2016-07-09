@@ -29,6 +29,7 @@
 
 #include "config.h"
 #include "CoreFoundation/CFBase.h"
+#include "GSPrivate.h"
 
 GS_PRIVATE const void *CFTypeRetainCallBack (CFAllocatorRef alloc,
                                              const void *value);
