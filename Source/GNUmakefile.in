@@ -36,6 +36,7 @@ libgnustep-corebase_C_FILES = \
   CFSocket.c \
   CFStream.c \
   CFString.c \
+  CFConstantString.c \
   CFStringEncoding.c \
   CFStringUtilities.c \
   CFTimeZone.c \

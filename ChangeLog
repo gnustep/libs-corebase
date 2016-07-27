@@ -1,3 +1,6 @@
+2016-07-27 Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/GNUmakefile: Added CFStringInitialize.c to build.
+
 2016-07-09 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFConstantString.c,
 	* Source/CFString.c: Move constant string initialization to separate
