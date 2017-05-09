@@ -1,3 +1,9 @@
+2017-05-09 Ivan Vucica <ivan@vucica.net>
+	* Headers/CoreFoundation/CFBase.h.in:
+	CFEnum macro for type definitions.
+
+	Patch by Daniel Ferreira <bnmvco@gmail.com>.
+
 2016-07-27 Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/GNUmakefile: Added CFStringInitialize.c to build.
 
