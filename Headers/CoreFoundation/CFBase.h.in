@@ -219,6 +219,9 @@ typedef CFComparisonResult (*CFComparatorFunction) (const void *val1,
                                                     const void *val2,
                                                     void *context);
 
+/* CFEnum macro for type definitions */
+#define CF_ENUM(_type, _name) _type _name; enum
+
 /* CoreFoundation version numbers */
 /** \name Library Version Numbers
     \{
