@@ -278,6 +278,22 @@ CF_EXPORT const double kCFCoreFoundationVersionNumber;
 /** \} */
 /** \} */
 
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
+#if __has_feature(attribute_cf_returns_retained)
+#define CF_RETURNS_RETAINED __attribute__((cf_returns_retained))
+#else
+#define CF_RETURNS_RETAINED
+#endif
+
+#if __has_feature(attribute_cf_returns_not_retained)
+#define CF_RETURNS_NOT_RETAINED __attribute__((cf_returns_not_retained))
+#else
+#define CF_RETURNS_NOT_RETAINED
+#endif
+
 /** \ingroup CFPropertyListRef
  */
 typedef CFTypeRef CFPropertyListRef;
