@@ -384,6 +384,18 @@ CFRetain (CFTypeRef cf)
   return cf;
 }
 
+void *
+_CFBridgingRelease (CFTypeRef cf)
+{
+  CF_OBJC_FUNCDISPATCHV(CFTypeRef, void *, cf, "autorelease");
+}
+
+CFTypeRef
+_CFBridgingRetain (void *obj)
+{
+  CF_OBJC_FUNCDISPATCHV(void *, CFTypeRef, obj, "retain");
+}
+
 const void *
 CFTypeRetainCallBack (CFAllocatorRef allocator, const void *value)
 {
