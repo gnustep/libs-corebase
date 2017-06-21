@@ -1,3 +1,7 @@
+2017-06-01 Daniel Ferreira <bnmvco@gmail.com>
+	* Headers/CoreFoundation/CFBase.h.in:
+	Define CF_RETURN_* macros on CFBase.
+
 2017-05-09 Ivan Vucica <ivan@vucica.net>
 	* Headers/CoreFoundation/CFBase.h.in:
 	CFEnum macro for type definitions.
