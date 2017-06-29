@@ -1417,7 +1417,9 @@ CFPropertyListCreateWithStream (CFAllocatorRef alloc, CFReadStreamRef stream,
       read = CFReadStreamRead (stream, buffer, toRead);
       if (read > 0)
         CFDataAppendBytes (data, buffer, read);
-      len -= read;
+      
+      if (len != 0)
+        len -= read;
     }
   while (read > 0);
 
