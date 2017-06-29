@@ -1,3 +1,39 @@
+2017-06-30  Daniel Ferreira <dtf@stanford.edu>
+	* Source/CFPropertyList.c:	
+	The CFPropertyListCreateWithStream() documentation allows for a
+	zero-valued streamLength parameter, which directs the implementation to
+	read a stream until its end.
+
+	A bug in CoreBase caused this case to pass a negative buffer length to
+	read(2), which caused a segfault. We fix this issue here.
+	
+	* Headers/CoreFoundation/GSCharacter.h:	
+	In the valid case that we passed a destination parameter to
+	GSUnicodeFromEncoding() that was smaller than the bytes read in the
+	source, CoreBase should continue reading the source and just not write
+	to the destination buffer.
+
+	GSUTF16CharacterAppend() did not guarantee that when converting from
+	UTF8 this would be the case, which caused a segfault due to a buffer
+	overflow. We fix this issue here.
+
+2017-06-30  Daniel Ferreira <dtf@stanford.edu>
+	* .gitignore:	
+	Add a .gitignore file to CoreBase to avoid committing build products
+	into the tree.
+
+2017-06-05  Daniel Ferreira <dtf@stanford.edu>
+
+	* Source/CFRunLoop.c:	
+	When calling CFRunLoopRemoveTimer() and other CFRunLoopRemove*()
+	functions on CoreBase with kCFRunLoopCommonModes,
+	CFRunLoopCommonModesRemoveFunc() would be called, which in turn called
+	CFRunLoopRemove*() again, generating a deadlock.
+
+	This issue is fixed by calling the no-lock counterparts of the remove
+	functions from CFRunLoopCommonModesRemoveFunc(), as is done on
+	CFRunLoopCommonModesAddFunc() and CFRunLoopCommonModesContainFunc().
+
 2017-06-01 Daniel Ferreira <bnmvco@gmail.com>
 	* Headers/CoreFoundation/CFBase.h.in:
 	Define CF_RETURN_* macros on CFBase.

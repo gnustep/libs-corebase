@@ -319,7 +319,8 @@ GSUTF16CharacterAppend (UTF16Char * d, const UTF16Char * limit, UTF32Char c)
 {
   if (c <= 0xFFFF)
     {
-      *d = c;
+      if ((limit - d) > 1)
+        *d = c;
       return 1;
     }
   else if (c <= 0x10FFFF)

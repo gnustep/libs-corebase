@@ -1285,13 +1285,13 @@ CFRunLoopCommonModesRemoveFunc (const void *value, void *context)
   struct common_mode_info *info = (struct common_mode_info*)context;
   CFTypeID typeID = CFGetTypeID (info->obj);
   if (typeID == _kCFRunLoopSourceTypeID)
-    CFRunLoopRemoveSource (info->rl, (CFRunLoopSourceRef)info->obj,
+    CFRunLoopRemoveSource_nolock (info->rl, (CFRunLoopSourceRef)info->obj,
                            (CFStringRef)value);
   else if (typeID == _kCFRunLoopObserverTypeID)
-    CFRunLoopRemoveObserver (info->rl, (CFRunLoopObserverRef)info->obj,
+    CFRunLoopRemoveObserver_nolock (info->rl, (CFRunLoopObserverRef)info->obj,
                              (CFStringRef)value);
   else if (typeID == _kCFRunLoopTimerTypeID)
-    CFRunLoopRemoveTimer (info->rl, (CFRunLoopTimerRef)info->obj,
+    CFRunLoopRemoveTimer_nolock (info->rl, (CFRunLoopTimerRef)info->obj,
                           (CFStringRef)value);
 }
 
