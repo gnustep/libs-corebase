@@ -1,7 +1,6 @@
 obj
 *.log
 *.sum
-GNUmakefile
 config.*
 CFBase.h
 *.tmp
