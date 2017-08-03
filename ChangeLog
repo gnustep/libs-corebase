@@ -1,3 +1,41 @@
+2017-08-23  Stefan Bidigaray <stefanbidi@gmail.com>
+	* Headers/CoreFoundation/CFBase.h.in
+	* Source/CFRuntime.c:	
+	Implement CFAutorelease(), which is supposed to send a CF
+	object into an autorelease pool regardless of ARC.
+
+2017-08-04  Daniel Ferreira <dtf@stanford.edu>
+	* Headers/CoreFoundation/CFBase.h.in:	
+	Create the CF_OPTIONS() macro, an equivalent to CF_ENUM() for defining
+	enumerations.
+
+2017-08-04  Daniel Ferreira <dtf@stanford.edu>
+	* Headers/CoreFoundation/CFRunLoop.h:	
+	Redefine the `CFRunLoopActivity` enum type to allow it to be mixed in
+	bitwise-OR operations with other types in C++, thus increasing
+	compatibility with the reference platform.
+
+2017-08-04  Daniel Ferreira <bnmvco@gmail.com>
+	* Headers/CoreFoundation/CFBase.h.in
+	* Source/CFRuntime.c:	
+	Automatic Reference Counting (ARC) can only handle the memory management
+	of Objective-C objects and not that of C structs. To preserve the ease
+	of toll-free bridging, ARC has added the __bridge_retained and
+	__bridge_transfer directives for casting between these two types.
+
+	__bridge_retained specifies that an Objective-C object should be cast to
+	a C struct and that the struct needs to be manually released.
+	__bridge_transfer works the other way, and turns a C struct that would
+	need a manual release into an object that is now managed by ARC and no
+	longer needs that.
+
+	The Apple CoreFoundation API specifies the CFBridgingRetain() and
+	CFBridgingRelease() functions that do, respectively, the same things
+	these directives do. This commit implements these two functions exactly
+	as the compiler would handle the directives.
+
+	This change was co-authored with Stefan Bidigaray.
+
 2017-06-30  Daniel Ferreira <dtf@stanford.edu>
 	* Source/CFPropertyList.c:	
 	The CFPropertyListCreateWithStream() documentation allows for a
