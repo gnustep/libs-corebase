@@ -212,7 +212,7 @@ CF_EXPORT CFTypeID CFRunLoopSourceGetTypeID (void);
 /** \defgroup CFRunLoopObserverRef CFRunLoopObserver Reference
     \{
  */
-typedef enum
+enum
 {
   kCFRunLoopEntry = (1 << 0),
   kCFRunLoopBeforeTimers = (1 << 1),
@@ -221,7 +221,8 @@ typedef enum
   kCFRunLoopAfterWaiting = (1 << 6),
   kCFRunLoopExit = (1 << 7),
   kCFRunLoopAllActivities = 0x0FFFFFFFU
-} CFRunLoopActivity;
+};
+typedef int CFRunLoopActivity;
 
 typedef void (*CFRunLoopObserverCallBack) (CFRunLoopObserverRef observer,
                                            CFRunLoopActivity activity,
