@@ -444,6 +444,8 @@ CF_EXPORT void CFRelease (CFTypeRef cf);
 
 CF_EXPORT CFTypeRef CFRetain (CFTypeRef cf);
 
+CF_EXPORT CFTypeRef CFAutorelease(CFTypeRef arg);
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 CF_EXPORT void *_CFBridgingRelease (CFTypeRef cf);
 CF_EXPORT CFTypeRef _CFBridgingRetain (void *obj);

@@ -384,6 +384,16 @@ CFRetain (CFTypeRef cf)
   return cf;
 }
 
+CFTypeRef
+CFAutorelease (CFTypeRef cf)
+{
+#if __has_feature(objc_arc)
+  return objc_autoreleaseReturnValue(cf);
+#else
+  CF_OBJC_FUNCDISPATCHV(CFTypeRef, CFTypeRef, cf, "autorelease");
+#endif
+}
+
 void *
 _CFBridgingRelease (CFTypeRef cf)
 {
