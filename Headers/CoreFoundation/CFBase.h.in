@@ -221,6 +221,7 @@ typedef CFComparisonResult (*CFComparatorFunction) (const void *val1,
 
 /* CFEnum macro for type definitions */
 #define CF_ENUM(_type, _name) _type _name; enum
+#define CF_OPTIONS(_type, _name) _type _name; enum
 
 /* CoreFoundation version numbers */
 /** \name Library Version Numbers
@@ -442,6 +443,24 @@ CF_EXPORT CFTypeRef CFMakeCollectable (CFTypeRef cf);
 CF_EXPORT void CFRelease (CFTypeRef cf);
 
 CF_EXPORT CFTypeRef CFRetain (CFTypeRef cf);
+
+CF_EXPORT CFTypeRef CFAutorelease(CFTypeRef arg);
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+CF_EXPORT void *_CFBridgingRelease (CFTypeRef cf);
+CF_EXPORT CFTypeRef _CFBridgingRetain (void *obj);
+
+#if __has_feature(objc_arc)
+#define CFBridgingRetain(x) (__bridge_retained CFTypeRef)(x)
+#define CFBridgingRelease(x) (__bridge_transfer id)(x)
+#elif __OBJC__
+#define CFBridgingRetain(x) _CFBridgingRetain((void *)(x))
+#define CFBridgingRelease(x) (id)_CFBridgingRelease((x))
+#else
+#define CFBridgingRetain(x) _CFBridgingRetain((void *)(x))
+#define CFBridgingRelease(x) _CFBridgingRelease((x))
+#endif
+#endif
 /** \} */
 
 

@@ -384,6 +384,28 @@ CFRetain (CFTypeRef cf)
   return cf;
 }
 
+CFTypeRef
+CFAutorelease (CFTypeRef cf)
+{
+#if __has_feature(objc_arc)
+  return objc_autoreleaseReturnValue(cf);
+#else
+  CF_OBJC_FUNCDISPATCHV(CFTypeRef, CFTypeRef, cf, "autorelease");
+#endif
+}
+
+void *
+_CFBridgingRelease (CFTypeRef cf)
+{
+  CF_OBJC_FUNCDISPATCHV(CFTypeRef, void *, cf, "autorelease");
+}
+
+CFTypeRef
+_CFBridgingRetain (void *obj)
+{
+  CF_OBJC_FUNCDISPATCHV(void *, CFTypeRef, obj, "retain");
+}
+
 const void *
 CFTypeRetainCallBack (CFAllocatorRef allocator, const void *value)
 {
