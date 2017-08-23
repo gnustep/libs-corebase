@@ -390,20 +390,23 @@ CFAutorelease (CFTypeRef cf)
 #if __has_feature(objc_arc)
   return objc_autoreleaseReturnValue(cf);
 #else
-  CF_OBJC_FUNCDISPATCHV(CFTypeRef, CFTypeRef, cf, "autorelease");
+  CF_OBJC_CALLV(CFTypeRef, cf, cf, "autorelease");
+  return cf;
 #endif
 }
 
 void *
 _CFBridgingRelease (CFTypeRef cf)
 {
-  CF_OBJC_FUNCDISPATCHV(CFTypeRef, void *, cf, "autorelease");
+  CF_OBJC_CALLV(CFTypeRef, cf, cf, "autorelease");
+  return (void *)cf;
 }
 
 CFTypeRef
 _CFBridgingRetain (void *obj)
 {
-  CF_OBJC_FUNCDISPATCHV(void *, CFTypeRef, obj, "retain");
+  CF_OBJC_CALLV(void *, obj, obj, "retain");
+  return (CFTypeRef)obj;
 }
 
 const void *
