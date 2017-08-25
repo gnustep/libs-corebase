@@ -16,7 +16,9 @@ AC_PROG_CPP
 AC_HEADER_STDC
 
 AC_C_INLINE
-AC_C_BIGENDIAN
+AC_C_BIGENDIAN(AC_SUBST([GS_WORDS_BIGENDIAN_DEFINE], ["#define __BIG_ENDIAN__ 1"]),
+  AC_SUBST([GS_WORDS_BIGENDIAN_DEFINE], ["#define __LITTLE_ENDIAN__ 1"]),
+  AC_MSG_ERROR([Could not determine CPU endianness.]))
 
 # Gather information about the data model so we can define the data types
 m4_define([GS_CHECK_DATA_MODEL],
@@ -26,11 +28,14 @@ AC_CHECK_SIZEOF([int])
 AC_CHECK_SIZEOF([long])
 AC_CHECK_SIZEOF([long long])
 AC_CHECK_SIZEOF([void *])
-AC_DEFINE([DATA_MODEL_IP16], [122482], [Defined to IP16 data model.])
-AC_DEFINE([DATA_MODEL_LP32], [122484], [Defined to LP32 data model.])
-AC_DEFINE([DATA_MODEL_ILP32], [124484], [Defined to ILP32 data model.])
-AC_DEFINE([DATA_MODEL_LLP64], [124488], [Defined to LLP64 data model.])
-AC_DEFINE([DATA_MODEL_LP64], [124888], [Defined to LP64 data model.])
+AH_VERBATIM([DATA_MODEL_LP32], [/* Define LP32 data model. */
+#define DATA_MODEL_LP32 122484])
+AH_VERBATIM([DATA_MODEL_ILP32], [/* Define ILP32 data model. */
+#define DATA_MODEL_ILP32 124484])
+AH_VERBATIM([DATA_MODEL_LLP64], [/* Define LLP64 data model. */
+#define DATA_MODEL_LLP64 124488])
+AH_VERBATIM([DATA_MODEL_LP64], [/* Define LP64 data model. */
+#define DATA_MODEL_LP64 124888])
 AC_CACHE_CHECK([for data model],
                [gs_cv_c_data_model],
                [_gs_data_model="$ac_cv_sizeof_char$ac_cv_sizeof_short$ac_cv_sizeof_int$ac_cv_sizeof_long$ac_cv_sizeof_long_long$ac_cv_sizeof_void_p"

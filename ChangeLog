@@ -1,23 +1,30 @@
+2017-08-25  Stefan Bidigaray <stefanbidi@gmail.com>
+	* Headers/CoreFoundation/CFBase.h.in,
+	* Headers/CoreFoundation/CFAvailability.h: Move availibility macros
+	to the appropriate header.
+	* configure,
+	* configure.ac: Clean up configure macros.
+
 2017-08-23  Stefan Bidigaray <stefanbidi@gmail.com>
 	* Headers/CoreFoundation/CFBase.h.in
-	* Source/CFRuntime.c:	
+	* Source/CFRuntime.c:
 	Implement CFAutorelease(), which is supposed to send a CF
 	object into an autorelease pool regardless of ARC.
 
 2017-08-04  Daniel Ferreira <dtf@stanford.edu>
-	* Headers/CoreFoundation/CFBase.h.in:	
+	* Headers/CoreFoundation/CFBase.h.in:
 	Create the CF_OPTIONS() macro, an equivalent to CF_ENUM() for defining
 	enumerations.
 
 2017-08-04  Daniel Ferreira <dtf@stanford.edu>
-	* Headers/CoreFoundation/CFRunLoop.h:	
+	* Headers/CoreFoundation/CFRunLoop.h:
 	Redefine the `CFRunLoopActivity` enum type to allow it to be mixed in
 	bitwise-OR operations with other types in C++, thus increasing
 	compatibility with the reference platform.
 
 2017-08-04  Daniel Ferreira <bnmvco@gmail.com>
 	* Headers/CoreFoundation/CFBase.h.in
-	* Source/CFRuntime.c:	
+	* Source/CFRuntime.c:
 	Automatic Reference Counting (ARC) can only handle the memory management
 	of Objective-C objects and not that of C structs. To preserve the ease
 	of toll-free bridging, ARC has added the __bridge_retained and
@@ -37,15 +44,15 @@
 	This change was co-authored with Stefan Bidigaray.
 
 2017-06-30  Daniel Ferreira <dtf@stanford.edu>
-	* Source/CFPropertyList.c:	
+	* Source/CFPropertyList.c:
 	The CFPropertyListCreateWithStream() documentation allows for a
 	zero-valued streamLength parameter, which directs the implementation to
 	read a stream until its end.
 
 	A bug in CoreBase caused this case to pass a negative buffer length to
 	read(2), which caused a segfault. We fix this issue here.
-	
-	* Headers/CoreFoundation/GSCharacter.h:	
+
+	* Headers/CoreFoundation/GSCharacter.h:
 	In the valid case that we passed a destination parameter to
 	GSUnicodeFromEncoding() that was smaller than the bytes read in the
 	source, CoreBase should continue reading the source and just not write
@@ -56,13 +63,13 @@
 	overflow. We fix this issue here.
 
 2017-06-30  Daniel Ferreira <dtf@stanford.edu>
-	* .gitignore:	
+	* .gitignore:
 	Add a .gitignore file to CoreBase to avoid committing build products
 	into the tree.
 
 2017-06-05  Daniel Ferreira <dtf@stanford.edu>
 
-	* Source/CFRunLoop.c:	
+	* Source/CFRunLoop.c:
 	When calling CFRunLoopRemoveTimer() and other CFRunLoopRemove*()
 	functions on CoreBase with kCFRunLoopCommonModes,
 	CFRunLoopCommonModesRemoveFunc() would be called, which in turn called

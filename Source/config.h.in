@@ -6,20 +6,17 @@
 /* Define to the architecture's data model. */
 #undef DATA_MODEL
 
-/* Defined to ILP32 data model. */
-#undef DATA_MODEL_ILP32
+/* Define ILP32 data model. */
+#define DATA_MODEL_ILP32 124484
 
-/* Defined to IP16 data model. */
-#undef DATA_MODEL_IP16
+/* Define LLP64 data model. */
+#define DATA_MODEL_LLP64 124488
 
-/* Defined to LLP64 data model. */
-#undef DATA_MODEL_LLP64
+/* Define LP32 data model. */
+#define DATA_MODEL_LP32 122484
 
-/* Defined to LP32 data model. */
-#undef DATA_MODEL_LP32
-
-/* Defined to LP64 data model. */
-#undef DATA_MODEL_LP64
+/* Define LP64 data model. */
+#define DATA_MODEL_LP64 124888
 
 /* Define to 1 if you have International Components for Unicode. */
 #undef HAVE_ICU
