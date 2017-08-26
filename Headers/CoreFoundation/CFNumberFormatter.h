@@ -147,59 +147,59 @@ CFNumberFormatterCreate (CFAllocatorRef allocator, CFLocaleRef locale,
 /*
  * Configuring a Number Formatter
  */
-void
+CF_EXPORT void
 CFNumberFormatterSetFormat (CFNumberFormatterRef formatter,
   CFStringRef formatString);
 
-void
+CF_EXPORT void
 CFNumberFormatterSetProperty (CFNumberFormatterRef formatter,
   CFStringRef key, CFTypeRef value);
 
 /*
  * Formatting Values
  */
-CFNumberRef
+CF_EXPORT CFNumberRef
 CFNumberFormatterCreateNumberFromString (CFAllocatorRef allocator,
   CFNumberFormatterRef formatter, CFStringRef string, CFRange *rangep,
   CFOptionFlags options);
 
-CFStringRef
+CF_EXPORT CFStringRef
 CFNumberFormatterCreateStringWithNumber (CFAllocatorRef allocator,
   CFNumberFormatterRef formatter, CFNumberRef number);
 
-CFStringRef
+CF_EXPORT CFStringRef
 CFNumberFormatterCreateStringWithValue (CFAllocatorRef allocator,
   CFNumberFormatterRef formatter, CFNumberType numberType,
   const void *valuePtr);
 
-Boolean
+CF_EXPORT Boolean
 CFNumberFormatterGetDecimalInfoForCurrencyCode (CFStringRef currencyCode,
   SInt32 *defaultFractionDigits, double *roundingIncrement);
 
-Boolean
+CF_EXPORT Boolean
 CFNumberFormatterGetValueFromString (CFNumberFormatterRef formatter,
   CFStringRef string, CFRange *rangep, CFNumberType numberType, void *valuePtr);
 
 /*
  * Examining a Number Formatter
  */
-CFTypeRef
+CF_EXPORT CFTypeRef
 CFNumberFormatterCopyProperty (CFNumberFormatterRef formatter,
   CFStringRef key);
 
-CFStringRef
+CF_EXPORT CFStringRef
 CFNumberFormatterGetFormat (CFNumberFormatterRef formatter);
 
-CFLocaleRef
+CF_EXPORT CFLocaleRef
 CFNumberFormatterGetLocale (CFNumberFormatterRef formatter);
 
-CFNumberFormatterStyle
+CF_EXPORT CFNumberFormatterStyle
 CFNumberFormatterGetStyle (CFNumberFormatterRef formatter);
 
 /*
  * Getting the CFNumberFormatter Type ID
  */
-CFTypeID
+CF_EXPORT CFTypeID
 CFNumberFormatterGetTypeID (void);
 
 /** \} */

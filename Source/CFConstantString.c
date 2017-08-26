@@ -24,7 +24,6 @@
    Boston, MA 02110-1301, USA.
 */
 
-#include "CoreFoundation/CFBase.h"
 #include "GSObjCRuntime.h"
 
 /* Need the next few includes so we can initialize the string constants */
