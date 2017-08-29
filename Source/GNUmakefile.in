@@ -55,7 +55,7 @@ libgnustep-corebase_HEADER_FILES = \
   CoreFoundation.h \
   CFArray.h \
   CFAttributedString.h \
-  CFAvailibility.h \
+  CFAvailability.h \
   CFBag.h \
   CFBase.h \
   CFBinaryHeap.h \
