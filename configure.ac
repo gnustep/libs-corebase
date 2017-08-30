@@ -9,8 +9,9 @@ AC_CONFIG_HEADERS([Source/config.h])
 #--------------------------------------------------------------------
 # Find the compiler
 #--------------------------------------------------------------------
-AC_PROG_CC
 AC_PROG_CPP
+AC_PROG_CC
+AC_PROG_OBJC
 
 # Check for header files.
 AC_HEADER_STDC
@@ -44,7 +45,7 @@ AC_CACHE_CHECK([for data model],
                        [124484], [gs_cv_c_data_model="ILP32"],
                        [124488], [gs_cv_c_data_model="LLP64"],
                        [124888], [gs_cv_c_data_model="LP64"],
-                       [gs_cv_c_data_model="no"])])
+                       [gs_cv_c_data_model="unknown"])])
 AC_DEFINE_UNQUOTED([DATA_MODEL], [DATA_MODEL_$gs_cv_c_data_model], [Define to the architecture's data model.])
 ]) # GS_CHECK_DATA_MODEL
 GS_CHECK_DATA_MODEL
@@ -77,17 +78,6 @@ AC_CHECK_SIZEOF([double])
 AC_CHECK_SIZEOF([long double])
 
 #---
-# Support disabling conversion to/from the encodings in CFStringEncodingExt.h
-#---
-#AC_ARG_ENABLE([external-encodings],
-#  [AS_HELP_STRING([--without-external-encodings],
-#    [Disable the ability to convert to and from the external encodings defined in CFStringEncodingExt.h.])],
-#  [enable_external_encoding=$enableval], [enable_external_encodings=yes])
-#AS_IF([test "x$enable_external_encodings" = xyes],
-#  [AC_DEFINE([ENABLE_EXTERNAL_ENCODINGS], [1],
-#    [Define to 1 if external encodings are enabled.])])
-
-#---
 # Check for ICU
 #---
 m4_define([GS_CHECK_ICU],
@@ -95,18 +85,18 @@ m4_define([GS_CHECK_ICU],
 AC_PATH_PROG(ICU_CONFIG, icu-config, [no])
 AC_MSG_CHECKING(for ICU $1 or later)
 AS_IF([test x"$ICU_CONFIG" = xno],
-      [AC_MSG_ERROR([Could not find 'icu-config'.  Please install ICU or specify --without-icu.])])
+  [AC_MSG_ERROR([Could not find 'icu-config'.  Please install ICU or specify --without-icu.])])
 ICU_VERSION=`$ICU_CONFIG --version`
 found=`expr $ICU_VERSION \>= $1`
 AS_IF([test x"$found" = x1],
-      [AC_MSG_RESULT(yes)
-      ICU_LIBS=`$ICU_CONFIG --ldflags-libsonly`
-      LIBS="$LIBS $ICU_LIBS"],
-      [AC_MSG_RESULT(no)
-      AC_MSG_ERROR([Could not find ICU $1 or later])])
+  [AC_MSG_RESULT(yes)
+  ICU_LIBS=`$ICU_CONFIG --ldflags-libsonly`
+  LIBS="$ICU_LIBS $LIBS"],
+  [AC_MSG_RESULT(no)
+  AC_MSG_ERROR([Could not find ICU $1 or later])])
 
 AC_CHECK_HEADERS([unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/ustring.h unicode/utrans.h],
-                  [], AC_MSG_ERROR([Could not find required ICU headers.]))
+  [], AC_MSG_ERROR([Could not find required ICU headers.]))
 
 AC_DEFINE([HAVE_ICU], [1],
           [Define to 1 if you have International Components for Unicode.])
@@ -119,42 +109,26 @@ GS_CHECK_ICU([4.0])
 AC_ARG_WITH([gcd],
   [AS_HELP_STRING([--without-gcd],
     [Explicitly compiles without Grand Central Dispatch support. Configure will attempt to find a compatible library, use this option if you do not wish to have the support.  The opposite option, --with-gcd, is also supported and should be used if Grand Central Dispatch support is absolutely required.  A compatible library will required (http://www.nickhutchinson.me/libdispatch).])],
-  [with_gcd=$withval], [with_gcd=maybe])
-AS_IF([test "$with_gcd" != "no"],
-      [AC_CHECK_HEADER(dispatch/dispatch.h)
-      AS_IF([test x"$ac_cv_header_dispatch_dispatch_h" = "xno"],
-            AS_IF([test x"$with_gcd" = "xyes"],
-                  AC_MSG_ERROR([Could not find the Grand Central Dispatch headers.])),
-      	    AC_CHECK_LIB(dispatch, dispatch_get_main_queue_eventfd_np)
-            AS_IF([test x"$ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np" = "xno" -a x"$with_gcd" = "xyes"],
-                  AC_MSG_ERROR([Compatible libdispatch not found for GCD support!])))])
+  [], [with_gcd=maybe])
+AS_IF([test "x$with_gcd" != xno],
+  [AC_CHECK_HEADERS([dispatch/dispatch.h],
+    [AC_CHECK_LIB([dispatch], dispatch_get_main_queue_eventfd_np, [],
+      AS_IF([test "x$with_gcd" = "xyes"],
+        AC_MSG_ERROR([Compatible libdispatch not found for GCD support!])),
+    AC_MSG_ERROR([Could not find the Grand Central Dispatch headers.]))])])
 
 #---
 # Check for the Objective-C runtime
 #---
 AC_ARG_WITH([objc],
   [AS_HELP_STRING([--without-objc],
-    [Compiles without support for Objective-C.])],
-  [with_objc=$withval], [with_objc=yes])
+    [Compiles without support for Objective-C. This option disables the Toll-Free Bridging mechanism.])],
+  [], [with_objc=yes])
 AS_IF([test "x$with_objc" != xno],
-  [AC_PATH_PROG(GNUSTEP_CONFIG, [gnustep-config], [no])
-  AS_IF([test x"$GNUSTEP_CONFIG" != "xno"],
-    [MAKECC=`gnustep-config --variable=CC`
-    if test "$CC" != "$MAKECC"; then
-      AC_MSG_ERROR([You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  Please run configure again with your environment set to match your gnustep-make])
-      exit 1
-    fi
-    OBJC_LIBS=`$GNUSTEP_CONFIG --base-libs`
-    LIBS="$LIBS $OBJC_LIBS"
-    AC_DEFINE(HAVE_LIBOBJC, 1)],
-    [AC_CHECK_HEADER(objc/runtime.h)
-    AS_IF([test "x$ac_cv_header_objc_runtime_h" = xno],
-      [AC_MSG_ERROR([Could not find the Objective-C runtime header.])])
-    AC_CHECK_LIB(objc, objc_getClass)
-    AS_IF([test "x$ac_cv_lib_objc_objc_getClass" = xno],
-      [AC_CHECK_LIB(objc2, objc_getClass)
-      AS_IF([test "x$ac_cv_lib_objc2_objc_getClass" = xno],
-        [AC_MSG_ERROR([Objective-C library not found!  Use --without-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library.])])])])])
+  AC_CHECK_HEADERS([objc/runtime.h],
+    AC_SEARCH_LIBS(objc_getClass, [objc objc2], [],
+      AC_MSG_ERROR([Objective-C library not found!  Use --without-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library.])),
+    AC_MSG_ERROR([Could not find the Objective-C runtime header.])))
 
 #---
 # Check for zoneinfo directory

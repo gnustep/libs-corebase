@@ -36,7 +36,7 @@ GS_PRIVATE const void *CFTypeRetainCallBack (CFAllocatorRef alloc,
 
 GS_PRIVATE void CFTypeReleaseCallBack (CFAllocatorRef alloc, const void *value);
 
-#if HAVE_LIBOBJC || HAVE_LIBOBJC2
+#if HAVE_OBJC_RUNTIME_H
 
 #define BOOL OBJC_BOOL
 #include <objc/runtime.h>
@@ -127,6 +127,6 @@ do { \
 #define CF_OBJC_CALLV(rettype, var, obj, sel, ...)
 #define CF_OBJC_VOIDCALLV(obj, sel, ...)
 
-#endif /* HAVE_LIBOBJC */
+#endif /* HAVE_OBJC_RUNTIME_H */
 
 #endif /* __GSOBJCRUNTIME_H__ */

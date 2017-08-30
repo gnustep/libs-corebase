@@ -18,6 +18,9 @@
 /* Define LP64 data model. */
 #define DATA_MODEL_LP64 124888
 
+/* Define to 1 if you have the <dispatch/dispatch.h> header file. */
+#undef HAVE_DISPATCH_DISPATCH_H
+
 /* Define to 1 if you have International Components for Unicode. */
 #undef HAVE_ICU
 
@@ -27,14 +30,11 @@
 /* Define to 1 if you have the `dispatch' library (-ldispatch). */
 #undef HAVE_LIBDISPATCH
 
-/* Define to 1 if you have the `objc' library (-lobjc). */
-#undef HAVE_LIBOBJC
-
-/* Define to 1 if you have the `objc2' library (-lobjc2). */
-#undef HAVE_LIBOBJC2
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <objc/runtime.h> header file. */
+#undef HAVE_OBJC_RUNTIME_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H

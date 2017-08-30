@@ -35,7 +35,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#if HAVE_LIBOBJC || HAVE_LIBOBJC2
+#if HAVE_OBJC_RUNTIME_H
 #include <objc/runtime.h>
 #endif
 
@@ -310,7 +310,7 @@ CFGetTypeID (CFTypeRef cf)
   if (cf == NULL)
     return _kCFRuntimeNotATypeID;
 
-#if defined(OBJC_SMALL_OBJECT_MASK) && (HAVE_LIBOBJC || HAVE_LIBOBJC2)
+#if defined(OBJC_SMALL_OBJECT_MASK)
   CFTypeID typeID = _kCFRuntimeNotATypeID;
 
   /* Small objects in ObjC are not valid pointers,
