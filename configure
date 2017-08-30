@@ -4761,7 +4761,7 @@ else
   124888) :
     gs_cv_c_data_model="LP64" ;; #(
   *) :
-    gs_cv_c_data_model="no" ;;
+    gs_cv_c_data_model="unknown" ;;
 esac
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gs_cv_c_data_model" >&5
