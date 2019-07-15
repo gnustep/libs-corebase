@@ -157,6 +157,11 @@ AC_MSG_RESULT($with_zoneinfo)
 AC_DEFINE_UNQUOTED([TZDIR], ["$with_zoneinfo"],
   [Define to the directory contain time zone object files.])
 
+#---
+# Check for libm
+#---
+AC_CHECK_LIB(m, modf)
+
 AC_CONFIG_FILES([Source/GNUmakefile Headers/CoreFoundation/CFBase.h])
 
 AC_OUTPUT
