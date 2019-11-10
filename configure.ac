@@ -80,28 +80,16 @@ AC_CHECK_SIZEOF([long double])
 #---
 # Check for ICU
 #---
-m4_define([GS_CHECK_ICU],
-[# Adapted from icu.m4 in GNUstep-base
-AC_PATH_PROG(ICU_CONFIG, icu-config, [no])
-AC_MSG_CHECKING(for ICU $1 or later)
-AS_IF([test x"$ICU_CONFIG" = xno],
-  [AC_MSG_ERROR([Could not find 'icu-config'.  Please install ICU or specify --without-icu.])])
-ICU_VERSION=`$ICU_CONFIG --version`
-found=`expr $ICU_VERSION \>= $1`
-AS_IF([test x"$found" = x1],
-  [AC_MSG_RESULT(yes)
-  ICU_LIBS=`$ICU_CONFIG --ldflags-libsonly`
-  LIBS="$ICU_LIBS $LIBS"],
-  [AC_MSG_RESULT(no)
-  AC_MSG_ERROR([Could not find ICU $1 or later])])
-
-AC_CHECK_HEADERS([unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/ustring.h unicode/utrans.h],
+AC_ARG_WITH([icu],
+  AS_HELP_STRING([--without-icu],
+    [Disable Internation Components for Unicode. WARNING: Many components will stop working without ICU support!]), [], [with_icu=yes])
+AS_IF([test x"with_icu" != xno],
+  [PKG_CHECK_MODULES([ICU], [icu-i18n > 49.0])
+  AC_CHECK_HEADERS([unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/ustring.h unicode/utrans.h],
   [], AC_MSG_ERROR([Could not find required ICU headers.]))
-
-AC_DEFINE([HAVE_ICU], [1],
-          [Define to 1 if you have International Components for Unicode.])
-]) # GS_CHECK_ICU
-GS_CHECK_ICU([4.0])
+  AC_DEFINE([HAVE_ICU], [1],
+    [Define to 1 if you have International Components for Unicode.])
+  ])
 
 #---
 # Check for Grand Central Dispatch (libdispatch)

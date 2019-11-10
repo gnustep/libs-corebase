@@ -1,3 +1,9 @@
+2019-11-09  Stefan Bidigaray <stefanbidi@gmail.com>
+	* aclocal.m4,
+	* configure,
+	* configure.ac: Update configure to use pkg-config instead of
+	icu-config.
+
 2017-08-29  Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFRuntime.c,
 	* Source/GSObjCRuntime.h,

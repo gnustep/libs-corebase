@@ -624,7 +624,11 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-ICU_CONFIG
+ICU_LIBS
+ICU_CFLAGS
+PKG_CONFIG_LIBDIR
+PKG_CONFIG_PATH
+PKG_CONFIG
 GS_UINTPTR_T
 GS_SINTPTR_T
 GS_UINT32_T
@@ -691,6 +695,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_icu
 with_gcd
 with_objc
 with_zoneinfo
@@ -705,7 +710,12 @@ LIBS
 CPPFLAGS
 CPP
 OBJC
-OBJCFLAGS'
+OBJCFLAGS
+PKG_CONFIG
+PKG_CONFIG_PATH
+PKG_CONFIG_LIBDIR
+ICU_CFLAGS
+ICU_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1326,6 +1336,9 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --without-icu           Disable Internation Components for Unicode. WARNING:
+                          Many components will stop working without ICU
+                          support!
   --without-gcd           Explicitly compiles without Grand Central Dispatch
                           support. Configure will attempt to find a compatible
                           library, use this option if you do not wish to have
@@ -1349,6 +1362,13 @@ Some influential environment variables:
   CPP         C preprocessor
   OBJC        Objective C compiler command
   OBJCFLAGS   Objective C compiler flags
+  PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
+  ICU_CFLAGS  C compiler flags for ICU, overriding pkg-config
+  ICU_LIBS    linker flags for ICU, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -4895,18 +4915,33 @@ _ACEOF
 #---
 # Check for ICU
 #---
- # GS_CHECK_ICU
-# Adapted from icu.m4 in GNUstep-base
-# Extract the first word of "icu-config", so it can be a program name with args.
-set dummy icu-config; ac_word=$2
+
+# Check whether --with-icu was given.
+if test "${with_icu+set}" = set; then :
+  withval=$with_icu;
+else
+  with_icu=yes
+fi
+
+
+
+
+
+
+
+
+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_ICU_CONFIG+:} false; then :
+if ${ac_cv_path_PKG_CONFIG+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $ICU_CONFIG in
+  case $PKG_CONFIG in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_ICU_CONFIG="$ICU_CONFIG" # Let the user override the test with a path.
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -4916,7 +4951,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_ICU_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -4924,39 +4959,183 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_ICU_CONFIG" && ac_cv_path_ICU_CONFIG="no"
   ;;
 esac
 fi
-ICU_CONFIG=$ac_cv_path_ICU_CONFIG
-if test -n "$ICU_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ICU_CONFIG" >&5
-$as_echo "$ICU_CONFIG" >&6; }
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ICU 4.0 or later" >&5
-$as_echo_n "checking for ICU 4.0 or later... " >&6; }
-if test x"$ICU_CONFIG" = xno; then :
-  as_fn_error $? "Could not find 'icu-config'.  Please install ICU or specify --without-icu." "$LINENO" 5
 fi
-ICU_VERSION=`$ICU_CONFIG --version`
-found=`expr $ICU_VERSION \>= 4.0`
-if test x"$found" = x1; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+if test -z "$ac_cv_path_PKG_CONFIG"; then
+  ac_pt_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ac_pt_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ac_pt_PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
+if test -n "$ac_pt_PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
+$as_echo "$ac_pt_PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_pt_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_pt_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+fi
+
+fi
+if test -n "$PKG_CONFIG"; then
+	_pkg_min_version=0.9.0
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
+$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-  ICU_LIBS=`$ICU_CONFIG --ldflags-libsonly`
-  LIBS="$ICU_LIBS $LIBS"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-  as_fn_error $? "Could not find ICU 4.0 or later" "$LINENO" 5
+		PKG_CONFIG=""
+	fi
+fi
+if test x"with_icu" != xno; then :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ICU" >&5
+$as_echo_n "checking for ICU... " >&6; }
+
+if test -n "$ICU_CFLAGS"; then
+    pkg_cv_ICU_CFLAGS="$ICU_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"icu-i18n > 49.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "icu-i18n > 49.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ICU_CFLAGS=`$PKG_CONFIG --cflags "icu-i18n > 49.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$ICU_LIBS"; then
+    pkg_cv_ICU_LIBS="$ICU_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"icu-i18n > 49.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "icu-i18n > 49.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ICU_LIBS=`$PKG_CONFIG --libs "icu-i18n > 49.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
 fi
 
-for ac_header in unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/ustring.h unicode/utrans.h
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        ICU_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "icu-i18n > 49.0" 2>&1`
+        else
+	        ICU_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "icu-i18n > 49.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$ICU_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (icu-i18n > 49.0) were not met:
+
+$ICU_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables ICU_CFLAGS
+and ICU_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables ICU_CFLAGS
+and ICU_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	ICU_CFLAGS=$pkg_cv_ICU_CFLAGS
+	ICU_LIBS=$pkg_cv_ICU_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+  for ac_header in unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/ustring.h unicode/utrans.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -4972,10 +5151,10 @@ fi
 done
 
 
-
 $as_echo "#define HAVE_ICU 1" >>confdefs.h
 
 
+fi
 
 #---
 # Check for Grand Central Dispatch (libdispatch)
