@@ -288,22 +288,6 @@ CFNumberBestType (CFNumberType type)
   return 0;
 }
 
-CF_INLINE Boolean
-CFNumberTypeIsFloat (CFNumberType type)
-{
-  switch (type)
-    {
-      case kCFNumberFloat32Type:
-      case kCFNumberFloat64Type:
-      case kCFNumberFloatType:
-      case kCFNumberDoubleType:
-      case kCFNumberCGFloatType:
-        return true;
-      default:
-        return false;
-    }
-}
-
 CFComparisonResult
 CFNumberCompare (CFNumberRef num, CFNumberRef oNum,
   void *context)
@@ -382,12 +366,46 @@ CFNumberCreate (CFAllocatorRef alloc, CFNumberType type,
 CFIndex
 CFNumberGetByteSize (CFNumberRef num)
 {
-  return CFNumberByteSizeOfType (CFNumberGetType_internal(num));
+  return CFNumberByteSizeOfType (CFNumberGetType(num));
 }
 
 CFNumberType
 CFNumberGetType (CFNumberRef num)
 {
+#if HAVE_OBJC_RUNTIME_H
+  if (CF_IS_OBJC(_kCFNumberTypeID, num))
+    {
+      const char *objcType;
+      CFNumberType cfType;
+
+      CF_OBJC_CALLV(const char *, objcType, num, "objCType");
+      cfType = 0;
+      switch (*objcType)
+        {
+          case _C_CHR:
+          case _C_UCHR:
+            cfType = kCFNumberCharType;
+          case _C_SHT:
+          case _C_USHT:
+            cfType = kCFNumberShortType;
+          case _C_INT:
+          case _C_UINT:
+            cfType = kCFNumberIntType;
+          case _C_LNG:
+          case _C_ULNG:
+            cfType = kCFNumberLongType;
+          case _C_LNG_LNG:
+          case _C_ULNG_LNG:
+            cfType = kCFNumberLongLongType;
+          case _C_FLT:
+            cfType = kCFNumberFloatType;
+          case _C_DBL:
+            cfType = kCFNumberDoubleType;
+        }
+      return cfType;
+    }
+#endif /* HAVE_OBJC_RUNTIME_H */
+
   return CFNumberGetType_internal (num);
 }
 
@@ -493,8 +511,16 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
 Boolean
 CFNumberIsFloatType (CFNumberRef num)
 {
-  CFNumberType type = CFNumberGetType_internal (num);
-  
-  return CFNumberTypeIsFloat (type);
+  CFNumberType type = CFNumberGetType (num);
+  switch (type)
+    {
+      case kCFNumberFloat32Type:
+      case kCFNumberFloat64Type:
+      case kCFNumberFloatType:
+      case kCFNumberDoubleType:
+      case kCFNumberCGFloatType:
+        return true;
+    }
+  return false;
 }
 

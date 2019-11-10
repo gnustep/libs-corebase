@@ -1,4 +1,7 @@
 2019-11-09  Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/CFNumber.c: Implement partial toll-free bridging.
+
+2019-11-09  Stefan Bidigaray <stefanbidi@gmail.com>
 	* aclocal.m4,
 	* configure,
 	* configure.ac: Update configure to use pkg-config instead of
