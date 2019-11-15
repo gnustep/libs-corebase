@@ -428,14 +428,16 @@ CFNumberGetTypeID (void)
 Boolean
 CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
 {
-  CFNumberType numType = CFNumberGetType_internal (num);
-  Boolean success;
-  
+  CFNumberType numType = CFNumberGetType (num);
+  Boolean success = true;
+
   switch (type)
     {
       case kCFNumberSInt8Type:
       case kCFNumberCharType:
-        if (numType == kCFNumberSInt32Type)
+        if (CF_IS_OBJC(_kCFNumberTypeID, num))
+          CF_OBJC_CALLV(signed char, *(signed char*)valuePtr, num, "charValue");
+        else if (numType == kCFNumberSInt32Type)
           CFNumberConvert (SInt32, &(num[1]), SInt8, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), SInt8, valuePtr, success);
@@ -444,7 +446,9 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
         return success;
       case kCFNumberSInt16Type:
       case kCFNumberShortType:
-        if (numType == kCFNumberSInt32Type)
+        if (CF_IS_OBJC(_kCFNumberTypeID, num))
+          CF_OBJC_CALLV(signed short, *(signed short*)valuePtr, num, "shortValue");
+        else if (numType == kCFNumberSInt32Type)
           CFNumberConvert (SInt32, &(num[1]), SInt16, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), SInt16, valuePtr, success);
@@ -458,7 +462,9 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
       case kCFNumberCFIndexType:
       case kCFNumberNSIntegerType:
 #endif
-        if (numType == kCFNumberSInt32Type)
+        if (CF_IS_OBJC(_kCFNumberTypeID, num))
+          CF_OBJC_CALLV(signed int, *(signed int*)valuePtr, num, "intValue");
+        else if (numType == kCFNumberSInt32Type)
           CFNumberConvert (SInt32, &(num[1]), SInt32, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), SInt32, valuePtr, success);
@@ -472,7 +478,9 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
       case kCFNumberCFIndexType:
       case kCFNumberNSIntegerType:
 #endif
-        if (numType == kCFNumberSInt32Type)
+        if (CF_IS_OBJC(_kCFNumberTypeID, num))
+          CF_OBJC_CALLV(signed long long, *(signed long long*)valuePtr, num, "longLongValue");
+        else if (numType == kCFNumberSInt32Type)
           CFNumberConvert (SInt32, &(num[1]), SInt64, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), SInt64, valuePtr, success);
@@ -484,7 +492,9 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
 #if !defined(__LP64__) && !defined(_WIN64)
       case kCFNumberCGFloatType:
 #endif
-        if (numType == kCFNumberSInt32Type)
+        if (CF_IS_OBJC(_kCFNumberTypeID, num))
+          CF_OBJC_CALLV(float, *(float*)valuePtr, num, "floatValue");
+        else if (numType == kCFNumberSInt32Type)
           CFNumberConvert (SInt32, &(num[1]), Float32, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), Float32, valuePtr, success);
@@ -496,7 +506,9 @@ CFNumberGetValue (CFNumberRef num, CFNumberType type, void *valuePtr)
 #if defined(__LP64__) || defined(_WIN64)
       case kCFNumberCGFloatType:
 #endif
-        if (numType == kCFNumberSInt32Type)
+        if (CF_IS_OBJC(_kCFNumberTypeID, num))
+          CF_OBJC_CALLV(double, *(double*)valuePtr, num, "doubleValue");
+        else if (numType == kCFNumberSInt32Type)
           CFNumberConvert (SInt32, &(num[1]), Float64, valuePtr, success);
         else if (numType == kCFNumberSInt64Type)
           CFNumberConvert (SInt64, &(num[1]), Float64, valuePtr, success);
@@ -520,7 +532,8 @@ CFNumberIsFloatType (CFNumberRef num)
       case kCFNumberDoubleType:
       case kCFNumberCGFloatType:
         return true;
+      default:
+        return false;
     }
-  return false;
 }
 

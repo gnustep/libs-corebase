@@ -1,3 +1,7 @@
+2019-11-15  Stefan Bidigaray <stefanbidi@gmail.com>
+	* Source/CFNumber.c: Implement toll-free bridging in
+	CFNumberGetValue().
+
 2019-11-09  Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFNumber.c: Implement partial toll-free bridging.
 
