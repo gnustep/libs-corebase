@@ -62,6 +62,7 @@ void NSCFInitialize (void)
       CFRuntimeBridgeClass (CFStringGetTypeID(), "NSCFString");
       CFRuntimeBridgeClass (CFSetGetTypeID(), "NSCFSet");
       CFRuntimeBridgeClass (CFLocaleGetTypeID(), "NSCFLocale");
+      CFRuntimeBridgeClass (CFNumberGetTypeID(), "NSCFNumber");
       CFRuntimeBridgeClass (CFDictionaryGetTypeID(), "NSCFDictionary");
       CFRuntimeBridgeClass (CFTimeZoneGetTypeID(), "NSCFTimeZone");
       CFRuntimeBridgeClass (CFReadStreamGetTypeID(), "NSCFInputStream");
