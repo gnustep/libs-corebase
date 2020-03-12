@@ -1,3 +1,6 @@
+2020-03-12  Frederik Seiffert <frederik@algoriddim.com>
+	* Source/CFNumber: Add equality and hash functions.
+
 2019-11-15  Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFNumber.c: Implement toll-free bridging in
 	CFNumberGetValue().
