@@ -98,6 +98,7 @@ libgnustep-corebase_OBJC_FILES = \
   NSCFString.m \
   NSCFSet.m \
   NSCFLocale.m \
+  NSCFNumber.m \
   NSCFDictionary.m \
   NSCFTimeZone.m \
   NSCFInputStream.m \
