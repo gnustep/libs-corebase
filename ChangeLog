@@ -1,10 +1,9 @@
 2020-03-06  Frederik Seiffert <frederik@algoriddim.com>
-    * Source/GNUmakefile.in
-	* Source/NSCFNumber.c:
-    * Source/NSCFType.c:
-    Implement toll-free bridging of CFNumber to NSNumber.
-    * Tests/CFNumber/bridge.m:
-    Add CFNumber bridging tests.
+	* Source/GNUmakefile.in,
+	* Source/NSCFNumber.m,
+	* Source/NSCFType.m: Implement toll-free bridging of CFNumber
+	to NSNumber.
+	* Tests/CFNumber/bridge.m: Add CFNumber bridging tests.
     
 2019-11-15  Stefan Bidigaray <stefanbidi@gmail.com>
 	* Source/CFNumber.c: Implement toll-free bridging in
