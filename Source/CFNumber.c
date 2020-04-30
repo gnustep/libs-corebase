@@ -160,6 +160,37 @@ CFNumberCopy (CFAllocatorRef alloc, CFTypeRef cf)
   return CFNumberCreate (alloc, type, (void*)bytes);
 }
 
+static Boolean
+CFNumberEqual (CFTypeRef cf1, CFTypeRef cf2)
+{
+  CFNumberRef num1 = (CFNumberRef) cf1;
+  CFNumberRef num2 = (CFNumberRef) cf2;
+  
+  if (CFNumberIsFloatType (num1) || CFNumberIsFloatType (num2))
+    {
+      Float64 value1, value2;
+      CFNumberGetValue (num1, kCFNumberFloat64Type, &value1);
+      CFNumberGetValue (num2, kCFNumberFloat64Type, &value2);
+      return value1 == value2;
+    }
+  else
+    {
+      SInt64 value1, value2;
+      CFNumberGetValue (num1, kCFNumberSInt64Type, &value1);
+      CFNumberGetValue (num2, kCFNumberSInt64Type, &value2);
+      return value1 == value2;
+    }
+}
+
+static CFHashCode
+CFNumberHash (CFTypeRef cf)
+{
+  CFNumberRef num = (CFNumberRef) cf;
+  CFHashCode hash;
+  CFNumberGetValue (num, kCFNumberLongType, &hash);
+  return hash;
+}
+
 static CFStringRef
 CFNumberCopyFormattingDesc (CFTypeRef cf, CFDictionaryRef formatOptions)
 {
@@ -180,8 +211,8 @@ static CFRuntimeClass CFNumberClass =
   NULL,
   CFNumberCopy,
   NULL,
-  NULL,
-  NULL,
+  CFNumberEqual,
+  CFNumberHash,
   CFNumberCopyFormattingDesc,
   NULL
 };
