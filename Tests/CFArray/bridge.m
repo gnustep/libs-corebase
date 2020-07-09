@@ -29,7 +29,7 @@ void testNSonCF(void)
   PASS_CF([nsarray count] == count,
     "-count works on a CFArray");
 
-  [nsarray addObject: CFSTR("5")];
+  [nsarray addObject: (id)CFSTR("5")];
 
   PASS_CF([nsarray count] == count+1,
     "-addObject: adds a value into a CFArray");

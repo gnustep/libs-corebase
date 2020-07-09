@@ -1,15 +1,18 @@
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSString.h>
+#import <Foundation/NSValue.h>
 #include "CoreFoundation/CFDictionary.h"
 #include "../CFTesting.h"
 
 void testCFonNS(void);
 void testNSonCF(void);
+void testLargeDict(void);
 
 int main (void)
 {
   testCFonNS();
   testNSonCF();
+  testLargeDict();
   return 0;
 }
 
@@ -86,5 +89,43 @@ void testNSonCF(void)
     "-objectForKey: works on a CFDictionary");
 
   [nsdict release];
+}
+
+void testLargeDict(void)
+{
+  CFMutableDictionaryRef cfdict = CFDictionaryCreateMutable(NULL, 0,
+    &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+  int count = 5000;
+  int removeCount = 0;
+
+  for (int i = 0; i < count; i++) {
+    id key = [[NSString alloc] initWithFormat:@"key-%d", i];
+    id value = [[NSNumber alloc] initWithInt:i];
+    CFDictionarySetValue(cfdict, (__bridge const void *)key, (__bridge const void *)value);
+    [key release];
+    [value release];
+
+    // start removing keys while we are adding new ones after filling 1/10
+    if (i > count/10) {
+      id keyToEvict = [[NSString alloc] initWithFormat:@"key-%d", removeCount++];
+      CFDictionaryRemoveValue(cfdict, (__bridge const void *)(keyToEvict));
+      [keyToEvict release];
+    }
+  }
+
+  for (int i = 0; i < count; i++) {
+    id key = [[NSString alloc] initWithFormat:@"key-%d", i];
+    void *value = CFDictionaryGetValue(cfdict, (__bridge const void *)key);
+    
+    if (i < removeCount) {
+      PASS_CF(value == NULL, "CFDictionaryGetValue returns no value for non-existant key '%@'", key);
+    } else {
+      PASS_CF(value != NULL, "CFDictionaryGetValue returns value for existant key '%@'", key);
+    }
+    
+    [key release];
+  }
+
+  CFRelease(cfdict);
 }
 
