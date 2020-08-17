@@ -106,17 +106,15 @@ AS_IF([test "x$with_gcd" != xno],
     AC_MSG_ERROR([Could not find the Grand Central Dispatch headers.]))])])
 
 #---
-# Check for the Objective-C runtime
+# Check if Objective-C is installed
 #---
-AC_ARG_WITH([objc],
-  [AS_HELP_STRING([--without-objc],
-    [Compiles without support for Objective-C. This option disables the Toll-Free Bridging mechanism.])],
-  [], [with_objc=yes])
-AS_IF([test "x$with_objc" != xno],
-  AC_CHECK_HEADERS([objc/runtime.h],
-    AC_SEARCH_LIBS(objc_getClass, [objc objc2], [],
-      AC_MSG_ERROR([Objective-C library not found!  Use --without-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library.])),
-    AC_MSG_ERROR([Could not find the Objective-C runtime header.])))
+AC_CHECK_HEADERS(objc/runtime.h)
+AC_CHECK_HEADERS(objc/objc.h)
+if test $ac_cv_header_objc_objc_h = no; then
+  echo "Check to make sure you have the Objective-C runtime library"
+  echo "and its headers installed."
+  AC_MSG_ERROR(Could not find Objective-C headers)
+fi
 
 #---
 # Check for zoneinfo directory

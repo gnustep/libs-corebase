@@ -697,7 +697,6 @@ ac_user_opts='
 enable_option_checking
 with_icu
 with_gcd
-with_objc
 with_zoneinfo
 '
       ac_precious_vars='build_alias
@@ -1347,8 +1346,6 @@ Optional Packages:
                           Dispatch support is absolutely required. A
                           compatible library will required
                           (http://www.nickhutchinson.me/libdispatch).
-  --without-objc          Compiles without support for Objective-C. This
-                          option disables the Toll-Free Bridging mechanism.
   --with-zoneinfo=DIR     Directory of the Time zone object files.
 
 Some influential environment variables:
@@ -5231,88 +5228,36 @@ done
 fi
 
 #---
-# Check for the Objective-C runtime
+# Check if Objective-C is installed
 #---
-
-# Check whether --with-objc was given.
-if test "${with_objc+set}" = set; then :
-  withval=$with_objc;
-else
-  with_objc=yes
-fi
-
-if test "x$with_objc" != xno; then :
-  for ac_header in objc/runtime.h
+for ac_header in objc/runtime.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "objc/runtime.h" "ac_cv_header_objc_runtime_h" "$ac_includes_default"
 if test "x$ac_cv_header_objc_runtime_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_OBJC_RUNTIME_H 1
 _ACEOF
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing objc_getClass" >&5
-$as_echo_n "checking for library containing objc_getClass... " >&6; }
-if ${ac_cv_search_objc_getClass+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
 
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char objc_getClass ();
-int
-main ()
-{
-return objc_getClass ();
-  ;
-  return 0;
-}
+fi
+
+done
+
+for ac_header in objc/objc.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "objc/objc.h" "ac_cv_header_objc_objc_h" "$ac_includes_default"
+if test "x$ac_cv_header_objc_objc_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_OBJC_OBJC_H 1
 _ACEOF
-for ac_lib in '' objc objc2; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_objc_getClass=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_objc_getClass+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_objc_getClass+:} false; then :
 
-else
-  ac_cv_search_objc_getClass=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_objc_getClass" >&5
-$as_echo "$ac_cv_search_objc_getClass" >&6; }
-ac_res=$ac_cv_search_objc_getClass
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  as_fn_error $? "Objective-C library not found!  Use --without-objc-bridge to explicitly disable the toll-free bridge or install the Objective-C library." "$LINENO" 5
-fi
-
-else
-  as_fn_error $? "Could not find the Objective-C runtime header." "$LINENO" 5
 fi
 
 done
 
+if test $ac_cv_header_objc_objc_h = no; then
+  echo "Check to make sure you have the Objective-C runtime library"
+  echo "and its headers installed."
+  as_fn_error $? "Could not find Objective-C headers" "$LINENO" 5
 fi
 
 #---
