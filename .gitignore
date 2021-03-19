@@ -3,4 +3,5 @@ obj
 *.sum
 config.*
 CFBase.h
+Source/GNUmakefile
 *.tmp
