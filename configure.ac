@@ -6,6 +6,18 @@ AC_INIT([libgnustep-corebase], [0.2], [bug-gnustep@gnu.org])
 AC_CONFIG_SRCDIR([Source/CFBase.c])
 AC_CONFIG_HEADERS([Source/config.h])
 
+if test -n "$GNUSTEP_MAKEFILES"; then
+  #--------------------------------------------------------------------
+  # Use config.guess, config.sub and install-sh provided by gnustep-make
+  #--------------------------------------------------------------------
+  AC_CONFIG_AUX_DIR($GNUSTEP_MAKEFILES)
+  
+  #--------------------------------------------------------------------
+  # Determine the host, build, and target systems
+  #--------------------------------------------------------------------
+  AC_CANONICAL_TARGET([])
+fi
+
 #--------------------------------------------------------------------
 # Find the compiler
 #--------------------------------------------------------------------
@@ -79,33 +91,33 @@ AC_CHECK_SIZEOF([long double])
 
 
 #--------------------------------------------------------------------
-# Check for pthread.h
+# Check for pthread.h (not needed on Windows)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS([pthread.h])
 if test $ac_cv_header_pthread_h = no ; then
-  AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
+  # pthread is optional on Windows (for CFRunLoop), but required on all
+  # other platforms.
+  case "$target_os" in
+    mingw*|windows)
+      AC_MSG_WARN([Unable to find pthread.h (needed for thread support)]);;
+    *)
+      AC_MSG_ERROR([Unable to find pthread.h (needed for thread support)]);;
+  esac
 fi
 AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
-ismingw=no
-checkinlibc=no
-case "$target_os" in
-  mingw*)	ismingw=yes;;
-  windows) iswindows=yes;;
-  nto*)		checkinlibc=yes;;
-  qnx*)		checkinlibc=yes;;
-  *android*)   checkinlibc=yes;;
-esac
 if test $pthread_ok = no ; then
-  if test $ismingw = yes ; then
-    AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
-  fi
-  if test $iswindows = yes ; then
-    AC_CHECK_LIB(pthreadVC2, pthread_join, pthread_ok=yes, pthread_ok=no)
-  fi
-  # Android and QNX have pthread in libc instead of libpthread
-  if test $checkinlibc = yes ; then
-    AC_CHECK_LIB(c, pthread_join, pthread_ok=yes, pthread_ok=no)
-  fi
+  case "$target_os" in
+    mingw*)
+      AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
+      ;;
+    windows)
+      AC_CHECK_LIB(pthreadVC2, pthread_join, pthread_ok=yes, pthread_ok=no)
+      ;;
+    nto*|qnx*|*android*)
+      # Android and QNX have pthread in libc instead of libpthread
+      AC_CHECK_LIB(c, pthread_join, pthread_ok=yes, pthread_ok=no)
+      ;;
+  esac
 fi
 if test $pthread_ok = yes ; then
   AC_DEFINE([HAVE_PTHREAD], [1],
