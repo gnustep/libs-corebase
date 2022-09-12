@@ -106,7 +106,7 @@ libgnustep-corebase_OBJC_FILES = \
   NSCFDate.m \
   NSCFType.m
 
-libgnustep-corebase_LIBRARIES_DEPEND_UPON += @LIBS@ @ICU_LIBS@ $(FND_LIBS)
+libgnustep-corebase_LIBRARIES_DEPEND_UPON += @LIBS@ $(FND_LIBS)
 libgnustep-corebase_HEADER_FILES_DIR = ../Headers/CoreFoundation
 libgnustep-corebase_HEADER_FILES_INSTALL_DIR = CoreFoundation
 

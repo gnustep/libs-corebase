@@ -1,3 +1,9 @@
+2022-09-12  Frederik Seiffert <frederik@algoriddim.com>
+	* configure.ac,
+	* configure,
+	* Source/GNUmakefile: Add ICU_CFLAGS and ICU_LIBS to CFLAGS and LIBS,
+	respectively. Fixes issue GH-19 and GH-21.
+
 2020-03-12  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFNumber: Add equality and hash functions.
 
