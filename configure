@@ -5133,7 +5133,7 @@ else
 	ICU_LIBS=$pkg_cv_ICU_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	LIBS="$LIBS $ICU_LIBS"; CFLAGS= "$CFLAGS $ICU_CFLAGS"
+	LIBS="$LIBS $ICU_LIBS"; CFLAGS="$CFLAGS $ICU_CFLAGS"
 fi
   for ac_header in unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/ustring.h unicode/utrans.h
 do :

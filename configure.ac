@@ -84,7 +84,7 @@ AC_ARG_WITH([icu],
   AS_HELP_STRING([--without-icu],
     [Disable Internation Components for Unicode. WARNING: Many components will stop working without ICU support!]), [], [with_icu=yes])
 AS_IF([test x"with_icu" != xno],
-  [PKG_CHECK_MODULES([ICU], [icu-i18n > 49.0], [LIBS="$LIBS $ICU_LIBS"; CFLAGS= "$CFLAGS $ICU_CFLAGS"])
+  [PKG_CHECK_MODULES([ICU], [icu-i18n > 49.0], [LIBS="$LIBS $ICU_LIBS"; CFLAGS="$CFLAGS $ICU_CFLAGS"])
   AC_CHECK_HEADERS([unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/ustring.h unicode/utrans.h],
   [], AC_MSG_ERROR([Could not find required ICU headers.]))
   AC_DEFINE([HAVE_ICU], [1],
