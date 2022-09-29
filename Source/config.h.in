@@ -39,6 +39,12 @@
 /* Define to 1 if you have the <objc/runtime.h> header file. */
 #undef HAVE_OBJC_RUNTIME_H
 
+/* Define to 1 if you have the pthread library. */
+#undef HAVE_PTHREAD
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 

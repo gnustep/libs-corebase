@@ -48,6 +48,10 @@
 #define ABSOLUTETIME_TO_UDATE(at) \
   (((at) + kCFAbsoluteTimeIntervalSince1970) * 1000.0)
 
+#ifdef HAVE_PTHREAD_H  
+#include <pthread.h>
+#endif
+
 #if defined(_WIN32)
 
 #include <windows.h>
@@ -79,8 +83,6 @@
   InterlockedCompareExchangePointer((ptr), (newv), (oldv))
 
 #else /* _WIN32 */
-
-#include <pthread.h>
 
 #define GSMutex pthread_mutex_t
 #define GSMutexInitialize(x) pthread_mutex_init(x, NULL)

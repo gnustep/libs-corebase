@@ -77,6 +77,41 @@ AS_CASE([$gs_cv_c_data_model],
 AC_CHECK_SIZEOF([double])
 AC_CHECK_SIZEOF([long double])
 
+
+#--------------------------------------------------------------------
+# Check for pthread.h
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS([pthread.h])
+if test $ac_cv_header_pthread_h = no ; then
+  AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
+fi
+AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
+ismingw=no
+checkinlibc=no
+case "$target_os" in
+  mingw*)	ismingw=yes;;
+  windows) iswindows=yes;;
+  nto*)		checkinlibc=yes;;
+  qnx*)		checkinlibc=yes;;
+  *android*)   checkinlibc=yes;;
+esac
+if test $pthread_ok = no ; then
+  if test $ismingw = yes ; then
+    AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
+  fi
+  if test $iswindows = yes ; then
+    AC_CHECK_LIB(pthreadVC2, pthread_join, pthread_ok=yes, pthread_ok=no)
+  fi
+  # Android and QNX have pthread in libc instead of libpthread
+  if test $checkinlibc = yes ; then
+    AC_CHECK_LIB(c, pthread_join, pthread_ok=yes, pthread_ok=no)
+  fi
+fi
+if test $pthread_ok = yes ; then
+  AC_DEFINE([HAVE_PTHREAD], [1],
+    [Define to 1 if you have the pthread library.])
+fi
+
 #---
 # Check for ICU
 #---

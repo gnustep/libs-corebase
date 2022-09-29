@@ -1,3 +1,10 @@
+2021-03-19  Frederik Seiffert <frederik@algoriddim.com>
+	* Source/CFRunLoop.c,
+	* Source/GSPrivate.h,
+	* Source/config.h.in,
+	* configure,
+	* configure: Add support for building without pthread library.
+
 2022-09-12  Frederik Seiffert <frederik@algoriddim.com>
 	* configure.ac,
 	* configure,

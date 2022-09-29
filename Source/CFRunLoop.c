@@ -56,7 +56,9 @@ static CFTypeID _kCFRunLoopObserverTypeID = 0;
 static CFTypeID _kCFRunLoopTimerTypeID = 0;
 
 static CFRunLoopRef static_mainLoop = NULL;
+#ifdef HAVE_PTHREAD
 static pthread_key_t static_loopKey;
+#endif
 
 CONST_STRING_DECL(kCFRunLoopDefaultMode, "kCFRunLoopDefaultMode");
 CONST_STRING_DECL(kCFRunLoopCommonModes, "kCFRunLoopCommonModes");
@@ -413,14 +415,18 @@ CFRunLoopCreate (void)
 static void
 _CFRunLoopCreateThreadKey (void)
 {
+#ifdef HAVE_PTHREAD
   pthread_key_create(&static_loopKey, (void(*)(void*)) CFRelease);
+#endif
 }
 
 CFRunLoopRef
 CFRunLoopGetCurrent (void)
 {
+  CFRunLoopRef rl = NULL;
+
+#ifdef HAVE_PTHREAD
   static pthread_once_t once = PTHREAD_ONCE_INIT;
-  CFRunLoopRef rl;
 
   pthread_once(&once, _CFRunLoopCreateThreadKey);
 
@@ -430,6 +436,9 @@ CFRunLoopGetCurrent (void)
       rl = CFRunLoopCreate();
       pthread_setspecific(static_loopKey, rl);
     }
+#else
+  #warning CFRunLoopGetCurrent() not available (missing pthread library)
+#endif
 
   return rl;
 }
@@ -443,8 +452,12 @@ _CFRunLoopCreateMain (void)
 CFRunLoopRef
 CFRunLoopGetMain (void)
 {
+#ifdef HAVE_PTHREAD
   static pthread_once_t once = PTHREAD_ONCE_INIT;
   pthread_once(&once, _CFRunLoopCreateMain);
+#else
+  #warning CFRunLoopGetMain() not available (missing pthread library)
+#endif
   return static_mainLoop;
 }
 
