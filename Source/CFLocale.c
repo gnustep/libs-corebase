@@ -35,9 +35,19 @@
 #include "GSObjCRuntime.h"
 
 #include <string.h>
+
+#if defined(HAVE_UNICODE_ULOC_H)
 #include <unicode/uloc.h>
+#endif
+#if defined(HAVE_UNICODE_ULOCDATA_H)
 #include <unicode/ulocdata.h>
+#endif
+#if defined(HAVE_UNICODE_UCURR_H)
 #include <unicode/ucurr.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 #define BUFFER_SIZE 256
 

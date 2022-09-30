@@ -36,8 +36,11 @@
 #include <strings.h>
 #endif
 
-#if HAVE_UNICODE_UCNV_H
+#if defined(HAVE_UNICODE_UCNV_H)
 #include <unicode/ucnv.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
 #endif
 
 static GSMutex _kCFStringEncodingLock;

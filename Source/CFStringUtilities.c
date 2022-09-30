@@ -31,9 +31,18 @@
 #include "CoreFoundation/CFString.h"
 #include "GSPrivate.h"
 
+#if defined(HAVE_UNICODE_UCOL_H)
 #include <unicode/ucol.h>
+#endif
+#if defined(HAVE_UNICODE_ULOC_H)
 #include <unicode/uloc.h>
+#endif
+#if defined(HAVE_UNICODE_USEARCH_H)
 #include <unicode/usearch.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 
 

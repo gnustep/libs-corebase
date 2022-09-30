@@ -5410,6 +5410,68 @@ $as_echo "no" >&6; }
 	fi
 fi
 if test x"with_icu" != xno; then :
+  found_icu=no
+  case $target_os in #(
+  mingw*|windows) :
+     # check for ICU bundled with Windows 10
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for udat_open in -licu" >&5
+$as_echo_n "checking for udat_open in -licu... " >&6; }
+if ${ac_cv_lib_icu_udat_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-licu  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char udat_open ();
+int
+main ()
+{
+return udat_open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_icu_udat_open=yes
+else
+  ac_cv_lib_icu_udat_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_icu_udat_open" >&5
+$as_echo "$ac_cv_lib_icu_udat_open" >&6; }
+if test "x$ac_cv_lib_icu_udat_open" = xyes; then :
+  for ac_header in icu.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "icu.h" "ac_cv_header_icu_h" "$ac_includes_default"
+if test "x$ac_cv_header_icu_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ICU_H 1
+_ACEOF
+ found_icu=yes
+          LIBS="$LIBS -licu"
+          { $as_echo "$as_me:${as_lineno-$LINENO}: Using ICU DLL from Windows 10 (requires version 1903)" >&5
+$as_echo "$as_me: Using ICU DLL from Windows 10 (requires version 1903)" >&6;}
+fi
+
+done
+
+fi
+ ;; #(
+  *) :
+     ;;
+esac
+  if test $found_icu = no; then :
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for icu-i18n > 49.0" >&5
@@ -5499,9 +5561,10 @@ else
 	ICU_LIBS=$pkg_cv_ICU_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	LIBS="$LIBS $ICU_LIBS"; CFLAGS="$CFLAGS $ICU_CFLAGS"
+
 fi
-  for ac_header in unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/ustring.h unicode/utrans.h
+    LIBS="$LIBS $ICU_LIBS"; CFLAGS="$CFLAGS $ICU_CFLAGS"
+    for ac_header in unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/uset.h unicode/ustring.h unicode/utrans.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -5516,9 +5579,9 @@ fi
 
 done
 
+fi
 
 $as_echo "#define HAVE_ICU 1" >>confdefs.h
-
 
 fi
 

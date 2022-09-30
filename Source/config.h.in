@@ -24,6 +24,9 @@
 /* Define to 1 if you have International Components for Unicode. */
 #undef HAVE_ICU
 
+/* Define to 1 if you have the <icu.h> header file. */
+#undef HAVE_ICU_H
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -98,6 +101,9 @@
 
 /* Define to 1 if you have the <unicode/usearch.h> header file. */
 #undef HAVE_UNICODE_USEARCH_H
+
+/* Define to 1 if you have the <unicode/uset.h> header file. */
+#undef HAVE_UNICODE_USET_H
 
 /* Define to 1 if you have the <unicode/ustring.h> header file. */
 #undef HAVE_UNICODE_USTRING_H

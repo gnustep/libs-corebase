@@ -30,7 +30,12 @@
 #include "CoreFoundation/CFString.h"
 #include "GSPrivate.h"
 
+#if defined(HAVE_UNICODE_USET_H)
 #include <unicode/uset.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 struct __CFCharacterSet
 {
