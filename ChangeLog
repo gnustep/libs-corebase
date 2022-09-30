@@ -1,4 +1,7 @@
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
+	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
+
+2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFString.c,
 	* Source/config.h.in,
 	* configure,
