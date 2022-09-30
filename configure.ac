@@ -185,6 +185,11 @@ AC_DEFINE_UNQUOTED([TZDIR], ["$with_zoneinfo"],
 #---
 AC_CHECK_LIB(m, modf)
 
+#---
+# Check for WinSock2
+#---
+AC_CHECK_HEADERS(ws2tcpip.h)
+
 AC_CONFIG_FILES([Source/GNUmakefile Headers/CoreFoundation/CFBase.h])
 
 AC_OUTPUT

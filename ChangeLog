@@ -1,3 +1,17 @@
+2021-03-22  Frederik Seiffert <frederik@algoriddim.com>
+	* Source/CFRunLoop.c,
+	* Source/CFRuntime.c
+	* Source/CFSocket.c
+	* Source/CFStream.c
+	* Source/CFStringEncoding.c
+	* Source/CFURLAccess.c
+	* Source/config.h.in,
+	* configure,
+	* configure: Fixed support for building on Windows.
+	CFRunLoop and directory enumeration in CFURLAccess is currently not
+	implemented on Windows, and Windows-specific implementations of
+	CFSocket, CFStream, and CFURLAccess are largely untested so far.
+
 2021-03-19  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFRunLoop.c,
 	* Source/GSPrivate.h,

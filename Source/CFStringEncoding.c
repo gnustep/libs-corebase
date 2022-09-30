@@ -32,7 +32,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
 #include <strings.h>
+#endif
 
 #if HAVE_UNICODE_UCNV_H
 #include <unicode/ucnv.h>

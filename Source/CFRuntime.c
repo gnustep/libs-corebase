@@ -545,7 +545,7 @@ CFInitialize (void)
 #if defined(_MSC_VER)
 #include <windows.h>
 
-BOOL
+WinBOOL
 DllMain (HINSTANCE hinst, DWORD fdwReason, LPVOID ldvReserved)
 {
   if (fdwReason == DLL_PROCESS_ATTACH)

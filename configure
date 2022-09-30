@@ -5602,6 +5602,22 @@ _ACEOF
 fi
 
 
+#---
+# Check for WinSock2
+#---
+for ac_header in ws2tcpip.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "ws2tcpip.h" "ac_cv_header_ws2tcpip_h" "$ac_includes_default"
+if test "x$ac_cv_header_ws2tcpip_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_WS2TCPIP_H 1
+_ACEOF
+
+fi
+
+done
+
+
 ac_config_files="$ac_config_files Source/GNUmakefile Headers/CoreFoundation/CFBase.h"
 
 

@@ -389,6 +389,10 @@ GSRunLoopContextGet (CFRunLoopRef rl, CFStringRef mode)
 static CFRunLoopRef
 CFRunLoopCreate (void)
 {
+#ifdef _WIN32
+#warning CFRunLoop not implemented on Windows
+  return NULL;
+#else
   CFRunLoopRef rl;
 
   rl = (CFRunLoopRef)_CFRuntimeCreateInstance (kCFAllocatorDefault,
@@ -410,6 +414,7 @@ CFRunLoopCreate (void)
   fcntl(rl->_wakeUpPipe[1], F_SETFL, O_NONBLOCK);
 
   return rl;
+#endif // _WIN32
 }
 
 static void
@@ -694,6 +699,7 @@ _CFRunLoopHasAnyValidSources (CFRunLoopRef rl, CFStringRef mode)
   return CFRunLoopHasAnyValidSources(rl, context);
 }
 
+#ifndef _WIN32
 static void
 Source1Applier(const void *value, void *context)
 {
@@ -754,11 +760,15 @@ CFRunLoopPrepareForPoll(struct pollfd* pfd, int* numSources,
 
   return pfd;
 }
+#endif // _WIN32
 
 SInt32
 CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
                     Boolean returnAfterSourceHandled)
 {
+#ifdef _WIN32
+  return kCFRunLoopRunStopped; // not implemented
+#else
   /* This is the sequence of events:
    * 1. Notify observers with kCFRunLoopEntry activity.
    * 2. Notify observers with kCFRunLoopBeforeTimers activitiy.
@@ -934,6 +944,7 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
   CFAllocatorDeallocate(NULL, pfd);
 
   return exitReason;
+#endif // _WIN32
 }
 
 void
@@ -941,8 +952,12 @@ CFRunLoopWakeUp (CFRunLoopRef rl)
 {
   if (CFRunLoopIsWaiting(rl))
     {
+#ifdef _WIN32
+      // not implemented
+#else
       int dummy = 1;
       write(rl->_wakeUpPipe[1], &dummy, sizeof(dummy));
+#endif
     }
 }
 
@@ -1840,4 +1855,3 @@ CFRunLoopTimerSetNextFireDate (CFRunLoopTimerRef timer,
   // says so), this may not be necessary.
   CFRunLoopWakeUp(timer->_runloop);
 }
-
