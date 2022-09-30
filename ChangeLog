@@ -1,3 +1,9 @@
+2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
+	* Source/CFString.c,
+	* Source/config.h.in,
+	* configure,
+	* configure: Use unorm2 API instead of deprecated unorm
+
 2021-03-22  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFRunLoop.c,
 	* Source/CFRuntime.c
@@ -19,7 +25,7 @@
 	* configure,
 	* configure: Add support for building without pthread library.
 
-2022-09-12  Frederik Seiffert <frederik@algoriddim.com>
+2022-09-12  Stefan Bidigaray <stefanbidi@gmail.com>
 	* configure.ac,
 	* configure,
 	* Source/GNUmakefile: Add ICU_CFLAGS and ICU_LIBS to CFLAGS and LIBS,

@@ -46,8 +46,6 @@
 
 #if defined(HAVE_UNICODE_UNORM2_H)
 #include <unicode/unorm2.h>
-#elif defined(HAVE_UNICODE_UNORM_H)
-#include <unicode/unorm.h>
 #endif
 #if defined(HAVE_UNICODE_USTRING_H)
 #include <unicode/ustring.h>
@@ -1646,7 +1644,6 @@ CFStringFold (CFMutableStringRef str, CFOptionFlags flags, CFLocaleRef locale)
     CFStringCaseMap (str, locale, flags, _kCFStringFold);
 }
 
-#ifdef __UNORM2_H__
 CF_INLINE const UNormalizer2 *
 CFToICUNormalizer (CFStringNormalizationForm form, UErrorCode *err)
 {
@@ -1664,35 +1661,11 @@ CFToICUNormalizer (CFStringNormalizationForm form, UErrorCode *err)
       return NULL;
     }
 }
-#else
-CF_INLINE UNormalizationMode
-CFToICUNormalization (CFStringNormalizationForm form)
-{
-  switch (form)
-    {
-    case kCFStringNormalizationFormD:
-      return UNORM_NFD;
-    case kCFStringNormalizationFormKD:
-      return UNORM_NFKD;
-    case kCFStringNormalizationFormC:
-      return UNORM_NFC;
-    case kCFStringNormalizationFormKC:
-      return UNORM_NFKC;
-    default:
-      return 1;
-    }
-}
-#endif
 
 void
 CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
 {
 #if !UCONFIG_NO_NORMALIZATION
-  /* FIXME: The unorm API has been officially deprecated on ICU 4.8, however,
-     the new unorm2 API was only introduced on ICU 4.4.  The current plan is
-     to provide compatibility down to ICU 4.0, so unorm is used here.  In
-     the future, when we no longer support building with older versions of
-     the library this code can be updated for the new API. */
   UniChar *oldContents;
   CFIndex oldContentsLength;
   CFIndex newLength;
@@ -1700,13 +1673,9 @@ CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
   UErrorCode err = U_ZERO_ERROR;
   struct __CFMutableString *mStr;
   CFMutableStringRef objc = NULL;
-#ifdef __UNORM2_H__
   const UNormalizer2 *n2 = CFToICUNormalizer (theForm, &err);
   if (n2 == NULL || U_FAILURE (err))
     return;
-#else
-  UNormalizationMode mode = CFToICUNormalization (theForm);
-#endif
 
   /* Make sure string isn't already normalized.  Use the quick check for
      speed. We still go through the normalization if the quick check does not
@@ -1716,13 +1685,8 @@ CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
 
   if (oldContents != NULL)
     {
-#ifdef __UNORM2_H__
       checkResult =
         unorm2_quickCheck (n2, oldContents, oldContentsLength, &err);
-#else
-      checkResult =
-        unorm_quickCheck (oldContents, oldContentsLength, mode, &err);
-#endif
       if (U_FAILURE (err) || checkResult == UNORM_YES)
         return;
     }
@@ -1743,13 +1707,8 @@ CFStringNormalize (CFMutableStringRef str, CFStringNormalizationForm theForm)
   /* Works just like CFStringCaseMap() above... */
   do
     {
-#ifdef __UNORM2_H__
       newLength = unorm2_normalize (n2, oldContents, oldContentsLength,
                                     mStr->_contents, mStr->_capacity, &err);
-#else
-      newLength = unorm_normalize (oldContents, oldContentsLength, mode,
-                                   0, mStr->_contents, mStr->_capacity, &err);
-#endif
     }
   while (err == U_BUFFER_OVERFLOW_ERROR
          && CFStringCheckCapacityAndGrow (str, newLength, NULL));

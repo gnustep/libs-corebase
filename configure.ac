@@ -123,8 +123,8 @@ AS_IF([test x"with_icu" != xno],
   AS_IF([test $found_icu = no],
     [PKG_CHECK_MODULES([ICU], [icu-i18n > 49.0])
     LIBS="$LIBS $ICU_LIBS"; CFLAGS="$CFLAGS $ICU_CFLAGS"
-    AC_CHECK_HEADERS([unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm.h unicode/unum.h unicode/usearch.h unicode/uset.h unicode/ustring.h unicode/utrans.h],
-[], AC_MSG_ERROR([Could not find required ICU headers.]))])
+    AC_CHECK_HEADERS([unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm2.h unicode/unum.h unicode/usearch.h unicode/uset.h unicode/ustring.h unicode/utrans.h], [],
+      AC_MSG_ERROR([Could not find required ICU headers.]))])
   AC_DEFINE([HAVE_ICU], [1],
     [Define to 1 if you have International Components for Unicode.])])
 

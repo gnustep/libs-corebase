@@ -103,8 +103,8 @@
 /* Define to 1 if you have the <unicode/uloc.h> header file. */
 #undef HAVE_UNICODE_ULOC_H
 
-/* Define to 1 if you have the <unicode/unorm.h> header file. */
-#undef HAVE_UNICODE_UNORM_H
+/* Define to 1 if you have the <unicode/unorm2.h> header file. */
+#undef HAVE_UNICODE_UNORM2_H
 
 /* Define to 1 if you have the <unicode/unum.h> header file. */
 #undef HAVE_UNICODE_UNUM_H
