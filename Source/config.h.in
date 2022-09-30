@@ -18,8 +18,15 @@
 /* Define LP64 data model. */
 #define DATA_MODEL_LP64 124888
 
+/* Define to 1 if the required libraries and headers for CFRunLoop are
+   present. */
+#undef HAVE_CFRUNLOOP_SUPPORT
+
 /* Define to 1 if you have the <dispatch/dispatch.h> header file. */
 #undef HAVE_DISPATCH_DISPATCH_H
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
 
 /* Define to 1 if you have International Components for Unicode. */
 #undef HAVE_ICU
@@ -36,14 +43,17 @@
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the <objc/runtime.h> header file. */
 #undef HAVE_OBJC_RUNTIME_H
 
-/* Define to 1 if you have the pthread library. */
-#undef HAVE_PTHREAD
+/* Define to 1 if you have the <poll.h> header file. */
+#undef HAVE_POLL_H
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H

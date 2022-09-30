@@ -706,6 +706,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_cfrunloop
 with_icu
 with_gcd
 with_objc
@@ -1337,6 +1338,14 @@ if test -n "$ac_init_help"; then
      short | recursive ) echo "Configuration of libgnustep-corebase 0.2:";;
    esac
   cat <<\_ACEOF
+
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+--disable-cfrunloop
+    Disables CFRunLoop support and requiring pthread.
+    Must be passed when building on Windows.
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -5068,215 +5077,89 @@ _ACEOF
 
 
 #--------------------------------------------------------------------
-# Check for pthread.h (not needed on Windows)
+# Check for CFRunLoop support
+# Android and QNX have pthread in libc instead of libpthread
 #--------------------------------------------------------------------
-for ac_header in pthread.h
+# Check whether --enable-cfrunloop was given.
+if test "${enable_cfrunloop+set}" = set; then :
+  enableval=$enable_cfrunloop;
+else
+  for ac_header in unistd.h fcntl.h poll.h limits.h pthread.h
 do :
-  ac_fn_c_check_header_mongrel "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
-if test "x$ac_cv_header_pthread_h" = xyes; then :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_PTHREAD_H 1
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pthread_join" >&5
+$as_echo_n "checking for library containing pthread_join... " >&6; }
+if ${ac_cv_search_pthread_join+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_join ();
+int
+main ()
+{
+return pthread_join ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' pthread pthreadG32 pthreadVC2; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_pthread_join=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_pthread_join+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_pthread_join+:} false; then :
+
+else
+  ac_cv_search_pthread_join=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_pthread_join" >&5
+$as_echo "$ac_cv_search_pthread_join" >&6; }
+ac_res=$ac_cv_search_pthread_join
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+$as_echo "#define HAVE_CFRUNLOOP_SUPPORT 1" >>confdefs.h
+
+else
+  as_fn_error $? "Missing pthread library for CFRunLoop support." "$LINENO" 5
+fi
+
+else
+  as_fn_error $? "Missing headers for CFRunLoop support." "$LINENO" 5
 fi
 
 done
 
-if test $ac_cv_header_pthread_h = no ; then
-  # pthread is optional on Windows (for CFRunLoop), but required on all
-  # other platforms.
-  case "$target_os" in
-    mingw*|windows)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Unable to find pthread.h (needed for thread support)" >&5
-$as_echo "$as_me: WARNING: Unable to find pthread.h (needed for thread support)" >&2;};;
-    *)
-      as_fn_error $? "Unable to find pthread.h (needed for thread support)" "$LINENO" 5;;
-  esac
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_join in -lpthread" >&5
-$as_echo_n "checking for pthread_join in -lpthread... " >&6; }
-if ${ac_cv_lib_pthread_pthread_join+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpthread  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pthread_join ();
-int
-main ()
-{
-return pthread_join ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pthread_pthread_join=yes
-else
-  ac_cv_lib_pthread_pthread_join=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_join" >&5
-$as_echo "$ac_cv_lib_pthread_pthread_join" >&6; }
-if test "x$ac_cv_lib_pthread_pthread_join" = xyes; then :
-  pthread_ok=yes
-else
-  pthread_ok=no
 fi
 
-if test $pthread_ok = no ; then
-  case "$target_os" in
-    mingw*)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_join in -lpthreadGC2" >&5
-$as_echo_n "checking for pthread_join in -lpthreadGC2... " >&6; }
-if ${ac_cv_lib_pthreadGC2_pthread_join+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpthreadGC2  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pthread_join ();
-int
-main ()
-{
-return pthread_join ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pthreadGC2_pthread_join=yes
-else
-  ac_cv_lib_pthreadGC2_pthread_join=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthreadGC2_pthread_join" >&5
-$as_echo "$ac_cv_lib_pthreadGC2_pthread_join" >&6; }
-if test "x$ac_cv_lib_pthreadGC2_pthread_join" = xyes; then :
-  pthread_ok=yes
-else
-  pthread_ok=no
-fi
-
-      ;;
-    windows)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_join in -lpthreadVC2" >&5
-$as_echo_n "checking for pthread_join in -lpthreadVC2... " >&6; }
-if ${ac_cv_lib_pthreadVC2_pthread_join+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpthreadVC2  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pthread_join ();
-int
-main ()
-{
-return pthread_join ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pthreadVC2_pthread_join=yes
-else
-  ac_cv_lib_pthreadVC2_pthread_join=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthreadVC2_pthread_join" >&5
-$as_echo "$ac_cv_lib_pthreadVC2_pthread_join" >&6; }
-if test "x$ac_cv_lib_pthreadVC2_pthread_join" = xyes; then :
-  pthread_ok=yes
-else
-  pthread_ok=no
-fi
-
-      ;;
-    nto*|qnx*|*android*)
-      # Android and QNX have pthread in libc instead of libpthread
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_join in -lc" >&5
-$as_echo_n "checking for pthread_join in -lc... " >&6; }
-if ${ac_cv_lib_c_pthread_join+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lc  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pthread_join ();
-int
-main ()
-{
-return pthread_join ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_c_pthread_join=yes
-else
-  ac_cv_lib_c_pthread_join=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_pthread_join" >&5
-$as_echo "$ac_cv_lib_c_pthread_join" >&6; }
-if test "x$ac_cv_lib_c_pthread_join" = xyes; then :
-  pthread_ok=yes
-else
-  pthread_ok=no
-fi
-
-      ;;
-  esac
-fi
-if test $pthread_ok = yes ; then
-
-$as_echo "#define HAVE_PTHREAD 1" >>confdefs.h
-
-fi
 
 #---
 # Check for ICU

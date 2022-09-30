@@ -91,38 +91,20 @@ AC_CHECK_SIZEOF([long double])
 
 
 #--------------------------------------------------------------------
-# Check for pthread.h (not needed on Windows)
+# Check for CFRunLoop support
+# Android and QNX have pthread in libc instead of libpthread
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS([pthread.h])
-if test $ac_cv_header_pthread_h = no ; then
-  # pthread is optional on Windows (for CFRunLoop), but required on all
-  # other platforms.
-  case "$target_os" in
-    mingw*|windows)
-      AC_MSG_WARN([Unable to find pthread.h (needed for thread support)]);;
-    *)
-      AC_MSG_ERROR([Unable to find pthread.h (needed for thread support)]);;
-  esac
-fi
-AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
-if test $pthread_ok = no ; then
-  case "$target_os" in
-    mingw*)
-      AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
-      ;;
-    windows)
-      AC_CHECK_LIB(pthreadVC2, pthread_join, pthread_ok=yes, pthread_ok=no)
-      ;;
-    nto*|qnx*|*android*)
-      # Android and QNX have pthread in libc instead of libpthread
-      AC_CHECK_LIB(c, pthread_join, pthread_ok=yes, pthread_ok=no)
-      ;;
-  esac
-fi
-if test $pthread_ok = yes ; then
-  AC_DEFINE([HAVE_PTHREAD], [1],
-    [Define to 1 if you have the pthread library.])
-fi
+AC_ARG_ENABLE(cfrunloop,
+  [--disable-cfrunloop
+    Disables CFRunLoop support and requiring pthread.
+    Must be passed when building on Windows.],
+  [],
+  [AC_CHECK_HEADERS([unistd.h fcntl.h poll.h limits.h pthread.h],
+    [AC_SEARCH_LIBS(pthread_join, [pthread pthreadG32 pthreadVC2],
+      [AC_DEFINE(HAVE_CFRUNLOOP_SUPPORT, 1,
+        [Define to 1 if the required libraries and headers for CFRunLoop are present.])],
+      [AC_MSG_ERROR([Missing pthread library for CFRunLoop support.])])],
+    [AC_MSG_ERROR([Missing headers for CFRunLoop support.])])])
 
 #---
 # Check for ICU
