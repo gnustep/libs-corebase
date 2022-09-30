@@ -122,7 +122,7 @@ AS_IF([test x"with_icu" != xno],
           AC_MSG_NOTICE([Using ICU DLL from Windows 10 (requires version 1903)])])])])
   AS_IF([test $found_icu = no],
     [PKG_CHECK_MODULES([ICU], [icu-i18n > 49.0])
-    LIBS="$LIBS $ICU_LIBS"; CFLAGS="$CFLAGS $ICU_CFLAGS"
+    LIBS="$LIBS $ICU_LIBS"; CFLAGS="$CFLAGS $ICU_CFLAGS"; INCLUDE_FLAGS="$INCLUDE_FLAGS $ICU_CFLAGS"
     AC_CHECK_HEADERS([unicode/ucal.h unicode/uchar.h unicode/ucnv.h unicode/ucol.h unicode/ucurr.h unicode/udat.h unicode/udatpg.h unicode/uloc.h unicode/ulocdata.h unicode/unorm2.h unicode/unum.h unicode/usearch.h unicode/uset.h unicode/ustring.h unicode/utrans.h], [],
       AC_MSG_ERROR([Could not find required ICU headers.]))])
   AC_DEFINE([HAVE_ICU], [1],
