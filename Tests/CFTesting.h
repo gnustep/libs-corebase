@@ -4,6 +4,13 @@
 
 #define CFTEST_BUFFER_SIZE 1024
 
+#if defined(__OBJC__) && defined(__clang__) && defined(_MSC_VER)
+/* Work around Clang bug on Windows MSVC when tests contain no
+ * Objective-C constructs: https://bugs.llvm.org/show_bug.cgi?id=49681
+ */
+id __work_around_clang_bug = @"__unused__";
+#endif
+
 static Boolean testPassed = true;
 static Boolean testHopeful = false;
 

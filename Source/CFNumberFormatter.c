@@ -32,8 +32,15 @@
 
 #include "CoreFoundation/CFNumberFormatter.h"
 
+#if defined(HAVE_UNICODE_UCURR_H)
 #include <unicode/ucurr.h>
+#endif
+#if defined(HAVE_UNICODE_UNUM_H)
 #include <unicode/unum.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 #define BUFFER_SIZE 512
 

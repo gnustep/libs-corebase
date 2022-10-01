@@ -18,11 +18,21 @@
 /* Define LP64 data model. */
 #define DATA_MODEL_LP64 124888
 
+/* Define to 1 if the required libraries and headers for CFRunLoop are
+   present. */
+#undef HAVE_CFRUNLOOP_SUPPORT
+
 /* Define to 1 if you have the <dispatch/dispatch.h> header file. */
 #undef HAVE_DISPATCH_DISPATCH_H
 
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
 /* Define to 1 if you have International Components for Unicode. */
 #undef HAVE_ICU
+
+/* Define to 1 if you have the <icu.h> header file. */
+#undef HAVE_ICU_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -33,11 +43,20 @@
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the <objc/runtime.h> header file. */
 #undef HAVE_OBJC_RUNTIME_H
+
+/* Define to 1 if you have the <poll.h> header file. */
+#undef HAVE_POLL_H
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -84,14 +103,17 @@
 /* Define to 1 if you have the <unicode/uloc.h> header file. */
 #undef HAVE_UNICODE_ULOC_H
 
-/* Define to 1 if you have the <unicode/unorm.h> header file. */
-#undef HAVE_UNICODE_UNORM_H
+/* Define to 1 if you have the <unicode/unorm2.h> header file. */
+#undef HAVE_UNICODE_UNORM2_H
 
 /* Define to 1 if you have the <unicode/unum.h> header file. */
 #undef HAVE_UNICODE_UNUM_H
 
 /* Define to 1 if you have the <unicode/usearch.h> header file. */
 #undef HAVE_UNICODE_USEARCH_H
+
+/* Define to 1 if you have the <unicode/uset.h> header file. */
+#undef HAVE_UNICODE_USET_H
 
 /* Define to 1 if you have the <unicode/ustring.h> header file. */
 #undef HAVE_UNICODE_USTRING_H
@@ -101,6 +123,9 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#undef HAVE_WS2TCPIP_H
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT

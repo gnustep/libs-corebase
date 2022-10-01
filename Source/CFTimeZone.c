@@ -42,7 +42,13 @@
 
 #include <stdio.h>
 #include <string.h>
+
+#if defined(HAVE_UNICODE_UCAL_H)
 #include <unicode/ucal.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 struct _ttinfo
 {

@@ -94,7 +94,11 @@ CFWriteStreamBufferOpen (CFWriteStreamRef s);
 struct CFWriteStreamFD
 {
     struct __CFWriteStream parent;
-    int                    fd; // FIXME: support Windows?
+#ifdef _WIN32
+    HANDLE                 handle;
+#else
+    int                    fd;
+#endif
     Boolean                append;
     CFURLRef               url;
 };
@@ -181,7 +185,11 @@ static const struct CFReadStreamImpl CFReadStreamBufferImpl = {
 struct CFReadStreamFD
 {
     struct __CFReadStream parent;
-    int      fd;
+#ifdef _WIN32
+    HANDLE handle;
+#else
+    int fd;
+#endif
     CFURLRef url;
 };
 
@@ -349,11 +357,20 @@ static void
 CFWriteStreamFDClose(CFWriteStreamRef s)
 {
   struct CFWriteStreamFD* stream = (struct CFWriteStreamFD*) s;
+
+#ifdef _WIN32
+  if (stream->handle != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle(stream->handle);
+    stream->handle = INVALID_HANDLE_VALUE;
+  }
+#else
   if (stream->fd != -1)
     {
       close(stream->fd);
       stream->fd = -1;
     }
+#endif
 }
 
 static void
@@ -428,14 +445,22 @@ CFWriteStreamFDCopyProperty (CFWriteStreamRef s, CFStringRef propertyName)
           CFWriteStreamSetError(s, EBADF);
           return NULL;
         }
-          
-      offset = lseek(stream->fd, 0, SEEK_CUR);
 
+#ifdef _WIN32
+      offset = SetFilePointer(stream->handle, 0, 0, FILE_CURRENT);
+      if (offset == INVALID_SET_FILE_POINTER)
+        {
+          CFWriteStreamSetError(s, GetLastError());
+          return NULL;
+        }
+#else
+      offset = lseek(stream->fd, 0, SEEK_CUR);
       if (offset == (off_t)-1)
         {
           CFWriteStreamSetError(s, errno);
           return NULL;
         }
+#endif
 
       return CFNumberCreate(NULL, kCFNumberLongLongType, &offset);
     }
@@ -517,7 +542,11 @@ CFWriteStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
   sfd = ((struct CFWriteStreamFD *)new);
   GSMemoryCopy(&new->impl, &CFWriteStreamFDImpl, sizeof(CFWriteStreamFDImpl));
   sfd->url = (CFURLRef) CFRetain(fileURL);
+#ifdef _WIN32
+  sfd->handle = INVALID_HANDLE_VALUE;
+#else
   sfd->fd = -1;
+#endif
 
   return new;
 }
@@ -571,6 +600,27 @@ static Boolean
 CFWriteStreamFDOpen (CFWriteStreamRef s)
 {
   struct CFWriteStreamFD* stream = (struct CFWriteStreamFD*) s;
+
+#ifdef _WIN32
+  CFStringRef path = CFURLCopyFileSystemPath(stream->url,
+                                                 kCFURLWindowsPathStyle);
+
+  stream->handle = (void*)CreateFileA(
+    CFStringGetCStringPtr(path, kCFStringEncodingUTF8),
+    GENERIC_READ,
+    FILE_SHARE_READ,
+    NULL,
+    OPEN_EXISTING,
+    FILE_ATTRIBUTE_NORMAL,
+    NULL);
+
+  CFRelease(path);
+  if (stream->handle == INVALID_HANDLE_VALUE)
+    {
+      CFWriteStreamSetError(s, GetLastError());
+      return false;
+    }
+#else
   CFStringRef path = CFURLCopyFileSystemPath(stream->url,
                                                  kCFURLPOSIXPathStyle);
   int flags = O_WRONLY | O_CREAT;
@@ -591,6 +641,7 @@ CFWriteStreamFDOpen (CFWriteStreamRef s)
       CFWriteStreamSetError(s, errno);
       return false;
     }
+#endif // _WIN32
 
   return true;
 }
@@ -660,8 +711,14 @@ CFWriteStreamFDSetProperty (CFWriteStreamRef s, CFStringRef propertyName,
           CFWriteStreamSetError(s, EINVAL);
           return false;
         }
-          
+
+#ifdef _WIN32
+      long offsetHigh = offset >> 32;
+      if (SetFilePointer(stream->handle, (int)offset, &offsetHigh, FILE_BEGIN)
+        == INVALID_SET_FILE_POINTER)
+#else
       if (lseek(stream->fd, offset, SEEK_SET) == (off_t)-1)
+#endif
         {
           CFWriteStreamSetError(s, errno);
           return false;
@@ -752,11 +809,18 @@ CFWriteStreamFDWrite (CFWriteStreamRef s, const UInt8 *buffer,
                     CFIndex bufferLength)
 {
   struct CFWriteStreamFD* stream = (struct CFWriteStreamFD*) s;
-  int wr;
 
-  wr = write(stream->fd, buffer, bufferLength);
+#ifdef _WIN32
+  DWORD wr;
+
+  if (!WriteFile(stream->handle, buffer, bufferLength, &wr, NULL))
+    CFWriteStreamSetError(s, GetLastError());
+#else
+  int wr = write(stream->fd, buffer, bufferLength);
+
   if (wr == -1)
     CFWriteStreamSetError(s, errno);
+#endif
 
   return wr;
 }
@@ -818,11 +882,20 @@ static void
 CFReadStreamFDClose (CFReadStreamRef s)
 {
   struct CFReadStreamFD* stream = (struct CFReadStreamFD*) s;
+
+#ifdef _WIN32
+  if (stream->handle != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle(stream->handle);
+    stream->handle = INVALID_HANDLE_VALUE;
+  }
+#else
   if (stream->fd != -1)
     {
       close(stream->fd);
       stream->fd = -1;
     }
+#endif
 }
 
 static void
@@ -926,7 +999,11 @@ CFReadStreamCreateWithFile (CFAllocatorRef alloc, CFURLRef fileURL)
   GSMemoryCopy(&new->impl, &CFReadStreamFDImpl, sizeof(CFReadStreamFDImpl));
   sfd = (struct CFReadStreamFD*) new;
   sfd->url = (CFURLRef) CFRetain(fileURL);
+#ifdef _WIN32
+  sfd->handle = INVALID_HANDLE_VALUE;
+#else
   sfd->fd = -1;
+#endif
 
   return new;
 }
@@ -1022,6 +1099,26 @@ CFReadStreamFDOpen (CFReadStreamRef s)
 {
   struct CFReadStreamFD* stream = (struct CFReadStreamFD*) s;
 
+#ifdef _WIN32
+  CFStringRef path = CFURLCopyFileSystemPath(stream->url,
+                                                 kCFURLWindowsPathStyle);
+
+  stream->handle = (void*)CreateFileA(
+    CFStringGetCStringPtr(path, kCFStringEncodingUTF8),
+    GENERIC_READ,
+    FILE_SHARE_READ,
+    0,
+    OPEN_EXISTING,
+    0,
+    0);
+
+  CFRelease(path);
+  if (stream->handle == INVALID_HANDLE_VALUE)
+    {
+      CFReadStreamSetError(s, GetLastError());
+      return false;
+    }
+#else
   CFStringRef path = CFURLCopyFileSystemPath(stream->url,
                                                  kCFURLPOSIXPathStyle);
   int flags = O_RDONLY;
@@ -1039,6 +1136,7 @@ CFReadStreamFDOpen (CFReadStreamRef s)
       CFReadStreamSetError(s, errno);
       return false;
     }
+#endif // _WIN32
 
   return true;
 }
@@ -1068,13 +1166,19 @@ CFReadStreamOpen (CFReadStreamRef stream)
 static CFIndex
 CFReadStreamFDRead (CFReadStreamRef s, UInt8 *buffer, CFIndex bufferLength)
 {
-  int rd;
   struct CFReadStreamFD* stream = (struct CFReadStreamFD*) s;
 
-  rd = read(stream->fd, buffer, bufferLength);
+#ifdef _WIN32
+  DWORD rd;
+
+  if (!ReadFile(stream->handle, buffer, bufferLength, &rd, NULL))
+    CFReadStreamSetError(s, GetLastError());
+#else
+  int rd = read(stream->fd, buffer, bufferLength);
 
   if (rd == -1)
     CFReadStreamSetError(s, errno);
+#endif // _WIN32
 
   return rd;
 }
@@ -1156,7 +1260,13 @@ CFReadStreamFDSetProperty (CFReadStreamRef s, CFStringRef propertyName,
           return false;
         }
 
+#ifdef _WIN32
+      long offsetHigh = offset >> 32;
+      if (SetFilePointer(stream->handle, (int)offset, &offsetHigh, FILE_BEGIN)
+        == INVALID_SET_FILE_POINTER)
+#else
       if (lseek(stream->fd, offset, SEEK_SET) == (off_t)-1)
+#endif
         {
           CFReadStreamSetError(s, errno);
           return false;

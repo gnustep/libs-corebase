@@ -37,7 +37,12 @@
 #include "GSPrivate.h"
 #include "GSMemory.h"
 
+#if defined(HAVE_UNICODE_UCNV_H)
 #include <unicode/ucnv.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 #define BUFFER_SIZE 512
 

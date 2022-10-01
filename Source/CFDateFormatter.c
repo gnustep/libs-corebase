@@ -33,8 +33,15 @@
 #include "CoreFoundation/CFDateFormatter.h"
 #include "GSPrivate.h"
 
+#if defined(HAVE_UNICODE_UDAT_H)
 #include <unicode/udat.h>
+#endif
+#if defined(HAVE_UNICODE_UDATPG_H)
 #include <unicode/udatpg.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 #define BUFFER_SIZE 256
 

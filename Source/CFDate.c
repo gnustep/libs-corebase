@@ -33,7 +33,13 @@
 #include "GSObjCRuntime.h"
 
 #include <math.h>
+
+#if defined(HAVE_UNICODE_UCAL_H)
 #include <unicode/ucal.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 static CFTypeID _kCFDateTypeID = 0;
 
@@ -351,19 +357,18 @@ CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags)
   /* unitFlags is unused, must be ignored */
   Boolean isValid = FALSE;
   
-  if (unitFlags | kCFGregorianUnitsYears)
+  if ((unitFlags & kCFGregorianUnitsYears) != 0)
     isValid = TRUE; /* FIXME: What's the test here? */
-  if (unitFlags | kCFGregorianUnitsMonths)
+  if ((unitFlags & kCFGregorianUnitsMonths) != 0)
     isValid = ((gdate.month >= 1) && (gdate.month <= 12));
-  if (unitFlags | kCFGregorianUnitsDays)
+  if ((unitFlags & kCFGregorianUnitsDays) != 0)
     isValid = TRUE; /* FIXME */
-  if (unitFlags | kCFGregorianUnitsHours)
+  if ((unitFlags & kCFGregorianUnitsHours) != 0)
     isValid = ((gdate.hour >= 0) && (gdate.hour < 24));
-  if (unitFlags | kCFGregorianUnitsMinutes)
+  if ((unitFlags & kCFGregorianUnitsMinutes) != 0)
     isValid = ((gdate.minute >= 0) && (gdate.minute < 60));
-  if (unitFlags | kCFGregorianUnitsSeconds)
+  if ((unitFlags & kCFGregorianUnitsSeconds) != 0)
     isValid = ((gdate.second >= 0.0) && (gdate.second < 60.0));
   
   return isValid;
 }
-

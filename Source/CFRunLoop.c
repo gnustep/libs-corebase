@@ -37,7 +37,7 @@
 #include "GSPrivate.h"
 #include "GSObjCRuntime.h"
 
-#ifndef _WIN32
+#if HAVE_CFRUNLOOP_SUPPORT
 #	include <unistd.h>
 #	include <fcntl.h>
 #	include <poll.h>
@@ -56,7 +56,9 @@ static CFTypeID _kCFRunLoopObserverTypeID = 0;
 static CFTypeID _kCFRunLoopTimerTypeID = 0;
 
 static CFRunLoopRef static_mainLoop = NULL;
+#if HAVE_CFRUNLOOP_SUPPORT
 static pthread_key_t static_loopKey;
+#endif
 
 CONST_STRING_DECL(kCFRunLoopDefaultMode, "kCFRunLoopDefaultMode");
 CONST_STRING_DECL(kCFRunLoopCommonModes, "kCFRunLoopCommonModes");
@@ -387,6 +389,7 @@ GSRunLoopContextGet (CFRunLoopRef rl, CFStringRef mode)
 static CFRunLoopRef
 CFRunLoopCreate (void)
 {
+#if HAVE_CFRUNLOOP_SUPPORT
   CFRunLoopRef rl;
 
   rl = (CFRunLoopRef)_CFRuntimeCreateInstance (kCFAllocatorDefault,
@@ -408,19 +411,26 @@ CFRunLoopCreate (void)
   fcntl(rl->_wakeUpPipe[1], F_SETFL, O_NONBLOCK);
 
   return rl;
+#else
+  return NULL;
+#endif // HAVE_CFRUNLOOP_SUPPORT
 }
 
 static void
 _CFRunLoopCreateThreadKey (void)
 {
+#if HAVE_CFRUNLOOP_SUPPORT
   pthread_key_create(&static_loopKey, (void(*)(void*)) CFRelease);
+#endif
 }
 
 CFRunLoopRef
 CFRunLoopGetCurrent (void)
 {
+  CFRunLoopRef rl = NULL;
+
+#if HAVE_CFRUNLOOP_SUPPORT
   static pthread_once_t once = PTHREAD_ONCE_INIT;
-  CFRunLoopRef rl;
 
   pthread_once(&once, _CFRunLoopCreateThreadKey);
 
@@ -430,6 +440,7 @@ CFRunLoopGetCurrent (void)
       rl = CFRunLoopCreate();
       pthread_setspecific(static_loopKey, rl);
     }
+#endif
 
   return rl;
 }
@@ -443,8 +454,10 @@ _CFRunLoopCreateMain (void)
 CFRunLoopRef
 CFRunLoopGetMain (void)
 {
+#if HAVE_CFRUNLOOP_SUPPORT
   static pthread_once_t once = PTHREAD_ONCE_INIT;
   pthread_once(&once, _CFRunLoopCreateMain);
+#endif
   return static_mainLoop;
 }
 
@@ -551,6 +564,7 @@ CFRunLoopProcessTimers (CFRunLoopRef rl, CFAbsoluteTime now,
   return hadTimer;
 }
 
+#if HAVE_CFRUNLOOP_SUPPORT
 static Boolean
 CFRunLoopProcessSourcesVersion1 (CFRunLoopRef rl, CFAbsoluteTime now,
 		GSRunLoopContextRef context, struct pollfd* pfd, int count)
@@ -631,6 +645,7 @@ CFRunLoopPerformBlocks (GSRunLoopContextRef context)
 
   CFArrayRemoveAllValues(context->blocks);
 }
+#endif // HAVE_CFRUNLOOP_SUPPORT
 
 static void
 CFRunLoopHasAnyValidSources_SourceApplier(const void *value, void *context)
@@ -681,6 +696,7 @@ _CFRunLoopHasAnyValidSources (CFRunLoopRef rl, CFStringRef mode)
   return CFRunLoopHasAnyValidSources(rl, context);
 }
 
+#if HAVE_CFRUNLOOP_SUPPORT
 static void
 Source1Applier(const void *value, void *context)
 {
@@ -741,11 +757,13 @@ CFRunLoopPrepareForPoll(struct pollfd* pfd, int* numSources,
 
   return pfd;
 }
+#endif // HAVE_CFRUNLOOP_SUPPORT
 
 SInt32
 CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
                     Boolean returnAfterSourceHandled)
 {
+#if HAVE_CFRUNLOOP_SUPPORT
   /* This is the sequence of events:
    * 1. Notify observers with kCFRunLoopEntry activity.
    * 2. Notify observers with kCFRunLoopBeforeTimers activitiy.
@@ -921,6 +939,9 @@ CFRunLoopRunInMode (CFStringRef mode, CFTimeInterval seconds,
   CFAllocatorDeallocate(NULL, pfd);
 
   return exitReason;
+#else
+  return kCFRunLoopRunStopped; // not implemented
+#endif // HAVE_CFRUNLOOP_SUPPORT
 }
 
 void
@@ -928,8 +949,10 @@ CFRunLoopWakeUp (CFRunLoopRef rl)
 {
   if (CFRunLoopIsWaiting(rl))
     {
+#if HAVE_CFRUNLOOP_SUPPORT
       int dummy = 1;
       write(rl->_wakeUpPipe[1], &dummy, sizeof(dummy));
+#endif
     }
 }
 
@@ -1827,4 +1850,3 @@ CFRunLoopTimerSetNextFireDate (CFRunLoopTimerRef timer,
   // says so), this may not be necessary.
   CFRunLoopWakeUp(timer->_runloop);
 }
-

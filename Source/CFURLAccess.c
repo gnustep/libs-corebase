@@ -38,6 +38,8 @@
 
 #include <windows.h>
 
+#define PATH_MAX MAX_PATH
+
 #else
 
 #include <sys/types.h>
@@ -78,7 +80,11 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
                                               CFArrayRef desiredProperties,
                                               SInt32 * errorCode)
 {
+#ifdef _WIN32
+  HANDLE handle;
+#else
   int fd;
+#endif
   char path[PATH_MAX];
   SInt32  error;
   Boolean exists;
@@ -103,13 +109,35 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
     }
   
   /* We'll check for data first */
+#ifdef _WIN32
+  handle = (void*)CreateFileA(
+    path,
+    GENERIC_READ,
+    FILE_SHARE_READ,
+    NULL,
+    OPEN_EXISTING,
+    FILE_ATTRIBUTE_NORMAL,
+    NULL);
+  if (handle != INVALID_HANDLE_VALUE)
+#else
   fd = open (path, O_RDONLY);
   if (fd >= 0)
+#endif // _WIN32
     {
-      ssize_t bytesRead;
-      struct stat sb;
       void *bytes;
       
+#ifdef _WIN32
+      DWORD bytesRead;
+      FILE_STANDARD_INFO finfo = {0};
+      if (GetFileInformationByHandleEx(handle, FileStandardInfo, &finfo,
+                                       sizeof(finfo)))
+        {
+          exists = true;
+          length = finfo.EndOfFile.QuadPart;
+        }
+#else
+      ssize_t bytesRead;
+      struct stat sb;
       fstat (fd, &sb);
       
       /* Might as well gather as much information as we can here */
@@ -118,11 +146,16 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
       ownerID = sb.st_uid;
       length = sb.st_size;
       modTime = sb.st_mtime;
+#endif // _WIN32
       
       if (resourceData)
         {
           bytes = CFAllocatorAllocate (alloc, length, 0);
+#ifdef _WIN32
+          if (!ReadFile(handle, bytes, length, &bytesRead, NULL))
+#else
           if ((bytesRead = read (fd, bytes, length)) < 0)
+#endif
             {
               error = kCFURLUnknownError;
               CFAllocatorDeallocate (alloc, bytes);
@@ -136,10 +169,28 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
             }
         }
       
+#ifdef _WIN32
+      CloseHandle(handle);
+#else
       close (fd);
+#endif
     }
   else
     {
+#ifdef _WIN32
+      switch (GetLastError())
+        {
+          case ERROR_ACCESS_DENIED:
+            exists = true;
+            error = kCFURLResourceAccessViolationError;
+            break;
+          case ERROR_FILE_NOT_FOUND:
+            error = kCFURLResourceNotFoundError;
+            break;
+          default:
+            error = kCFURLUnknownError;
+        }
+#else
       switch (errno)
         {
           case EACCES:
@@ -152,6 +203,7 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
           default:
             error = kCFURLUnknownError;
         }
+#endif // _WIN32
     }
   
   /* Now we worry about the properties */
@@ -190,6 +242,9 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
               || CFArrayContainsValue (desiredProperties,
               CFRangeMake(0, count), kCFURLFileDirectoryContents)))
             {
+#ifdef _WIN32
+#warning Directory enumeration not implemented on Windows
+#else
               DIR *dir;
               struct dirent *entry;
               
@@ -225,6 +280,7 @@ CFFileURLCreateDataAndPropertiesFromResource (CFAllocatorRef alloc,
                 {
                   error = kCFURLUnknownError;
                 }
+#endif // _WIN32
             }
           if (fetchAll
               || CFArrayContainsValue (desiredProperties,
@@ -372,12 +428,20 @@ CFURLDestroyResource (CFURLRef url, SInt32 * errorCode)
       
       if (CFURLHasDirectoryPath (url))
         {
+#if _WIN32
+          if (_rmdir(path) < 0)
+#else
           if (rmdir (path) < 0)
+#endif
             error = kCFURLUnknownError;
         }
       else
         {
+#if _WIN32
+          if (DeleteFile(path) == FALSE)
+#else
           if (unlink (path) < 0)
+#endif
             error = kCFURLUnknownError;
         }
     }
@@ -443,14 +507,32 @@ CFURLWriteDataAndPropertiesToResource (CFURLRef url,
       
       if (CFURLHasDirectoryPath (url))
         {
+#ifdef _WIN32
+          if (CreateDirectoryA(path, NULL) == 0)
+#else
           if (mkdir (path, mode) < 0)
+#endif
             error = kCFURLUnknownError;
         }
       else
         {
+#ifdef _WIN32
+          HANDLE handle;
+          DWORD wr;
+          handle = (void*)CreateFileA(
+            path,
+            GENERIC_WRITE,
+            0,
+            NULL,
+            CREATE_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL);
+          if (handle != INVALID_HANDLE_VALUE)
+#else
           int fd;
           fd = open (path, O_WRONLY | O_TRUNC | O_CREAT, mode);
           if (fd >= 0)
+#endif // _WIN32
             {
               if (dataToWrite)
                 {
@@ -459,11 +541,24 @@ CFURLWriteDataAndPropertiesToResource (CFURLRef url,
                   
                   length = CFDataGetLength (dataToWrite);
                   buf = CFDataGetBytePtr (dataToWrite);
-                  if (length > 0 && write (fd, buf, length) != length)
-                    error = kCFURLUnknownError;
+                  
+                  if (length > 0) 
+                    {
+#ifdef _WIN32
+                      if (!WriteFile(handle, buf, length, &wr, NULL)
+                          || wr != length)
+#else
+                      if (write (fd, buf, length) != length)
+#endif
+                        error = kCFURLUnknownError;
+                    }
                 }
               
+#ifdef _WIN32
+              CloseHandle(handle);
+#else
               close (fd);
+#endif
             }
           else
             {

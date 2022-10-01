@@ -41,8 +41,14 @@
 
 #if defined(_WIN32)
 #include <winsock2.h>
-typedef socklen_t int;
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#else
+typedef int socklen_t;
+#endif
+#ifndef EINPROGRESS
 #define EINPROGRESS WSAEINPROGRESS
+#endif
 
 CF_INLINE int
 CFSocketGetLastError (void)
@@ -295,8 +301,8 @@ CFSocketCreate (CFAllocatorRef alloc, SInt32 protocolFamily,
       winsockErr = WSAStartup (winsockVersionRequested, &winsockData);
       if (winsockErr != 0)
         return NULL;
-      if (LOBYTE(wsaData.wVersion) != WINSOCK_MAJOR_VERSION
-          || HIBYTE(wsaData.wVersion) != WINSOCK_MINOR_VERSION)
+      if (LOBYTE(winsockData.wVersion) != WINSOCK_MAJOR_VERSION
+          || HIBYTE(winsockData.wVersion) != WINSOCK_MINOR_VERSION)
         {
           WSACleanup ();
           _kWinsockInitialized = false;
@@ -450,11 +456,17 @@ CFSocketConnectToAddress (CFSocketRef s, CFDataRef address,
   
   if (timeout < 0.0)
     {
+#ifdef _WIN32
+      unsigned long mode = 1;
+      if (ioctlsocket(sock, FIONBIO, &mode) == SOCKET_ERROR)
+        return kCFSocketError;
+#else
       int f;
       f = fcntl (sock, F_GETFL, 0);
       f |= O_NONBLOCK;
       if (fcntl (sock, F_SETFL, f) != 0)
         return kCFSocketError;
+#endif
     }
   err = connect (sock, addr, addrlen);
   if (err != 0 && CFSocketGetLastError () == EINPROGRESS)
