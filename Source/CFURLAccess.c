@@ -37,6 +37,7 @@
 #if defined(_WIN32)
 
 #include <windows.h>
+#include <direct.h>
 
 #define PATH_MAX MAX_PATH
 
