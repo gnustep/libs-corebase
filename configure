@@ -5493,7 +5493,7 @@ if ${ac_cv_lib_dispatch_dispatch_get_main_queue_eventfd_np+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldispatch as_fn_error $? "Could not find the Grand Central Dispatch headers." "$LINENO" 5 $LIBS"
+LIBS="-ldispatch as_fn_error $? 'Could not find the Grand Central Dispatch headers.' "$LINENO" 5 $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
