@@ -11,7 +11,7 @@ if test -n "$GNUSTEP_MAKEFILES"; then
   # Use config.guess, config.sub and install-sh provided by gnustep-make
   #--------------------------------------------------------------------
   AC_CONFIG_AUX_DIR($GNUSTEP_MAKEFILES)
-  
+
   #--------------------------------------------------------------------
   # Determine the host, build, and target systems
   #--------------------------------------------------------------------
@@ -136,11 +136,14 @@ AC_ARG_WITH([gcd],
     [Explicitly compiles without Grand Central Dispatch support. Configure will attempt to find a compatible library, use this option if you do not wish to have the support.  The opposite option, --with-gcd, is also supported and should be used if Grand Central Dispatch support is absolutely required.  A compatible library will required (http://www.nickhutchinson.me/libdispatch).])],
   [], [with_gcd=maybe])
 AS_IF([test "x$with_gcd" != xno],
-  [AC_CHECK_HEADERS([dispatch/dispatch.h],
-    [AC_CHECK_LIB([dispatch], dispatch_get_main_queue_eventfd_np, [],
+  AC_CHECK_HEADERS([dispatch/dispatch.h],
+    AC_CHECK_LIB([dispatch], [dispatch_get_main_queue_eventfd_np], ,
       AS_IF([test "x$with_gcd" = "xyes"],
-        AC_MSG_ERROR([Compatible libdispatch not found for GCD support!])),
-    AC_MSG_ERROR([Could not find the Grand Central Dispatch headers.]))])])
+        AC_MSG_ERROR([Compatible libdispatch not found for GCD support!]))
+    ),
+    AC_MSG_ERROR([Could not find the Grand Central Dispatch headers.])
+  )
+)
 
 #---
 # Check for the Objective-C runtime
