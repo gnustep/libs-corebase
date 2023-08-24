@@ -666,6 +666,8 @@ CFArrayReplaceValues (CFMutableArrayRef array, CFRange range,
       newSize = array->_count - range.length + newCount;
       CFArrayCheckCapacityAndGrow (array, newSize);
 
+      /* Re-calculate start on resize */
+      start = array->_contents + range.location;
       memmove (start + newCount, end,
                (array->_count - range.location +
                 range.length) * sizeof (void *));
