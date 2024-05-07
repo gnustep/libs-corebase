@@ -359,33 +359,28 @@ static Boolean CFURLStringParse(CFStringRef urlString, CFRange ranges[12]) {
 
 #define CFURL_SIZE sizeof(struct __CFURL) - sizeof(CFRuntimeBase)
 
-static CFURLRef CFURLCreate_internal(CFAllocatorRef alloc, CFStringRef string, CFURLRef baseURL,
-         CFStringEncoding encoding)
+static CFURLRef CFURLCreate_internal(CFAllocatorRef alloc, CFStringRef string, CFURLRef baseURL, CFStringEncoding encoding)
 {
-  struct __CFURL *new;
-  CFRange ranges[12];
+    struct __CFURL *new;
+    CFRange ranges[12];
 
-  if (!CFURLStringParse(string, ranges))
-    return NULL;
-
-  new = (struct __CFURL *) _CFRuntimeCreateInstance(alloc, _kCFURLTypeID,
-                CFURL_SIZE, 0);
-  if (new)
-    {
-      new->_urlString = CFStringCreateCopy(alloc, string);
-      if (ranges[kCFURLComponentScheme - 1].location == kCFNotFound && baseURL)
-  {
-    new->_baseURL = CFURLCopyAbsoluteURL(baseURL);
-  }
-      else
-  {
-    CFURLSetIsDecomposable(new);
-  }
-      new->_encoding = encoding;
-      memcpy(new->_ranges, ranges, sizeof(ranges));
+    if (!CFURLStringParse(string, ranges)) {
+        return NULL;
     }
 
-  return new;
+    new = (struct __CFURL *) _CFRuntimeCreateInstance(alloc, _kCFURLTypeID, CFURL_SIZE, 0);
+    if (new) {
+        new->_urlString = CFStringCreateCopy(alloc, string);
+        if (ranges[kCFURLComponentScheme - 1].location == kCFNotFound && baseURL) {
+            new->_baseURL = CFURLCopyAbsoluteURL(baseURL);
+        } else {
+            CFURLSetIsDecomposable(new);
+        }
+        new->_encoding = encoding;
+        memcpy(new->_ranges, ranges, sizeof(ranges));
+    }
+
+    return new;
 }
 
 CFURLRef CFURLCreateWithString(CFAllocatorRef alloc, CFStringRef string, CFURLRef baseURL) {
