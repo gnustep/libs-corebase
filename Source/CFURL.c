@@ -654,6 +654,13 @@ CFURLRef CFURLCopyAbsoluteURL(CFURLRef relativeURL)
     return target;
 }
 
+static CFURLRef CFURLCopyURL_internal(CFURLRef url)
+{
+    CFStringRef string = CFURLGetString(url);
+    CFStringRef base = CFURLGetBaseURL(url);
+    return CFURLCreate_internal(CFGetAllocator(url), string, base, kCFStringEncodingUTF8);
+}
+
 CFURLRef CFURLCreateAbsoluteURLWithBytes(CFAllocatorRef alloc, const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding, CFURLRef baseURL, Boolean useCompatibilityMode) {
     /* FIXME: what to do with useCompatibilityMode? */
     CFURLRef    url;
@@ -1033,6 +1040,12 @@ CFStringRef CFURLCopyPassword(CFURLRef url) {
 }
 
 CFStringRef CFURLCopyPath(CFURLRef url) {
+    if (CF_IS_OBJC(_kCFURLTypeID, url)) {
+        CFURLRef copy = CFURLCopyURL_internal(url);
+        CFStringRef path = CFURLCopyPath(copy);
+        CFRelease(copy);
+        return path;
+    }
     CFRange range = url->_ranges[kCFURLComponentPath - 1];
     if (range.location == kCFNotFound) {
         if (url->_baseURL) {
