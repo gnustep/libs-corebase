@@ -1,3 +1,11 @@
+2026-04-13  Todd White <todd.white@thalion.global>
+
+	* Source/CFPropertyList.c (CFPropertyListCreateDeepCopy): Initialise
+	the type IDs before dispatching on them, and apply the copy function
+	to the source container instead of the empty destination, so a mutable
+	deep copy is no longer empty (and no longer crashes on Linux).
+	* Tests/CFPropertyList/deepcopy.m: New regression test.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
