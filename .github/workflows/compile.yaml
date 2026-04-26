@@ -105,4 +105,3 @@ jobs:
           name: Logs - ${{ matrix.name }}
           path: |
             ${{ env.SRC_PATH }}/config.log
-            ${{ env.DEPS_PATH }}/libs-base/config.log
