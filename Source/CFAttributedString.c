@@ -119,13 +119,19 @@ CFAttributedStringCacheAttribute (CFDictionaryRef attribs)
   if (cachedAttr == NULL)
     {
       CFDictionaryRef insert;
-      
+
       insert = CFDictionaryCreateCopy (NULL, attribs);
       CFBagAddValue (_kCFAttributedStringCache, insert);
       cachedAttr = insert;
       CFRelease (insert);
     }
-  
+  else
+    {
+      /* The cache is a counted set: record this additional reference so the
+         attribute is only freed once every user has uncached it. */
+      CFBagAddValue (_kCFAttributedStringCache, cachedAttr);
+    }
+
   GSMutexUnlock (&_kCFAttributedStringCacheLock);
   
   return cachedAttr;
@@ -149,13 +155,17 @@ CFAttributedStringGetBlankAttribute (void)
       GSMutexLock (&_kCFAttributedStringBlankAttributeLock);
       if (_kCFAttributedStringBlankAttribute == NULL)
         {
-          _kCFAttributedStringBlankAttribute = CFDictionaryCreate (NULL,
-            NULL, NULL, 0,
+          CFDictionaryRef blank;
+
+          blank = CFDictionaryCreate (NULL, NULL, NULL, 0,
             &kCFCopyStringDictionaryKeyCallBacks,
             &kCFTypeDictionaryValueCallBacks);
-          /* Cache the blank attribute in case anyone wants to use it. */
-          CFAttributedStringCacheAttribute (_kCFAttributedStringBlankAttribute);
-          CFRelease (_kCFAttributedStringBlankAttribute);
+          /* CFAttributedStringCacheAttribute() caches and returns a *copy*;
+             keep a reference to that cached copy (not the temporary we just
+             created, which we then release). */
+          _kCFAttributedStringBlankAttribute =
+            CFRetain (CFAttributedStringCacheAttribute (blank));
+          CFRelease (blank);
         }
       GSMutexUnlock (&_kCFAttributedStringBlankAttributeLock);
     }
@@ -284,8 +294,8 @@ CFAttributedStringGetTypeID (void)
   return _kCFAttributedStringTypeID;
 }
 
-#define CFATTRIBUTESTRING_SIZE sizeof(CFRuntimeClass) \
-  - sizeof(struct __CFAttributedString)
+#define CFATTRIBUTESTRING_SIZE (sizeof(struct __CFAttributedString) \
+  - sizeof(CFRuntimeBase))
 
 static CFAttributedStringRef
 CFAttributedStringCreateInlined (CFAllocatorRef alloc, CFStringRef str,
@@ -451,9 +461,11 @@ InsertAttributesAtIndex (CFMutableAttributedStringRef str, CFIndex idx,
   if (working->_attribCount == working->_attribCap)
     {
       /* Grow */
+      working->_attribCap <<= 1;
       working->_attribs = CFAllocatorReallocate (alloc,
                                                  working->_attribs,
-                                                 (working->_attribCap << 1),
+                                                 working->_attribCap
+                                                 * sizeof (Attr),
                                                  0);
     }
   
@@ -537,9 +549,11 @@ RemoveAttributesAtIndex (CFMutableAttributedStringRef str, CFRange range)
           && working->_attribCount > 9)
         {
           /* Shrink */
+          working->_attribCap >>= 1;
           working->_attribs = CFAllocatorReallocate (alloc,
                                                      working->_attribs,
-                                                     (working->_attribCap >> 1),
+                                                     working->_attribCap
+                                                     * sizeof (Attr),
                                                      0);
         }
     }
@@ -568,9 +582,11 @@ CFAttributedStringCoalesce (CFMutableAttributedStringRef str, CFRange range)
             }
         }
       
-      cur = range.location;
+      /* Each step compares with the preceding entry, so never start at
+         index 0 (there is nothing before it to coalesce with). */
+      cur = range.location > 0 ? range.location : 1;
       end = range.location + range.length;
-      
+
       while (cur < end)
         {
           if (array[cur - 1].attrib == array[cur].attrib)
@@ -583,8 +599,8 @@ CFAttributedStringCoalesce (CFMutableAttributedStringRef str, CFRange range)
     }
 }
 
-#define CFMUTABLEATTRIBUTESTRING_SIZE sizeof(CFRuntimeClass) \
-  - sizeof(struct __CFMutableAttributedString)
+#define CFMUTABLEATTRIBUTESTRING_SIZE (sizeof(struct __CFMutableAttributedString) \
+  - sizeof(CFRuntimeBase))
 
 CFMutableAttributedStringRef
 CFAttributedStringCreateMutable (CFAllocatorRef alloc, CFIndex maxLength)

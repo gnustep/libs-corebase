@@ -13,6 +13,21 @@
 	multi-batch, and repeated-enumeration cases.
 
 2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFAttributedString.c (CFATTRIBUTESTRING_SIZE,
+	CFMUTABLEATTRIBUTESTRING_SIZE): Compute the instance extra size as
+	sizeof(struct ...) - sizeof(CFRuntimeBase).
+	(CFAttributedStringGetBlankAttribute): Keep a reference to the cached
+	copy instead of dereferencing the released original.
+	(InsertAttributesAtIndex, RemoveAttributesAtIndex): Reallocate by
+	byte count and update _attribCap when growing/shrinking.
+	(CFAttributedStringCoalesce): Do not read element [-1] when the range
+	starts at index 0.
+	* Source/GSHashTable.c, Source/GSHashTable.h
+	(GSHashTableAddValueCounted): New counted add.
+	* Source/CFBag.c (CFBagAddValue): Use it so a bag tracks value counts.
+	* Tests/CFAttributedString/mutable.m: Test growing the attribute array.
+
+2026-06-28  Todd White  <todd.white@thalion.global>
 	* Source/CFLocale.c (CFLocaleCreateCanonicalLanguageIdentifierFromString):
 	Pass the real buffer size to uloc_canonicalize.
 
