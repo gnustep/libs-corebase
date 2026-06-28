@@ -128,7 +128,7 @@ CFBitVectorGetBitIndex (CFIndex idx)
 CF_INLINE UInt8
 CFBitVectorBitMask (UInt8 mostSig, UInt8 leastSig)
 {
-  return ((0xFF << (7 - leastSig + mostSig)) >> mostSig);
+  return ((UInt8)(0xFF << (7 - leastSig + mostSig)) >> mostSig);
 }
 
 static void
@@ -150,7 +150,7 @@ CFBitVectorOperation (CFBitVectorRef bv, CFRange range,
   /* First byte */
   if (curByte == endByte)
     {
-      mask = CFBitVectorBitMask (startBit, startBit + endBit);
+      mask = CFBitVectorBitMask (startBit, endBit);
       multiByte = false;
     }
   else
@@ -227,7 +227,14 @@ CFBitVectorGetBitAtIndex (CFBitVectorRef bv, CFIndex idx)
 void
 CFBitVectorGetBits (CFBitVectorRef bv, CFRange range, UInt8 *bytes)
 {
-  
+  CFIndex i;
+
+  memset (bytes, 0, CFBitVectorGetByteCount (range.length));
+  for (i = 0 ; i < range.length ; i++)
+    {
+      if (CFBitVectorGetBitAtIndex (bv, range.location + i))
+        bytes[i >> 3] |= (0x80 >> (i & 7));
+    }
 }
 
 CFIndex
@@ -282,12 +289,12 @@ CFBitVectorGetFirstIndexOfBit (CFBitVectorRef bv, CFRange range, CFBit value)
 {
   CFIndex idx;
   
-  for (idx = range.location ; idx < range.length ; idx++)
+  for (idx = range.location ; idx < range.location + range.length ; idx++)
     {
       if (value == CFBitVectorGetBitAtIndex (bv, idx))
         return idx;
     }
-  
+
   return kCFNotFound;
 }
 
@@ -296,7 +303,7 @@ CFBitVectorGetLastIndexOfBit (CFBitVectorRef bv, CFRange range, CFBit value)
 {
   CFIndex idx;
 
-  for (idx = range.location + range.length ; idx < range.location ; idx--)
+  for (idx = range.location + range.length - 1 ; idx >= range.location ; idx--)
     {
       if (value == CFBitVectorGetBitAtIndex (bv, idx))
         return idx;
@@ -321,8 +328,11 @@ CFBitVectorCreateMutable (CFAllocatorRef alloc, CFIndex capacity)
       
       byteCount = CFBitVectorGetByteCount(capacity);
       new->_bytes = CFAllocatorAllocate (alloc, byteCount, 0);
+      new->_byteCount = byteCount;
+      if (new->_bytes)
+        memset (new->_bytes, 0, byteCount);
     }
-  
+
   return new;
 }
 
@@ -406,10 +416,12 @@ CFBitVectorSetCount (CFMutableBitVectorRef bv, CFIndex count)
           
           newBytes = CFAllocatorAllocate (CFGetAllocator(bv), newByteCount, 0);
           memcpy (newBytes, bv->_bytes, bv->_byteCount);
-          
+          memset (newBytes + bv->_byteCount, 0, newByteCount - bv->_byteCount);
+
           CFAllocatorDeallocate (CFGetAllocator(bv), bv->_bytes);
-          
+
           bv->_bytes = newBytes;
+          bv->_byteCount = newByteCount;
           bv->_count = count;
         }
       else
