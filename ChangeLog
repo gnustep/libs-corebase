@@ -1,3 +1,10 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFTree.c (CFTreePrependChild): Set _lastChild to the new
+	child when the tree was empty, instead of NULL.
+	(CFTreeGetChildAtIndex): Stop walking at the end of the child list
+	so an out-of-range index returns NULL instead of dereferencing it.
+	* Tests/CFTree/basic.m: Regression tests.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
