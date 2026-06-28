@@ -1,3 +1,10 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFBinaryHeap.c (CFBinaryHeapCreateCopy): Enlarge the copy's
+	capacity to at least the source count before copying the values.
+	(CFBinaryHeapRemoveMinimumValue): Do nothing on an empty heap
+	instead of reading _values[-1] and setting _count to -1.
+	* Tests/CFBinaryHeap/general.m: Regression tests.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
