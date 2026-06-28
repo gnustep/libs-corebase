@@ -935,7 +935,7 @@ Boolean
 CFStringGetSurrogatePairForLongCharacter (UTF32Char character,
                                           UniChar * surrogates)
 {
-  if (character > 0x10000)
+  if (character < 0x10000)
     return false;
 
   surrogates[0] = U16_LEAD (character);
