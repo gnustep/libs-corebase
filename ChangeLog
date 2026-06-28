@@ -1,3 +1,9 @@
+2026-06-27  DTW-Thalion  <todd.white@thalion.global>
+	* Source/CFUUID.c (CFUUIDCreateFromString): Parse each UUID byte
+	individually (%2hhx) into bytes.byte0..byte15, reject a string lacking
+	all 16 bytes, and size the scratch buffer at 37.
+	* Tests/CFUUID/create.m: Add a CFUUIDCreateFromString round-trip test.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
