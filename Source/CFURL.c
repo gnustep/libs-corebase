@@ -404,7 +404,13 @@ CFURLCreate_internal (CFAllocatorRef alloc, CFStringRef string,
 {
   struct __CFURL *new;
   CFRange ranges[12];
-  
+
+  /* The path-style converters can return NULL (e.g. the HFS converter is
+     a stub, and combining a single path component yields NULL); don't
+     dereference it. */
+  if (string == NULL)
+    return NULL;
+
   if (!CFURLStringParse (string, ranges))
     return NULL;
   
@@ -1016,7 +1022,13 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
       default:
         return NULL;
     }
-  
+
+  /* The path-style converters (notably the HFS stub, and combining a
+     single Windows path component) can return NULL; don't use or release
+     it. */
+  if (path == NULL)
+    return NULL;
+
   if (abs)
     {
       CFMutableStringRef tmp;
