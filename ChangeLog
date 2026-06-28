@@ -1,3 +1,9 @@
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/GSUnicode.c (_pad): Advance obuf between PAD_SIZE chunks
+	so wide padding is written contiguously instead of overwriting the
+	same position and leaving uninitialised gaps in the output.
+	* Tests/CFString/format_int.m: Tests for padding wider than PAD_SIZE.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 

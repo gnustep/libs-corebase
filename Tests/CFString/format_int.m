@@ -301,6 +301,20 @@ int main (void)
   PASS_CFEQ (str1, CFSTR ("ffffff85"), "Negative hex formatted correctly");
   CFRelease (str1);
 
+  /* Padding wider than PAD_SIZE (8) must advance the output cursor between
+     chunks; otherwise the buffer is left with uninitialised gaps. */
+  str1 = CFStringCreateWithFormat (NULL, NULL, CFSTR("%*d"), 12, 5);
+  PASS_CFEQ (str1, CFSTR ("           5"), "Wide space padding is contiguous");
+  CFRelease (str1);
+
+  str1 = CFStringCreateWithFormat (NULL, NULL, CFSTR("%-*d"), 12, 5);
+  PASS_CFEQ (str1, CFSTR ("5           "), "Wide left-aligned padding is contiguous");
+  CFRelease (str1);
+
+  str1 = CFStringCreateWithFormat (NULL, NULL, CFSTR("%0*d"), 12, 5);
+  PASS_CFEQ (str1, CFSTR ("000000000005"), "Wide zero padding is contiguous");
+  CFRelease (str1);
+
   return 0;
 }
 
