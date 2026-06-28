@@ -30,11 +30,47 @@ int main (void)
   PASS_CF(CFTreeGetNextSibling (child1) == child2,
     "Next sibling for child1 is child2.");
   PASS_CF(CFTreeGetChildAtIndex (tree, 2) == child3, "Child3 is at index 2");
-  
+
+  {
+    /* CFTreeRemove must unlink the node from its parent.  It used to walk
+       the wrong list, never unlink, and prematurely finalize the node,
+       leaving a dangling pointer in the parent. */
+    CFTreeRef r  = CFTreeCreate (NULL, &ctxt);
+    CFTreeRef r1 = CFTreeCreate (NULL, &ctxt);
+    CFTreeRef r2 = CFTreeCreate (NULL, &ctxt);
+    CFTreeRef r3 = CFTreeCreate (NULL, &ctxt);
+
+    CFTreeAppendChild (r, r1);
+    CFTreeAppendChild (r, r2);
+    CFTreeAppendChild (r, r3);
+
+    CFTreeRemove (r2);
+    PASS_CF(CFTreeGetChildCount (r) == 2
+      && CFTreeGetNextSibling (r1) == r3
+      && CFTreeGetParent (r2) == NULL,
+      "CFTreeRemove unlinks a child from its parent.");
+
+    /* Removing the last child updates _lastChild, so a following append
+       links onto the right node. */
+    CFTreeRemove (r3);
+    CFTreeAppendChild (r, r2);
+    PASS_CF(CFTreeGetChildCount (r) == 2
+      && CFTreeGetChildAtIndex (r, 1) == r2,
+      "Append after removing the last child works.");
+
+    CFRelease (r);
+    CFRelease (r1);
+    CFRelease (r2);
+    CFRelease (r3);
+  }
+
+  /* Release the parent before its children: CFTreeAppendChild() does not
+     retain the child, so the children must outlive the tree that links
+     them. */
+  CFRelease (tree);
   CFRelease (child1);
   CFRelease (child2);
   CFRelease (child3);
-  CFRelease (tree);
-  
+
   return 0;
 }
