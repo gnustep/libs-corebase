@@ -1,3 +1,13 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFArray.c (CFArrayCheckCapacityAndGrow): Grow to at least
+	the requested capacity, not just by DEFAULT_ARRAY_CAPACITY.
+	(CFArrayReplaceValues): Capture the original count up front and
+	recompute the destination pointer after growing, fixing a too-small
+	grow, an over-long memmove, and a write into the pre-grow buffer.
+	(CFArrayCreateMutableCopy): Clamp the capacity to the source count
+	on the non-Objective-C path before writing the contents.
+	* Tests/CFArray/mutablearray.m: Regression tests.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
