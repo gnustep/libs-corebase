@@ -342,12 +342,12 @@ CFDataReplaceBytes (CFMutableDataRef d, CFRange range,
     return;
   
   md = (struct __CFMutableData*)d;
-  assert (range.location + range.length <= md->_capacity);
-  
-  newBufLen = range.location + newLength;
+  assert (range.location + range.length <= md->_length);
+
+  newBufLen = md->_length - range.length + newLength;
   CFDataCheckCapacityAndGrow (d, newBufLen);
-  
-  if (newLength != range.length && range.location + range.length < newBufLen)
+
+  if (newLength != range.length && range.location + range.length < md->_length)
     {
       UInt8 *moveFrom = md->_contents + range.location + range.length;
       UInt8 *moveTo = md->_contents + range.location + newLength;
