@@ -47,6 +47,13 @@ int main (void)
   CFStringPad (str1, NULL, 3, 0);
   PASS_CFEQ(str1, CFSTR("abc"), "Truncating works.");
   CFRelease (str1);
-  
+
+  str1 = CFStringCreateMutable (NULL, 0);
+  CFStringAppendCString (str1, "ok", kCFStringEncodingUTF8);
+  CFStringAppendCString (str1, "\xE2\x82", kCFStringEncodingUTF8);
+  PASS_CF(CFStringGetLength (str1) == 2,
+    "Appending a truncated multi-byte C string does not overflow.");
+  CFRelease (str1);
+
   return 0;
 }

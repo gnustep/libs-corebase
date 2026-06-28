@@ -1216,6 +1216,8 @@ CFStringAppendCString (CFMutableStringRef str, const char *cStr,
 
   numChars = GSUnicodeFromEncoding (&buffer, buffer + BUFFER_SIZE, encoding,
                                     (const UInt8 **) &cStr, cStrLimit, 0);
+  if (numChars < 0)
+    return;
   if (numChars <= BUFFER_SIZE)
     {
       CFStringAppendCharacters (str, bufferStart, numChars);
