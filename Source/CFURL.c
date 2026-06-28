@@ -1591,7 +1591,12 @@ CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
       limit = buffer + BUFFER_SIZE;
       do
         {
-          ch = CFStringGetCharacterAtIndex (origString, ++i);
+          if (++i >= origLen)
+            {
+              success = false;
+              break;
+            }
+          ch = CFStringGetCharacterAtIndex (origString, i);
           if (ch >= '0' && ch <= '9')
             {
               *current = ch - '0';
@@ -1606,7 +1611,12 @@ CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
               break;
             }
           *current <<= 4;
-          ch = CFStringGetCharacterAtIndex (origString, ++i);
+          if (++i >= origLen)
+            {
+              success = false;
+              break;
+            }
+          ch = CFStringGetCharacterAtIndex (origString, i);
           if (ch >= '0' && ch <= '9')
             {
               *current |= ch - '0';
@@ -1621,7 +1631,8 @@ CFURLCreateStringByReplacingPercentEscapesUsingEncoding (CFAllocatorRef alloc,
               break;
             }
           ++current;
-          ch = CFStringGetCharacterAtIndex (origString, ++i);
+          ch = (++i < origLen)
+            ? CFStringGetCharacterAtIndex (origString, i) : 0;
         }
       while (current < limit && ch == '%');
       if (success == false)

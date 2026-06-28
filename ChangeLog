@@ -1,3 +1,9 @@
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCreateStringByReplacingPercentEscapesUsingEncoding):
+	Bound the percent-escape hex-digit and look-ahead reads against the
+	string length so a trailing '%' does not read past the end.
+	* Tests/CFURL/escaping.m: Regression test for a trailing '%'.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 

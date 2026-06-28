@@ -1,6 +1,10 @@
 #include "CoreFoundation/CFURL.h"
+#include "CoreFoundation/CFString.h"
 
 #include "../CFTesting.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 int main (void)
 {
@@ -36,9 +40,29 @@ int main (void)
   
   str2 = CFURLCreateStringByReplacingPercentEscapes (NULL, str, CFSTR(""));
   PASS_CFEQ(str2, urlStr, "Percent escapes replaced correctly.");
-  
+
   CFRelease (str);
   CFRelease (str2);
-  
+
+  /* A '%' with no following hex digits must be rejected without reading
+     past the end of the string.  Use a no-copy string with an exact-size
+     backing buffer so an over-read is a genuine out-of-bounds access. */
+  {
+    char *raw = malloc (4);
+    CFStringRef trailing;
+
+    memcpy (raw, "abc%", 4);
+    trailing = CFStringCreateWithBytesNoCopy (NULL, (const UInt8 *) raw, 4,
+      kCFStringEncodingASCII, false, kCFAllocatorNull);
+    str2 = CFURLCreateStringByReplacingPercentEscapes (NULL, trailing,
+      CFSTR(""));
+    PASS_CF(str2 == NULL,
+      "A trailing '%%' is rejected without overreading the string.");
+    if (str2 != NULL)
+      CFRelease (str2);
+    CFRelease (trailing);
+    free (raw);
+  }
+
   return 0;
 }
