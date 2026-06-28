@@ -241,7 +241,7 @@ CFStringEncodingTableIndex (CFStringEncoding encoding)
   while (idx < str_encoding_table_size
          && str_encoding_table[idx].enc != encoding)
     idx++;
-  return idx;
+  return idx < str_encoding_table_size ? idx : -1;
 }
 
 CF_INLINE const char *
@@ -251,6 +251,8 @@ CFStringICUConverterName (CFStringEncoding encoding)
   CFIndex idx;
 
   idx = CFStringEncodingTableIndex (encoding);
+  if (idx < 0)
+    return NULL;
   name = str_encoding_table[idx].converterName;
 
   return name;
@@ -264,6 +266,8 @@ GSStringOpenConverter (CFStringEncoding encoding, char lossByte)
   UErrorCode err = U_ZERO_ERROR;
 
   converterName = CFStringICUConverterName (encoding);
+  if (converterName == NULL)
+    return NULL;
 
   cnv = ucnv_open (converterName, &err);
   if (U_FAILURE (err))
@@ -392,6 +396,8 @@ CFStringConvertEncodingToIANACharSetName (CFStringEncoding encoding)
   UErrorCode err = U_ZERO_ERROR;
 
   cnvName = CFStringICUConverterName (encoding);
+  if (cnvName == NULL)
+    return NULL;
   name = ucnv_getStandardName (cnvName, "IANA", &err);
   if (U_FAILURE (err))
     return NULL;
@@ -457,6 +463,8 @@ UInt32
 CFStringConvertEncodingToWindowsCodepage (CFStringEncoding encoding)
 {
   CFIndex idx = CFStringEncodingTableIndex (encoding);
+  if (idx < 0)
+    return 0;
   return str_encoding_table[idx].winCodepage;
 }
 
