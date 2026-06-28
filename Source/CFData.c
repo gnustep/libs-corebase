@@ -245,9 +245,14 @@ CFDataCheckCapacityAndGrow (CFMutableDataRef data, CFIndex capacity)
   
   if (capacity > d->_capacity)
     {
+      /* Grow geometrically so that repeated appends are amortised O(1);
+         exact-size growth made building a CFMutableData O(n^2). */
+      CFIndex newCapacity = d->_capacity + (d->_capacity >> 1);
+      if (newCapacity < capacity)
+        newCapacity = capacity;
       d->_contents = CFAllocatorReallocate (d->_allocator, d->_contents,
-        capacity, 0);
-      d->_capacity = capacity;
+        newCapacity, 0);
+      d->_capacity = newCapacity;
     }
 }
 
