@@ -376,7 +376,7 @@ CFSocketCopyAddress (CFSocketRef s)
   if (s->_address == NULL)
     {
       struct sockaddr addr;
-      socklen_t addrlen;
+      socklen_t addrlen = sizeof (addr);
       getsockname (s->_socket, &addr, &addrlen);
       s->_address = CFDataCreate (CFGetAllocator (s), (const UInt8*)&addr,
                                   (CFIndex)addrlen);
@@ -394,18 +394,18 @@ CFSocketCopyPeerAddress (CFSocketRef s)
   CFDataRef ret = NULL;
   
   GSMutexLock (&s->_lock);
-  if (s->_address == NULL)
+  if (s->_peerAddress == NULL)
     {
       struct sockaddr addr;
-      socklen_t addrlen;
+      socklen_t addrlen = sizeof (addr);
       getpeername (s->_socket, &addr, &addrlen);
-      s->_address = CFDataCreate (CFGetAllocator (s), (const UInt8*)&addr,
-                                  (CFIndex)addrlen);
+      s->_peerAddress = CFDataCreate (CFGetAllocator (s), (const UInt8*)&addr,
+                                      (CFIndex)addrlen);
     }
-  if (s->_address != NULL)
-    ret = CFRetain (s->_address);
+  if (s->_peerAddress != NULL)
+    ret = CFRetain (s->_peerAddress);
   GSMutexUnlock (&s->_lock);
-  
+
   return ret;
 }
 
@@ -600,15 +600,15 @@ CFSocketSendData (CFSocketRef s, CFDataRef address, CFDataRef data,
       addr = (struct sockaddr*) CFDataGetBytePtr(address);
       len = CFDataGetLength(address);
       
-      err = sendto(s->_socket, CFDataGetBytePtr(data), 0,
-                   CFDataGetLength(data), addr, len);
+      err = sendto(s->_socket, CFDataGetBytePtr(data),
+                   CFDataGetLength(data), 0, addr, len);
     }
   else
     {
       err = send(s->_socket, CFDataGetBytePtr(data),
                  CFDataGetLength(data), 0);
     }
-  if (err == 0)
+  if (err >= 0)
     return kCFSocketSuccess;
   else if (errno == EAGAIN || errno == EWOULDBLOCK)
     return kCFSocketTimeout;
