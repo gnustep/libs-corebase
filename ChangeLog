@@ -1,3 +1,12 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFTimeZone.c (CFTimeZoneCreate): Validate the TZif header
+	counts before parsing: reject negative counts, require the declared
+	transition/type/abbreviation data to fit within the supplied data,
+	reject out-of-range transition type indices, size the abbreviation
+	array to TZ_MAX_CHARS, and bound the abbreviation loop and the
+	terminating-NUL scan by the end of the character data.
+	* Tests/CFTimeZone/basic.m: Regression test for a truncated TZif.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
