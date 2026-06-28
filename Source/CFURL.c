@@ -726,8 +726,9 @@ CFURLCopyAbsoluteURL (CFURLRef relativeURL)
                               /* Remove last path component */
                               CFIndex count;
                               count = baseRange.length - 1;
-                              while (buffer[--count] != '/');
-                              baseRange.length = count + 1;
+                              while (count > 0 && buffer[count - 1] != '/')
+                                --count;
+                              baseRange.length = count;
                             }
                         }
                       CFStringGetCharacters (relString, range,
@@ -1359,7 +1360,9 @@ Boolean
 CFURLHasDirectoryPath (CFURLRef url)
 {
   CFStringRef str = CFURLGetString (url);
-  return (CFStringGetCharacterAtIndex(str, CFStringGetLength(str) - 1) == '/');
+  CFIndex len = CFStringGetLength (str);
+  return (len > 0
+    && CFStringGetCharacterAtIndex (str, len - 1) == '/');
 }
 
 CFDataRef

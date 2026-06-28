@@ -1,3 +1,12 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCopyAbsoluteURL): Stop the "remove last path
+	component" scan at the start of the buffer instead of running off
+	the front when the base path contains no '/'.
+	(CFURLHasDirectoryPath): Treat an empty URL string as not a
+	directory path rather than reading index -1.
+	* Tests/CFURL/ref_resolution.m, Tests/CFURL/file_system_path.m:
+	Regression tests.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
