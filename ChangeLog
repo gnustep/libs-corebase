@@ -1,3 +1,13 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCreateWithFileSystemPathRelativeToBase):
+	Bounds-check the file-path character accesses: require a non-empty
+	string before reading index 0 (POSIX/HFS) and at least three
+	characters before reading indices 1 and 2 (Windows), and test the
+	last character (filePathLen - 1) rather than one past the end when
+	deciding whether to append a trailing '/'.
+	* Tests/CFURL/file_system_path.m: Regression test for a directory
+	path that already ends in '/'.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
