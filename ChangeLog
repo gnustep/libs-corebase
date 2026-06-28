@@ -1,3 +1,9 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFArray.c (CFArrayGetLastIndexOfValue): Start the backward
+	scan at range.location + range.length - 1 instead of one past the
+	end of the range.
+	* Tests/CFArray/create.m: Regression test.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
