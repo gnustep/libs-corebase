@@ -1,4 +1,6 @@
 #include "CoreFoundation/CFAttributedString.h"
+#include "CoreFoundation/CFString.h"
+#include "CoreFoundation/CFDictionary.h"
 #include "../CFTesting.h"
 
 int main (void)
@@ -67,7 +69,35 @@ int main (void)
   CFRelease (attrib3);
   CFRelease (mstr);
   CFRelease (str);
-  
+
+  {
+    /* Setting an attribute at many distinct positions grows the internal
+       attribute array past its initial capacity of 8. */
+    CFMutableAttributedStringRef big;
+    CFDictionaryRef at;
+    CFIndex i;
+    Boolean ok;
+
+    big = CFAttributedStringCreateMutable (NULL, 0);
+    CFAttributedStringReplaceString (big, CFRangeMake (0, 0),
+                                     CFSTR ("0123456789abcdefghij"));
+    for (i = 0; i < 20; i++)
+      {
+        CFStringRef key = CFStringCreateWithFormat (NULL, NULL, CFSTR ("k%d"),
+                                                    (int) i);
+        CFAttributedStringSetAttribute (big, CFRangeMake (i, 1), key,
+                                        CFSTR ("v"));
+        CFRelease (key);
+      }
+    at = CFAttributedStringGetAttributes (big, 5, &r);
+    ok = CFAttributedStringGetLength (big) == 20
+      && at != NULL
+      && CFDictionaryGetValue (at, CFSTR ("k5")) != NULL;
+    PASS_CF (ok,
+      "Growing the attribute array past its initial capacity works.");
+    CFRelease (big);
+  }
+
   return 0;
 }
 
