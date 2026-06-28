@@ -1,6 +1,22 @@
 #include "CoreFoundation/CFTree.h"
 #include "../CFTesting.h"
 
+static int infoRetains = 0;
+static int infoReleases = 0;
+
+static const void *
+countingRetain (const void *info)
+{
+  ++infoRetains;
+  return info;
+}
+
+static void
+countingRelease (const void *info)
+{
+  ++infoReleases;
+}
+
 int main (void)
 {
   CFTreeRef tree;
@@ -30,6 +46,8 @@ int main (void)
   PASS_CF(CFTreeGetNextSibling (child1) == child2,
     "Next sibling for child1 is child2.");
   PASS_CF(CFTreeGetChildAtIndex (tree, 2) == child3, "Child3 is at index 2");
+  PASS_CF(CFTreeGetChildAtIndex (tree, 5) == NULL,
+    "Out-of-range child index returns NULL.");
 
   {
     /* CFTreeRemove must unlink the node from its parent.  It used to walk
@@ -64,13 +82,36 @@ int main (void)
     CFRelease (r3);
   }
 
-  /* Release the parent before its children: CFTreeAppendChild() does not
-     retain the child, so the children must outlive the tree that links
-     them. */
   CFRelease (tree);
   CFRelease (child1);
   CFRelease (child2);
   CFRelease (child3);
+
+  {
+    /* The context's retain/release apply to the info: it is retained on
+       creation and released when the tree is finalized. */
+    int data = 0;
+    CFTreeContext ic;
+    CFTreeRef it;
+    CFTreeRef ic1;
+
+    ic.version = 0;
+    ic.info = &data;
+    ic.retain = countingRetain;
+    ic.release = countingRelease;
+    ic.copyDescription = NULL;
+
+    it = CFTreeCreate (NULL, &ic);
+    ic1 = CFTreeCreate (NULL, &ic);
+    PASS_CF(infoRetains == 2 && infoReleases == 0,
+      "The context retain callback is invoked for the info on creation.");
+    /* A child retained by its parent survives the caller's release. */
+    CFTreeAppendChild (it, ic1);
+    CFRelease (ic1);
+    CFRelease (it);
+    PASS_CF(infoRetains == 2 && infoReleases == 2,
+      "The context release callback balances the retains after finalize.");
+  }
 
   return 0;
 }

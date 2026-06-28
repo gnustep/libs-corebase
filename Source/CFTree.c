@@ -62,18 +62,24 @@ CFTreeFinalize (CFTypeRef cf)
   CFTreeRef child;
   CFTreeRef tmp;
   CFTreeReleaseCallBack release;
-  
+
+  /* Release the children we retained when they were added. */
   child = tree->_firstChild;
   while (child)
     {
       tmp = child->_nextSibling;
-      CFTreeFinalize (child); /* No need to go through CFRelease(). */
+      child->_parent = NULL;
+      child->_nextSibling = NULL;
+      CFRelease (child);
       child = tmp;
     }
-  
+  tree->_firstChild = NULL;
+  tree->_lastChild = NULL;
+
+  /* Release the info supplied in the context. */
   release = tree->_context.release;
   if (release)
-    release (tree);
+    release (tree->_context.info);
 }
 
 static CFRuntimeClass CFTreeClass =
@@ -116,20 +122,20 @@ CFTreeCreate (CFAllocatorRef allocator, const CFTreeContext *context)
       if (context == NULL)
         context = &_kCFNullTreeContext;
       memcpy (&new->_context, context, sizeof(CFTreeContext));
+      if (new->_context.retain)
+        new->_context.info =
+          (void *)new->_context.retain (new->_context.info);
     }
-  
+
   return new;
 }
 
 void
 CFTreeAppendChild (CFTreeRef tree, CFTreeRef newChild)
 {
-  CFTreeRetainCallBack retain = newChild->_context.retain;
-  
+  CFRetain (newChild);
   newChild->_parent = tree;
-  if (retain)
-    retain (newChild);
-  
+
   if (tree->_firstChild == NULL)
     {
       tree->_firstChild = newChild;
@@ -149,12 +155,9 @@ CFTreeInsertSibling (CFTreeRef tree, CFTreeRef newSibling)
   
   if (parent != NULL && newSibling->_parent == NULL)
     {
-      CFTreeRetainCallBack retain = newSibling->_context.retain;
-      
+      CFRetain (newSibling);
       newSibling->_parent = parent;
-      if (retain)
-        retain (newSibling);
-      
+
       if (parent->_lastChild == tree)
         parent->_lastChild = newSibling;
       else
@@ -174,10 +177,12 @@ CFTreeRemoveAllChildren (CFTreeRef tree)
   while (child)
     {
       tmp = child->_nextSibling;
-      CFTreeFinalize (child);
+      child->_parent = NULL;
+      child->_nextSibling = NULL;
+      CFRelease (child);
       child = tmp;
     }
-  
+
   tree->_firstChild = NULL;
   tree->_lastChild = NULL;
 }
@@ -185,11 +190,12 @@ CFTreeRemoveAllChildren (CFTreeRef tree)
 void
 CFTreePrependChild (CFTreeRef tree, CFTreeRef newChild)
 {
+  CFRetain (newChild);
   newChild->_parent = tree;
   newChild->_nextSibling = tree->_firstChild;
   tree->_firstChild = newChild;
   if (tree->_lastChild == NULL)
-    tree->_lastChild = NULL;
+    tree->_lastChild = newChild;
 }
 
 void
@@ -228,6 +234,9 @@ CFTreeRemove (CFTreeRef tree)
 
   tree->_parent = NULL;
   tree->_nextSibling = NULL;
+
+  /* Drop the reference the parent took when the node was added. */
+  CFRelease (tree);
 }
 
 void
@@ -261,9 +270,9 @@ CFTreeGetChildAtIndex (CFTreeRef tree, CFIndex idx)
   
   j = 0;
   child = tree->_firstChild;
-  while (j++ < idx)
+  while (child != NULL && j++ < idx)
     child = child->_nextSibling;
-  
+
   return child;
 }
 
