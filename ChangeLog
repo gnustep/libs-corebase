@@ -1,3 +1,13 @@
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFStringUtilities.c (CFStringCreateByCombiningStrings):
+	Guard against an empty array.  The count was computed as
+	CFArrayGetCount() - 1, so an empty array yielded -1, the
+	"count == 0" early return was bypassed, and the function read
+	CFArrayGetValueAtIndex(theArray, 0) past the end of empty
+	storage.  Return NULL when the array has no elements.
+	* Tests/CFString/general.m: Regression test for the empty-array
+	case.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
