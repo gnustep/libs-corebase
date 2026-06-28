@@ -257,6 +257,7 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
   CFPropertyListRef copy;
   CFTypeID typeID;
 
+  CFPropertyListInitTypeIDs ();
   typeID = CFGetTypeID (plist);
   if (typeID == _kCFArrayTypeID)
     {
@@ -293,7 +294,7 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
           ctx.alloc = alloc;
           ctx.container = (CFTypeRef) array;
           range = CFRangeMake (0, cnt);
-          CFArrayApplyFunction (array, range, CFArrayCopyFunction, &ctx);
+          CFArrayApplyFunction (plist, range, CFArrayCopyFunction, &ctx);
 
           copy = array;
         }
@@ -338,7 +339,7 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
           ctx.opts = opts;
           ctx.alloc = alloc;
           ctx.container = (CFTypeRef) dict;
-          CFDictionaryApplyFunction (dict, CFDictionaryCopyFunction, &ctx);
+          CFDictionaryApplyFunction (plist, CFDictionaryCopyFunction, &ctx);
 
           copy = dict;
         }
