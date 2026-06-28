@@ -41,7 +41,31 @@ int main (void)
   
   n = CFArrayBSearchValues (ma, CFRangeMake(0, len), (const void*)6, comp, NULL);
   PASS_CF(n == 5, "Index of value between values is %d.", (int)n);
-  
+
+  {
+    /* Sorting more than 16 values exercises the quicksort path, whose right
+       partition used to read one element past the end of the array. */
+    CFMutableArrayRef big = CFArrayCreateMutable (NULL, 0, NULL);
+    CFIndex i;
+    CFIndex prev;
+    Boolean ordered = true;
+
+    for (i = 0; i < 20; i++)
+      CFArrayAppendValue (big, (const void *)(CFIndex)((i * 7 + 3) % 20 + 1));
+    CFArraySortValues (big, CFRangeMake (0, 20), comp, NULL);
+    prev = 0;
+    for (i = 0; i < 20; i++)
+      {
+        CFIndex v = (CFIndex) CFArrayGetValueAtIndex (big, i);
+        if (v < prev)
+          ordered = false;
+        prev = v;
+      }
+    PASS_CF(ordered && CFArrayGetCount (big) == 20,
+      "Sorting more than 16 values produces sorted output.");
+    CFRelease (big);
+  }
+
   return 0;
 }
 
