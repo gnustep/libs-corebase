@@ -455,6 +455,16 @@ CFPlistCreateError (CFIndex code, CFStringRef message)
   return error;
 }
 
+/* Return the character at the cursor, or 0 if the cursor is at or past the
+   end of the buffer.  The parser scans for terminators, so treating the end
+   of the buffer as a NUL lets the existing logic stop without reading out of
+   bounds (the buffer itself is not NUL-terminated). */
+CF_INLINE UniChar
+CFPlistStringPeek (CFPlistString * string)
+{
+  return string->cursor < string->limit ? *string->cursor : 0;
+}
+
 static Boolean
 CFPlistStringSkipWhitespace (CFPlistString * string)
 {
@@ -462,22 +472,22 @@ CFPlistStringSkipWhitespace (CFPlistString * string)
 
   while (string->cursor < string->limit)
     {
-      ch = *string->cursor;
-      while (string->cursor < string->limit && GSCharacterIsWhitespace (ch))
+      ch = CFPlistStringPeek (string);
+      while (GSCharacterIsWhitespace (ch))
         {
           string->cursor++;
-          ch = *string->cursor;
+          ch = CFPlistStringPeek (string);
         }
       if (ch == '/')
         {
           string->cursor++;
-          ch = *string->cursor;
+          ch = CFPlistStringPeek (string);
           if (ch == '/')
             {
               do
                 {
                   string->cursor++;
-                  ch = *string->cursor;
+                  ch = CFPlistStringPeek (string);
                   if (ch == '\n')
                     break;
                 }
@@ -488,11 +498,11 @@ CFPlistStringSkipWhitespace (CFPlistString * string)
               do
                 {
                   string->cursor++;
-                  ch = *string->cursor;
+                  ch = CFPlistStringPeek (string);
                   if (ch == '*')
                     {
                       string->cursor++;
-                      ch = *string->cursor;
+                      ch = CFPlistStringPeek (string);
                       if (ch == '/')
                         break;
                     }
@@ -564,7 +574,8 @@ CFOpenStepPlistParseData (CFAllocatorRef alloc, CFPlistString * string)
           && string->cursor < string->limit)
         break;
 
-      ch = *string->cursor++;
+      ch = CFPlistStringPeek (string);
+      string->cursor++;
       nibble1 = getNibble (ch);
     }
 
@@ -622,7 +633,8 @@ CFOpenStepPlistParseString (CFAllocatorRef alloc, CFPlistString * string)
 
               CFStringAppendCharacters (tmp, mark, string->cursor - mark);
 
-              ch = *string->cursor++;
+              ch = CFPlistStringPeek (string);
+              string->cursor++;
               /* FIXME */
               if (ch >= '0' && ch <= '9')
                 {
@@ -675,7 +687,7 @@ CFOpenStepPlistParseString (CFAllocatorRef alloc, CFPlistString * string)
           if (CFOpenStepPlistCharacterIsQuotable (ch))
             break;
           string->cursor++;
-          ch = *string->cursor;
+          ch = CFPlistStringPeek (string);
         }
 
       if (mark != string->cursor)
@@ -757,7 +769,7 @@ CFOpenStepPlistParseObject (CFAllocatorRef alloc, CFPlistString * string)
             }
         }
 
-      if (*string->cursor == '}')
+      if (CFPlistStringPeek (string) == '}')
         {
           string->cursor++;
           obj = dict;
@@ -792,7 +804,7 @@ CFOpenStepPlistParseObject (CFAllocatorRef alloc, CFPlistString * string)
             }
         }
 
-      if (*string->cursor == ')')
+      if (CFPlistStringPeek (string) == ')')
         {
           string->cursor++;
           obj = array;
@@ -1350,7 +1362,7 @@ CFPropertyListCreateWithData (CFAllocatorRef alloc, CFDataRef data,
                                  &bytes, bytes + dataLen, 0);
   if (count < 0)
     return NULL;
-  
+
   if (count > _kCFPlistBufferSize)
     {
       start = CFAllocatorAllocate (kCFAllocatorSystemDefault,
@@ -1375,21 +1387,22 @@ CFPropertyListCreateWithData (CFAllocatorRef alloc, CFDataRef data,
     {
       if (fmt)
         *fmt = kCFPropertyListXMLFormat_v1_0;
-      return result;
     }
-
-  result = CFOpenStepPlistParseObject (alloc, &string);
-  if (result)
+  else
     {
-      if (fmt)
+      result = CFOpenStepPlistParseObject (alloc, &string);
+      if (result && fmt)
         *fmt = kCFPropertyListOpenStepFormat;
-      return result;
     }
 
+  /* Free the heap buffer on every path.  Use start, not tmp: tmp was
+     advanced to the end of the buffer by GSUnicodeFromEncoding, so freeing
+     it would free an interior pointer.  The parser copies anything it
+     keeps, so the buffer can be released even on success. */
   if (start != buffer)
-    CFAllocatorDeallocate (kCFAllocatorSystemDefault, tmp);
+    CFAllocatorDeallocate (kCFAllocatorSystemDefault, start);
 
-  return NULL;
+  return result;
 }
 
 CFPropertyListRef
