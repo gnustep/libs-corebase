@@ -1,3 +1,12 @@
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFDate.c (CFAbsoluteTimeToFields): Fix the month-finding
+	loop, which started at the wrong table index and scanned in the
+	wrong direction, walking off the end of _daysBeforeMonth (a
+	24-element global) for in-range days and computing a bogus month
+	and day.  Scan forward within the correct half of the table and
+	stop at the last month.
+	* Tests/CFDate/basic.m: Regression test for CFAbsoluteTimeGetGregorianDate.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
