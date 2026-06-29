@@ -148,7 +148,8 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
       if (_kCFTimeZoneCache == NULL)
         _kCFTimeZoneCache = CFDictionaryCreateMutable (
           kCFAllocatorSystemDefault, 0,
-          &kCFCopyStringDictionaryKeyCallBacks, NULL);
+          &kCFCopyStringDictionaryKeyCallBacks,
+          &kCFTypeDictionaryValueCallBacks);
       GSMutexUnlock(&_kCFTimeZoneCacheLock);
     }
   /* Verify we haven't created a timezone with this name already. */
