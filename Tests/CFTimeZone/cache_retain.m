@@ -2,14 +2,7 @@
 #include "CoreFoundation/CFTimeZone.h"
 #include "../CFTesting.h"
 
-/* Regression test for the time-zone name cache use-after-free.
-
-   CFTimeZoneCreate caches every created zone in the global name cache.
-   When the cache stored the zone without retaining it, releasing the
-   caller's only reference deallocated the object while the cache still
-   held a dangling pointer to it; the next lookup of the same name then
-   returned and retained freed memory.  AddressSanitizer flags this as a
-   heap-use-after-free in CFRetain/CFGetTypeID on the second create. */
+/* Regression test for the time-zone name cache use-after-free. */
 
 int main (void)
 {
@@ -25,8 +18,7 @@ int main (void)
       return 0;
     }
 
-  /* Drop our only reference.  With the bug the cached entry is now a
-     dangling pointer. */
+  /* Drop our own reference; the cache must still hold a live one. */
   CFRelease (tz1);
 
   /* Look the same name up again: the cache must own a live reference. */
