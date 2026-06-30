@@ -239,17 +239,16 @@ CFDataGetLength (CFDataRef d)
   sizeof(struct __CFMutableData) - sizeof(CFRuntimeBase)
 
 static void
-CFDataCheckCapacityAndGrow (CFMutableDataRef data, CFIndex capacity)
+CFDataCheckCapacityAndGrow (CFMutableDataRef data, CFIndex requiredCapacity)
 {
   struct __CFMutableData *d = (struct __CFMutableData*)data;
-  
-  if (capacity > d->_capacity)
+
+  if (requiredCapacity > d->_capacity)
     {
-      /* Grow geometrically so that repeated appends are amortised O(1);
-         exact-size growth made building a CFMutableData O(n^2). */
+      /* Grow geometrically so that repeated appends are amortised O(1) */
       CFIndex newCapacity = d->_capacity + (d->_capacity >> 1);
-      if (newCapacity < capacity)
-        newCapacity = capacity;
+      if (newCapacity < requiredCapacity)
+        newCapacity = requiredCapacity;
       d->_contents = CFAllocatorReallocate (d->_allocator, d->_contents,
         newCapacity, 0);
       d->_capacity = newCapacity;

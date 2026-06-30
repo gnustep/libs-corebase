@@ -2,12 +2,9 @@
 #include "CoreFoundation/CFData.h"
 #include "../CFTesting.h"
 
-/* Exercises the CFMutableData growth path.  Building a CFMutableData by many
-   single-byte appends drives CFDataCheckCapacityAndGrow repeatedly; this
-   guards that the geometric-growth reallocation keeps the contents intact
-   (length and bytes) across the reallocations.  (The geometric growth itself
-   is a performance fix -- exact-size growth was O(n^2) -- and is validated by
-   measurement; this test guards the correctness of the growth code.) */
+/* Building a CFMutableData by many single-byte appends drives the capacity
+   reallocation path repeatedly; check that the length and bytes stay intact
+   across the reallocations. */
 
 int main (void)
 {
