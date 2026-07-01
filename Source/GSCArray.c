@@ -58,10 +58,6 @@ GSCArrayQuickSort (const void **array, CFIndex length,
         }
       GS_EXCHANGE_VALUES (array[stored], array[length - 1]);
 
-      /* The pivot ends up at index "stored", so the left partition has
-         "stored" elements and the right partition has the remaining
-         "length - stored - 1" (passing length - stored read one past the
-         end of the array). */
       GSCArrayQuickSort (array, stored, comparator, context);
       GSCArrayQuickSort (array + stored + 1, length - stored - 1, comparator,
                          context);

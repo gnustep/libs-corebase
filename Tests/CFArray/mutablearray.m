@@ -1,6 +1,7 @@
 #include "CoreFoundation/CFArray.h"
 #include "../CFTesting.h"
 #include <string.h>
+#include <stdlib.h>
 
 #define ARRAY_SIZE 5
 const CFIndex array[ARRAY_SIZE] = { 5, 2, 3, 4, 1 };
@@ -43,27 +44,46 @@ int main (void)
   PASS_CF(n == 5, "Index of value between values is %d.", (int)n);
 
   {
-    /* Sorting more than 16 values exercises the quicksort path, whose right
-       partition used to read one element past the end of the array. */
-    CFMutableArrayRef big = CFArrayCreateMutable (NULL, 0, NULL);
-    CFIndex i;
-    CFIndex prev;
-    Boolean ordered = true;
+    /* Sort a shuffled permutation of 1..sz for a range of sizes that straddle
+       the 16-element threshold between the insertion sort and the quicksort
+       path (the latter used to read one element past the end of the array).
+       The sorted result must be exactly 1, 2, ..., sz. */
+    const CFIndex sizes[] = { 1, 2, 5, 15, 16, 17, 33, 64, 100 };
+    const void *shuf[100];
+    CFIndex s;
 
-    for (i = 0; i < 20; i++)
-      CFArrayAppendValue (big, (const void *)(CFIndex)((i * 7 + 3) % 20 + 1));
-    CFArraySortValues (big, CFRangeMake (0, 20), comp, NULL);
-    prev = 0;
-    for (i = 0; i < 20; i++)
+    srand (1);
+    for (s = 0; s < (CFIndex)(sizeof(sizes) / sizeof(sizes[0])); s++)
       {
-        CFIndex v = (CFIndex) CFArrayGetValueAtIndex (big, i);
-        if (v < prev)
-          ordered = false;
-        prev = v;
+        CFIndex sz = sizes[s];
+        CFArrayRef src;
+        CFMutableArrayRef big;
+        Boolean ordered = true;
+        CFIndex i;
+
+        for (i = 0; i < sz; i++)
+          shuf[i] = (const void *)(CFIndex)(i + 1);
+        for (i = sz - 1; i > 0; i--)
+          {
+            CFIndex j = rand () % (i + 1);
+            const void *t = shuf[i];
+            shuf[i] = shuf[j];
+            shuf[j] = t;
+          }
+
+        src = CFArrayCreate (NULL, shuf, sz, NULL);
+        big = CFArrayCreateMutableCopy (NULL, sz, src);
+        CFArraySortValues (big, CFRangeMake (0, sz), comp, NULL);
+
+        for (i = 0; i < sz; i++)
+          if ((CFIndex) CFArrayGetValueAtIndex (big, i) != i + 1)
+            ordered = false;
+
+        PASS_CF(ordered && CFArrayGetCount (big) == sz,
+          "Shuffled range of %d values sorts to ascending order.", (int)sz);
+        CFRelease (big);
+        CFRelease (src);
       }
-    PASS_CF(ordered && CFArrayGetCount (big) == 20,
-      "Sorting more than 16 values produces sorted output.");
-    CFRelease (big);
   }
 
   return 0;
