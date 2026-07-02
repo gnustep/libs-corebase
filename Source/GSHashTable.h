@@ -114,6 +114,15 @@ GS_PRIVATE void
 GSHashTableGetKeysAndValues (GSHashTableRef table, const void **keys,
                              const void **values);
 
+/* Resumable key iterator.  Writes up to bufSize keys into keybuf starting at
+ * bucket *cursor, advances *cursor past them, and returns the number written
+ * (0 once the table is exhausted).  Reads live buckets in place and allocates
+ * nothing, so it is suitable as a fast-enumeration primitive.
+ */
+GS_PRIVATE CFIndex
+GSHashTableGetKeysFromCursor (GSHashTableRef table, CFIndex *cursor,
+                              const void **keybuf, CFIndex bufSize);
+
 GS_PRIVATE const void *GSHashTableGetValue (GSHashTableRef table,
                                           const void *key);
 

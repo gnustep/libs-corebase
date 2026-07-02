@@ -29,6 +29,7 @@
 
 #include "NSCFType.h"
 #include "CoreFoundation/CFSet.h"
+#include "GSHashTable.h"
 
 @interface NSCFSet : NSMutableSet
 NSCFTYPE_VARS
@@ -108,12 +109,17 @@ NSCFTYPE_VARS
                                    objects: (id*)stackbuf
                                      count: (NSUInteger)len
 {
-  // TODO: inefficient
-  NSEnumerator *enuM = [self objectEnumerator];
-  
-  return [enuM countByEnumeratingWithState: state
-                                   objects: stackbuf
-                                     count: len];
+  /* Set elements are stored as the hash table's keys; enumerate them in place,
+   * keeping the resume position in extra[0]. */
+  CFIndex cursor = (state->state == 0) ? 0 : (CFIndex) state->extra[0];
+  CFIndex n = GSHashTableGetKeysFromCursor ((GSHashTableRef) self, &cursor,
+                                            (const void **) stackbuf,
+                                            (CFIndex) len);
+  state->extra[0] = (unsigned long) cursor;
+  state->itemsPtr = stackbuf;
+  state->mutationsPtr = (unsigned long *) self;
+  state->state += n;
+  return n;
 }
 
 - (void) addObject: (id)anObject
