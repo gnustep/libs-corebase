@@ -306,8 +306,12 @@ GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
             {
               bucket = GSHashTableFindBucket (new, keys[idx],
                                               _kGSHashTableInsert);
-              GSHashTableAddKeyValuePair (new, bucket, keys[idx], values[idx]);
-              new->_count += 1;
+              if (bucket->count <= 0)
+                {
+                  GSHashTableAddKeyValuePair (new, bucket, keys[idx],
+                                              values[idx]);
+                  new->_count += 1;
+                }
             }
         }
     }
