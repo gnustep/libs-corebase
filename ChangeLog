@@ -1,3 +1,11 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFTree.c (CFTreeRemove): Unlink the node from its parent's
+	list of children (it walked the wrong list and never unlinked,
+	leaving a dangling pointer in the parent), update the parent's
+	_lastChild, and clear the node's _parent and _nextSibling.
+	* Tests/CFTree/basic.m: Regression tests for CFTreeRemove; release
+	the tree before its (unretained) children.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
