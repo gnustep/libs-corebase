@@ -984,14 +984,16 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
   switch (style)
     {
       case kCFURLPOSIXPathStyle:
-        abs = (CFStringGetCharacterAtIndex(filePath, 0) == '/');
+        abs = (CFStringGetLength(filePath) > 0
+          && CFStringGetCharacterAtIndex(filePath, 0) == '/');
         path = CFURLCreateStringByAddingPercentEscapes (alloc, filePath,
           NULL, NULL, kCFStringEncodingUTF8);
         if (path != filePath)
           CFRetain (path);
         filePathLen = CFStringGetLength(path);
         if (isDirectory
-            && CFStringGetCharacterAtIndex(path, filePathLen) != '/')
+            && (filePathLen == 0
+              || CFStringGetCharacterAtIndex(path, filePathLen - 1) != '/'))
           {
             CFStringRef tmp;
             tmp = CFStringCreateWithFormat (alloc, NULL, CFSTR("%@/"), path);
@@ -1003,12 +1005,14 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
         /* FIXME: I believe HFS path style is like POSIX with ':' instead
          * of '/' as the separator.
          */
-        abs = (CFStringGetCharacterAtIndex(filePath, 0) == ':');
+        abs = (CFStringGetLength(filePath) > 0
+          && CFStringGetCharacterAtIndex(filePath, 0) == ':');
         path = CFURLCreateStringFromHFSPathStyle (alloc, filePath, abs,
           isDirectory);
         break;
       case kCFURLWindowsPathStyle:
-        abs = (CFStringGetCharacterAtIndex(filePath, 1) == ':'
+        abs = (CFStringGetLength(filePath) >= 3
+          && CFStringGetCharacterAtIndex(filePath, 1) == ':'
           && CFStringGetCharacterAtIndex(filePath, 2) == '\\');
         path = CFURLCreateStringFromWindowsPathStyle (alloc, filePath, abs,
           isDirectory);
