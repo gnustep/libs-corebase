@@ -1243,7 +1243,10 @@ _pad (UniChar * obuf, UniChar * obuf_end, const UniChar padchar, CFIndex len)
       else
         pad_string = _pad_zero;
       for (; len > PAD_SIZE; len -= PAD_SIZE)
-        written += _write (obuf, obuf_end, (UniChar *) pad_string, PAD_SIZE);
+        {
+          written += _write (obuf, obuf_end, (UniChar *) pad_string, PAD_SIZE);
+          obuf += PAD_SIZE;
+        }
       written += _write (obuf, obuf_end, (UniChar *) pad_string, len);
     }
   return written;
