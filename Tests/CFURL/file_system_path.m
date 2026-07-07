@@ -61,6 +61,18 @@ int main (void)
   
   CFRelease (url);
   CFRelease (baseURL);
-  
+
+  /* Path styles whose converter returns NULL (the HFS stub, and a
+     single-component relative Windows path) must yield NULL rather than
+     dereferencing the NULL intermediate string. */
+  url = CFURLCreateWithFileSystemPath (NULL, CFSTR("foo"),
+    kCFURLHFSPathStyle, false);
+  PASS_CF(url == NULL, "An HFS path yields NULL without crashing.");
+
+  url = CFURLCreateWithFileSystemPath (NULL, CFSTR("c"),
+    kCFURLWindowsPathStyle, false);
+  PASS_CF(url == NULL,
+    "A single-component relative Windows path yields NULL without crashing.");
+
   return false;
 }

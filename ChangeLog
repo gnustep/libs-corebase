@@ -1,3 +1,12 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCreate_internal): Return NULL when the input
+	string is NULL instead of dereferencing it in CFURLStringParse.
+	(CFURLCreateWithFileSystemPathRelativeToBase): Return NULL when the
+	path-style converter (e.g. the HFS stub, or a single-component
+	Windows path) yields NULL, rather than using and releasing it.
+	* Tests/CFURL/file_system_path.m: Regression tests for the HFS and
+	single-component Windows path cases.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
