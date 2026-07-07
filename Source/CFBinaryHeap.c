@@ -206,7 +206,11 @@ CFBinaryHeapCreateCopy (CFAllocatorRef alloc, CFIndex capacity,
   CFBinaryHeapRef heap)
 {
   CFBinaryHeapRef ret;
-  
+
+  /* The copy must be able to hold every value regardless of the requested
+     capacity. */
+  if (capacity < heap->_count)
+    capacity = heap->_count;
   ret = CFBinaryHeapCreate (alloc, capacity, heap->_callBacks,
     &heap->_context);
   memcpy (ret->_values, heap->_values, sizeof(void*) * heap->_count);
@@ -369,6 +373,9 @@ CFBinaryHeapRemoveMinimumValue (CFBinaryHeapRef heap)
   const void *last;
   void *info;
   
+  if (heap->_count == 0)
+    return;
+
   release = heap->_callBacks->release;
   if (release)
     release (CFGetAllocator(heap), heap->_values[0]);
