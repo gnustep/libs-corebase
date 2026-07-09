@@ -1,3 +1,15 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFPropertyList.c (CFPlistStringPeek): New helper returning 0
+	at or past the end of the buffer.
+	(CFPlistStringSkipWhitespace, CFOpenStepPlistParseString,
+	CFOpenStepPlistParseObject, CFOpenStepPlistParseData): Use it for the
+	unguarded character reads so the scans do not read past the
+	(non-NUL-terminated) buffer.
+	(CFPropertyListCreateWithData): Free the separately allocated buffer
+	on every path, and free start rather than the advanced tmp pointer.
+	* Tests/CFPropertyList/openstep.m: Regression tests for a large
+	string and a comment-only list.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
