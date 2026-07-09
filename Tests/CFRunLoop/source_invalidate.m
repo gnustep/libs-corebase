@@ -2,8 +2,6 @@
 #include "../CFTesting.h"
 #include <string.h>
 
-/* Removing an invalidated CFRunLoopSource from the run loop. */
-
 static void perform (void *info)
 {
 }
