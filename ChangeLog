@@ -1,4 +1,10 @@
 2026-07-02  Rupert Daniel <rupert@algoriddim.com>
+	* Tests/CFDictionary/fast_enumeration.m,
+	* Tests/CFSet/fast_enumeration.m: Add tests for fast enumeration of
+	CF-created dictionaries and sets, covering the empty, single-key,
+	multi-batch, and repeated-enumeration cases.
+
+2026-07-02  Rupert Daniel <rupert@algoriddim.com>
 	* Source/NSCFDictionary.m,
 	* Source/NSCFSet.m: Fix -countByEnumeratingWithState:objects:count:,
 	which created a fresh enumerator on every call so fast enumeration
