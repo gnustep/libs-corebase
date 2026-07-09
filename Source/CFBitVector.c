@@ -141,12 +141,15 @@ CFBitVectorOperation (CFBitVectorRef bv, CFRange range,
   CFIndex endBit;
   UInt8 mask;
   Boolean multiByte;
-  
+
+  if (range.length <= 0)
+    return;
+
   curByte = CFBitVectorGetByte (range.location);
   endByte = CFBitVectorGetByte (range.location + range.length - 1);
   startBit = CFBitVectorGetBitIndex (range.location);
   endBit = CFBitVectorGetBitIndex (range.location + range.length - 1);
-  
+
   /* First byte */
   if (curByte == endByte)
     {
@@ -159,7 +162,8 @@ CFBitVectorOperation (CFBitVectorRef bv, CFRange range,
       multiByte = true;
     }
   bv->_bytes[curByte] = func (bv->_bytes[curByte], mask, context);
-  
+  ++curByte;
+
   /* Middle bytes */
   while (curByte < endByte)
     {
@@ -279,7 +283,7 @@ CountZero (UInt8 byte, UInt8 mask, void *context)
 CFIndex
 CFBitVectorGetCountOfBit (CFBitVectorRef bv, CFRange range, CFBit value)
 {
-  CFIndex count;
+  CFIndex count = 0;
   CFBitVectorOperation (bv, range, value ? CountOne : CountZero, &count);
   return count;
 }
