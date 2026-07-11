@@ -135,8 +135,19 @@ int main (void)
     "g?y/../x resolved against http://a/b/c/d;p?q is http://a/b/c/g?y/../x");
   CFRelease(url3);
   CFRelease(url2);
-  
+
   CFRelease(url);
-  
+
+  /* Resolving against a base whose path has no '/' used to scan backwards
+     off the start of the buffer when removing the last path component. */
+  url = CFURLCreateWithString (NULL, CFSTR("foo"), NULL);
+  url2 = CFURLCreateWithString (NULL, CFSTR("bar"), url);
+  url3 = CFURLCopyAbsoluteURL (url2);
+  PASS_CFEQ(CFURLGetString(url3), CFSTR("bar"),
+    "bar resolved against base 'foo' is 'bar'");
+  CFRelease(url3);
+  CFRelease(url2);
+  CFRelease(url);
+
   return 0;
 }
