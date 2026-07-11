@@ -6,6 +6,10 @@
 	directory path rather than reading index -1.
 	* Tests/CFURL/ref_resolution.m, Tests/CFURL/file_system_path.m:
 	Regression tests.
+	* Source/GSCArray.c (GSCArrayQuickSort): Pass the correct partition
+	lengths to the recursive calls; the right partition length was one
+	too large, reading one element past the end of the array.
+	* Tests/CFArray/mutablearray.m: Regression test sorting >16 values.
 
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()

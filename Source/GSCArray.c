@@ -58,8 +58,8 @@ GSCArrayQuickSort (const void **array, CFIndex length,
         }
       GS_EXCHANGE_VALUES (array[stored], array[length - 1]);
 
-      GSCArrayQuickSort (array, stored - 1, comparator, context);
-      GSCArrayQuickSort (array + stored + 1, length - stored, comparator,
+      GSCArrayQuickSort (array, stored, comparator, context);
+      GSCArrayQuickSort (array + stored + 1, length - stored - 1, comparator,
                          context);
     }
   GSCArrayInsertionSort (array, length, comparator, context);
