@@ -1,4 +1,11 @@
 2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCopyAbsoluteURL): Stop the "remove last path
+	component" scan at the start of the buffer instead of running off
+	the front when the base path contains no '/'.
+	(CFURLHasDirectoryPath): Treat an empty URL string as not a
+	directory path rather than reading index -1.
+	* Tests/CFURL/ref_resolution.m, Tests/CFURL/file_system_path.m:
+	Regression tests.
 	* Source/GSCArray.c (GSCArrayQuickSort): Pass the correct partition
 	lengths to the recursive calls; the right partition length was one
 	too large, reading one element past the end of the array.
