@@ -1493,10 +1493,13 @@ CFURLCreateStringByAddingPercentEscapes (CFAllocatorRef alloc,
         {
           if (dst == NULL)
             {
-              dst = CFAllocatorAllocate (alloc, sizeof(char) * sLength * 3, 0);
+              /* Worst case scenario is 3 * MAX_BYTES output chars per input
+                 character (e.g. U+20AC -> "%E2%82%AC") . */
+              dst = CFAllocatorAllocate (alloc,
+                sizeof(char) * sLength * (3 * MAX_BYTES), 0);
               CFStringGetBytes (origString, CFRangeMake(0, idx),
                 kCFStringEncodingASCII, 0, false, (UInt8*)dst,
-                sLength * 3, NULL);
+                sLength * (3 * MAX_BYTES), NULL);
               dpos = dst + idx;
             }
           if (!CFURLAppendPercentEscapedForCharacter (&dpos, c, encoding))
