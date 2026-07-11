@@ -24,6 +24,12 @@
 	too large, reading one element past the end of the array.
 	* Tests/CFArray/mutablearray.m: Regression test sorting >16 values.
 
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFStringUtilities.c (CFStringCreateByCombiningStrings):
+	Guard against an empty array.
+	* Tests/CFString/general.m: Regression test for the empty-array
+	case.
+
 2026-06-27  DTW-Thalion  <todd.white@thalion.global>
 	* Source/CFString.c (CFStringAppendCString): Check for invalid encoding.
 	* Tests/CFString/mutablestring.m: Add a truncated-multibyte append test.
