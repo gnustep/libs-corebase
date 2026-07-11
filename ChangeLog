@@ -1,4 +1,10 @@
 2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFArray.c (CFArrayGetLastIndexOfValue): Start the backward
+	scan at range.location + range.length - 1 instead of one past the
+	end of the range.
+	* Tests/CFArray/create.m: Regression test.
+
+2026-06-28  Todd White  <todd.white@thalion.global>
 	* Source/CFTree.c (CFTreePrependChild): Set _lastChild to the new
 	child when the tree was empty, instead of NULL.
 	(CFTreeGetChildAtIndex): Stop walking at the end of the child list
