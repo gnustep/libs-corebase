@@ -1,4 +1,11 @@
 2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFTree.c (CFTreePrependChild): Set _lastChild to the new
+	child when the tree was empty, instead of NULL.
+	(CFTreeGetChildAtIndex): Stop walking at the end of the child list
+	so an out-of-range index returns NULL instead of dereferencing it.
+	* Tests/CFTree/basic.m: Regression tests.
+
+2026-06-28  Todd White  <todd.white@thalion.global>
 	* Source/CFURL.c (CFURLCopyAbsoluteURL): Stop the "remove last path
 	component" scan at the start of the buffer instead of running off
 	the front when the base path contains no '/'.
