@@ -25,6 +25,10 @@
 	* Tests/CFArray/mutablearray.m: Regression test sorting >16 values.
 
 2026-06-27  DTW-Thalion  <todd.white@thalion.global>
+	* Source/CFDateFormatter.c (CFDateFormatterGetAbsoluteTimeFromString):
+	Fix buffer overflow.
+
+2026-06-27  DTW-Thalion  <todd.white@thalion.global>
 	* Source/CFURL.c (CFURLCreateStringByAddingPercentEscapes): Size the
 	output buffer for the worst-case percent-escape expansion (3 * MAX_BYTES
 	characters per input character).
