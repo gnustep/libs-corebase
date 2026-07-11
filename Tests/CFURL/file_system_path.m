@@ -61,6 +61,13 @@ int main (void)
   
   CFRelease (url);
   CFRelease (baseURL);
-  
+
+  /* CFURLHasDirectoryPath on a URL with an empty string must not read
+     index -1. */
+  url = CFURLCreateWithString (NULL, CFSTR(""), NULL);
+  PASS_CF(CFURLHasDirectoryPath(url) == false,
+    "An empty URL is not a directory path (no negative index).");
+  CFRelease (url);
+
   return false;
 }
