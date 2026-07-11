@@ -25,6 +25,10 @@
 	* Tests/CFArray/mutablearray.m: Regression test sorting >16 values.
 
 2026-06-27  DTW-Thalion  <todd.white@thalion.global>
+	* Source/CFString.c (CFStringAppendCString): Check for invalid encoding.
+	* Tests/CFString/mutablestring.m: Add a truncated-multibyte append test.
+
+2026-06-27  DTW-Thalion  <todd.white@thalion.global>
 	* Source/CFUUID.c (CFUUIDCreateFromString): Parse each UUID byte
 	individually (%2hhx) into bytes.byte0..byte15, reject a string lacking
 	all 16 bytes, and size the scratch buffer at 37.
