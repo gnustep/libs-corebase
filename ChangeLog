@@ -1,12 +1,62 @@
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFArray.c (CFArrayGetLastIndexOfValue): Start the backward
+	scan at range.location + range.length - 1 instead of one past the
+	end of the range.
+	* Tests/CFArray/create.m: Regression test.
+
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFTree.c (CFTreePrependChild): Set _lastChild to the new
+	child when the tree was empty, instead of NULL.
+	(CFTreeGetChildAtIndex): Stop walking at the end of the child list
+	so an out-of-range index returns NULL instead of dereferencing it.
+	* Tests/CFTree/basic.m: Regression tests.
+
+2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCopyAbsoluteURL): Stop the "remove last path
+	component" scan at the start of the buffer instead of running off
+	the front when the base path contains no '/'.
+	(CFURLHasDirectoryPath): Treat an empty URL string as not a
+	directory path rather than reading index -1.
+	* Tests/CFURL/ref_resolution.m, Tests/CFURL/file_system_path.m:
+	Regression tests.
+	* Source/GSCArray.c (GSCArrayQuickSort): Pass the correct partition
+	lengths to the recursive calls; the right partition length was one
+	too large, reading one element past the end of the array.
+	* Tests/CFArray/mutablearray.m: Regression test sorting >16 values.
+
 2026-06-27  Todd White  <todd.white@thalion.global>
 	* Source/CFStringUtilities.c (CFStringCreateByCombiningStrings):
-	Guard against an empty array.  The count was computed as
-	CFArrayGetCount() - 1, so an empty array yielded -1, the
-	"count == 0" early return was bypassed, and the function read
-	CFArrayGetValueAtIndex(theArray, 0) past the end of empty
-	storage.  Return NULL when the array has no elements.
+	Guard against an empty array.
 	* Tests/CFString/general.m: Regression test for the empty-array
 	case.
+
+2026-06-27  DTW-Thalion  <todd.white@thalion.global>
+	* Source/CFString.c (CFStringAppendCString): Check for invalid encoding.
+	* Tests/CFString/mutablestring.m: Add a truncated-multibyte append test.
+
+2026-06-27  DTW-Thalion  <todd.white@thalion.global>
+	* Source/CFUUID.c (CFUUIDCreateFromString): Parse each UUID byte
+	individually (%2hhx) into bytes.byte0..byte15, reject a string lacking
+	all 16 bytes, and size the scratch buffer at 37.
+	* Tests/CFUUID/create.m: Add a CFUUIDCreateFromString round-trip test.
+
+2026-06-27  DTW-Thalion  <todd.white@thalion.global>
+	* Source/CFDateFormatter.c (CFDateFormatterGetAbsoluteTimeFromString):
+	Fix buffer overflow.
+
+2026-06-27  DTW-Thalion  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCreateStringByAddingPercentEscapes): Size the
+	output buffer for the worst-case percent-escape expansion (3 * MAX_BYTES
+	characters per input character).
+	* Tests/CFURL/escaping.m: Add a non-ASCII escaping test.
+
+2026-04-13  Todd White <todd.white@thalion.global>
+
+	* Source/CFPropertyList.c (CFPropertyListCreateDeepCopy): Initialise
+	the type IDs before dispatching on them, and apply the copy function
+	to the source container instead of the empty destination, so a mutable
+	deep copy is no longer empty (and no longer crashes on Linux).
+	* Tests/CFPropertyList/deepcopy.m: New regression test.
 
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()

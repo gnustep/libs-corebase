@@ -141,18 +141,13 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   struct __CFTimeZone *new;
   CFTimeZoneRef old;
   
+  GSMutexLock(&_kCFTimeZoneCacheLock);
   if (_kCFTimeZoneCache == NULL)
-    {
-      GSMutexLock(&_kCFTimeZoneCacheLock);
-      /* Double check the cache is still NULL. */
-      if (_kCFTimeZoneCache == NULL)
-        _kCFTimeZoneCache = CFDictionaryCreateMutable (
-          kCFAllocatorSystemDefault, 0,
-          &kCFCopyStringDictionaryKeyCallBacks, NULL);
-      GSMutexUnlock(&_kCFTimeZoneCacheLock);
-    }
-  /* Verify we haven't created a timezone with this name already. */
+    _kCFTimeZoneCache = CFDictionaryCreateMutable (
+      kCFAllocatorSystemDefault, 0,
+      &kCFCopyStringDictionaryKeyCallBacks, NULL);
   old = (CFTimeZoneRef)CFDictionaryGetValue (_kCFTimeZoneCache, name);
+  GSMutexUnlock(&_kCFTimeZoneCacheLock);
   if (old != NULL)
     return CFRetain (old);
   
