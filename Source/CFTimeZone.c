@@ -168,11 +168,31 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   tzh_typecnt = (SInt32)CFSwapInt32BigToHost (*tmp);
   tmp = (UInt32*)header->tzh_charcnt;
   tzh_charcnt = (SInt32)CFSwapInt32BigToHost (*tmp);
-  /* Make sure we're not above any of the maximums. */
+  /* Make sure the counts are sane: not negative, not above the maximums,
+     and that the data they describe actually fits in what follows the
+     header (otherwise the parsing below reads out of bounds). */
+  if (tzh_timecnt < 0 || tzh_typecnt < 0 || tzh_charcnt < 0)
+    return NULL;
   if (tzh_timecnt > TZ_MAX_TIMES || tzh_typecnt > TZ_MAX_TYPES
       || tzh_charcnt > TZ_MAX_CHARS)
     return NULL;
-  
+  if (tzh_timecnt > 0 && tzh_typecnt < 1)
+    return NULL;
+  if ((sizeof (SInt32) + sizeof (UInt8)) * (size_t)tzh_timecnt
+        + sizeof (struct _ttinfo) * (size_t)tzh_typecnt
+        + (size_t)tzh_charcnt
+      > (size_t)(endOfBytes - bytes))
+    return NULL;
+  /* Every transition references a local time type by index; reject the
+     file if any index is out of range so types[*typeIdx] stays in bounds. */
+  {
+    const UInt8 *ti = bytes + sizeof (SInt32) * tzh_timecnt;
+    SInt32 k;
+    for (k = 0 ; k < tzh_timecnt ; ++k)
+      if (ti[k] >= tzh_typecnt)
+        return NULL;
+  }
+
   new = (struct __CFTimeZone*)_CFRuntimeCreateInstance (alloc,
     _kCFTimeZoneTypeID, CFTIMEZONE_SIZE, 0);
   if (new)
@@ -184,7 +204,7 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
       struct _ttinfo *types;
       char *chars;
       char *charsEnd;
-      CFStringRef abbrevs[TZ_MAX_CHARS / 4];
+      CFStringRef abbrevs[TZ_MAX_CHARS];
       
       new->_name = CFStringCreateCopy (alloc, name);
       new->_data = CFDataCreateCopy (alloc, data);
@@ -214,13 +234,14 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
       
       /* Abbreviations */
       idx = 0;
-      while (chars < charsEnd)
+      while (chars < charsEnd && idx < TZ_MAX_CHARS)
         {
           abbrevs[idx++] =
             CFStringCreateWithCString (alloc, chars, kCFStringEncodingASCII);
-          while (*chars != '\0')
+          while (chars < charsEnd && *chars != '\0')
             chars++;
-          chars++; /* Skip '\0' */
+          if (chars < charsEnd)
+            chars++; /* Skip '\0' */
         }
       
       new->_abbrevs = CFAllocatorAllocate (alloc, sizeof(void*) * idx, 0);

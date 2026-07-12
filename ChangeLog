@@ -1,7 +1,6 @@
 2026-06-28  Todd White  <todd.white@thalion.global>
-	* Source/CFArray.c (CFArrayGetLastIndexOfValue): Start the backward
-	scan at range.location + range.length - 1 instead of one past the
-	end of the range.
+	* Source/CFTimeZone.c (CFTimeZoneCreate): Validate the TZif header
+	counts before parsing.
 	* Tests/CFArray/create.m: Regression test.
 
 2026-06-28  Todd White  <todd.white@thalion.global>
