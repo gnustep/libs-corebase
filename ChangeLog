@@ -1,3 +1,8 @@
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFString.c (CFStringGetCString): Fix buffer overflow.
+	* Tests/CFString/create.m: Regression test for CFStringGetCString
+	with a buffer that has no room for the NUL.
+
 2021-09-30  Frederik Seiffert <frederik@algoriddim.com>
 	* Source/CFDate.c: Fix logic in CFGregorianDateIsValid()
 
