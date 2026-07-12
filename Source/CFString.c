@@ -833,6 +833,11 @@ CFStringGetCharacters (CFStringRef str, CFRange range, UniChar * buffer)
   CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, void, str,
                          "getCharacters:range:", buffer, range);
 
+  CFIndex strLen = CFStringGetLength (str);
+  if (range.location < 0 || range.length < 0
+      || range.location + range.length > strLen)
+    return;
+
   if (CFStringIsUnicode (str))
     {
       memcpy (buffer, ((UniChar *) str->_contents) + range.location,
