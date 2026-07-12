@@ -25,6 +25,12 @@
 	* Tests/CFArray/mutablearray.m: Regression test sorting >16 values.
 
 2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFDate.c (CFAbsoluteTimeToFields): Fix the month-finding
+	loop, which started at the wrong table index and scanned in the
+	wrong direction.
+	* Tests/CFDate/basic.m: Regression test for CFAbsoluteTimeGetGregorianDate.
+
+2026-06-27  Todd White  <todd.white@thalion.global>
 	* Source/CFStringUtilities.c (CFStringCreateByCombiningStrings):
 	Guard against an empty array.
 	* Tests/CFString/general.m: Regression test for the empty-array
