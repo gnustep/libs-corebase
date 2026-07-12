@@ -1,4 +1,8 @@
 2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFLocale.c (CFLocaleCreateCanonicalLanguageIdentifierFromString):
+	Pass the real buffer size to uloc_canonicalize.
+
+2026-06-28  Todd White  <todd.white@thalion.global>
 	* Source/CFTimeZone.c (CFTimeZoneCreate): Validate the TZif header
 	counts before parsing.
 	* Tests/CFArray/create.m: Regression test.
