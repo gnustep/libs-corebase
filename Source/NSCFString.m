@@ -321,13 +321,24 @@ static NSStringEncoding *nsencodings = NULL;
           maxLength: (NSUInteger) maxLength
            encoding: (NSStringEncoding) encoding
 {
-  CFStringEncoding enc = CFStringConvertEncodingToNSStringEncoding (encoding);
+  CFStringEncoding enc = CFStringConvertNSStringEncodingToEncoding (encoding);
   return (BOOL)CFStringGetCString ((CFStringRef) self, buffer, maxLength, enc);
 }
 
 - (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding) encoding
 {
-  return [self lengthOfBytesUsingEncoding: encoding];
+  CFStringEncoding enc = CFStringConvertNSStringEncodingToEncoding (encoding);
+  CFIndex length = CFStringGetLength ((CFStringRef) self);
+  CFIndex max = CFStringGetMaximumSizeForEncoding (length, enc);
+  CFIndex used = 0;
+  UInt8 *buffer = (UInt8 *) malloc (max);
+
+  if (buffer == NULL)
+    return 0;
+  CFStringGetBytes ((CFStringRef) self, CFRangeMake (0, length), enc, 0,
+                    false, buffer, max, &used);
+  free (buffer);
+  return (NSUInteger) used;
 }
 
 - (NSUInteger) maximumLengthOfBytesUsingEncoding: (NSStringEncoding) encoding

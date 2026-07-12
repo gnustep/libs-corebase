@@ -726,8 +726,9 @@ CFURLCopyAbsoluteURL (CFURLRef relativeURL)
                               /* Remove last path component */
                               CFIndex count;
                               count = baseRange.length - 1;
-                              while (buffer[--count] != '/');
-                              baseRange.length = count + 1;
+                              while (count > 0 && buffer[count - 1] != '/')
+                                --count;
+                              baseRange.length = count;
                             }
                         }
                       CFStringGetCharacters (relString, range,
@@ -1359,7 +1360,9 @@ Boolean
 CFURLHasDirectoryPath (CFURLRef url)
 {
   CFStringRef str = CFURLGetString (url);
-  return (CFStringGetCharacterAtIndex(str, CFStringGetLength(str) - 1) == '/');
+  CFIndex len = CFStringGetLength (str);
+  return (len > 0
+    && CFStringGetCharacterAtIndex (str, len - 1) == '/');
 }
 
 CFDataRef
@@ -1490,10 +1493,13 @@ CFURLCreateStringByAddingPercentEscapes (CFAllocatorRef alloc,
         {
           if (dst == NULL)
             {
-              dst = CFAllocatorAllocate (alloc, sizeof(char) * sLength * 3, 0);
+              /* Worst case scenario is 3 * MAX_BYTES output chars per input
+                 character (e.g. U+20AC -> "%E2%82%AC") . */
+              dst = CFAllocatorAllocate (alloc,
+                sizeof(char) * sLength * (3 * MAX_BYTES), 0);
               CFStringGetBytes (origString, CFRangeMake(0, idx),
                 kCFStringEncodingASCII, 0, false, (UInt8*)dst,
-                sLength * 3, NULL);
+                sLength * (3 * MAX_BYTES), NULL);
               dpos = dst + idx;
             }
           if (!CFURLAppendPercentEscapedForCharacter (&dpos, c, encoding))
