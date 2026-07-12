@@ -24,6 +24,11 @@
 	* Tests/CFArray/mutablearray.m: Regression test sorting >16 values.
 
 2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFString.c (CFStringGetCString): Fix buffer overflow.
+	* Tests/CFString/create.m: Regression test for CFStringGetCString
+	with a buffer that has no room for the NUL.
+
+2026-06-27  Todd White  <todd.white@thalion.global>
 	* Source/CFDate.c (CFAbsoluteTimeToFields): Fix the month-finding
 	loop, which started at the wrong table index and scanned in the
 	wrong direction.

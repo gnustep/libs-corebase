@@ -864,7 +864,7 @@ CFStringGetCString (CFStringRef str, char *buffer, CFIndex bufferSize,
 
   if (CFStringGetBytes (str, CFRangeMake (0, len), encoding, 0, false,
                         (UInt8 *) buffer, bufferSize, &used) == len
-      && used <= len)
+      && used <= len && used < bufferSize)
     {
       buffer[used] = '\0';
       return true;
