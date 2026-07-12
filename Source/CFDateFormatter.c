@@ -595,8 +595,10 @@ CFDateFormatterGetAbsoluteTimeFromString (CFDateFormatterRef fmt,
     range = *rangep;
   else
     range = CFRangeMake (0, CFStringGetLength(string));
+  if (range.length > BUFFER_SIZE)
+    range.length = BUFFER_SIZE;
   CFStringGetCharacters (string, range, text);
-  
+
   udate = udat_parse (fmt->_fmt, text, range.length, &pPos, &err);
   if (U_FAILURE(err))
     return false;
