@@ -77,6 +77,11 @@ int main (void)
   
   CFRelease (str_utf8);
   CFRelease (str_utf16);
-  
+
+  PASS_CF (CFStringConvertEncodingToWindowsCodepage (0x0BFF) == 0,
+           "Unknown encoding maps to codepage 0 without overreading the table.");
+  PASS_CF (CFStringConvertEncodingToIANACharSetName (0x0BFF) == NULL,
+           "Unknown encoding maps to NULL IANA name without overreading the table.");
+
   return 0;
 }
