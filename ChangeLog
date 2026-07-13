@@ -28,6 +28,11 @@
 	* Tests/CFArray/mutablearray.m: Regression test sorting >16 values.
 
 2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/GSUnicode.c (_read_number): Fix operator precedence in
+	the digit loop.
+	* Tests/CFString/format_int.m: Test a multi-digit field width.
+
+2026-06-27  Todd White  <todd.white@thalion.global>
 	* Source/CFString.c (CFStringGetCString): Fix buffer overflow.
 	* Tests/CFString/create.m: Regression test for CFStringGetCString
 	with a buffer that has no room for the NUL.
