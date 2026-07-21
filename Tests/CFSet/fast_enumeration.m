@@ -3,8 +3,6 @@
 #include "CoreFoundation/CFSet.h"
 #include "../CFTesting.h"
 
-/* Build a set via the CF API so it is backed by NSCFSet, exercising the
- * bridge's fast-enumeration path. */
 static CFMutableSetRef makeCFSet(int count)
 {
   CFMutableSetRef s = CFSetCreateMutable(NULL, 0, &kCFTypeSetCallBacks);
