@@ -3,9 +3,6 @@
 #include "CoreFoundation/CFDictionary.h"
 #include "../CFTesting.h"
 
-/* Build a dictionary via the CF API so it is backed by NSCFDictionary
- * (not a gnustep-base dictionary), which is what exercises the bridge's
- * fast-enumeration path. */
 static CFMutableDictionaryRef makeCFDict(int count)
 {
   CFMutableDictionaryRef d = CFDictionaryCreateMutable(NULL, 0,
