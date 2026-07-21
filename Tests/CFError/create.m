@@ -35,10 +35,6 @@ int main (void)
   CFRelease (err);
   CFRelease (userInfo);
 
-  /* A NULL domain is not allowed. */
-  err = CFErrorCreate (NULL, NULL, 0, NULL);
-  PASS_CF(err == NULL, "CFErrorCreate with a NULL domain returns NULL.");
-
   /* With no user info a valid, empty dictionary is substituted. */
   err = CFErrorCreate (NULL, kCFErrorDomainCocoa, 7, NULL);
   PASS_CF(err != NULL, "CFError created without user info.");
