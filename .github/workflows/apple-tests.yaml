@@ -1,0 +1,17 @@
+name: Apple Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  macos:
+    name: macOS Apple CoreFoundation tests
+    runs-on: macos-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Run Apple compatibility tests
+        run: ./Tests/run-apple-tests.sh
