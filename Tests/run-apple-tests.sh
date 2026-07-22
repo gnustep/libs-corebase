@@ -52,6 +52,31 @@ append_summary_matches() {
   ' >>"$SUM_FILE"
 }
 
+print_failure_summary() {
+  [ -f "$LOG_FILE" ] || return 0
+
+  if ! grep -Eq '^(Failed test:|Failed file:)' "$LOG_FILE"; then
+    return 0
+  fi
+
+  printf "\nFailure summary:\n"
+  awk '
+    /^Failed test:/ || /^Failed file:/ {
+      print
+      show = 1
+      next
+    }
+    show && (/^expected / || /^but got / || /^Expected:/ || /^Actual:/) {
+      print
+      next
+    }
+    show && (/^(Passed test:|Dashed hope:|Skipped file:|Testing |--- Running)/) {
+      show = 0
+    }
+  ' "$LOG_FILE"
+  printf "\nFull log: %s\n" "$LOG_FILE"
+}
+
 run_test_file() {
   dir=$1
   testfile=$2
@@ -203,6 +228,7 @@ EOF
   printf "%7d Skipped files\n" "$SKIPPED_FILES"
 
   if [ "$FAILED_TESTS" -ne 0 ] || [ "$FAILED_FILES" -ne 0 ]; then
+    print_failure_summary
     exit 1
   fi
 }
