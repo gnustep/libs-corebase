@@ -1325,7 +1325,7 @@ CFRunLoopCommonModesRemove (CFRunLoopRef rl, CFTypeRef obj)
   CFIndex idx;
   struct common_mode_info info = { rl, obj, false };
   range = CFRangeMake (0, CFArrayGetCount (rl->_commonObjects));
-  idx = CFArrayContainsValue (rl->_commonObjects, range, obj);
+  idx = CFArrayGetFirstIndexOfValue (rl->_commonObjects, range, obj);
   if (idx != kCFNotFound)
     CFArrayRemoveValueAtIndex (rl->_commonObjects, idx);
   
