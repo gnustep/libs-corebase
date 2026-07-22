@@ -295,8 +295,8 @@ CFGregorianDateGetAbsoluteTime (CFGregorianDate gdate, CFTimeZoneRef tz)
   double seconds;
   CFAbsoluteTime at;
   
-  at = CFFieldsToAbsoluteTime (gdate.year, gdate.month, gdate.day);
-  
+  at = CFFieldsToAbsoluteTime (gdate.year, gdate.month, gdate.day) * 86400.0;
+
   seconds = (gdate.hour * 3600 + gdate.minute * 60) + gdate.second;
   if (at < 0.0)
     seconds = -seconds;
@@ -351,8 +351,30 @@ CFAbsoluteTime
 CFAbsoluteTimeAddGregorianUnits (CFAbsoluteTime at, CFTimeZoneRef tz,
   CFGregorianUnits units)
 {
-  return at;
-} 
+  CFGregorianDate gd = CFAbsoluteTimeGetGregorianDate (at, tz);
+  CFAbsoluteTime result;
+
+  gd.year += units.years;
+  gd.month += units.months;
+  while (gd.month > 12)
+    {
+      gd.month -= 12;
+      gd.year += 1;
+    }
+  while (gd.month < 1)
+    {
+      gd.month += 12;
+      gd.year -= 1;
+    }
+
+  result = CFGregorianDateGetAbsoluteTime (gd, tz);
+  result += (CFTimeInterval)units.days * 86400.0
+    + (CFTimeInterval)units.hours * 3600.0
+    + (CFTimeInterval)units.minutes * 60.0
+    + units.seconds;
+
+  return result;
+}
 
 Boolean
 CFGregorianDateIsValid (CFGregorianDate gdate, CFOptionFlags unitFlags)
