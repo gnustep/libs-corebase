@@ -475,8 +475,7 @@ ReplaceAttributesAtIndex (CFMutableAttributedStringRef str, CFIndex idx,
                           CFDictionaryRef repl)
 {
   CFAttributedStringUncacheAttribute (str->_attribs[idx].attrib);
-  str->_attribs[idx].attrib =
-    CFAttributedStringCacheAttribute (str->_attribs[idx].attrib);
+  str->_attribs[idx].attrib = CFAttributedStringCacheAttribute (repl);
 }
 
 static void
