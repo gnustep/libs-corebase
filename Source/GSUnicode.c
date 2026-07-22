@@ -421,8 +421,6 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
       UTF32Char c;
       CFIndex add;
 
-      if (addBOM)
-        dStop += GSUTF8CharacterAppendByteOrderMark (dStop, dLimit);
       while (*s < sLimit && (dLimit == NULL || dStop < dLimit))
         {
           add = GSUTF16CharacterGet (*s, sLimit, &c);
