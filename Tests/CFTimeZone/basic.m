@@ -14,11 +14,11 @@ int main (void)
   
   tz = CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, 0.0);
   PASS_CF(tz != NULL, "CFTimeZone create successfully.");
-  PASS_CFEQ(CFTimeZoneGetName(tz), CFSTR("GMT+00:00"),
+  PASS_CFEQ(CFTimeZoneGetName(tz), CFSTR("GMT"),
     "CFTimeZone has correct name.");
-  
+
   str = CFTimeZoneCopyAbbreviation (tz, 0.0);
-  PASS_CFEQ(str, CFSTR("GMT+00:00"), "Time zone abbreviations are equal.");
+  PASS_CFEQ(str, CFSTR("GMT"), "Time zone abbreviations are equal.");
   
   ti = CFTimeZoneGetSecondsFromGMT (tz, 0.0);
   PASS_CF(ti == 0.0, "GMT+00:00 offset from GMT is %g", ti);

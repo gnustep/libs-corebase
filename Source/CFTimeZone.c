@@ -305,7 +305,10 @@ CFTimeZoneCreateWithTimeIntervalFromGMT (CFAllocatorRef alloc,
   tzfile.header.tzh_timecnt[3] = 1;
   tzfile.header.tzh_typecnt[3] = 1;
   tzfile.ttinfo.offset = CFSwapInt32HostToBig((SInt32)ti);
-  numChars = snprintf (tzfile.abbrev, 10, "GMT%c%02d:%02d", sign, hour, min);
+  if ((SInt32) ti == 0)
+    numChars = snprintf (tzfile.abbrev, 10, "GMT");
+  else
+    numChars = snprintf (tzfile.abbrev, 10, "GMT%c%02d%02d", sign, hour, min);
   tzfile.header.tzh_charcnt[3] = numChars;
   
   name = CFStringCreateWithCString (alloc, tzfile.abbrev,
