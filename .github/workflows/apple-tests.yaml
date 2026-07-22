@@ -1,5 +1,8 @@
-name: Apple Tests
+name: Apple Foundation Reference
 
+# Runs the CoreBase Test suite with against Apples (Core)Foundation.
+# We want our behavior to match. Test files may be excluded by setting
+# the APPLE_SKIP_TESTS environment variable.
 on:
   push:
   pull_request:
@@ -14,4 +17,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Apple compatibility tests
-        run: ./Tests/run-apple-tests.sh
+        run: ./.github/scripts/run-apple-tests.py

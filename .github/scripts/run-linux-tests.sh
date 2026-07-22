@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -u
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
-LOG_FILE="$SCRIPT_DIR/tests.log"
+REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
+LOG_FILE="$REPO_ROOT/Tests/tests.log"
 
 die() {
   echo "error: $*" >&2
@@ -14,13 +14,10 @@ die() {
 source_gnustep() {
   set +u
   if [ -n "${GNUSTEP_SH:-}" ]; then
-    # shellcheck disable=SC1090
     . "$GNUSTEP_SH"
   elif [ -n "${INSTALL_PATH:-}" ] && [ -f "$INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh" ]; then
-    # shellcheck disable=SC1090
     . "$INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh"
   elif [ -f /opt/gnustep/share/GNUstep/Makefiles/GNUstep.sh ]; then
-    # shellcheck disable=SC1091
     . /opt/gnustep/share/GNUstep/Makefiles/GNUstep.sh
   fi
   set -u
@@ -69,10 +66,8 @@ print_full_log_group() {
 main() {
   source_gnustep
 
-  cd "$REPO_ROOT" || exit 2
-  make
-
-  cd "$SCRIPT_DIR" || exit 2
+  # Run the tests and extract summary
+  cd "$REPO_ROOT/Tests" || exit 2
   if ! make check; then
     print_failure_summary
     print_full_log_group
