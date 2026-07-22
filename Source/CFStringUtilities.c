@@ -327,23 +327,74 @@ CFStringCreateArrayWithFindResults (CFAllocatorRef alloc,
   return NULL; /* FIXME */
 }
 
-/* These next two functions should be very similar.  According to Apple's
-   documentation the only different between the two is that ...ParagraphBounds
-   does not stop at Unicode NextLine or LineSeparactor characters.
-   
-   They can probably be implemented using ICU's break iterator.
-*/
+static Boolean
+CFStringIsLineBreak (UniChar c, Boolean paragraphOnly)
+{
+  switch (c)
+    {
+    case 0x000A:                /* line feed */
+    case 0x000D:                /* carriage return */
+    case 0x2029:                /* paragraph separator */
+      return true;
+    case 0x0085:                /* next line */
+    case 0x2028:                /* line separator */
+      return !paragraphOnly;
+    default:
+      return false;
+    }
+}
+
+static void
+CFStringGetBounds (CFStringRef str, CFRange range, Boolean paragraphOnly,
+  CFIndex *beginIndex, CFIndex *endIndex, CFIndex *contentsEndIndex)
+{
+  CFIndex length = CFStringGetLength (str);
+  CFIndex begin = range.location;
+  CFIndex contentsEnd = range.location + range.length;
+  CFIndex end;
+
+  while (begin > 0
+         && !CFStringIsLineBreak (CFStringGetCharacterAtIndex (str, begin - 1),
+                                  paragraphOnly))
+    begin--;
+
+  while (contentsEnd < length
+         && !CFStringIsLineBreak (CFStringGetCharacterAtIndex (str, contentsEnd),
+                                  paragraphOnly))
+    contentsEnd++;
+
+  end = contentsEnd;
+  if (end < length)
+    {
+      if (CFStringGetCharacterAtIndex (str, end) == 0x000D
+          && end + 1 < length
+          && CFStringGetCharacterAtIndex (str, end + 1) == 0x000A)
+        end += 2;
+      else
+        end += 1;
+    }
+
+  if (beginIndex)
+    *beginIndex = begin;
+  if (endIndex)
+    *endIndex = end;
+  if (contentsEndIndex)
+    *contentsEndIndex = contentsEnd;
+}
+
 void
 CFStringGetLineBounds (CFStringRef str, CFRange range,
   CFIndex *lineBeginIndex, CFIndex *lineEndIndex, CFIndex *contentsEndIndex)
 {
-  return;
+  CFStringGetBounds (str, range, false, lineBeginIndex, lineEndIndex,
+                     contentsEndIndex);
 }
 
 void
 CFStringGetParagraphBounds (CFStringRef string, CFRange range,
   CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex)
 {
-  return;
+  CFStringGetBounds (string, range, true, parBeginIndex, parEndIndex,
+                     contentsEndIndex);
 }
 
