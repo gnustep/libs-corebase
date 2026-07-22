@@ -76,7 +76,7 @@ struct __CFReadStream
     CFRuntimeBase              parent;
     struct CFReadStreamImpl    impl;
 
-    Boolean                    open, closed, failed;
+    Boolean                    open, closed, failed, atEnd;
     CFErrorRef                 error;
 
     /* callbacks when used with a runloop */
