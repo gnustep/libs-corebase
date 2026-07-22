@@ -50,7 +50,11 @@ int main (void)
   PASS_CF(num == 12, "Maximum size for 4 UTF-8 characters is 12 bytes.");
   
   str_utf16 = CFStringConvertEncodingToIANACharSetName (kCFStringEncodingUTF16);
+#ifdef __APPLE__
+  PASS_CFEQ (str_utf16, CFSTR("utf-16"), "Correctly converts to IANA Char Set.");
+#else
   PASS_CFEQ (str_utf16, CFSTR("UTF-16"), "Correctly converts to IANA Char Set.");
+#endif
   
   CFRelease(str_utf16);
   
@@ -69,7 +73,12 @@ int main (void)
                     kCFStringEncodingUTF16, 0, false, buf1, 256, &used1);
   CFStringGetBytes (str_utf16, CFRangeMake (0, CFStringGetLength(str_utf16)),
                     kCFStringEncodingUTF16, 0, true, buf2, 256, &used2);
+#ifdef __APPLE__
+  PASS_CF (used1 + (CFIndex) sizeof(UniChar) == used2,
+           "UTF-16 conversion used the expected amount of buffer.");
+#else
   PASS_CF (used1 == used2, "UTF-16 convesion used the same from buffer.");
+#endif
   PASS_CF (memcmp (buf1, utf16_string, used1) == 0,
            "UTF-16 conversion successful.");
   PASS_CF (memcmp (buf2, utf16_ext_string, used2) == 0,
