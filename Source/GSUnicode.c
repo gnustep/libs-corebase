@@ -46,154 +46,16 @@
 
 #define BUFFER_SIZE 512
 
-static CFIndex
-GSUnicodeFromNonLossyASCII (const char *s, CFIndex slen, UniChar lossChar,
-                            UniChar * d, CFIndex dlen, CFIndex * usedLen)
+static int
+GSNonLossyHexValue (UInt8 c)
 {
-  const char *sstart;
-  const char *slimit;
-  UniChar *dstart;
-  UniChar *dlimit;
-
-  sstart = s;
-  slimit = sstart + slen;
-  if (d == NULL)
-    dlen = 0;
-  dstart = d;
-  dlimit = dstart + dlen;
-  while (s < slimit && (dlen == 0 || d < dlimit))
-    {
-      UniChar c;
-
-      c = *s;
-      if (c < 0x80 && c != '\\')
-        {
-          if (dlen != 0)
-            *d = *s;
-          d++;
-          s++;
-        }
-      else if (c == '\\')
-        {
-          CFIndex convCount;
-
-          c = s[1];
-          if (c == '\\')
-            {
-              convCount = 2;
-            }
-          else if (CHAR_IS_OCTAL (c) && CHAR_IS_OCTAL (s[2])
-                   && CHAR_IS_OCTAL (s[3]))
-            {
-              c = (s[1] - '0') << 6;
-              c |= (s[2] - '0') << 3;
-              c |= s[3] - '0';
-              convCount = 4;
-            }
-          else if (c == 'u' && CHAR_IS_HEX (s[2]) && CHAR_IS_HEX (s[3])
-                   && CHAR_IS_HEX (s[4]) && CHAR_IS_HEX (s[5]))
-            {
-              /* The first part of this equation gives us a value between
-                 0 and 9, the second part adds 9 to that if the char is
-                 alphabetic.
-               */
-              c = ((s[5] & 0xF) + (s[5] >> 6) * 9) & 0x000F;
-              c |= ((s[4] & 0xF) + (s[4] >> 6) * 9) << 4;
-              c |= ((s[3] & 0xF) + (s[3] >> 6) * 9) << 8;
-              c |= ((s[2] & 0xF) + (s[2] >> 6) * 9) << 12;
-              convCount = 6;
-            }
-          else
-            {
-              break;
-            }
-          if (dlen != 0)
-            *d = c;
-          d++;
-          s += convCount;
-        }
-      else
-        {
-          break;
-        }
-    }
-
-  if (usedLen)
-    *usedLen = d - dstart;
-
-  return s - sstart;
-}
-
-static const char *base16 = "0123456789ABCDEF";
-
-static CFIndex
-GSUnicodeToNonLossyASCII (const UniChar * s, CFIndex slen, UniChar lossChar,
-                          char *d, CFIndex dlen, CFIndex * usedLen)
-{
-  const UniChar *sstart;
-  const UniChar *slimit;
-  char *dstart;
-  char *dlimit;
-
-  sstart = s;
-  slimit = sstart + slen;
-  if (d == NULL)
-    dlen = 0;
-  dstart = d;
-  dlimit = dstart + dlen;
-  while (s < slimit && (dlen == 0 || d < dlimit))
-    {
-      UniChar c;
-
-      c = *s;
-      if (c < 0x80 && c != '\\')
-        {
-          if (dlen != 0)
-            *d = c;
-          d++;
-          s++;
-        }
-      else
-        {
-          char conv[6];
-          CFIndex convCount;
-
-          conv[0] = '\\';
-          if (c == '\\')
-            {
-              conv[1] = '\\';
-              convCount = 2;
-            }
-          else if (c <= 0x00FF)
-            {
-              conv[3] = (c & 0x7) + '0';
-              conv[2] = ((c >> 3) & 0x7) + '0';
-              conv[1] = ((c >> 6) & 0x7) + '0';
-              convCount = 4;
-            }
-          else
-            {
-              conv[5] = base16[(c & 0xF)];
-              conv[4] = base16[((c >> 4) & 0xF)];
-              conv[3] = base16[((c >> 8) & 0xF)];
-              conv[2] = base16[((c >> 12) & 0xF)];
-              conv[1] = 'u';
-              convCount = 6;
-            }
-          if (dlen != 0 && convCount < dlimit - d)
-            {
-              CFIndex i;
-              for (i = 0; i < convCount; ++i)
-                d[i] = conv[i];
-            }
-          d += convCount;
-        }
-    }
-
-  if (usedLen)
-    *usedLen = d - dstart;
-
-  return s - sstart;
+  if (c >= '0' && c <= '9')
+    return c - '0';
+  if (c >= 'a' && c <= 'f')
+    return c - 'a' + 10;
+  if (c >= 'A' && c <= 'F')
+    return c - 'A' + 10;
+  return -1;
 }
 
 CFIndex
@@ -391,7 +253,52 @@ GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
     }
   else if (enc == kCFStringEncodingNonLossyASCII)
     {
-      /* FIXME */
+      const UInt8 *sWorking;
+
+      sWorking = *s;
+
+      while (sWorking < sLimit)
+        {
+          UniChar c = *sWorking;
+          CFIndex adv = 1;
+
+          if (c == '\\' && (sWorking + 1) < sLimit)
+            {
+              UInt8 n = sWorking[1];
+
+              if (n == '\\')
+                {
+                  adv = 2;
+                }
+              else if (n == 'u' && (sWorking + 6) <= sLimit)
+                {
+                  int h0 = GSNonLossyHexValue (sWorking[2]);
+                  int h1 = GSNonLossyHexValue (sWorking[3]);
+                  int h2 = GSNonLossyHexValue (sWorking[4]);
+                  int h3 = GSNonLossyHexValue (sWorking[5]);
+
+                  if ((h0 | h1 | h2 | h3) >= 0)
+                    {
+                      c = (UniChar) ((h0 << 12) | (h1 << 8) | (h2 << 4) | h3);
+                      adv = 6;
+                    }
+                }
+              else if (n >= '0' && n <= '7' && (sWorking + 4) <= sLimit
+                       && sWorking[2] >= '0' && sWorking[2] <= '7'
+                       && sWorking[3] >= '0' && sWorking[3] <= '7')
+                {
+                  c = (UniChar) (((n - '0') << 6) | ((sWorking[2] - '0') << 3)
+                                 | (sWorking[3] - '0'));
+                  adv = 4;
+                }
+            }
+
+          sWorking += adv;
+          if (dWorking < dLimit)
+            *dWorking = c;
+          ++dWorking;
+        }
+      *s = (const UInt8 *) sWorking;
     }
   else
     {
@@ -575,6 +482,61 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
     }
   else if (enc == kCFStringEncodingNonLossyASCII)
     {
+      static const char hex[] = "0123456789abcdef";
+      const UniChar *sWorking;
+
+      sWorking = *s;
+
+      while (sWorking < sLimit)
+        {
+          UniChar c = *sWorking;
+          UInt8 esc[6];
+          CFIndex escLen;
+
+          if (c == '\\')
+            {
+              esc[0] = '\\';
+              esc[1] = '\\';
+              escLen = 2;
+            }
+          else if (c < 0x80)
+            {
+              esc[0] = (UInt8) c;
+              escLen = 1;
+            }
+          else if (c <= 0xFF)
+            {
+              esc[0] = '\\';
+              esc[1] = (UInt8) ('0' + ((c >> 6) & 0x7));
+              esc[2] = (UInt8) ('0' + ((c >> 3) & 0x7));
+              esc[3] = (UInt8) ('0' + (c & 0x7));
+              escLen = 4;
+            }
+          else
+            {
+              esc[0] = '\\';
+              esc[1] = 'u';
+              esc[2] = (UInt8) hex[(c >> 12) & 0xF];
+              esc[3] = (UInt8) hex[(c >> 8) & 0xF];
+              esc[4] = (UInt8) hex[(c >> 4) & 0xF];
+              esc[5] = (UInt8) hex[c & 0xF];
+              escLen = 6;
+            }
+
+          if (dLimit != NULL && dStop + escLen > dLimit)
+            break;
+
+          if (dLimit != NULL)
+            {
+              CFIndex i;
+
+              for (i = 0; i < escLen; i++)
+                dStop[i] = esc[i];
+            }
+          dStop += escLen;
+          ++sWorking;
+        }
+      *s = sWorking;
     }
   else
     {
