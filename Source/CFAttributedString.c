@@ -308,12 +308,12 @@ CFAttributedStringCreateInlined (CFAllocatorRef alloc, CFStringRef str,
       CFIndex idx;
       
       new->_string = CFStringCreateCopy (alloc, str);
-      new->_attribCount = 1;
+      new->_attribCount = count;
       new->_attribs = (Attr*)&new[1];
-      
+
       for (idx = 0 ; idx < count ; ++idx)
         {
-          new->_attribs[idx].index = idx;
+          new->_attribs[idx].index = attribs[idx].index;
           new->_attribs[idx].attrib =
             CFAttributedStringCacheAttribute (attribs[idx].attrib);
         }
@@ -355,32 +355,48 @@ CFAttributedStringCreateWithSubstring (CFAllocatorRef alloc,
 {
   CFAttributedStringRef new;
   CFMutableAttributedStringRef tmp;
+  CFStringRef substr;
   CFRange r;
   CFIndex cur;
-  
+
   tmp = CFAttributedStringCreateMutable (alloc, range.length);
-  
-  /* We do not need to protect this with beging and end editing because
+
+  /* We do not need to protect this with begin and end editing because
    * we will be adding attributes in the order they appear.  Using
-   * the being/end editing functions would actually slow things down.
+   * the begin/end editing functions would actually slow things down.
    */
-  CFAttributedStringReplaceString (tmp, range,
-                                   CFAttributedStringGetString (str));
-  
+  substr = CFStringCreateWithSubstring (alloc,
+                                        CFAttributedStringGetString (str),
+                                        range);
+  CFAttributedStringReplaceString (tmp, CFRangeMake (0, 0), substr);
+  CFRelease (substr);
+
   cur = range.location;
   do
     {
       CFDictionaryRef attribs;
-      
+      CFIndex start;
+      CFIndex end;
+
       attribs = CFAttributedStringGetAttributes (str, cur, &r);
-      CFAttributedStringSetAttributes (tmp, r, attribs, true);
-      
+
+      /* The effective range is in the source's coordinates and may reach
+       * past the requested range at either end.  Clip it to range and shift
+       * it into the substring's coordinates.
+       */
+      start = r.location < range.location ? range.location : r.location;
+      end = r.location + r.length;
+      if (end > range.location + range.length)
+        end = range.location + range.length;
+      CFAttributedStringSetAttributes (tmp,
+        CFRangeMake (start - range.location, end - start), attribs, true);
+
       cur = r.location + r.length;
-    } while (cur < range.length);
-  
+    } while (cur < range.location + range.length);
+
   new = CFAttributedStringCreateCopy (alloc, tmp);
   CFRelease (tmp);
-  
+
   return new;
 }
 
@@ -563,8 +579,7 @@ ReplaceAttributesAtIndex (CFMutableAttributedStringRef str, CFIndex idx,
                           CFDictionaryRef repl)
 {
   CFAttributedStringUncacheAttribute (str->_attribs[idx].attrib);
-  str->_attribs[idx].attrib =
-    CFAttributedStringCacheAttribute (str->_attribs[idx].attrib);
+  str->_attribs[idx].attrib = CFAttributedStringCacheAttribute (repl);
 }
 
 static void
@@ -764,12 +779,39 @@ void
 CFAttributedStringRemoveAttribute (CFMutableAttributedStringRef str,
                                    CFRange range, CFStringRef attrName)
 {
+  CFIndex cur;
+  CFIndex end;
+
   CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, void, str,
                          "removeAttribute:range:", attrName, range);
-  
+
   if (!CFAttributedStringIsMutable(str))
     return;
-  /* FIXME */
+
+  cur = range.location;
+  end = range.location + range.length;
+  while (cur < end)
+    {
+      CFRange r;
+      CFDictionaryRef attribs;
+      CFIndex stop;
+
+      attribs = CFAttributedStringGetAttributes (str, cur, &r);
+      stop = r.location + r.length;
+      if (stop > end)
+        stop = end;
+      if (attribs != NULL && CFDictionaryContainsKey (attribs, attrName))
+        {
+          CFMutableDictionaryRef reduced;
+
+          reduced = CFDictionaryCreateMutableCopy (NULL, 0, attribs);
+          CFDictionaryRemoveValue (reduced, attrName);
+          CFAttributedStringSetAttributes (str,
+            CFRangeMake (cur, stop - cur), reduced, true);
+          CFRelease (reduced);
+        }
+      cur = r.location + r.length;
+    }
 }
 
 void
@@ -808,12 +850,34 @@ CFAttributedStringReplaceAttributedString (CFMutableAttributedStringRef str,
                                            CFRange range,
                                            CFAttributedStringRef repl)
 {
+  CFIndex replLen;
+  CFIndex cur;
+
   CF_OBJC_FUNCDISPATCHV (_kCFAttributedStringTypeID, void, str,
                          "replaceCharactersInRange:withAttributeString:",
                          range, repl);
-  
+
   if (!CFAttributedStringIsMutable(str))
     return;
+
+  CFAttributedStringReplaceString (str, range,
+                                   CFAttributedStringGetString (repl));
+
+  /* The characters are in place; now copy the replacement's own attributes
+   * over the region they were inserted into.
+   */
+  replLen = CFAttributedStringGetLength (repl);
+  cur = 0;
+  while (cur < replLen)
+    {
+      CFRange r;
+      CFDictionaryRef attribs;
+
+      attribs = CFAttributedStringGetAttributes (repl, cur, &r);
+      CFAttributedStringSetAttributes (str,
+        CFRangeMake (range.location + r.location, r.length), attribs, true);
+      cur = r.location + r.length;
+    }
 }
 
 void
