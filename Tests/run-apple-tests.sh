@@ -77,6 +77,14 @@ print_failure_summary() {
   printf "\nFull log: %s\n" "$LOG_FILE"
 }
 
+print_full_log_group() {
+  [ -f "$LOG_FILE" ] || return 0
+
+  printf "\n::group::Full Apple test log\n"
+  cat "$LOG_FILE"
+  printf "::endgroup::\n"
+}
+
 run_test_file() {
   dir=$1
   testfile=$2
@@ -229,6 +237,7 @@ EOF
 
   if [ "$FAILED_TESTS" -ne 0 ] || [ "$FAILED_FILES" -ne 0 ]; then
     print_failure_summary
+    print_full_log_group
     exit 1
   fi
 }

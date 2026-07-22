@@ -58,6 +58,14 @@ print_failure_summary() {
   printf "\nFull log: %s\n" "$LOG_FILE"
 }
 
+print_full_log_group() {
+  [ -f "$LOG_FILE" ] || return 0
+
+  printf "\n::group::Full Linux test log\n"
+  cat "$LOG_FILE"
+  printf "::endgroup::\n"
+}
+
 main() {
   source_gnustep
 
@@ -67,6 +75,7 @@ main() {
   cd "$SCRIPT_DIR" || exit 2
   if ! make check; then
     print_failure_summary
+    print_full_log_group
     exit 1
   fi
 }
