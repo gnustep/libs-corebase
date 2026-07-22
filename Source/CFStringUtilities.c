@@ -232,8 +232,8 @@ CFStringCompareWithOptionsAndLocale (CFStringRef str1,
   CFStringGetCharacters (str2, CFRangeMake(0, length2), string2);
   
   ucol = CFStringICUCollatorOpen (compareOptions, locale);
-  ret = (CFComparisonResult)ucol_strcoll (ucol, string2, length2, string1,
-                                          length1);
+  ret = (CFComparisonResult)ucol_strcoll (ucol, string1, length1, string2,
+                                          length2);
   CFStringICUCollatorClose (ucol);
   
   CFAllocatorDeallocate (alloc, string1);
