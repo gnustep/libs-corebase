@@ -6,7 +6,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 GNUSTEP_OBJ_DIR=./obj
 
-TEST_TOOL_NAME =  cache_retain
+TEST_TOOL_NAME =  basic bridge general
 
 ADDITIONAL_CPPFLAGS += -I$(GNUSTEP_MAKEFILES)/TestFramework
 
@@ -17,8 +17,13 @@ ADDITIONAL_LDFLAGS += -ftest-coverage -fprofile-arcs
 ADDITIONAL_TOOL_LIBS+=-lgcov
 endif
 
+ADDITIONAL_OBJCFLAGS += -Wno-deprecated
+ADDITIONAL_OBJCCFLAGS += -Wno-deprecated
 
-cache_retain_OBJC_FILES=cache_retain.m
+
+basic_OBJC_FILES=basic.m
+bridge_OBJC_FILES=bridge.m
+general_OBJC_FILES=general.m
 
 -include GNUmakefile.preamble
 -include make-check.mak
