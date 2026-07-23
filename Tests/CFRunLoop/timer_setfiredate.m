@@ -15,5 +15,6 @@ int main (void)
   PASS_CF (CFRunLoopTimerGetNextFireDate (t) == 250.0,
     "Setting the fire date of a timer not in a run loop updates it.");
 
+  CFRelease (t);
   return 0;
 }
