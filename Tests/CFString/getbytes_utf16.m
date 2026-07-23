@@ -52,5 +52,8 @@ int main (void)
   PASS_CF (n == 2 && used == 4 && memcmp (buf, beS, 4) == 0,
     "GetBytes UTF-16BE of a surrogate pair is D8 3D DE 00.");
 
+  CFRelease (eacute);
+  CFRelease (pair);
+  CFRelease (emoji);
   return 0;
 }
