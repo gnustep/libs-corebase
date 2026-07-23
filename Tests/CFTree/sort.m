@@ -56,5 +56,9 @@ int main (void)
   PASS_CF(kids[0] == c1 && kids[1] == c2 && kids[2] == c3,
     "CFTreeSortChildren orders the children by the comparator.");
 
+  CFRelease (c3);
+  CFRelease (c1);
+  CFRelease (c2);
+  CFRelease (root);
   return 0;
 }
