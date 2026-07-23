@@ -12,10 +12,17 @@ encodes_to (const UniChar *c, CFIndex n, const char *expect)
   CFDataRef d = CFStringCreateExternalRepresentation (NULL, s,
     kCFStringEncodingNonLossyASCII, 0);
   CFIndex len = (CFIndex) strlen (expect);
+  int result;
 
   if (d == NULL || CFDataGetLength (d) != len)
-    return 0;
-  return memcmp (CFDataGetBytePtr (d), expect, len) == 0;
+    result = 0;
+  else
+    result = memcmp (CFDataGetBytePtr (d), expect, len) == 0;
+
+  if (d != NULL)
+    CFRelease (d);
+  CFRelease (s);
+  return result;
 }
 
 static CFStringRef
@@ -34,6 +41,7 @@ int main (void)
   CFStringRef euroStr = CFStringCreateWithCharacters (NULL, &euro, 1);
   CFStringRef bsStr = CFStringCreateWithCharacters (NULL, &bs, 1);
   CFStringRef mixedStr = CFStringCreateWithCharacters (NULL, mixed, 3);
+  CFStringRef d;
 
   PASS_CF (encodes_to (&eacute, 1, "\\351"),
     "U+00E9 encodes to \\351.");
@@ -48,13 +56,25 @@ int main (void)
   PASS_CF (encodes_to (mixed, 3, "A\\351B"),
     "A mixed string escapes only the non-ASCII character.");
 
-  PASS_CFEQ (decode ("\\351"), eacuteStr, "\\351 decodes to U+00E9.");
-  PASS_CFEQ (decode ("\\u20ac"), euroStr, "\\u20ac decodes to U+20AC.");
-  PASS_CFEQ (decode ("\\u20AC"), euroStr,
-    "Uppercase hex \\u20AC decodes to U+20AC.");
-  PASS_CFEQ (decode ("\\\\"), bsStr, "\\\\ decodes to a backslash.");
-  PASS_CFEQ (decode ("A\\351B"), mixedStr,
-    "A mixed escaped string decodes correctly.");
+  d = decode ("\\351");
+  PASS_CFEQ (d, eacuteStr, "\\351 decodes to U+00E9.");
+  CFRelease (d);
+  d = decode ("\\u20ac");
+  PASS_CFEQ (d, euroStr, "\\u20ac decodes to U+20AC.");
+  CFRelease (d);
+  d = decode ("\\u20AC");
+  PASS_CFEQ (d, euroStr, "Uppercase hex \\u20AC decodes to U+20AC.");
+  CFRelease (d);
+  d = decode ("\\\\");
+  PASS_CFEQ (d, bsStr, "\\\\ decodes to a backslash.");
+  CFRelease (d);
+  d = decode ("A\\351B");
+  PASS_CFEQ (d, mixedStr, "A mixed escaped string decodes correctly.");
+  CFRelease (d);
 
+  CFRelease (eacuteStr);
+  CFRelease (euroStr);
+  CFRelease (bsStr);
+  CFRelease (mixedStr);
   return 0;
 }
