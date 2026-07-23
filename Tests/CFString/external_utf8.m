@@ -24,10 +24,13 @@ int main (void)
   UniChar chars[] = { 0x00E9, 0x0041 };            /* é A */
   CFStringRef s = CFStringCreateWithCharacters (NULL, chars, 2);
   UInt8 expect[] = { 0xC3, 0xA9, 0x41 };
+  CFDataRef d = CFStringCreateExternalRepresentation (NULL, s,
+    kCFStringEncodingUTF8, 0);
 
-  PASS_CF (databytes (
-    CFStringCreateExternalRepresentation (NULL, s, kCFStringEncodingUTF8, 0),
-    expect, 3), "External UTF-8 has no byte order mark.");
+  PASS_CF (databytes (d, expect, 3), "External UTF-8 has no byte order mark.");
 
+  if (d != NULL)
+    CFRelease (d);
+  CFRelease (s);
   return 0;
 }
