@@ -7,41 +7,64 @@
 static CFStringRef
 tzname_of (CFTimeInterval ti)
 {
-  return CFTimeZoneGetName (
-    CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, ti));
+  CFTimeZoneRef tz = CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, ti);
+  CFStringRef name = (CFStringRef) CFRetain (CFTimeZoneGetName (tz));
+  CFRelease (tz);
+  return name;
 }
 
 static CFStringRef
 tzabbr_of (CFTimeInterval ti)
 {
-  return CFTimeZoneCopyAbbreviation (
-    CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, ti), 0.0);
+  CFTimeZoneRef tz = CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, ti);
+  CFStringRef abbr = CFTimeZoneCopyAbbreviation (tz, 0.0);
+  CFRelease (tz);
+  return abbr;
 }
 
 int main (void)
 {
-  PASS_CFEQ (tzname_of (0.0), CFSTR ("GMT"), "A zero offset is named GMT.");
-  PASS_CFEQ (tzname_of (5 * 3600), CFSTR ("GMT+0500"),
-    "A five-hour offset is named GMT+0500.");
-  PASS_CFEQ (tzname_of (-5 * 3600), CFSTR ("GMT-0500"),
-    "A negative five-hour offset is named GMT-0500.");
-  PASS_CFEQ (tzname_of (5 * 3600 + 30 * 60), CFSTR ("GMT+0530"),
-    "A five-and-a-half-hour offset is named GMT+0530.");
-  PASS_CFEQ (tzname_of (30 * 60), CFSTR ("GMT+0030"),
-    "A thirty-minute offset is named GMT+0030.");
+  CFStringRef s;
 
-  PASS_CFEQ (tzabbr_of (0.0), CFSTR ("GMT"),
-    "A zero offset abbreviates to GMT.");
-  PASS_CFEQ (tzabbr_of (5 * 3600), CFSTR ("GMT+5"),
-    "A five-hour offset abbreviates to GMT+5.");
-  PASS_CFEQ (tzabbr_of (-5 * 3600), CFSTR ("GMT-5"),
+  s = tzname_of (0.0);
+  PASS_CFEQ (s, CFSTR ("GMT"), "A zero offset is named GMT.");
+  CFRelease (s);
+  s = tzname_of (5 * 3600);
+  PASS_CFEQ (s, CFSTR ("GMT+0500"), "A five-hour offset is named GMT+0500.");
+  CFRelease (s);
+  s = tzname_of (-5 * 3600);
+  PASS_CFEQ (s, CFSTR ("GMT-0500"),
+    "A negative five-hour offset is named GMT-0500.");
+  CFRelease (s);
+  s = tzname_of (5 * 3600 + 30 * 60);
+  PASS_CFEQ (s, CFSTR ("GMT+0530"),
+    "A five-and-a-half-hour offset is named GMT+0530.");
+  CFRelease (s);
+  s = tzname_of (30 * 60);
+  PASS_CFEQ (s, CFSTR ("GMT+0030"), "A thirty-minute offset is named GMT+0030.");
+  CFRelease (s);
+
+  s = tzabbr_of (0.0);
+  PASS_CFEQ (s, CFSTR ("GMT"), "A zero offset abbreviates to GMT.");
+  CFRelease (s);
+  s = tzabbr_of (5 * 3600);
+  PASS_CFEQ (s, CFSTR ("GMT+5"), "A five-hour offset abbreviates to GMT+5.");
+  CFRelease (s);
+  s = tzabbr_of (-5 * 3600);
+  PASS_CFEQ (s, CFSTR ("GMT-5"),
     "A negative five-hour offset abbreviates to GMT-5.");
-  PASS_CFEQ (tzabbr_of (5 * 3600 + 30 * 60), CFSTR ("GMT+5:30"),
+  CFRelease (s);
+  s = tzabbr_of (5 * 3600 + 30 * 60);
+  PASS_CFEQ (s, CFSTR ("GMT+5:30"),
     "A five-and-a-half-hour offset abbreviates to GMT+5:30.");
-  PASS_CFEQ (tzabbr_of (30 * 60), CFSTR ("GMT+0:30"),
+  CFRelease (s);
+  s = tzabbr_of (30 * 60);
+  PASS_CFEQ (s, CFSTR ("GMT+0:30"),
     "A thirty-minute offset abbreviates to GMT+0:30.");
-  PASS_CFEQ (tzabbr_of (10 * 3600), CFSTR ("GMT+10"),
-    "A ten-hour offset abbreviates to GMT+10.");
+  CFRelease (s);
+  s = tzabbr_of (10 * 3600);
+  PASS_CFEQ (s, CFSTR ("GMT+10"), "A ten-hour offset abbreviates to GMT+10.");
+  CFRelease (s);
 
   return 0;
 }
