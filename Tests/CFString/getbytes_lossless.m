@@ -33,5 +33,8 @@ int main (void)
   PASS_CF (n == 1 && used == 1 && buf[0] == 'A',
     "GetBytes converts the representable prefix and stops at the first loss.");
 
+  CFRelease (eacute);
+  CFRelease (wide);
+  CFRelease (mixed);
   return 0;
 }
