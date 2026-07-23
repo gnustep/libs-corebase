@@ -29,5 +29,6 @@ int main (void)
   CFRunLoopObserverGetContext (obs, &got);
   PASS_CF (got.info == &marker, "The context info pointer round-trips.");
 
+  CFRelease (obs);
   return 0;
 }

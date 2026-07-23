@@ -38,5 +38,7 @@ int main (void)
   PASS_CF (CFRunLoopTimerIsValid (t) == false,
     "An invalidated timer is no longer valid.");
 
+  CFRelease (t);
+  CFRelease (once);
   return 0;
 }

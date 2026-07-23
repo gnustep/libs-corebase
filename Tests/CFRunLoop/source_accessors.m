@@ -35,5 +35,6 @@ int main (void)
   PASS_CF (CFRunLoopSourceIsValid (src) == false,
     "An invalidated source is no longer valid.");
 
+  CFRelease (src);
   return 0;
 }
