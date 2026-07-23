@@ -54,5 +54,9 @@ int main (void)
   PASS_CF(kids[0] == a && kids[1] == b,
     "CFTreeGetChildren returns the children in order.");
 
+  CFRelease (a);
+  CFRelease (b);
+  CFRelease (gc);
+  CFRelease (root);
   return 0;
 }
