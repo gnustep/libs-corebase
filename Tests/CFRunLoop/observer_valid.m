@@ -17,5 +17,6 @@ int main (void)
   PASS_CF (CFRunLoopObserverIsValid (obs) == false,
     "An invalidated observer is no longer valid.");
 
+  CFRelease (obs);
   return 0;
 }
