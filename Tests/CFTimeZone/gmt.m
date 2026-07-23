@@ -14,20 +14,28 @@ int main (void)
   tz = CFTimeZoneCreateWithName (NULL, CFSTR ("GMT"), true);
   PASS_CF (tz != NULL && CFTimeZoneGetSecondsFromGMT (tz, 0.0) == 0,
     "GMT resolves to a zero offset.");
+  if (tz != NULL)
+    CFRelease (tz);
 
   tz = CFTimeZoneCreateWithName (NULL, CFSTR ("UTC"), true);
   PASS_CF (tz != NULL && CFTimeZoneGetSecondsFromGMT (tz, 0.0) == 0,
     "UTC resolves to a zero offset.");
+  if (tz != NULL)
+    CFRelease (tz);
 
   tz = CFTimeZoneCreateWithName (NULL, CFSTR ("GMT-05:00"), true);
   PASS_CF (tz != NULL && CFTimeZoneGetSecondsFromGMT (tz, 0.0) == -18000,
     "GMT-05:00 resolves to minus 18000 seconds.");
+  if (tz != NULL)
+    CFRelease (tz);
 
   cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
   CFCalendarSetTimeZone (cal, z0);
   tz = CFCalendarCopyTimeZone (cal);
   PASS_CF (tz != NULL && CFTimeZoneGetSecondsFromGMT (tz, 0.0) == 0,
     "A calendar's GMT time zone can be copied back.");
+  if (tz != NULL)
+    CFRelease (tz);
 
   CFRelease (cal);
   CFRelease (z0);
