@@ -43,5 +43,6 @@ int main (void)
   PASS_CF (n == 3 && used == 3 && memcmp (buf, "BCD", 3) == 0,
     "GetBytes honours the range.");
 
+  CFRelease (eacute);
   return 0;
 }

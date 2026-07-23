@@ -20,17 +20,24 @@ int main (void)
   UInt8 u16be[] = { 0x00, 0x41 };
   UInt8 u16le[] = { 0x41, 0x00 };
   UInt8 latin1[] = { 0xE9 };
+  CFStringRef s;
 
-  PASS_CFEQ (decode (ascii, 1, kCFStringEncodingASCII), CFSTR ("A"),
-    "ASCII 0x41 decodes to A.");
-  PASS_CFEQ (decode (utf8, 2, kCFStringEncodingUTF8), eacute,
-    "UTF-8 C3 A9 decodes to U+00E9.");
-  PASS_CFEQ (decode (u16be, 2, kCFStringEncodingUTF16BE), CFSTR ("A"),
-    "UTF-16BE 00 41 decodes to A.");
-  PASS_CFEQ (decode (u16le, 2, kCFStringEncodingUTF16LE), CFSTR ("A"),
-    "UTF-16LE 41 00 decodes to A.");
-  PASS_CFEQ (decode (latin1, 1, kCFStringEncodingISOLatin1), eacute,
-    "ISO Latin 1 0xE9 decodes to U+00E9.");
+  s = decode (ascii, 1, kCFStringEncodingASCII);
+  PASS_CFEQ (s, CFSTR ("A"), "ASCII 0x41 decodes to A.");
+  CFRelease (s);
+  s = decode (utf8, 2, kCFStringEncodingUTF8);
+  PASS_CFEQ (s, eacute, "UTF-8 C3 A9 decodes to U+00E9.");
+  CFRelease (s);
+  s = decode (u16be, 2, kCFStringEncodingUTF16BE);
+  PASS_CFEQ (s, CFSTR ("A"), "UTF-16BE 00 41 decodes to A.");
+  CFRelease (s);
+  s = decode (u16le, 2, kCFStringEncodingUTF16LE);
+  PASS_CFEQ (s, CFSTR ("A"), "UTF-16LE 41 00 decodes to A.");
+  CFRelease (s);
+  s = decode (latin1, 1, kCFStringEncodingISOLatin1);
+  PASS_CFEQ (s, eacute, "ISO Latin 1 0xE9 decodes to U+00E9.");
+  CFRelease (s);
 
+  CFRelease (eacute);
   return 0;
 }
