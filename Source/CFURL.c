@@ -1192,7 +1192,42 @@ CFURLCopyHostName (CFURLRef url)
 CFStringRef
 CFURLCopyLastPathComponent (CFURLRef url)
 {
-  return NULL; /* FIXME */
+  CFStringRef path;
+  CFStringRef ret;
+  CFIndex len;
+  CFIndex end;
+  CFIndex start;
+  CFIndex idx;
+
+  path = CFURLCopyPath (url);
+  if (path == NULL)
+    return NULL;
+
+  len = CFStringGetLength (path);
+  if (len == 0)
+    return path;
+
+  end = len;
+  if (CFStringGetCharacterAtIndex (path, end - 1) == '/')
+    end--;
+
+  start = 0;
+  for (idx = end - 1; idx >= 0; idx--)
+    if (CFStringGetCharacterAtIndex (path, idx) == '/')
+      {
+        start = idx + 1;
+        break;
+      }
+
+  if (end == 0)
+    ret = CFStringCreateWithSubstring (CFGetAllocator (url), path,
+      CFRangeMake (0, 1));
+  else
+    ret = CFStringCreateWithSubstring (CFGetAllocator (url), path,
+      CFRangeMake (start, end - start));
+
+  CFRelease (path);
+  return ret;
 }
 
 CFStringRef
@@ -1251,7 +1286,26 @@ CFURLCopyPath (CFURLRef url)
 CFStringRef
 CFURLCopyPathExtension (CFURLRef url)
 {
-  return NULL; /* FIXME */
+  CFStringRef last;
+  CFStringRef ret = NULL;
+  CFIndex len;
+  CFIndex idx;
+
+  last = CFURLCopyLastPathComponent (url);
+  if (last == NULL)
+    return NULL;
+
+  len = CFStringGetLength (last);
+  for (idx = len - 1; idx > 0; idx--)
+    if (CFStringGetCharacterAtIndex (last, idx) == '.')
+      {
+        ret = CFStringCreateWithSubstring (CFGetAllocator (url), last,
+          CFRangeMake (idx + 1, len - idx - 1));
+        break;
+      }
+
+  CFRelease (last);
+  return ret;
 }
 
 CFStringRef
