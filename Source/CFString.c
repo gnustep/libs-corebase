@@ -751,7 +751,7 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
 {
   UInt8 *bufferStart;
   const UniChar *sUnicode;
-  CFIndex converted;
+  CFIndex converted = 0;
 
   if (CF_IS_OBJC (_kCFStringTypeID, str))
     {
@@ -794,32 +794,40 @@ CFStringGetBytes (CFStringRef str, CFRange range, CFStringEncoding enc,
                            sLimit, lossByte, isExtRep);
       converted = sUnicode - sUnicodeStart;
     }
-  else if (__CFStringEncodingIsSupersetOfASCII (enc))
+  else
     {
       const char *sCString;
 
       sCString = CFStringGetCStringPtr (str, kCFStringEncodingASCII);
       if (sCString)
         {
-          sCString += range.location;
-          converted = range.length > maxBufLen ? maxBufLen : range.length;
-          GSMemoryCopy (buffer, sCString, converted);
-          buffer += converted;
+          UniChar stackBuffer[64];
+          UniChar *wide;
+          const UniChar *sWide;
+          const UniChar *sWideStart;
+          CFIndex i;
+
+          wide = (range.length
+                  <= (CFIndex) (sizeof (stackBuffer) / sizeof (UniChar)))
+            ? stackBuffer
+            : (UniChar *) CFAllocatorAllocate (NULL,
+                range.length * sizeof (UniChar), 0);
+          for (i = 0; i < range.length; i++)
+            wide[i] = (UInt8) sCString[range.location + i];
+
+          sWideStart = wide;
+          sWide = wide;
+          GSUnicodeToEncoding (&buffer, buffer + maxBufLen, enc, &sWide,
+                               wide + range.length, lossByte, isExtRep);
+          converted = sWide - sWideStart;
+
+          if (wide != stackBuffer)
+            CFAllocatorDeallocate (NULL, wide);
         }
       else
         {
           converted = 0;
         }
-    }
-  else if (enc == kCFStringEncodingUnicode)
-    {
-      range.length =
-        range.length >
-        (maxBufLen / sizeof (UniChar)) ? maxBufLen /
-        sizeof (UniChar) : range.length;
-      CFStringGetCharacters (str, range, (UniChar *) buffer);
-      buffer += range.length * sizeof (UniChar);
-      converted = range.length;
     }
   if (usedBufLen)
     *usedBufLen = buffer - bufferStart;
