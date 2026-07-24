@@ -4,4 +4,5 @@ obj
 config.*
 CFBase.h
 Source/GNUmakefile
+Tests/*/GNUmakefile
 *.tmp

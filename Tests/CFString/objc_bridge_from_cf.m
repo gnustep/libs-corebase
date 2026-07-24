@@ -4,6 +4,7 @@
  */
 
 #import <Foundation/NSString.h>
+#include <string.h>
 #include "CoreFoundation/CFString.h"
 #include "../CFTesting.h"
 
@@ -112,4 +113,3 @@ void testGetBytes(void)
 	PASS_CF(usedLen == 9, "CFStringGetBytes returns correct usedLen");
 	testHopeful = false;
 }
-

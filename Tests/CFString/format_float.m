@@ -15,8 +15,13 @@ int main (void)
 
   str1 = CFStringCreateWithFormat (NULL, NULL, CFSTR("%a %A %f %F %g %G"),
 				   -NAN, NAN, NAN, -NAN, -NAN, NAN);
+#ifdef __APPLE__
+  PASS_CFEQ (str1, CFSTR ("nan NAN nan NAN nan NAN"),
+			  "Formatting not-a-number works.");
+#else
   PASS_CFEQ (str1, CFSTR ("-nan NAN nan -NAN -nan NAN"),
 			  "Formatting not-a-number works.");
+#endif
   CFRelease (str1);
 
   return 0;

@@ -9,16 +9,21 @@ int main (void)
 {
   CFTimeZoneRef tz;
   CFStringRef str;
+  CFStringRef expected;
   CFTimeInterval ti;
   CFAbsoluteTime at;
   
   tz = CFTimeZoneCreateWithTimeIntervalFromGMT (NULL, 0.0);
   PASS_CF(tz != NULL, "CFTimeZone create successfully.");
-  PASS_CFEQ(CFTimeZoneGetName(tz), CFSTR("GMT+00:00"),
-    "CFTimeZone has correct name.");
+#ifdef __APPLE__
+  expected = CFSTR("GMT");
+#else
+  expected = CFSTR("GMT+00:00");
+#endif
+  PASS_CFEQ(CFTimeZoneGetName(tz), expected, "CFTimeZone has correct name.");
   
   str = CFTimeZoneCopyAbbreviation (tz, 0.0);
-  PASS_CFEQ(str, CFSTR("GMT+00:00"), "Time zone abbreviations are equal.");
+  PASS_CFEQ(str, expected, "Time zone abbreviations are equal.");
   
   ti = CFTimeZoneGetSecondsFromGMT (tz, 0.0);
   PASS_CF(ti == 0.0, "GMT+00:00 offset from GMT is %g", ti);

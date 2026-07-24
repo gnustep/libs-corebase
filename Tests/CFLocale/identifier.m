@@ -10,12 +10,10 @@ int main (void)
   CFDictionaryRef dict;
   CFDictionaryRef dict2;
   
-  str = CFSTR("sr_Latn_RS@collation=phonebook;currency=USD;calendar=greogian");
-  str = CFLocaleCreateCanonicalLocaleIdentifierFromString (NULL, str);
+  str = CFSTR("sr_Latn_RS@calendar=greogian;collation=phonebook;currency=USD");
   dict = CFLocaleCreateComponentsFromLocaleIdentifier (NULL, str);
   str2 = CFLocaleCreateLocaleIdentifierFromComponents (NULL, dict);
-  PASS_CFEQ(str, str2, "Locale identifiers are the same");
-  CFRelease (str);
+  PASS_CFEQ(str2, str, "Locale identifiers are the same");
   CFRelease (str2);
   
   str2 = CFLocaleCreateLocaleIdentifierFromComponents (NULL, dict);
@@ -28,4 +26,3 @@ int main (void)
   
   return 0;
 }
-

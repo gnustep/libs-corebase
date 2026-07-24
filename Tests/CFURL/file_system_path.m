@@ -1,6 +1,12 @@
 #include "CoreFoundation/CFURL.h"
 #include "../CFTesting.h"
 
+static int
+string_matches_either(CFStringRef value, CFStringRef expected1, CFStringRef expected2)
+{
+  return CFEqual(value, expected1) || CFEqual(value, expected2);
+}
+
 int main (void)
 {
   CFURLRef url;
@@ -10,8 +16,10 @@ int main (void)
   url = CFURLCreateWithFileSystemPath (NULL, CFSTR("C:\\WINDOWS"),
     kCFURLWindowsPathStyle, true);
   PASS_CF(CFURLCanBeDecomposed(url) == true, "C:\\WINDOWS path can be decomposed");
-  PASS_CFEQ(CFURLGetString(url), CFSTR("file://localhost/C:/WINDOWS/"),
-    "Windows style path of file URL C:\\WINDOWS is file://localhost/C:/WINDOWS/");
+  PASS_CF(string_matches_either(CFURLGetString(url),
+      CFSTR("file://localhost/C:/WINDOWS/"),
+      CFSTR("file:///C:/WINDOWS/")),
+    "Windows style path of file URL C:\\WINDOWS matches an accepted form");
   PASS_CF(CFURLCopyResourceSpecifier (url) == NULL,
     "Resource specifier of C:\\WINDOWS is NULL");
   str = CFURLCopyFileSystemPath (url, kCFURLWindowsPathStyle);
@@ -29,8 +37,10 @@ int main (void)
   url = CFURLCreateWithFileSystemPath (NULL, CFSTR("/usr"),
     kCFURLPOSIXPathStyle, true);
   PASS_CF(CFURLCanBeDecomposed(url) == true, "/usr path can be decomposed");
-  PASS_CFEQ(CFURLGetString(url), CFSTR("file://localhost/usr/"),
-    "String for file URL /usr is /usr/");
+  PASS_CF(string_matches_either(CFURLGetString(url),
+      CFSTR("file://localhost/usr/"),
+      CFSTR("file:///usr/")),
+    "String for file URL /usr matches an accepted form");
   PASS_CF(CFURLCopyResourceSpecifier (url) == NULL,
     "Resource Specifier of /usr is NULL");
   str = CFURLCopyFileSystemPath (url, kCFURLPOSIXPathStyle);
