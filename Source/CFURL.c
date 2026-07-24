@@ -1750,7 +1750,16 @@ CFRange
 CFURLGetByteRangeForComponent (CFURLRef url, CFURLComponentType comp,
   CFRange *rangeIncludingSeparators)
 {
-  return CFRangeMake (kCFNotFound, 0); /* FIXME */
+  CFRange range;
+
+  if (comp < kCFURLComponentScheme || comp > kCFURLComponentFragment)
+    return CFRangeMake (kCFNotFound, 0);
+
+  range = url->_ranges[comp - 1];
+  if (rangeIncludingSeparators != NULL)
+    *rangeIncludingSeparators = range;
+
+  return range;
 }
 
 Boolean
