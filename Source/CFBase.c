@@ -230,7 +230,7 @@ static CFTypeID _kCFNullTypeID;
 static const CFRuntimeClass CFNullClass =
 {
   0,
-  "CFNUll",
+  "CFNull",
   NULL,
   NULL,
   NULL,
