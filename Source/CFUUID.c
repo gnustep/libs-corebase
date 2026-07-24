@@ -287,8 +287,8 @@ CFUUIDCreateString (CFAllocatorRef alloc, CFUUIDRef uuid)
   CFStringRef ret;
   CFUUIDBytes bytes = uuid->_bytes;
   
-  ret = CFStringCreateWithFormat (alloc, NULL, CFSTR("%2hhx%2hhx%2hhx%2hhx-"
-    "%2hhx%2hhx-%2hhx%2hhx-%2hhx%2hhx-%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx"),
+  ret = CFStringCreateWithFormat (alloc, NULL, CFSTR("%02hhX%02hhX%02hhX%02hhX-"
+    "%02hhX%02hhX-%02hhX%02hhX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX"),
       bytes.byte0, bytes.byte1, bytes.byte2, bytes.byte3,
       bytes.byte4, bytes.byte5, bytes.byte6, bytes.byte7,
       bytes.byte8, bytes.byte9, bytes.byte10, bytes.byte11,
