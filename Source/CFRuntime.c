@@ -478,6 +478,7 @@ GS_PRIVATE void CFNumberInitialize (void);
 GS_PRIVATE void CFNumberFormatterInitialize (void);
 GS_PRIVATE void CFRunLoopInitialize (void);
 GS_PRIVATE void CFSetInitialize (void);
+GS_PRIVATE void CFSocketInitialize (void);
 GS_PRIVATE void CFStreamInitialize (void);
 GS_PRIVATE void CFStringInitialize (void);
 GS_PRIVATE void CFConstantStringInitialize (void);
@@ -530,6 +531,7 @@ CFInitialize (void)
   CFNumberInitialize ();
   CFNumberFormatterInitialize ();
   CFSetInitialize ();
+  CFSocketInitialize ();
   CFStreamInitialize ();
   CFStringInitialize ();
   CFConstantStringInitialize (); /* must be after CFStringIntialize () */
