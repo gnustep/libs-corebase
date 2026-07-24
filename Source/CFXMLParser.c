@@ -381,13 +381,157 @@ CFStringRef
 CFXMLCreateStringByEscapingEntities(CFAllocatorRef allocator,
   CFStringRef string, CFDictionaryRef entitiesDictionary)
 {
-  return NULL;
+  CFMutableStringRef result;
+  CFIndex length;
+  CFIndex idx;
+
+  if (string == NULL)
+    return NULL;
+
+  length = CFStringGetLength (string);
+  result = CFStringCreateMutable (allocator, 0);
+  for (idx = 0 ; idx < length ; ++idx)
+    {
+      UniChar c = CFStringGetCharacterAtIndex (string, idx);
+      switch (c)
+        {
+          case '&':
+            CFStringAppendCString (result, "&amp;", kCFStringEncodingASCII);
+            break;
+          case '<':
+            CFStringAppendCString (result, "&lt;", kCFStringEncodingASCII);
+            break;
+          case '>':
+            CFStringAppendCString (result, "&gt;", kCFStringEncodingASCII);
+            break;
+          case '"':
+            CFStringAppendCString (result, "&quot;", kCFStringEncodingASCII);
+            break;
+          case '\'':
+            CFStringAppendCString (result, "&apos;", kCFStringEncodingASCII);
+            break;
+          default:
+            CFStringAppendCharacters (result, &c, 1);
+            break;
+        }
+    }
+
+  return result;
 }
 
 CFStringRef
 CFXMLCreateStringByUnescapingEntities(CFAllocatorRef allocator,
   CFStringRef string, CFDictionaryRef entitiesDictionary)
 {
-  return NULL;
+  CFMutableStringRef result;
+  CFIndex length;
+  CFIndex idx;
+
+  if (string == NULL)
+    return NULL;
+
+  length = CFStringGetLength (string);
+  result = CFStringCreateMutable (allocator, 0);
+  idx = 0;
+  while (idx < length)
+    {
+      UniChar c = CFStringGetCharacterAtIndex (string, idx);
+      Boolean handled = false;
+
+      if (c == '&')
+        {
+          CFIndex semi = idx + 1;
+
+          while (semi < length
+                 && CFStringGetCharacterAtIndex (string, semi) != ';')
+            semi += 1;
+
+          if (semi < length && semi > idx + 1)
+            {
+              if (CFStringGetCharacterAtIndex (string, idx + 1) == '#')
+                {
+                  /* Numeric character reference, decimal or hexadecimal. */
+                  CFIndex pos = idx + 2;
+                  long value = 0;
+                  int base = 10;
+
+                  if (pos < semi
+                      && (CFStringGetCharacterAtIndex (string, pos) == 'x'
+                        || CFStringGetCharacterAtIndex (string, pos) == 'X'))
+                    {
+                      base = 16;
+                      pos += 1;
+                    }
+                  for ( ; pos < semi ; ++pos)
+                    {
+                      UniChar d = CFStringGetCharacterAtIndex (string, pos);
+                      int v;
+
+                      if (d >= '0' && d <= '9')
+                        v = d - '0';
+                      else if (base == 16 && d >= 'a' && d <= 'f')
+                        v = d - 'a' + 10;
+                      else if (base == 16 && d >= 'A' && d <= 'F')
+                        v = d - 'A' + 10;
+                      else
+                        {
+                          value = -1;
+                          break;
+                        }
+                      value = value * base + v;
+                    }
+                  if (value >= 0 && value <= 0xFFFF)
+                    {
+                      UniChar u = (UniChar)value;
+                      CFStringAppendCharacters (result, &u, 1);
+                      handled = true;
+                    }
+                }
+              else
+                {
+                  CFStringRef name;
+                  const void *repl = NULL;
+
+                  name = CFStringCreateWithSubstring (NULL, string,
+                    CFRangeMake (idx + 1, semi - idx - 1));
+                  if (CFStringCompare (name, CFSTR ("amp"), 0)
+                        == kCFCompareEqualTo)
+                    repl = CFSTR ("&");
+                  else if (CFStringCompare (name, CFSTR ("lt"), 0)
+                        == kCFCompareEqualTo)
+                    repl = CFSTR ("<");
+                  else if (CFStringCompare (name, CFSTR ("gt"), 0)
+                        == kCFCompareEqualTo)
+                    repl = CFSTR (">");
+                  else if (CFStringCompare (name, CFSTR ("quot"), 0)
+                        == kCFCompareEqualTo)
+                    repl = CFSTR ("\"");
+                  else if (CFStringCompare (name, CFSTR ("apos"), 0)
+                        == kCFCompareEqualTo)
+                    repl = CFSTR ("'");
+                  else if (entitiesDictionary != NULL)
+                    repl = CFDictionaryGetValue (entitiesDictionary, name);
+
+                  if (repl != NULL)
+                    {
+                      CFStringAppend (result, repl);
+                      handled = true;
+                    }
+                  CFRelease (name);
+                }
+
+              if (handled)
+                idx = semi + 1;
+            }
+        }
+
+      if (!handled)
+        {
+          CFStringAppendCharacters (result, &c, 1);
+          idx += 1;
+        }
+    }
+
+  return result;
 }
 
