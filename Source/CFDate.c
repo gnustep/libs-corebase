@@ -235,38 +235,85 @@ CFFieldsToAbsoluteTime (SInt32 year, SInt32 month, SInt32 day)
   return days;
 }
 
+static SInt32
+_CFDaysInMonth (SInt32 month, SInt32 year)
+{
+  static const SInt32 dm[] =
+    { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+  if (month == 2 && isleap (year))
+    return 29;
+  return dm[month - 1];
+}
+
 CFGregorianUnits
 CFAbsoluteTimeGetDifferenceAsGregorianUnits (CFAbsoluteTime at1,
   CFAbsoluteTime at2, CFTimeZoneRef tz, CFOptionFlags unitFlags)
 {
-  /* FIXME: This is wrong but I'll fix it later... */
-  int year, month, day, hour, minute, second;
-  CFCalendarRef cal;
   CFGregorianUnits gunits = { 0 };
-  
-  cal = CFCalendarCreateWithIdentifier (NULL, kCFGregorianCalendar);
-  CFCalendarSetTimeZone (cal, tz);
-  
-  CFCalendarGetComponentDifference (cal, at1, at2, 0, "yMdHms",
-    &year, &month, &day, &hour, &minute, &second);
-  if (unitFlags & kCFGregorianUnitsYears)
-    gunits.years = year;
-  if (unitFlags & kCFGregorianUnitsMonths)
-    gunits.months = month;
-  if (unitFlags & kCFGregorianUnitsDays)
-    gunits.days = day;
-  if (unitFlags & kCFGregorianUnitsHours)
-    gunits.hours = hour;
-  if (unitFlags & kCFGregorianUnitsMinutes)
-    gunits.minutes = minute;
-  if (unitFlags & kCFGregorianUnitsSeconds)
+  CFAbsoluteTime hi, lo;
+  SInt32 hy, ly;
+  SInt8 hmo, hd, lmo, ld;
+  int hs, ls;
+  int year, month, day, hour, minute, second, sign;
+
+  if (tz != NULL)
     {
-      gunits.seconds = (double)second;
-      gunits.seconds += modf (at1 - at2, NULL);
+      at1 += CFTimeZoneGetSecondsFromGMT (tz, at1);
+      at2 += CFTimeZoneGetSecondsFromGMT (tz, at2);
     }
-  
-  CFRelease (cal);
-  
+
+  if (at1 >= at2)
+    { hi = at1; lo = at2; sign = 1; }
+  else
+    { hi = at2; lo = at1; sign = -1; }
+
+  /* Round to the nearest second; the seconds-within-the-day returned by
+     CFAbsoluteTimeToFields carries a small floating-point error. */
+  hs = (int) (CFAbsoluteTimeToFields (hi, &hy, &hmo, &hd, NULL, NULL, NULL)
+    + 0.5);
+  ls = (int) (CFAbsoluteTimeToFields (lo, &ly, &lmo, &ld, NULL, NULL, NULL)
+    + 0.5);
+
+  second = (hs % 60) - (ls % 60);
+  minute = (hs / 60 % 60) - (ls / 60 % 60);
+  hour = (hs / 3600) - (ls / 3600);
+  day = hd - ld;
+  month = hmo - lmo;
+  year = hy - ly;
+
+  if (second < 0)
+    { second += 60; --minute; }
+  if (minute < 0)
+    { minute += 60; --hour; }
+  if (hour < 0)
+    { hour += 24; --day; }
+  if (day < 0)
+    {
+      SInt32 bm = hmo - 1;
+      SInt32 by = hy;
+
+      if (bm < 1)
+        { bm = 12; by = hy - 1; }
+      --month;
+      day += _CFDaysInMonth (bm, by);
+    }
+  if (month < 0)
+    { month += 12; --year; }
+
+  if (unitFlags & kCFGregorianUnitsYears)
+    gunits.years = year * sign;
+  if (unitFlags & kCFGregorianUnitsMonths)
+    gunits.months = month * sign;
+  if (unitFlags & kCFGregorianUnitsDays)
+    gunits.days = day * sign;
+  if (unitFlags & kCFGregorianUnitsHours)
+    gunits.hours = hour * sign;
+  if (unitFlags & kCFGregorianUnitsMinutes)
+    gunits.minutes = minute * sign;
+  if (unitFlags & kCFGregorianUnitsSeconds)
+    gunits.seconds = (double) (second * sign);
+
   return gunits;
 }
 
