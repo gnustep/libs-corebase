@@ -322,8 +322,9 @@ CFURLStringParse (CFStringRef urlString, CFRange ranges[12])
           c = CFStringGetCharacterFromInlineBuffer (&iBuffer, --i);
           if (c == ':')
             {
-              ranges[kCFURLComponentPort - 1] = CFRangeMake (i, end - i);
-              end = i;
+              ranges[kCFURLComponentPort - 1] =
+                CFRangeMake (i + 1, end - i - 2);
+              end = i + 1;
               break;
             }
         }
