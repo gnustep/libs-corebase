@@ -226,6 +226,10 @@ struct CFPlistCopyContext
   CFTypeRef container;
 };
 
+static CFPropertyListRef
+CFPlistDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
+                 CFOptionFlags opts);
+
 static void
 CFArrayCopyFunction (const void *value, void *context)
 {
@@ -233,7 +237,7 @@ CFArrayCopyFunction (const void *value, void *context)
   struct CFPlistCopyContext *ctx = (struct CFPlistCopyContext *) context;
   CFMutableArrayRef array = (CFMutableArrayRef) ctx->container;
 
-  newValue = CFPropertyListCreateDeepCopy (ctx->alloc, value, ctx->opts);
+  newValue = CFPlistDeepCopy (ctx->alloc, value, ctx->opts);
   CFArrayAppendValue (array, newValue);
   CFRelease (newValue);
 }
@@ -245,19 +249,17 @@ CFDictionaryCopyFunction (const void *key, const void *value, void *context)
   struct CFPlistCopyContext *ctx = (struct CFPlistCopyContext *) context;
   CFMutableDictionaryRef dict = (CFMutableDictionaryRef) ctx->container;
 
-  newValue = CFPropertyListCreateDeepCopy (ctx->alloc, value, ctx->opts);
+  newValue = CFPlistDeepCopy (ctx->alloc, value, ctx->opts);
   CFDictionaryAddValue (dict, key, newValue);
   CFRelease (newValue);
 }
 
-CFPropertyListRef
-CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
-                              CFOptionFlags opts)
+static CFPropertyListRef
+CFPlistDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
+                 CFOptionFlags opts)
 {
   CFPropertyListRef copy;
   CFTypeID typeID;
-
-  CFPropertyListInitTypeIDs ();
 
   typeID = CFGetTypeID (plist);
   if (typeID == _kCFArrayTypeID)
@@ -276,7 +278,7 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
           range = CFRangeMake (0, cnt);
           CFArrayGetValues (plist, range, values);
           for (i = 0; i < cnt; ++i)
-            values[i] = CFPropertyListCreateDeepCopy (alloc, values[i], opts);
+            values[i] = CFPlistDeepCopy (alloc, values[i], opts);
           array = CFArrayCreate (alloc, values, cnt, &kCFTypeArrayCallBacks);
           for (i = 0; i < cnt; ++i)
             CFRelease (values[i]);
@@ -316,7 +318,7 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
           values = keys + cnt;
           CFDictionaryGetKeysAndValues (plist, keys, values);
           for (i = 0; i < cnt; ++i)
-            values[i] = CFPropertyListCreateDeepCopy (alloc, values[i], opts);
+            values[i] = CFPlistDeepCopy (alloc, values[i], opts);
           dict = CFDictionaryCreate (alloc, keys, values, cnt,
                                      &kCFCopyStringDictionaryKeyCallBacks,
                                      &kCFTypeDictionaryValueCallBacks);
@@ -383,6 +385,16 @@ CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
     }
 
   return copy;
+}
+
+CFPropertyListRef
+CFPropertyListCreateDeepCopy (CFAllocatorRef alloc, CFPropertyListRef plist,
+                              CFOptionFlags opts)
+{
+  if (!CFPropertyListIsValid (plist, kCFPropertyListBinaryFormat_v1_0))
+    return NULL;
+
+  return CFPlistDeepCopy (alloc, plist, opts);
 }
 
 #if 0
