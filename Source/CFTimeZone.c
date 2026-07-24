@@ -145,7 +145,8 @@ CFTimeZoneCreate (CFAllocatorRef alloc, CFStringRef name, CFDataRef data)
   if (_kCFTimeZoneCache == NULL)
     _kCFTimeZoneCache = CFDictionaryCreateMutable (
       kCFAllocatorSystemDefault, 0,
-      &kCFCopyStringDictionaryKeyCallBacks, NULL);
+      &kCFCopyStringDictionaryKeyCallBacks,
+      &kCFTypeDictionaryValueCallBacks);
   old = (CFTimeZoneRef)CFDictionaryGetValue (_kCFTimeZoneCache, name);
   GSMutexUnlock(&_kCFTimeZoneCacheLock);
   if (old != NULL)
