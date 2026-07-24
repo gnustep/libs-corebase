@@ -1,5 +1,6 @@
 #include "CoreFoundation/CFString.h"
 #include "../CFTesting.h"
+#include <string.h>
 
 int main (void)
 {
@@ -29,6 +30,20 @@ int main (void)
   CFRelease(str2);
   CFRelease(string);
   CFRelease(array);
-  
+
+  {
+    char b[8];
+    Boolean ok;
+
+    memset (b, 'X', sizeof b);
+    ok = CFStringGetCString (CFSTR("hello"), b, 5, kCFStringEncodingASCII);
+    PASS_CF(ok == false, "GetCString fails when there is no room for the NUL.");
+    PASS_CF(b[5] == 'X', "GetCString did not write past the requested size.");
+
+    ok = CFStringGetCString (CFSTR("hello"), b, 6, kCFStringEncodingASCII);
+    PASS_CF(ok && strcmp (b, "hello") == 0,
+      "GetCString succeeds when the buffer has room for the NUL.");
+  }
+
   return 0;
 }
