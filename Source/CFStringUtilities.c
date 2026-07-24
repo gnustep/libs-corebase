@@ -33,6 +33,8 @@
 
 #if defined(HAVE_UNICODE_UCOL_H)
 #include <unicode/ucol.h>
+#include <unicode/ustring.h>
+#include <unicode/uchar.h>
 #endif
 #if defined(HAVE_UNICODE_ULOC_H)
 #include <unicode/uloc.h>
@@ -62,8 +64,6 @@ CFStringICUCollatorOpen (CFStringCompareFlags options, CFLocaleRef loc)
   ret = ucol_open (cLocale, &err);
   if (options)
     {
-      if (options & kCFCompareCaseInsensitive)
-        ucol_setAttribute (ret, UCOL_CASE_LEVEL, UCOL_OFF, &err);
       if (options & kCFCompareNonliteral)
         ucol_setAttribute (ret, UCOL_ALTERNATE_HANDLING, UCOL_SHIFTED, &err);
       if (options & kCFCompareNumerically)
@@ -83,6 +83,28 @@ CF_INLINE void
 CFStringICUCollatorClose (UCollator *collator)
 {
   ucol_close (collator);
+}
+
+static UniChar *
+CFStringUCharFoldCase (CFAllocatorRef alloc, const UniChar *chars,
+  CFIndex length, CFIndex *foldedLength)
+{
+  UErrorCode err = U_ZERO_ERROR;
+  int32_t needed;
+  UniChar *folded;
+
+  needed = u_strFoldCase (NULL, 0, chars, length, U_FOLD_CASE_DEFAULT, &err);
+  folded = CFAllocatorAllocate (alloc,
+    (needed > 0 ? needed : 1) * sizeof(UniChar), 0);
+  err = U_ZERO_ERROR;
+  u_strFoldCase (folded, needed, chars, length, U_FOLD_CASE_DEFAULT, &err);
+  if (U_FAILURE (err))
+    {
+      CFAllocatorDeallocate (alloc, folded);
+      return NULL;
+    }
+  *foldedLength = needed;
+  return folded;
 }
 
 
@@ -141,7 +163,36 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
   
   text = CFAllocatorAllocate (alloc, textLength * sizeof(UniChar), 0);
   CFStringGetCharacters (stringToFind, CFRangeMake(0, textLength), text);
-  
+
+  if (searchOptions & kCFCompareCaseInsensitive)
+    {
+      UniChar *foldedPattern;
+      UniChar *foldedText;
+      CFIndex foldedPatternLength;
+      CFIndex foldedTextLength;
+
+      foldedPattern = CFStringUCharFoldCase (alloc, pattern, patternLength,
+        &foldedPatternLength);
+      foldedText = CFStringUCharFoldCase (alloc, text, textLength,
+        &foldedTextLength);
+      if (foldedPattern != NULL && foldedText != NULL)
+        {
+          CFAllocatorDeallocate (alloc, pattern);
+          CFAllocatorDeallocate (alloc, text);
+          pattern = foldedPattern;
+          patternLength = foldedPatternLength;
+          text = foldedText;
+          textLength = foldedTextLength;
+        }
+      else
+        {
+          if (foldedPattern != NULL)
+            CFAllocatorDeallocate (alloc, foldedPattern);
+          if (foldedText != NULL)
+            CFAllocatorDeallocate (alloc, foldedText);
+        }
+    }
+
   ucol = CFStringICUCollatorOpen (searchOptions, locale);
   usrch = usearch_openFromCollator (text, textLength, pattern, patternLength,
                                     ucol, NULL, &err);
@@ -232,8 +283,31 @@ CFStringCompareWithOptionsAndLocale (CFStringRef str1,
   CFStringGetCharacters (str2, CFRangeMake(0, length2), string2);
   
   ucol = CFStringICUCollatorOpen (compareOptions, locale);
-  ret = (CFComparisonResult)ucol_strcoll (ucol, string2, length2, string1,
-                                          length1);
+  if (compareOptions & kCFCompareCaseInsensitive)
+    {
+      UniChar *folded1;
+      UniChar *folded2;
+      CFIndex foldedLength1;
+      CFIndex foldedLength2;
+
+      folded1 = CFStringUCharFoldCase (alloc, string1, length1, &foldedLength1);
+      folded2 = CFStringUCharFoldCase (alloc, string2, length2, &foldedLength2);
+      if (folded1 != NULL && folded2 != NULL)
+        ret = (CFComparisonResult)ucol_strcoll (ucol, folded1, foldedLength1,
+                                                folded2, foldedLength2);
+      else
+        ret = (CFComparisonResult)ucol_strcoll (ucol, string1, length1,
+                                                string2, length2);
+      if (folded1 != NULL)
+        CFAllocatorDeallocate (alloc, folded1);
+      if (folded2 != NULL)
+        CFAllocatorDeallocate (alloc, folded2);
+    }
+  else
+    {
+      ret = (CFComparisonResult)ucol_strcoll (ucol, string2, length2, string1,
+                                              length1);
+    }
   CFStringICUCollatorClose (ucol);
   
   CFAllocatorDeallocate (alloc, string1);
