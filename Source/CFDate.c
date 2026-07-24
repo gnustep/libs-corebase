@@ -159,6 +159,17 @@ static const uint16_t _daysBeforeMonth[] =
   { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334,
     0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335 };
 
+/* Number of ISO 8601 weeks in the given year: 53 when the year begins on a
+   Thursday or a leap year begins on a Wednesday, otherwise 52. */
+static SInt32
+_CFISOWeeksInYear (SInt32 y)
+{
+  SInt32 a = ((y + y / 4 - y / 100 + y / 400) % 7 + 7) % 7;
+  SInt32 b = (((y - 1) + (y - 1) / 4 - (y - 1) / 100 + (y - 1) / 400) % 7 + 7)
+    % 7;
+  return (a == 4 || b == 3) ? 53 : 52;
+}
+
 /* This function does most of the work for the GregorianDate functions.
    month, day, weekOfYear, dayOfWeek and dayOfYear are optional. */
 static double
@@ -189,7 +200,19 @@ CFAbsoluteTimeToFields (CFAbsoluteTime at, SInt32 *year, SInt8 *month,
     }
   
   if (weekOfYear)
-    *weekOfYear = d / 7 % 52; /* FIXME: I don't think this is correct. */
+    {
+      /* ISO 8601: weeks start on Monday and week 1 is the one containing the
+         year's first Thursday, so days near a year boundary can belong to a
+         week of the adjacent year. */
+      SInt32 isoDoW = (((SInt32) days % 7) + 7) % 7 + 1;
+      SInt32 week = (d + 1 - isoDoW + 10) / 7;
+
+      if (week < 1)
+        week = _CFISOWeeksInYear (*year - 1);
+      else if (week > _CFISOWeeksInYear (*year))
+        week = 1;
+      *weekOfYear = week;
+    }
   if (dayOfWeek)
     {
       *dayOfWeek = (int)days % 7;
