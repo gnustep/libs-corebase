@@ -956,18 +956,32 @@ CFStringIsSurrogateLowCharacter (UniChar character)
   return (Boolean) U16_IS_TRAIL (character);
 }
 
+static CFRange
+CFStringSkipLeadingWhitespace (CFStringRef str)
+{
+  CFIndex length = CFStringGetLength (str);
+  CFIndex start = 0;
+
+  while (start < length
+         && GSCharacterIsWhitespace (CFStringGetCharacterAtIndex (str, start)))
+    start++;
+
+  return CFRangeMake (start, length - start);
+}
+
 double
 CFStringGetDoubleValue (CFStringRef str)
 {
   double d;
   Boolean success;
   CFNumberFormatterRef fmt;
+  CFRange range = CFStringSkipLeadingWhitespace (str);
 
   fmt = CFNumberFormatterCreate (NULL, NULL, kCFNumberFormatterDecimalStyle);
   if (fmt == NULL)
     return 0.0;
 
-  success = CFNumberFormatterGetValueFromString (fmt, str, NULL,
+  success = CFNumberFormatterGetValueFromString (fmt, str, &range,
                                                  kCFNumberDoubleType,
                                                  (void *) &d);
 
@@ -981,12 +995,13 @@ CFStringGetIntValue (CFStringRef str)
   SInt32 i;
   Boolean success;
   CFNumberFormatterRef fmt;
+  CFRange range = CFStringSkipLeadingWhitespace (str);
 
   fmt = CFNumberFormatterCreate (NULL, NULL, kCFNumberFormatterNoStyle);
   if (fmt == NULL)
     return 0;
 
-  success = CFNumberFormatterGetValueFromString (fmt, str, NULL,
+  success = CFNumberFormatterGetValueFromString (fmt, str, &range,
                                                  kCFNumberSInt32Type,
                                                  (void *) &i);
 
