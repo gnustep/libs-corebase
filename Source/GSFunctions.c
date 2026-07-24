@@ -47,7 +47,7 @@ GSBSearch (const void *array, const void *key, CFRange range, CFIndex size,
       r = comp (key, cur, ctxt);
       if (r == kCFCompareLessThan)
         {
-          max = mid - 1;
+          max = mid;
         }
       else if (r == kCFCompareGreaterThan)
         {

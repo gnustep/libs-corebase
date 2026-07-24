@@ -125,7 +125,14 @@ CFAttributedStringCacheAttribute (CFDictionaryRef attribs)
       cachedAttr = insert;
       CFRelease (insert);
     }
-  
+  else
+    {
+      /* Another run now references this cached attribute set; bump its bag
+       * count so it survives until every referencing run is uncached.
+       */
+      CFBagAddValue (_kCFAttributedStringCache, cachedAttr);
+    }
+
   GSMutexUnlock (&_kCFAttributedStringCacheLock);
   
   return cachedAttr;
@@ -284,8 +291,8 @@ CFAttributedStringGetTypeID (void)
   return _kCFAttributedStringTypeID;
 }
 
-#define CFATTRIBUTESTRING_SIZE sizeof(CFRuntimeClass) \
-  - sizeof(struct __CFAttributedString)
+#define CFATTRIBUTESTRING_SIZE (sizeof(struct __CFAttributedString) \
+  - sizeof(CFRuntimeBase))
 
 static CFAttributedStringRef
 CFAttributedStringCreateInlined (CFAllocatorRef alloc, CFStringRef str,
@@ -423,7 +430,48 @@ CFAttributedStringGetAttributeAndLongestEffectiveRange (
   CFAttributedStringRef str, CFIndex loc, CFStringRef attrName,
   CFRange inRange, CFRange *longestEffRange)
 {
-  return NULL; /* FIXME */
+  CFRange r;
+  CFTypeRef value;
+  CFIndex start;
+  CFIndex end;
+  CFIndex inEnd;
+
+  value = CFAttributedStringGetAttribute (str, loc, attrName, &r);
+  start = r.location;
+  end = r.location + r.length;
+  inEnd = inRange.location + inRange.length;
+
+  while (start > inRange.location)
+    {
+      CFRange pr;
+      CFTypeRef pv = CFAttributedStringGetAttribute (str, start - 1, attrName,
+                                                     &pr);
+      if ((pv == NULL) != (value == NULL)
+          || (pv != NULL && !CFEqual (pv, value)))
+        break;
+      start = pr.location;
+    }
+  while (end < inEnd)
+    {
+      CFRange nr;
+      CFTypeRef nv = CFAttributedStringGetAttribute (str, end, attrName, &nr);
+      if ((nv == NULL) != (value == NULL)
+          || (nv != NULL && !CFEqual (nv, value)))
+        break;
+      end = nr.location + nr.length;
+    }
+
+  if (start < inRange.location)
+    start = inRange.location;
+  if (end > inEnd)
+    end = inEnd;
+  if (longestEffRange)
+    {
+      longestEffRange->location = start;
+      longestEffRange->length = end - start;
+    }
+
+  return value;
 }
 
 CFDictionaryRef
@@ -431,7 +479,46 @@ CFAttributedStringGetAttributesAndLongestEffectiveRange (
   CFAttributedStringRef str, CFIndex loc, CFRange inRange,
   CFRange *longestEffRange)
 {
-  return NULL; /* FIXME */
+  CFRange r;
+  CFDictionaryRef attribs;
+  CFIndex start;
+  CFIndex end;
+  CFIndex inEnd;
+
+  attribs = CFAttributedStringGetAttributes (str, loc, &r);
+  start = r.location;
+  end = r.location + r.length;
+  inEnd = inRange.location + inRange.length;
+
+  while (start > inRange.location)
+    {
+      CFRange pr;
+      CFDictionaryRef pa = CFAttributedStringGetAttributes (str, start - 1,
+                                                            &pr);
+      if (!CFEqual (pa, attribs))
+        break;
+      start = pr.location;
+    }
+  while (end < inEnd)
+    {
+      CFRange nr;
+      CFDictionaryRef na = CFAttributedStringGetAttributes (str, end, &nr);
+      if (!CFEqual (na, attribs))
+        break;
+      end = nr.location + nr.length;
+    }
+
+  if (start < inRange.location)
+    start = inRange.location;
+  if (end > inEnd)
+    end = inEnd;
+  if (longestEffRange)
+    {
+      longestEffRange->location = start;
+      longestEffRange->length = end - start;
+    }
+
+  return attribs;
 }
 
 
@@ -451,12 +538,13 @@ InsertAttributesAtIndex (CFMutableAttributedStringRef str, CFIndex idx,
   if (working->_attribCount == working->_attribCap)
     {
       /* Grow */
+      working->_attribCap <<= 1;
       working->_attribs = CFAllocatorReallocate (alloc,
                                                  working->_attribs,
-                                                 (working->_attribCap << 1),
+                                                 sizeof(Attr) * working->_attribCap,
                                                  0);
     }
-  
+
   /* Move things to the right */
   stop = &working->_attribs[idx];
   cur = &working->_attribs[working->_attribCount];
@@ -528,18 +616,19 @@ RemoveAttributesAtIndex (CFMutableAttributedStringRef str, CFRange range)
       
       cur = &working->_attribs[range.location];
       next = cur + range.length;
-      stop = cur + (working->_attribCount - (range.location + range.length) - 1);
+      stop = cur + (working->_attribCount - (range.location + range.length));
       while (cur < stop)
         *cur++ = *next++;
       working->_attribCount -= range.length;
-      
+
       if (working->_attribCount < (working->_attribCap >> 2)
           && working->_attribCount > 9)
         {
           /* Shrink */
+          working->_attribCap >>= 1;
           working->_attribs = CFAllocatorReallocate (alloc,
                                                      working->_attribs,
-                                                     (working->_attribCap >> 1),
+                                                     sizeof(Attr) * working->_attribCap,
                                                      0);
         }
     }
@@ -556,35 +645,35 @@ CFAttributedStringCoalesce (CFMutableAttributedStringRef str, CFRange range)
     {
       CFIndex cur;
       CFIndex end;
-      Attr *array;
-      
-      array = working->_attribs;
-      if (range.location > 0)
-        {
-          if (array[range.location - 1].attrib == array[range.location].attrib)
-            {
-              RemoveAttributesAtIndex (str, CFRangeMake (range.location, 1));
-              range.length -= 1;
-            }
-        }
-      
-      cur = range.location;
-      end = range.location + range.length;
-      
+      Attr *array = working->_attribs;
+
+      /* Run 0 has no predecessor to merge into, so start at 1.  Also fold in
+       * the run that immediately follows the affected range, since removing
+       * attributes can make it equal to its new predecessor.
+       */
+      cur = range.location < 1 ? 1 : range.location;
+      end = range.location + range.length + 1;
+      if (end > working->_attribCount)
+        end = working->_attribCount;
+
       while (cur < end)
         {
-          if (array[cur - 1].attrib == array[cur].attrib)
+          if (array[cur].attrib == array[cur - 1].attrib)
             {
+              /* This run repeats its predecessor: drop it (the predecessor's
+               * range absorbs it) and re-check the run now shifted into cur.
+               */
               RemoveAttributesAtIndex (str, CFRangeMake (cur, 1));
               end -= 1;
             }
-          cur++;
+          else
+            cur += 1;
         }
     }
 }
 
-#define CFMUTABLEATTRIBUTESTRING_SIZE sizeof(CFRuntimeClass) \
-  - sizeof(struct __CFMutableAttributedString)
+#define CFMUTABLEATTRIBUTESTRING_SIZE (sizeof(struct __CFMutableAttributedString) \
+  - sizeof(CFRuntimeBase))
 
 CFMutableAttributedStringRef
 CFAttributedStringCreateMutable (CFAllocatorRef alloc, CFIndex maxLength)
@@ -602,7 +691,8 @@ CFAttributedStringCreateMutable (CFAllocatorRef alloc, CFIndex maxLength)
       new->_attribCount = 1;
       new->_attribs[0].index = 0;
       new->_attribs[0].attrib = CFAttributedStringGetBlankAttribute ();
-      
+      new->_isEditing = 0;
+
       CFAttributedStringSetMutable ((CFAttributedStringRef)new);
     }
   
