@@ -26,6 +26,7 @@
 
 #include "CoreFoundation/CFBase.h"
 #include "CoreFoundation/CFByteOrder.h"
+#include "CoreFoundation/CFDictionary.h"
 #include "CoreFoundation/CFString.h"
 #include "CoreFoundation/CFStringEncodingExt.h"
 #include "GSPrivate.h"
@@ -45,6 +46,7 @@
 
 static GSMutex _kCFStringEncodingLock;
 static CFStringEncoding *_kCFStringEncodingList = NULL;
+static CFMutableDictionaryRef _kCFIANANames = NULL;
 static CFStringEncoding _kCFStringSystemEncoding = kCFStringEncodingInvalidId;
 
 void
@@ -393,17 +395,46 @@ CFStringConvertEncodingToIANACharSetName (CFStringEncoding encoding)
 {
   const char *name;
   const char *cnvName;
+  CFStringRef result;
   UErrorCode err = U_ZERO_ERROR;
 
   cnvName = CFStringICUConverterName (encoding);
   if (cnvName == NULL)
     return NULL;
-  name = ucnv_getStandardName (cnvName, "IANA", &err);
-  if (U_FAILURE (err))
+  /* The MIME name is the preferred IANA name; only some encodings have one,
+     so fall back to the plain IANA name. */
+  name = ucnv_getStandardName (cnvName, "MIME", &err);
+  if (name == NULL || U_FAILURE (err))
+    {
+      err = U_ZERO_ERROR;
+      name = ucnv_getStandardName (cnvName, "IANA", &err);
+    }
+  if (name == NULL || U_FAILURE (err))
     return NULL;
-  /* Using this function here because we don't want to make multiple copies
-     of this string. */
-  return __CFStringMakeConstantString (name);
+
+  /* ICU returns these names in uppercase but Apple uses lowercase.  Memoize
+     the lowercase copy by ICU's stable name pointer so that repeated calls
+     return the same constant string. */
+  GSMutexLock (&_kCFStringEncodingLock);
+  if (_kCFIANANames == NULL)
+    _kCFIANANames = CFDictionaryCreateMutable (NULL, 0, NULL, NULL);
+  result = (CFStringRef) CFDictionaryGetValue (_kCFIANANames, name);
+  if (result == NULL)
+    {
+      CFIndex len = (CFIndex) strlen (name);
+      char *lower = (char *) CFAllocatorAllocate (NULL, len + 1, 0);
+      CFIndex i;
+
+      for (i = 0; i < len; i++)
+        lower[i] = (name[i] >= 'A' && name[i] <= 'Z')
+          ? name[i] + ('a' - 'A') : name[i];
+      lower[len] = '\0';
+      result = __CFStringMakeConstantString (lower);
+      CFDictionaryAddValue (_kCFIANANames, name, result);
+    }
+  GSMutexUnlock (&_kCFStringEncodingLock);
+
+  return result;
 }
 
 unsigned long
