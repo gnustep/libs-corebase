@@ -796,30 +796,177 @@ CFURLCreateAbsoluteURLWithBytes (CFAllocatorRef alloc,
   return url;
 }
 
+static CFURLRef
+CFURLCreateByReplacingPath (CFAllocatorRef alloc, CFURLRef url,
+  CFStringRef newPath)
+{
+  CFRange range = url->_ranges[kCFURLComponentPath - 1];
+  CFMutableStringRef str;
+  CFURLRef ret;
+
+  if (range.location == kCFNotFound)
+    return NULL;
+
+  str = CFStringCreateMutableCopy (alloc, 0, url->_urlString);
+  CFStringReplace (str, range, newPath);
+  ret = CFURLCreateWithString (alloc, str, url->_baseURL);
+  CFRelease (str);
+
+  return ret;
+}
+
 CFURLRef
 CFURLCreateCopyAppendingPathComponent (CFAllocatorRef alloc, CFURLRef url,
   CFStringRef pathComponent, Boolean isDirectory)
 {
-  return NULL; /* FIXME */
+  CFStringRef path;
+  CFMutableStringRef newPath;
+  CFURLRef ret;
+  CFIndex len;
+
+  path = CFURLCopyPath (url);
+  if (path == NULL)
+    return NULL;
+
+  newPath = CFStringCreateMutableCopy (alloc, 0, path);
+  len = CFStringGetLength (newPath);
+  if (len == 0 || CFStringGetCharacterAtIndex (newPath, len - 1) != '/')
+    CFStringAppend (newPath, CFSTR("/"));
+  CFStringAppend (newPath, pathComponent);
+  if (isDirectory)
+    CFStringAppend (newPath, CFSTR("/"));
+
+  ret = CFURLCreateByReplacingPath (alloc, url, newPath);
+  CFRelease (newPath);
+  CFRelease (path);
+
+  return ret;
 }
 
 CFURLRef
 CFURLCreateCopyAppendingPathExtension (CFAllocatorRef alloc, CFURLRef url,
   CFStringRef extension)
 {
-  return NULL; /* FIXME */
+  CFStringRef path;
+  CFMutableStringRef newPath;
+  CFURLRef ret;
+  CFIndex len;
+  CFIndex end;
+
+  path = CFURLCopyPath (url);
+  if (path == NULL)
+    return NULL;
+
+  len = CFStringGetLength (path);
+  end = len;
+  if (end > 0 && CFStringGetCharacterAtIndex (path, end - 1) == '/')
+    end--;
+
+  newPath = CFStringCreateMutableCopy (alloc, 0, path);
+  CFStringInsert (newPath, end, CFSTR("."));
+  CFStringInsert (newPath, end + 1, extension);
+
+  ret = CFURLCreateByReplacingPath (alloc, url, newPath);
+  CFRelease (newPath);
+  CFRelease (path);
+
+  return ret;
 }
 
 CFURLRef
 CFURLCreateCopyDeletingLastPathComponent (CFAllocatorRef alloc, CFURLRef url)
 {
-  return NULL; /* FIXME */
+  CFStringRef path;
+  CFStringRef newPath;
+  CFURLRef ret;
+  CFIndex len;
+  CFIndex end;
+  CFIndex idx;
+
+  path = CFURLCopyPath (url);
+  if (path == NULL)
+    return NULL;
+
+  len = CFStringGetLength (path);
+  end = len;
+  if (end > 0 && CFStringGetCharacterAtIndex (path, end - 1) == '/')
+    end--;
+
+  idx = -1;
+  {
+    CFIndex i;
+    for (i = end - 1; i >= 0; i--)
+      if (CFStringGetCharacterAtIndex (path, i) == '/')
+        {
+          idx = i;
+          break;
+        }
+  }
+
+  if (idx < 0)
+    newPath = CFStringCreateWithSubstring (alloc, path, CFRangeMake (0, 0));
+  else
+    newPath = CFStringCreateWithSubstring (alloc, path,
+      CFRangeMake (0, idx + 1));
+
+  ret = CFURLCreateByReplacingPath (alloc, url, newPath);
+  CFRelease (newPath);
+  CFRelease (path);
+
+  return ret;
 }
 
 CFURLRef
 CFURLCreateCopyDeletingPathExtension (CFAllocatorRef alloc, CFURLRef url)
 {
-  return NULL; /* FIXME */
+  CFStringRef path;
+  CFURLRef ret;
+  CFIndex len;
+  CFIndex end;
+  CFIndex start;
+  CFIndex dot;
+  CFIndex idx;
+
+  path = CFURLCopyPath (url);
+  if (path == NULL)
+    return NULL;
+
+  len = CFStringGetLength (path);
+  end = len;
+  if (end > 0 && CFStringGetCharacterAtIndex (path, end - 1) == '/')
+    end--;
+
+  start = 0;
+  for (idx = end - 1; idx >= 0; idx--)
+    if (CFStringGetCharacterAtIndex (path, idx) == '/')
+      {
+        start = idx + 1;
+        break;
+      }
+
+  dot = -1;
+  for (idx = end - 1; idx > start; idx--)
+    if (CFStringGetCharacterAtIndex (path, idx) == '.')
+      {
+        dot = idx;
+        break;
+      }
+
+  if (dot < 0)
+    {
+      ret = CFURLCreateByReplacingPath (alloc, url, path);
+    }
+  else
+    {
+      CFMutableStringRef newPath = CFStringCreateMutableCopy (alloc, 0, path);
+      CFStringDelete (newPath, CFRangeMake (dot, end - dot));
+      ret = CFURLCreateByReplacingPath (alloc, url, newPath);
+      CFRelease (newPath);
+    }
+
+  CFRelease (path);
+
+  return ret;
 }
 
 CFURLRef
