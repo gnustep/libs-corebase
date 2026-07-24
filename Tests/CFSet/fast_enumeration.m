@@ -1,5 +1,4 @@
-#import <Foundation/NSSet.h>
-#import <Foundation/NSNumber.h>
+#import <Foundation/Foundation.h>
 #include "CoreFoundation/CFSet.h"
 #include "../CFTesting.h"
 

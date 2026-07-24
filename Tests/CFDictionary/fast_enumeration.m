@@ -1,5 +1,4 @@
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSNumber.h>
+#import <Foundation/Foundation.h>
 #include "CoreFoundation/CFDictionary.h"
 #include "../CFTesting.h"
 
