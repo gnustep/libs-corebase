@@ -542,9 +542,15 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
 
       while (sWorking < sLimit && (dLimit == NULL || dWorking < dLimit))
         {
-          c = *sWorking++;
+          c = *sWorking;
           if (c > 0x7F)
-            c = loss;
+            {
+              if (loss)
+                c = loss;
+              else
+                break;
+            }
+          ++sWorking;
           if (dWorking < dLimit)
             *dWorking = c;
           ++dWorking;
@@ -563,9 +569,15 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
 
       while (sWorking < sLimit && (dLimit == NULL || dWorking < dLimit))
         {
-          c = *sWorking++;
+          c = *sWorking;
           if (c > 0xFF)
-            c = loss;
+            {
+              if (loss)
+                c = loss;
+              else
+                break;
+            }
+          ++sWorking;
           if (dWorking < dLimit)
             *dWorking = c;
           ++dWorking;
