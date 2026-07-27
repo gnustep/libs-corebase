@@ -108,7 +108,7 @@ CFSetCreate (CFAllocatorRef allocator, const void **values, CFIndex numValues,
   return (CFSetRef) GSHashTableCreate (allocator, _kCFSetTypeID,
                                        values, values, numValues,
                                        (const GSHashTableKeyCallBacks *)
-                                       callBacks, NULL);
+                                       callBacks, NULL, false);
 }
 
 CFSetRef
