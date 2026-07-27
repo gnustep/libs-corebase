@@ -540,7 +540,7 @@ RemoveAttributesAtIndex (CFMutableAttributedStringRef str, CFRange range)
       
       cur = &working->_attribs[range.location];
       next = cur + range.length;
-      stop = cur + (working->_attribCount - (range.location + range.length) - 1);
+      stop = cur + (working->_attribCount - (range.location + range.length));
       while (cur < stop)
         *cur++ = *next++;
       working->_attribCount -= range.length;
@@ -572,29 +572,27 @@ CFAttributedStringCoalesce (CFMutableAttributedStringRef str, CFRange range)
       CFIndex end;
       Attr *array;
       
-      array = working->_attribs;
-      if (range.location > 0)
-        {
-          if (array[range.location - 1].attrib == array[range.location].attrib)
-            {
-              RemoveAttributesAtIndex (str, CFRangeMake (range.location, 1));
-              range.length -= 1;
-            }
-        }
-      
       /* Each step compares with the preceding entry, so never start at
          index 0 (there is nothing before it to coalesce with). */
       cur = range.location > 0 ? range.location : 1;
       end = range.location + range.length;
+      if (end > working->_attribCount)
+        end = working->_attribCount;
 
       while (cur < end)
         {
+          /* RemoveAttributesAtIndex may move or reallocate the attribute
+             array, so read it afresh each time through the loop. */
+          array = working->_attribs;
           if (array[cur - 1].attrib == array[cur].attrib)
             {
+              /* Drop the duplicate run; the following run shifts down into
+                 cur, so re-check that slot rather than advancing. */
               RemoveAttributesAtIndex (str, CFRangeMake (cur, 1));
               end -= 1;
             }
-          cur++;
+          else
+            cur++;
         }
     }
 }
@@ -792,7 +790,12 @@ CFAttributedStringSetAttributes (CFMutableAttributedStringRef str,
    */
   if (rE.location + rE.length > rangeMax
       && !CFEqual (array[idxE].attrib, repl))
-    InsertAttributesAtIndex (str, idxE + 1, rangeMax, array[idxE].attrib);
+    {
+      InsertAttributesAtIndex (str, idxE + 1, rangeMax, array[idxE].attrib);
+      /* InsertAttributesAtIndex may reallocate the attribute array, so
+         refresh the local pointer before reading through it again. */
+      array = str->_attribs;
+    }
   
   if (range.location == rS.location)
     {
@@ -809,6 +812,7 @@ CFAttributedStringSetAttributes (CFMutableAttributedStringRef str,
       cur += 1;
       idxE += 1;
       InsertAttributesAtIndex (str, cur, range.location, repl);
+      array = str->_attribs;
       if (!clearOtherAttribs)
         SetAttributesAtIndex (str, cur, array[idxS].attrib);
     }
