@@ -1,0 +1,5 @@
+#
+# Apple's CFBitVectorGetBits packing behavior differs from these GNUstep
+# regression expectations.
+#
+export APPLE_SKIP_TESTS="general.m"

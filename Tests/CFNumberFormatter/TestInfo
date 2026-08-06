@@ -1,0 +1,3 @@
+export APPLE_SKIP_TESTS="create.m parse.m"
+# create.m: Apple returns a much wider default no-style format string.
+# parse.m: Apple parses the scientific and percent cases differently here.

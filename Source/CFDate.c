@@ -199,11 +199,14 @@ CFAbsoluteTimeToFields (CFAbsoluteTime at, SInt32 *year, SInt8 *month,
   if (dayOfYear)
     *dayOfYear = d;
   
-  M = isLeap ? 11 : 13;
-  while (d < _daysBeforeMonth[M])
+  /* Find the month by walking forward through the half of the table that
+     corresponds to the year type (leap years start at index 12).  Stop at
+     the last month so we never index past the end of _daysBeforeMonth. */
+  M = isLeap ? 12 : 0;
+  while (M < (isLeap ? 23 : 11) && d >= _daysBeforeMonth[M + 1])
     ++M;
   if (month)
-    *month = ++M;
+    *month = (isLeap ? M - 12 : M) + 1;
   if (day)
     *day = d - _daysBeforeMonth[M] + 1;
   

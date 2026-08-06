@@ -128,7 +128,7 @@ const CFRuntimeClass *
 _CFRuntimeGetClassWithTypeID (CFTypeID typeID)
 {
   GSMutexLock (&_kCFRuntimeTableLock);
-  if (typeID > __CFRuntimeClassTableCount)
+  if (typeID >= __CFRuntimeClassTableCount)
     typeID = 0;
   GSMutexUnlock (&_kCFRuntimeTableLock);
   return __CFRuntimeClassTable[typeID];
@@ -153,7 +153,7 @@ _CFRuntimeCreateInstance (CFAllocatorRef allocator, CFTypeID typeID,
   CFRuntimeBase *new;
 
   /* Return NULL if typeID is unknown. */
-  if (_kCFRuntimeNotATypeID == typeID || typeID > __CFRuntimeClassTableCount)
+  if (_kCFRuntimeNotATypeID == typeID || typeID >= __CFRuntimeClassTableCount)
     {
       return NULL;
     }
