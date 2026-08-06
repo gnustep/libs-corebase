@@ -260,7 +260,7 @@ CFStringCreateByCombiningStrings (CFAllocatorRef alloc, CFArrayRef theArray,
   CFStringRef ret;
   
   count = CFArrayGetCount (theArray) - 1;
-  if (count == 0)
+  if (count <= 0)
     return NULL;
   
   string = CFStringCreateMutable (NULL, 0);

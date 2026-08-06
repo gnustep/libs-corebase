@@ -383,7 +383,7 @@ CFArrayGetLastIndexOfValue (CFArrayRef array, CFRange range, const void *value)
     equal = array->_callBacks->equal;
 
   start = range.location;
-  idx = start + range.length;
+  idx = start + range.length - 1;
 
   if (equal)
     {

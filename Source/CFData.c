@@ -239,15 +239,19 @@ CFDataGetLength (CFDataRef d)
   sizeof(struct __CFMutableData) - sizeof(CFRuntimeBase)
 
 static void
-CFDataCheckCapacityAndGrow (CFMutableDataRef data, CFIndex capacity)
+CFDataCheckCapacityAndGrow (CFMutableDataRef data, CFIndex requiredCapacity)
 {
   struct __CFMutableData *d = (struct __CFMutableData*)data;
-  
-  if (capacity > d->_capacity)
+
+  if (requiredCapacity > d->_capacity)
     {
+      /* Grow geometrically so that repeated appends are amortised O(1) */
+      CFIndex newCapacity = d->_capacity + (d->_capacity >> 1);
+      if (newCapacity < requiredCapacity)
+        newCapacity = requiredCapacity;
       d->_contents = CFAllocatorReallocate (d->_allocator, d->_contents,
-        capacity, 0);
-      d->_capacity = capacity;
+        newCapacity, 0);
+      d->_capacity = newCapacity;
     }
 }
 
@@ -342,12 +346,12 @@ CFDataReplaceBytes (CFMutableDataRef d, CFRange range,
     return;
   
   md = (struct __CFMutableData*)d;
-  assert (range.location + range.length <= md->_capacity);
-  
-  newBufLen = range.location + newLength;
+  assert (range.location + range.length <= md->_length);
+
+  newBufLen = md->_length - range.length + newLength;
   CFDataCheckCapacityAndGrow (d, newBufLen);
-  
-  if (newLength != range.length && range.location + range.length < newBufLen)
+
+  if (newLength != range.length && range.location + range.length < md->_length)
     {
       UInt8 *moveFrom = md->_contents + range.location + range.length;
       UInt8 *moveTo = md->_contents + range.location + newLength;

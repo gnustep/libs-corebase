@@ -416,22 +416,29 @@ CFNumberGetType (CFNumberRef num)
           case _C_CHR:
           case _C_UCHR:
             cfType = kCFNumberCharType;
+            break;
           case _C_SHT:
           case _C_USHT:
             cfType = kCFNumberShortType;
+            break;
           case _C_INT:
           case _C_UINT:
             cfType = kCFNumberIntType;
+            break;
           case _C_LNG:
           case _C_ULNG:
             cfType = kCFNumberLongType;
+            break;
           case _C_LNG_LNG:
           case _C_ULNG_LNG:
             cfType = kCFNumberLongLongType;
+            break;
           case _C_FLT:
             cfType = kCFNumberFloatType;
+            break;
           case _C_DBL:
             cfType = kCFNumberDoubleType;
+            break;
         }
       return cfType;
     }
