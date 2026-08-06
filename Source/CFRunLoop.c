@@ -1521,7 +1521,7 @@ CFRunLoopSourceRemoveInvalidated(const void *key, const void *value, void *sourc
 {
   GSRunLoopContextRef ctxt = (GSRunLoopContextRef) value;
   CFIndex idx = CFArrayGetFirstIndexOfValue(ctxt->sources0,
-                                            CFRangeMake(0, CFArrayGetCount(ctxt->timers)),
+                                            CFRangeMake(0, CFArrayGetCount(ctxt->sources0)),
                                             (CFRunLoopSourceRef) source);
   
   if (idx != -1)

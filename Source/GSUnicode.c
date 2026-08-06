@@ -1166,7 +1166,7 @@ _read_number (const UniChar ** __restrict__ format)
    * is used for.
    */
   while ((**format >= '0') && (**format <= '9') && (*format - start < 3))
-    number = (number * 10) + (*(*format++) - '0');
+    number = (number * 10) + (*(*format)++ - '0');
 
   return number;
 }

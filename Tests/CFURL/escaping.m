@@ -1,4 +1,5 @@
 #include "CoreFoundation/CFURL.h"
+#include "CoreFoundation/CFString.h"
 
 #include "../CFTesting.h"
 
@@ -39,6 +40,21 @@ int main (void)
   
   CFRelease (str);
   CFRelease (str2);
-  
+
+  /* A non-ASCII character escapes to its multi-byte UTF-8 form: U+20AC ->
+     "%E2%82%AC" (9 chars).  The output buffer used to be sized at 3 chars per
+     input character, so this overran it. */
+  {
+    const UniChar mb[] = { 0x20AC, 'a', 'b' };
+    CFStringRef mbStr = CFStringCreateWithCharacters (NULL, mb, 3);
+
+    str = CFURLCreateStringByAddingPercentEscapes (NULL, mbStr, NULL, NULL,
+      kCFStringEncodingUTF8);
+    PASS_CFEQ(str, CFSTR("%E2%82%ACab"),
+      "A non-ASCII character is escaped to multi-byte UTF-8 without overflow.");
+    CFRelease (str);
+    CFRelease (mbStr);
+  }
+
   return 0;
 }
