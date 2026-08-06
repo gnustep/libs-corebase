@@ -1,0 +1,5 @@
+#
+# Apple's CFNumberGetType returns kCFNumberSInt32Type for numberWithInt:,
+# while this test expects the GNUstep bridge's kCFNumberIntType value.
+#
+export APPLE_SKIP_TESTS="gettype.m"

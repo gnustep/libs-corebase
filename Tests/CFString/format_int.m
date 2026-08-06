@@ -301,6 +301,10 @@ int main (void)
   PASS_CFEQ (str1, CFSTR ("ffffff85"), "Negative hex formatted correctly");
   CFRelease (str1);
 
+  str1 = CFStringCreateWithFormat (NULL, NULL, CFSTR("%10d"), 1234567890);
+  PASS_CFEQ (str1, CFSTR ("1234567890"), "Multi-digit width parsed correctly");
+  CFRelease (str1);
+
   return 0;
 }
 

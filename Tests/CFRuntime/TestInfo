@@ -1,0 +1,2 @@
+# Apple does not expose CoreFoundation/CFRuntime.h as a public SDK header.
+export APPLE_SKIP_TESTS="runtime.m"
