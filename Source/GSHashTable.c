@@ -490,6 +490,25 @@ GSHashTableGetKeysAndValues (GSHashTableRef table, const void **keys,
     }
 }
 
+CFIndex
+GSHashTableGetKeysFromCursor (GSHashTableRef table, CFIndex *cursor,
+                              const void **keybuf, CFIndex bufSize)
+{
+  GSHashTableBucket *buckets = table->_buckets;
+  CFIndex capacity = table->_capacity;
+  CFIndex idx = *cursor;
+  CFIndex n = 0;
+
+  while (n < bufSize && idx < capacity)
+    {
+      if (buckets[idx].count > 0)
+        keybuf[n++] = buckets[idx].key;
+      ++idx;
+    }
+  *cursor = idx;
+  return n;
+}
+
 const void *
 GSHashTableGetValue (GSHashTableRef table, const void *key)
 {

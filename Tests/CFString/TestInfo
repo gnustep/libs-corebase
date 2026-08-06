@@ -1,0 +1,8 @@
+#
+# encodings.m includes GNUstep table-boundary expectations that do not match
+# Apple CoreFoundation.
+#
+# general.m expects CFStringCreateByCombiningStrings to return NULL for an empty
+# array; Apple CoreFoundation returns an empty string.
+#
+export APPLE_SKIP_TESTS="encodings.m general.m"

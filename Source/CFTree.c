@@ -189,7 +189,7 @@ CFTreePrependChild (CFTreeRef tree, CFTreeRef newChild)
   newChild->_nextSibling = tree->_firstChild;
   tree->_firstChild = newChild;
   if (tree->_lastChild == NULL)
-    tree->_lastChild = NULL;
+    tree->_lastChild = newChild;
 }
 
 void
@@ -240,9 +240,9 @@ CFTreeGetChildAtIndex (CFTreeRef tree, CFIndex idx)
   
   j = 0;
   child = tree->_firstChild;
-  while (j++ < idx)
+  while (child != NULL && j++ < idx)
     child = child->_nextSibling;
-  
+
   return child;
 }
 
