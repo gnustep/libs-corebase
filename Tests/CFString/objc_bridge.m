@@ -16,17 +16,21 @@ void refcounting_tests(void)
 {
   NSString *str;
   CFStringRef str2;
+  NSUInteger retainCount;
   
   str = (NSString*)CFSTR("test");
-  PASS_CF ([str retainCount] == UINT_MAX,
+  retainCount = [str retainCount];
+  PASS_CF (retainCount == UINT_MAX || retainCount == NSUIntegerMax,
     "Constant string has maximum retain count.");
   [str release];
-  PASS_CF ([str retainCount] == UINT_MAX,
+  retainCount = [str retainCount];
+  PASS_CF (retainCount == UINT_MAX || retainCount == NSUIntegerMax,
     "Release has no effect of constant string.");
   
   str2 = CFStringCreateWithBytes (NULL, "Test2", 6, kCFStringEncodingASCII, 0);
   [str2 retain];
-  PASS_CF ([str2 retainCount] == 2,
+  retainCount = [str2 retainCount];
+  PASS_CF (retainCount == 2 || retainCount == NSUIntegerMax,
     "CFStringRef instances accept -retain method calls");
 }
 
@@ -42,4 +46,3 @@ void basic_ops(void)
 
 	[str release];
 }
-

@@ -12,8 +12,14 @@ int main (void)
   CFTimeInterval ti;
   
   tz = CFTimeZoneCreateWithName (NULL, CFSTR("CST"), false);
+#ifdef __APPLE__
+  PASS_CF(tz != NULL,
+       "Apple CoreFoundation resolves 'CST' without abbreviation lookup.");
+  CFRelease (tz);
+#else
   PASS_CF(tz == NULL,
        "Time zone named 'CST' is not found if abbreviations are not searched.");
+#endif
   tz = CFTimeZoneCreateWithName (NULL, CFSTR("CST"), true);
   PASS_CF(tz != NULL,
        "Time zone named 'CST' was found when abbreviations were searched");
