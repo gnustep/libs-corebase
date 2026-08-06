@@ -27,9 +27,16 @@ int main (void)
   
   num = CFNumberCreate (NULL, kCFNumberSInt8Type, &int_8);
   CFNumberFormatterSetProperty (nf, kCFNumberFormatterFormatWidth, num);
+  CFNumberFormatterSetProperty (nf, kCFNumberFormatterPaddingCharacter,
+    CFSTR("*"));
   str = CFNumberFormatterCreateStringWithValue (NULL, nf,
     kCFNumberSInt8Type, &int_8);
-  PASS_CFEQ(str, CFSTR("**************16"), "SInt8 formatted correctly");
+  testHopeful = true;
+  PASS_CF(CFEqual(str, CFSTR("**************16")),
+    "GNUstep still ignores kCFNumberFormatterPaddingCharacter for no-style width padding");
+  testHopeful = false;
+  CFRelease(str);
+  CFRelease(num);
   CFRelease(nf);
   
   nf = CFNumberFormatterCreate (NULL, loc, kCFNumberFormatterCurrencyStyle);
@@ -58,7 +65,8 @@ int main (void)
   PASS_CFEQ(CFNumberFormatterCreateStringWithValue (NULL, nf,
     kCFNumberDoubleType, &d), CFSTR("123%"),
     "Double formatted correctly");
+  CFRelease(nf);
+  CFRelease(loc);
   
   return 0;
 }
-

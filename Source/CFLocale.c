@@ -861,7 +861,7 @@ CFLocaleCreateCanonicalLanguageIdentifierFromString (CFAllocatorRef allocator,
          kCFStringEncodingASCII))
     return NULL;
   
-  uloc_canonicalize (cLocale, canonical, BUFFER_SIZE, &err);
+  uloc_canonicalize (cLocale, canonical, ULOC_FULLNAME_CAPACITY, &err);
   uloc_getLanguage (canonical, lang, ULOC_LANG_CAPACITY, &err);
   if (U_FAILURE(err))
     return NULL;

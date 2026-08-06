@@ -1,0 +1,3 @@
+# Apple CoreFoundation leaves some RFC 3986 dot segments unresolved in
+# ref_resolution.m, so skip it until the expected compatibility behavior is clear.
+export APPLE_SKIP_TESTS="ref_resolution.m"

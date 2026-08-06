@@ -258,27 +258,14 @@ __CFStringMakeConstantString (const char *str)
 {
   CFStringRef old;
 
-  if (static_strings == NULL)
-    {
-      /* The 170 capacity is really arbitrary.  I just wanted to make the
-       * number large enough so that the hash table size comes out to 257,
-       * a table large enough to fit most needs before needing to expand.
-       */
-      GSMutexLock (&static_strings_lock);
-      if (static_strings == NULL)
-        static_strings = CFDictionaryCreateMutable (NULL, 170, NULL, NULL);
-      GSMutexUnlock (&static_strings_lock);
-    }
-
-  old = (CFStringRef) CFDictionaryGetValue (static_strings, str);
-
-  /* Return the existing string pointer if we have one. */
-  if (NULL != old)
-    return old;
-
   GSMutexLock (&static_strings_lock);
-  /* Check again in case another thread added this string to the table while
-   * we were waiting on the mutex. */
+  /* The 170 capacity is really arbitrary.  I just wanted to make the
+   * number large enough so that the hash table size comes out to 257,
+   * a table large enough to fit most needs before needing to expand.
+   */
+  if (static_strings == NULL)
+    static_strings = CFDictionaryCreateMutable (NULL, 170, NULL, NULL);
+
   old = (CFStringRef) CFDictionaryGetValue (static_strings, str);
   if (NULL == old)
     {
@@ -877,7 +864,7 @@ CFStringGetCString (CFStringRef str, char *buffer, CFIndex bufferSize,
 
   if (CFStringGetBytes (str, CFRangeMake (0, len), encoding, 0, false,
                         (UInt8 *) buffer, bufferSize, &used) == len
-      && used <= len)
+      && used <= len && used < bufferSize)
     {
       buffer[used] = '\0';
       return true;
@@ -1216,6 +1203,8 @@ CFStringAppendCString (CFMutableStringRef str, const char *cStr,
 
   numChars = GSUnicodeFromEncoding (&buffer, buffer + BUFFER_SIZE, encoding,
                                     (const UInt8 **) &cStr, cStrLimit, 0);
+  if (numChars < 0)
+    return;
   if (numChars <= BUFFER_SIZE)
     {
       CFStringAppendCharacters (str, bufferStart, numChars);
