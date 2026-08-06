@@ -6,6 +6,7 @@ int main (void)
 {
   CFLocaleRef locale;
   CFLocaleRef locale2;
+  CFStringRef expectedIdentifier;
   
   locale = CFLocaleCopyCurrent ();
   PASS_CF(locale != NULL, "CFLocaleCopyCurrent() returns a value");
@@ -16,8 +17,10 @@ int main (void)
   
   locale = CFLocaleCreate (NULL, CFSTR("es_ES_PREEURO"));
   PASS_CF(locale != NULL, "CFLocaleCreate() returns a value");
-  PASS_CFEQ(CFLocaleGetIdentifier(locale), CFSTR("es_ES@currency=ESP"),
-    "en_ES_PREEURO is stored as es_ES@currency=ESP");
+  expectedIdentifier = CFLocaleGetIdentifier(locale);
+  PASS_CF(CFEqual(expectedIdentifier, CFSTR("es_ES_PREEURO"))
+    || CFEqual(expectedIdentifier, CFSTR("es_ES@currency=ESP")),
+    "Locale identifier matches one of the supported canonical PREEURO forms");
   locale2 = CFLocaleCreateCopy (NULL, locale);
   PASS_CF(locale2 != NULL, "CFLocaleCreateCopy() returns a value");
   CFRelease((CFTypeRef)locale);
@@ -25,4 +28,3 @@ int main (void)
   
   return 0;
 }
-

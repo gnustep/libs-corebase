@@ -301,6 +301,10 @@ int main (void)
   PASS_CFEQ (str1, CFSTR ("ffffff85"), "Negative hex formatted correctly");
   CFRelease (str1);
 
+  str1 = CFStringCreateWithFormat (NULL, NULL, CFSTR("%10d"), 1234567890);
+  PASS_CFEQ (str1, CFSTR ("1234567890"), "Multi-digit width parsed correctly");
+  CFRelease (str1);
+
   /* Padding wider than PAD_SIZE (8) must advance the output cursor between
      chunks; otherwise the buffer is left with uninitialised gaps. */
   str1 = CFStringCreateWithFormat (NULL, NULL, CFSTR("%*d"), 12, 5);

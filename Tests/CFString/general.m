@@ -1,4 +1,5 @@
 #include "CoreFoundation/CFString.h"
+#include "CoreFoundation/CFArray.h"
 #include "../CFTesting.h"
 
 int main (void)
@@ -26,6 +27,12 @@ int main (void)
        (int)found.location, (int)found.length);
   
   CFRelease (str);
-  
+
+  /* An empty array must not read past the end of its (empty) storage. */
+  array = CFArrayCreate (NULL, NULL, 0, &kCFTypeArrayCallBacks);
+  str = CFStringCreateByCombiningStrings (NULL, array, CFSTR(","));
+  PASS_CF(str == NULL, "Combining an empty array returns NULL without overreading.");
+  CFRelease (array);
+
   return 0;
 }
