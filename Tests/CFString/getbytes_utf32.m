@@ -1,0 +1,52 @@
+#include "CoreFoundation/CFString.h"
+#include "../CFTesting.h"
+#include <string.h>
+
+/* CFStringGetBytes UTF-32 encoding: byte order, multi-character output and
+   surrogate pairs. */
+
+int main (void)
+{
+  UniChar e = 0x00E9;
+  UniChar two[] = { 0x00E9, 0x0041 };
+  UniChar surr[] = { 0xD83D, 0xDE00 };          /* U+1F600 */
+  CFStringRef eacute = CFStringCreateWithCharacters (NULL, &e, 1);
+  CFStringRef pair = CFStringCreateWithCharacters (NULL, two, 2);
+  CFStringRef emoji = CFStringCreateWithCharacters (NULL, surr, 2);
+  UInt8 buf[32];
+  CFIndex used, n;
+
+  UInt8 be1[] = { 0x00, 0x00, 0x00, 0xE9 };
+  UInt8 le1[] = { 0xE9, 0x00, 0x00, 0x00 };
+  UInt8 be2[] = { 0x00, 0x00, 0x00, 0xE9, 0x00, 0x00, 0x00, 0x41 };
+  UInt8 beS[] = { 0x00, 0x01, 0xF6, 0x00 };
+
+  used = 0;
+  n = CFStringGetBytes (eacute, CFRangeMake (0, 1), kCFStringEncodingUTF32BE,
+    0, false, buf, sizeof (buf), &used);
+  PASS_CF (n == 1 && used == 4 && memcmp (buf, be1, 4) == 0,
+    "GetBytes UTF-32BE of U+00E9 is 00 00 00 E9.");
+
+  used = 0;
+  n = CFStringGetBytes (eacute, CFRangeMake (0, 1), kCFStringEncodingUTF32LE,
+    0, false, buf, sizeof (buf), &used);
+  PASS_CF (n == 1 && used == 4 && memcmp (buf, le1, 4) == 0,
+    "GetBytes UTF-32LE of U+00E9 is E9 00 00 00.");
+
+  used = 0;
+  n = CFStringGetBytes (pair, CFRangeMake (0, 2), kCFStringEncodingUTF32BE,
+    0, false, buf, sizeof (buf), &used);
+  PASS_CF (n == 2 && used == 8 && memcmp (buf, be2, 8) == 0,
+    "GetBytes UTF-32BE of two characters is 8 bytes.");
+
+  used = 0;
+  n = CFStringGetBytes (emoji, CFRangeMake (0, 2), kCFStringEncodingUTF32BE,
+    0, false, buf, sizeof (buf), &used);
+  PASS_CF (n == 2 && used == 4 && memcmp (buf, beS, 4) == 0,
+    "GetBytes UTF-32BE of a surrogate pair is 00 01 F6 00.");
+
+  CFRelease (eacute);
+  CFRelease (pair);
+  CFRelease (emoji);
+  return 0;
+}
