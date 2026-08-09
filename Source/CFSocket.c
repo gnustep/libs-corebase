@@ -375,16 +375,16 @@ CFSocketCopyAddress (CFSocketRef s)
   GSMutexLock (&s->_lock);
   if (s->_address == NULL)
     {
-      struct sockaddr addr;
-      socklen_t addrlen;
-      getsockname (s->_socket, &addr, &addrlen);
-      s->_address = CFDataCreate (CFGetAllocator (s), (const UInt8*)&addr,
-                                  (CFIndex)addrlen);
+      struct sockaddr_storage addr;
+      socklen_t addrlen = sizeof (addr);
+      if (getsockname (s->_socket, (struct sockaddr*)&addr, &addrlen) == 0)
+        s->_address = CFDataCreate (CFGetAllocator (s), (const UInt8*)&addr,
+                                    (CFIndex)addrlen);
     }
   if (s->_address != NULL)
     ret = CFRetain (s->_address);
   GSMutexUnlock (&s->_lock);
-  
+
   return ret;
 }
 
@@ -392,20 +392,20 @@ CFDataRef
 CFSocketCopyPeerAddress (CFSocketRef s)
 {
   CFDataRef ret = NULL;
-  
+
   GSMutexLock (&s->_lock);
-  if (s->_address == NULL)
+  if (s->_peerAddress == NULL)
     {
-      struct sockaddr addr;
-      socklen_t addrlen;
-      getpeername (s->_socket, &addr, &addrlen);
-      s->_address = CFDataCreate (CFGetAllocator (s), (const UInt8*)&addr,
-                                  (CFIndex)addrlen);
+      struct sockaddr_storage addr;
+      socklen_t addrlen = sizeof (addr);
+      if (getpeername (s->_socket, (struct sockaddr*)&addr, &addrlen) == 0)
+        s->_peerAddress = CFDataCreate (CFGetAllocator (s),
+                                        (const UInt8*)&addr, (CFIndex)addrlen);
     }
-  if (s->_address != NULL)
-    ret = CFRetain (s->_address);
+  if (s->_peerAddress != NULL)
+    ret = CFRetain (s->_peerAddress);
   GSMutexUnlock (&s->_lock);
-  
+
   return ret;
 }
 
