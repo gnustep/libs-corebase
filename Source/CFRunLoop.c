@@ -1845,8 +1845,8 @@ CFRunLoopTimerSetNextFireDate (CFRunLoopTimerRef timer,
     }
   
   timer->_nextFireDate = fireDate;
-  // Wake up the runloop so that it can recalculate the next timer date
-  // but since timers should be planned on current runloop only (NSTimer
-  // says so), this may not be necessary.
-  CFRunLoopWakeUp(timer->_runloop);
+  // Wake up the runloop so that it can recalculate the next timer date,
+  // but only if the timer has been added to one.
+  if (timer->_runloop != NULL)
+    CFRunLoopWakeUp(timer->_runloop);
 }
