@@ -200,8 +200,9 @@ static const UniChar uppercase_letter[] =
   { '[', ':', 'L', 'u', ':', ']'  };
 static const UniChar non_base[] =
   { '[', ':', 'M', ':', ']'  };
-static const UniChar decomposable[] = /* FIXME */
-  { ' '  };
+static const UniChar decomposable[] =
+  { '[', ':', 'd', 't', '=', 'C', 'a', 'n', 'o', 'n', 'i', 'c', 'a', 'l',
+    ':', ']' };
 static const UniChar alpha_numeric[] =
   { '[', '[', ':', 'L', ':', ']', '[', ':', 'M', ':', ']',
     '[', ':', 'N', ':', ']', ']' };
