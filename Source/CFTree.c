@@ -220,7 +220,48 @@ CFTreeSetContext (CFTreeRef tree, const CFTreeContext *context)
 void
 CFTreeSortChildren (CFTreeRef tree, CFComparatorFunction comp, void *context)
 {
-  /* FIXME */
+  CFIndex count;
+  CFIndex i;
+  CFIndex j;
+  CFTreeRef *children;
+  CFTreeRef child;
+
+  if (comp == NULL)
+    return;
+
+  count = CFTreeGetChildCount (tree);
+  if (count < 2)
+    return;
+
+  children = CFAllocatorAllocate (NULL, count * sizeof (CFTreeRef), 0);
+
+  child = tree->_firstChild;
+  for (i = 0; i < count; i++)
+    {
+      children[i] = child;
+      child = child->_nextSibling;
+    }
+
+  for (i = 1; i < count; i++)
+    {
+      CFTreeRef key = children[i];
+      j = i - 1;
+      while (j >= 0
+        && comp (children[j], key, context) == kCFCompareGreaterThan)
+        {
+          children[j + 1] = children[j];
+          j--;
+        }
+      children[j + 1] = key;
+    }
+
+  tree->_firstChild = children[0];
+  for (i = 0; i < count - 1; i++)
+    children[i]->_nextSibling = children[i + 1];
+  children[count - 1]->_nextSibling = NULL;
+  tree->_lastChild = children[count - 1];
+
+  CFAllocatorDeallocate (NULL, children);
 }
 
 CFTreeRef
