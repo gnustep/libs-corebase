@@ -326,6 +326,23 @@ CFCharacterSetIsCharacterMember (CFCharacterSetRef set, UniChar c)
 Boolean
 CFCharacterSetHasMemberInPlane (CFCharacterSetRef set, CFIndex plane)
 {
+  UChar32 planeStart = (UChar32)(plane << 16);
+  UChar32 planeEnd = planeStart + 0xFFFF;
+  int32_t idx;
+  int32_t count;
+
+  count = uset_getItemCount (set->_uset);
+  for (idx = 0; idx < count; idx++)
+    {
+      UChar32 start;
+      UChar32 end;
+      UErrorCode err = U_ZERO_ERROR;
+
+      if (uset_getItem (set->_uset, idx, &start, &end, NULL, 0, &err) == 0
+          && start <= planeEnd && end >= planeStart)
+        return true;
+    }
+
   return false;
 }
 
