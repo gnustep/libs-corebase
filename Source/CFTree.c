@@ -73,7 +73,7 @@ CFTreeFinalize (CFTypeRef cf)
   
   release = tree->_context.release;
   if (release)
-    release (tree);
+    release (tree->_context.info);
 }
 
 static CFRuntimeClass CFTreeClass =
@@ -116,6 +116,9 @@ CFTreeCreate (CFAllocatorRef allocator, const CFTreeContext *context)
       if (context == NULL)
         context = &_kCFNullTreeContext;
       memcpy (&new->_context, context, sizeof(CFTreeContext));
+      if (new->_context.retain)
+        new->_context.info =
+          (void *)new->_context.retain (new->_context.info);
     }
   
   return new;
