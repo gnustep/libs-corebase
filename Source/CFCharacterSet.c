@@ -26,9 +26,12 @@
 
 #include "CoreFoundation/CFRuntime.h"
 #include "CoreFoundation/CFCharacterSet.h"
+#include "CoreFoundation/CFData.h"
 #include "CoreFoundation/CFDictionary.h"
 #include "CoreFoundation/CFString.h"
 #include "GSPrivate.h"
+
+#include <string.h>
 
 #if defined(HAVE_UNICODE_USET_H)
 #include <unicode/uset.h>
@@ -307,14 +310,87 @@ CFCharacterSetRef
 CFCharacterSetCreateWithBitmapRepresentation (CFAllocatorRef alloc,
   CFDataRef data)
 {
-  return NULL;
+  struct __CFCharacterSet *new;
+  const UInt8 *bytes;
+  CFIndex length;
+  CFIndex offset;
+  USet *uset;
+  UChar32 c;
+
+  if (data == NULL)
+    return NULL;
+
+  bytes = CFDataGetBytePtr (data);
+  length = CFDataGetLength (data);
+  uset = uset_openEmpty ();
+
+  if (length >= 8192)
+    {
+      for (c = 0; c <= 0xFFFF; c++)
+        if (bytes[c >> 3] & (1 << (c & 7)))
+          uset_add (uset, c);
+
+      offset = 8192;
+      while (offset + 1 + 8192 <= length)
+        {
+          const UInt8 *plane = bytes + offset + 1;
+          UChar32 base = (UChar32)(bytes[offset] << 16);
+
+          for (c = 0; c <= 0xFFFF; c++)
+            if (plane[c >> 3] & (1 << (c & 7)))
+              uset_add (uset, base + c);
+
+          offset += 1 + 8192;
+        }
+    }
+
+  uset_freeze (uset);
+
+  new = (struct __CFCharacterSet*)_CFRuntimeCreateInstance (alloc,
+    _kCFCharacterSetTypeID, CFCHARACTERSET_SIZE, 0);
+  if (new)
+    new->_uset = uset;
+  else
+    uset_close (uset);
+
+  return new;
 }
 
 CFDataRef
 CFCharacterSetCreateBitmapRepresentation (CFAllocatorRef alloc,
   CFCharacterSetRef set)
 {
-  return NULL;
+  CFMutableDataRef data;
+  UInt8 plane[8192];
+  CFIndex p;
+  UChar32 c;
+
+  data = CFDataCreateMutable (alloc, 0);
+
+  for (p = 0; p <= 16; p++)
+    {
+      Boolean any = false;
+
+      memset (plane, 0, sizeof(plane));
+      for (c = 0; c <= 0xFFFF; c++)
+        if (uset_contains (set->_uset, (UChar32)(p << 16) + c))
+          {
+            plane[c >> 3] |= (UInt8)(1 << (c & 7));
+            any = true;
+          }
+
+      if (p != 0 && !any)
+        continue;
+
+      if (p != 0)
+        {
+          UInt8 planeNumber = (UInt8)p;
+          CFDataAppendBytes (data, &planeNumber, 1);
+        }
+      CFDataAppendBytes (data, plane, 8192);
+    }
+
+  return data;
 }
 
 Boolean
