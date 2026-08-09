@@ -113,18 +113,32 @@ void testLargeDict(void)
     }
   }
 
+  Boolean removedAbsent = true;
+  Boolean remainingPresent = true;
+  int firstPresent = -1;
+  int firstMissing = -1;
   for (int i = 0; i < count; i++) {
     id key = [[NSString alloc] initWithFormat:@"key-%d", i];
     void *value = CFDictionaryGetValue(cfdict, (__bridge const void *)key);
-    
+
     if (i < removeCount) {
-      PASS_CF(value == NULL, "CFDictionaryGetValue returns no value for non-existant key '%@'", key);
+      if (value != NULL) {
+        if (removedAbsent) firstPresent = i;
+        removedAbsent = false;
+      }
     } else {
-      PASS_CF(value != NULL, "CFDictionaryGetValue returns value for existant key '%@'", key);
+      if (value == NULL) {
+        if (remainingPresent) firstMissing = i;
+        remainingPresent = false;
+      }
     }
-    
+
     [key release];
   }
+  if (!removedAbsent) fprintf(stderr, "  removed key still present: key-%d\n", firstPresent);
+  PASS_CF(removedAbsent, "CFDictionaryGetValue returns no value for the %d removed keys", removeCount);
+  if (!remainingPresent) fprintf(stderr, "  missing key: key-%d\n", firstMissing);
+  PASS_CF(remainingPresent, "CFDictionaryGetValue returns a value for all remaining keys");
 
   CFRelease(cfdict);
 }
