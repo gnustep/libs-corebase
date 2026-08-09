@@ -45,6 +45,7 @@
 #	include <unistd.h>
 #	include <errno.h>
 #endif
+#include <errno.h>
 #include <stdlib.h>
 
 CONST_STRING_DECL(kCFStreamPropertyDataWritten, "kCFStreamPropertyDataWritten");
@@ -557,7 +558,7 @@ CFStreamGetError (CFErrorRef inError)
 {
   if (!inError)
     {
-      CFStreamError error = { kCFStreamErrorDomainPOSIX, 0 };
+      CFStreamError error = { 0, 0 };
       return error;
     }
   else
@@ -856,7 +857,11 @@ CFWriteStreamBufferWrite (CFWriteStreamRef s, const UInt8 *buffer,
           stream->bufferCapacity = cap;
         }
       else
-        bufferLength = bufSpace;
+        {
+          CFWriteStreamSetError(s, ENOMEM);
+          s->failed = true;
+          return -1;
+        }
     }
 
   GSMemoryCopy(stream->buffer + stream->position, buffer, bufferLength);
@@ -1027,6 +1032,7 @@ CFReadStreamBufferGetBuffer (CFReadStreamRef s, CFIndex maxBytesToRead,
 
   retval = stream->buffer + stream->position;
   stream->position += *numBytesRead;
+  s->atEnd = (stream->position >= stream->bufferCapacity);
 
   return retval;
 }
@@ -1068,6 +1074,8 @@ CFReadStreamGetStatus (CFReadStreamRef stream)
     return kCFStreamStatusClosed;
   else if (stream->failed)
     return kCFStreamStatusError;
+  else if (stream->atEnd)
+    return kCFStreamStatusAtEnd;
   else if (stream->open)
     return kCFStreamStatusOpen;
   else
@@ -1089,6 +1097,8 @@ CFReadStreamHasBytesAvailable (CFReadStreamRef stream)
   CF_OBJC_FUNCDISPATCHV(_kCFReadStreamTypeID, Boolean, stream,
                         "hasBytesAvailable");
 
+  if (!stream->open || stream->closed)
+    return false;
   if (stream->impl.hasBytes != NULL)
     return stream->impl.hasBytes(stream);
   return true;
@@ -1196,6 +1206,7 @@ CFReadStreamBufferRead (CFReadStreamRef s, UInt8 *buffer, CFIndex bufferLength)
 
   GSMemoryCopy(buffer, stream->buffer + stream->position, bufferLength);
   stream->position += bufferLength;
+  s->atEnd = (stream->position >= stream->bufferCapacity);
 
   return bufferLength;
 }
