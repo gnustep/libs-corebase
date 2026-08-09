@@ -832,13 +832,13 @@ CFRange
 CFCalendarGetMaximumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit)
 {
   return CFCalendarGetMinMaxRangeOfUnit (cal, unit,
-    UCAL_GREATEST_MINIMUM, UCAL_LEAST_MAXIMUM);
+    UCAL_MINIMUM, UCAL_MAXIMUM);
 }
 
 CFRange
 CFCalendarGetMinimumRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit)
 {
   return CFCalendarGetMinMaxRangeOfUnit (cal, unit,
-    UCAL_MINIMUM, UCAL_MAXIMUM);
+    UCAL_GREATEST_MINIMUM, UCAL_LEAST_MAXIMUM);
 }
 
