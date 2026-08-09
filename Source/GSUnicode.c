@@ -351,9 +351,12 @@ GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
             {
               c = CFSwapInt32 (*sWorking);
               if (GSCharacterIsSurrogate (c) || c > 0x10FFFF)
-                c = loss;
-              else
-                break;
+                {
+                  if (loss)
+                    c = loss;
+                  else
+                    break;
+                }
               ++sWorking;
               dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
             }
@@ -363,10 +366,13 @@ GSUnicodeFromEncoding (UniChar ** d, const UniChar * const dLimit,
           while (sWorking < (const UTF32Char *) sLimit)
             {
               c = *sWorking;
-              if ((GSCharacterIsSurrogate (c) || c > 0x10FFFF) && loss)
-                c = loss;
-              else
-                break;
+              if (GSCharacterIsSurrogate (c) || c > 0x10FFFF)
+                {
+                  if (loss)
+                    c = loss;
+                  else
+                    break;
+                }
               ++sWorking;
               dWorking += GSUTF16CharacterAppend (dWorking, dLimit, c);
             }
