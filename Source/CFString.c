@@ -1126,7 +1126,44 @@ CFStringFindAndReplace (CFMutableStringRef str, CFStringRef stringToFind,
                         CFStringRef replacementString, CFRange rangeToSearch,
                         CFOptionFlags compareOptions)
 {
-  return 0;                     /* FIXME */
+  CFIndex count;
+  CFIndex replacementLength;
+  CFRange search;
+  CFRange found;
+
+  if (stringToFind == NULL)
+    return 0;
+
+  replacementLength = replacementString != NULL
+    ? CFStringGetLength (replacementString) : 0;
+  search = rangeToSearch;
+  count = 0;
+
+  while (search.length > 0
+         && CFStringFindWithOptions (str, stringToFind, search,
+                                     compareOptions, &found))
+    {
+      if (replacementString != NULL)
+        CFStringReplace (str, found, replacementString);
+      else
+        CFStringDelete (str, found);
+      count++;
+
+      if (compareOptions & kCFCompareBackwards)
+        {
+          search.length = found.location - search.location;
+        }
+      else
+        {
+          CFIndex delta = replacementLength - found.length;
+          CFIndex next = found.location + replacementLength;
+
+          search.length = (search.location + search.length + delta) - next;
+          search.location = next;
+        }
+    }
+
+  return count;
 }
 
 void
