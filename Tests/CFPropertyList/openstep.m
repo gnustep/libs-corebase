@@ -5,12 +5,12 @@
 const UInt8 data[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
 const UInt8 proplist[] = "\357\273\277{\n"
-  "\tstring = \"Quotable String.\";\n"
-  "\tdata = <0102030405060708090A0B0C0D0E0F>;\n"
   "\tarray = (\n"
   "\t\t<0102030405060708090A0B0C0D0E0F>,\n"
   "\t\t\"Quotable String.\"\n"
   "\t);\n"
+  "\tdata = <0102030405060708090A0B0C0D0E0F>;\n"
+  "\tstring = \"Quotable String.\";\n"
   "}\n";
 
 int main (void)
