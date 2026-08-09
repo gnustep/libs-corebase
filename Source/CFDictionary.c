@@ -119,7 +119,7 @@ CFDictionaryCreate (CFAllocatorRef allocator, const void **keys,
   return (CFDictionaryRef)GSHashTableCreate (allocator, _kCFDictionaryTypeID,
     keys, values, numValues,
     (const GSHashTableKeyCallBacks*)keyCallBacks,
-    (const GSHashTableValueCallBacks*)valueCallBacks);
+    (const GSHashTableValueCallBacks*)valueCallBacks, false);
 }
 
 CFDictionaryRef
