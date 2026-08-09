@@ -629,8 +629,9 @@ CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startAT,
     {
       int32_t min = 0;
       int32_t max = 1;
+      int32_t count = 0;
       double millis;
-      
+
       value = NULL;
       switch (unit)
         {
@@ -682,7 +683,14 @@ CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startAT,
             }
         } while (millis < end && U_SUCCESS(err));
       
-      if (millis != end)
+      /* Adding max units now reaches or passes end and adding min units
+         stays before it.  Narrow down to the largest count that does not
+         pass end. */
+      if (millis == end)
+        {
+          count = max;
+        }
+      else
         {
           while ((max - min) > 1 && U_SUCCESS(err))
             {
@@ -693,35 +701,24 @@ CFCalendarGetComponentDifference (CFCalendarRef cal, CFAbsoluteTime startAT,
               else
                 ucal_add (cal->_ucal, field, add, &err);
               millis = ucal_getMillis (ucal, &err);
-              
-              if (millis == end)
-                {
-                  *value = add * mult;
-                  break;
-                }
-              else if (millis < end)
-                {
-                  min = add;
-                }
+
+              if (millis <= end)
+                min = add;
               else
-                {
-                  max = add;
-                }
+                max = add;
             }
-          
-          if (millis > end)
-            *value = min * mult;
+          count = min;
         }
-      else
-        {
-          *value = max * mult;
-        }
-      
+
+      *value = count * mult;
+
+      /* Advance the working date by the units just counted so the next,
+         smaller unit measures the remainder. */
       ucal_setMillis (ucal, start, &err);
       if (options & kCFCalendarComponentsWrap)
-        ucal_roll (cal->_ucal, field, min, &err);
+        ucal_roll (cal->_ucal, field, count, &err);
       else
-        ucal_add (cal->_ucal, field, min, &err);
+        ucal_add (cal->_ucal, field, count, &err);
       start = ucal_getMillis (ucal, &err);
       
       if (U_FAILURE(err))
