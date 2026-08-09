@@ -656,6 +656,32 @@ GSHashTableAddValue (GSHashTableRef table, const void *key, const void *value)
 }
 
 void
+GSHashTableAddValueCounted (GSHashTableRef table, const void *key,
+                           const void *value)
+{
+  GSHashTableBucket *bucket;
+
+  GSHashTableGrowIfNeeded (table);
+
+  bucket = GSHashTableFindBucket (table, key, _kGSHashTableRetrieve);
+  if (!bucket)
+    bucket = GSHashTableFindBucket (table, key, _kGSHashTableInsert);
+
+  if (bucket->count <= 0)
+    {
+      GSHashTableAddKeyValuePair (table, bucket, key, value);
+      table->_count += 1;
+    }
+  else
+    {
+      /* Increment the multiplicity so a bag counts repeated additions;
+       * GSHashTableRemoveValue decrements it symmetrically.
+       */
+      bucket->count += 1;
+    }
+}
+
+void
 GSHashTableReplaceValue (GSHashTableRef table, const void *key,
                          const void *value)
 {

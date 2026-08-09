@@ -141,6 +141,10 @@ GS_PRIVATE void
 GSHashTableAddValue (GSHashTableRef table, const void *key, const void *value);
 
 GS_PRIVATE void
+GSHashTableAddValueCounted (GSHashTableRef table, const void *key,
+                           const void *value);
+
+GS_PRIVATE void
 GSHashTableReplaceValue (GSHashTableRef table, const void *key,
                          const void *value);
 
