@@ -796,50 +796,51 @@ CFURLCreateAbsoluteURLWithBytes (CFAllocatorRef alloc,
   return url;
 }
 
-static CFURLRef
-CFURLCreateByReplacingPath (CFAllocatorRef alloc, CFURLRef url,
-  CFStringRef newPath)
-{
-  CFRange range = url->_ranges[kCFURLComponentPath - 1];
-  CFMutableStringRef str;
-  CFURLRef ret;
-
-  if (range.location == kCFNotFound)
-    return NULL;
-
-  str = CFStringCreateMutableCopy (alloc, 0, url->_urlString);
-  CFStringReplace (str, range, newPath);
-  ret = CFURLCreateWithString (alloc, str, url->_baseURL);
-  CFRelease (str);
-
-  return ret;
-}
-
 CFURLRef
 CFURLCreateCopyAppendingPathComponent (CFAllocatorRef alloc, CFURLRef url,
   CFStringRef pathComponent, Boolean isDirectory)
 {
-  CFStringRef path;
+  CFMutableStringRef newString;
   CFMutableStringRef newPath;
-  CFURLRef ret;
+  CFStringRef path;
+  CFStringRef escaped;
+  CFRange pathRange;
   CFIndex len;
-
+  CFURLRef ret;
+  
+  pathRange = url->_ranges[kCFURLComponentPath - 1];
   path = CFURLCopyPath (url);
-  if (path == NULL)
-    return NULL;
-
-  newPath = CFStringCreateMutableCopy (alloc, 0, path);
+  newPath = CFStringCreateMutableCopy (alloc, 0, path ? path : CFSTR(""));
+  if (path)
+    CFRelease (path);
+  
   len = CFStringGetLength (newPath);
-  if (len == 0 || CFStringGetCharacterAtIndex (newPath, len - 1) != '/')
-    CFStringAppend (newPath, CFSTR("/"));
-  CFStringAppend (newPath, pathComponent);
-  if (isDirectory)
-    CFStringAppend (newPath, CFSTR("/"));
-
-  ret = CFURLCreateByReplacingPath (alloc, url, newPath);
+  if (len > 0 && CFStringGetCharacterAtIndex (newPath, len - 1) != '/')
+    CFStringAppendCString (newPath, "/", kCFStringEncodingASCII);
+  
+  escaped = CFURLCreateStringByAddingPercentEscapes (alloc, pathComponent,
+    NULL, CFSTR("/"), kCFStringEncodingUTF8);
+  CFStringAppend (newPath, escaped);
+  CFRelease (escaped);
+  
+  len = CFStringGetLength (newPath);
+  if (isDirectory
+      && (len == 0 || CFStringGetCharacterAtIndex (newPath, len - 1) != '/'))
+    CFStringAppendCString (newPath, "/", kCFStringEncodingASCII);
+  
+  newString = CFStringCreateMutableCopy (alloc, 0, url->_urlString);
+  if (pathRange.location == kCFNotFound)
+    {
+      CFStringInsert (newString, CFStringGetLength (newString), newPath);
+    }
+  else
+    {
+      CFStringReplace (newString, pathRange, newPath);
+    }
+  
+  ret = CFURLCreateWithString (alloc, newString, url->_baseURL);
+  CFRelease (newString);
   CFRelease (newPath);
-  CFRelease (path);
-
   return ret;
 }
 
@@ -847,125 +848,120 @@ CFURLRef
 CFURLCreateCopyAppendingPathExtension (CFAllocatorRef alloc, CFURLRef url,
   CFStringRef extension)
 {
-  CFStringRef path;
-  CFMutableStringRef newPath;
+  CFMutableStringRef newString;
+  CFRange pathRange;
+  CFIndex insertAt;
   CFURLRef ret;
-  CFIndex len;
-  CFIndex end;
-
-  path = CFURLCopyPath (url);
-  if (path == NULL)
+  
+  pathRange = url->_ranges[kCFURLComponentPath - 1];
+  if (pathRange.location == kCFNotFound || pathRange.length == 0)
     return NULL;
-
-  len = CFStringGetLength (path);
-  end = len;
-  if (end > 0 && CFStringGetCharacterAtIndex (path, end - 1) == '/')
-    end--;
-
-  newPath = CFStringCreateMutableCopy (alloc, 0, path);
-  CFStringInsert (newPath, end, CFSTR("."));
-  CFStringInsert (newPath, end + 1, extension);
-
-  ret = CFURLCreateByReplacingPath (alloc, url, newPath);
-  CFRelease (newPath);
-  CFRelease (path);
-
+  
+  newString = CFStringCreateMutableCopy (alloc, 0, url->_urlString);
+  insertAt = pathRange.location + pathRange.length;
+  while (insertAt > pathRange.location
+         && CFStringGetCharacterAtIndex (newString, insertAt - 1) == '/')
+    --insertAt;
+  if (insertAt == pathRange.location)
+    {
+      CFRelease (newString);
+      return NULL;
+    }
+  
+  CFStringInsert (newString, insertAt, CFSTR("."));
+  CFStringInsert (newString, insertAt + 1, extension);
+  ret = CFURLCreateWithString (alloc, newString, url->_baseURL);
+  CFRelease (newString);
   return ret;
 }
 
 CFURLRef
 CFURLCreateCopyDeletingLastPathComponent (CFAllocatorRef alloc, CFURLRef url)
 {
-  CFStringRef path;
-  CFStringRef newPath;
-  CFURLRef ret;
-  CFIndex len;
+  CFMutableStringRef newString;
+  CFRange pathRange;
+  CFIndex start;
   CFIndex end;
-  CFIndex idx;
-
-  path = CFURLCopyPath (url);
-  if (path == NULL)
-    return NULL;
-
-  len = CFStringGetLength (path);
-  end = len;
-  if (end > 0 && CFStringGetCharacterAtIndex (path, end - 1) == '/')
-    end--;
-
-  idx = -1;
-  {
-    CFIndex i;
-    for (i = end - 1; i >= 0; i--)
-      if (CFStringGetCharacterAtIndex (path, i) == '/')
-        {
-          idx = i;
-          break;
-        }
-  }
-
-  if (idx < 0)
-    newPath = CFStringCreateWithSubstring (alloc, path, CFRangeMake (0, 0));
+  CFIndex slash;
+  CFURLRef ret;
+  
+  pathRange = url->_ranges[kCFURLComponentPath - 1];
+  if (pathRange.location == kCFNotFound || pathRange.length == 0)
+    return CFURLCreateWithString (alloc, url->_urlString, url->_baseURL);
+  
+  start = pathRange.location;
+  end = start + pathRange.length;
+  while (end > start + 1
+         && CFStringGetCharacterAtIndex (url->_urlString, end - 1) == '/')
+    --end;
+  
+  slash = end;
+  while (slash > start
+         && CFStringGetCharacterAtIndex (url->_urlString, slash - 1) != '/')
+    --slash;
+  
+  newString = CFStringCreateMutableCopy (alloc, 0, url->_urlString);
+  if (slash == start)
+    {
+      if (CFStringGetCharacterAtIndex (url->_urlString, start) == '/')
+        CFStringReplace (newString, pathRange, CFSTR("/"));
+      else
+        CFStringDelete (newString, pathRange);
+    }
   else
-    newPath = CFStringCreateWithSubstring (alloc, path,
-      CFRangeMake (0, idx + 1));
-
-  ret = CFURLCreateByReplacingPath (alloc, url, newPath);
-  CFRelease (newPath);
-  CFRelease (path);
-
+    {
+      CFStringDelete (newString,
+        CFRangeMake (slash, pathRange.location + pathRange.length - slash));
+    }
+  
+  ret = CFURLCreateWithString (alloc, newString, url->_baseURL);
+  CFRelease (newString);
   return ret;
 }
 
 CFURLRef
 CFURLCreateCopyDeletingPathExtension (CFAllocatorRef alloc, CFURLRef url)
 {
-  CFStringRef path;
-  CFURLRef ret;
-  CFIndex len;
-  CFIndex end;
+  CFMutableStringRef newString;
+  CFRange pathRange;
   CFIndex start;
+  CFIndex end;
   CFIndex dot;
-  CFIndex idx;
-
-  path = CFURLCopyPath (url);
-  if (path == NULL)
-    return NULL;
-
-  len = CFStringGetLength (path);
-  end = len;
-  if (end > 0 && CFStringGetCharacterAtIndex (path, end - 1) == '/')
-    end--;
-
-  start = 0;
-  for (idx = end - 1; idx >= 0; idx--)
-    if (CFStringGetCharacterAtIndex (path, idx) == '/')
-      {
-        start = idx + 1;
-        break;
-      }
-
-  dot = -1;
-  for (idx = end - 1; idx > start; idx--)
-    if (CFStringGetCharacterAtIndex (path, idx) == '.')
-      {
-        dot = idx;
-        break;
-      }
-
-  if (dot < 0)
+  CFURLRef ret;
+  
+  pathRange = url->_ranges[kCFURLComponentPath - 1];
+  if (pathRange.location == kCFNotFound || pathRange.length == 0)
+    return CFURLCreateWithString (alloc, url->_urlString, url->_baseURL);
+  
+  start = pathRange.location;
+  end = start + pathRange.length;
+  while (end > start
+         && CFStringGetCharacterAtIndex (url->_urlString, end - 1) == '/')
+    --end;
+  
+  dot = end;
+  while (dot > start)
     {
-      ret = CFURLCreateByReplacingPath (alloc, url, path);
+      UniChar c = CFStringGetCharacterAtIndex (url->_urlString, dot - 1);
+      if (c == '/')
+        break;
+      if (c == '.')
+        {
+          --dot;
+          break;
+        }
+      --dot;
     }
-  else
-    {
-      CFMutableStringRef newPath = CFStringCreateMutableCopy (alloc, 0, path);
-      CFStringDelete (newPath, CFRangeMake (dot, end - dot));
-      ret = CFURLCreateByReplacingPath (alloc, url, newPath);
-      CFRelease (newPath);
-    }
-
-  CFRelease (path);
-
+  
+  if (dot == start
+      || CFStringGetCharacterAtIndex (url->_urlString, dot) != '.'
+      || dot == end - 1)
+    return CFURLCreateWithString (alloc, url->_urlString, url->_baseURL);
+  
+  newString = CFStringCreateMutableCopy (alloc, 0, url->_urlString);
+  CFStringDelete (newString, CFRangeMake (dot, end - dot));
+  ret = CFURLCreateWithString (alloc, newString, url->_baseURL);
+  CFRelease (newString);
   return ret;
 }
 
@@ -1139,7 +1135,8 @@ CFURLCreateWithFileSystemPathRelativeToBase (CFAllocatorRef alloc,
           CFRetain (path);
         filePathLen = CFStringGetLength(path);
         if (isDirectory
-            && CFStringGetCharacterAtIndex(path, filePathLen) != '/')
+            && (filePathLen == 0
+                || CFStringGetCharacterAtIndex(path, filePathLen - 1) != '/'))
           {
             CFStringRef tmp;
             tmp = CFStringCreateWithFormat (alloc, NULL, CFSTR("%@/"), path);
@@ -1339,7 +1336,43 @@ CFURLCopyHostName (CFURLRef url)
 CFStringRef
 CFURLCopyLastPathComponent (CFURLRef url)
 {
-  return NULL; /* FIXME */
+  CFStringRef path;
+  CFRange range;
+  CFIndex start;
+  CFIndex end;
+  
+  path = CFURLCopyPath (url);
+  if (path == NULL)
+    return NULL;
+  
+  start = 0;
+  end = CFStringGetLength (path);
+  while (end > start + 1 && CFStringGetCharacterAtIndex (path, end - 1) == '/')
+    --end;
+  while (start < end && CFStringGetCharacterAtIndex (path, end - 1) != '/')
+    --end;
+  if (end < CFStringGetLength (path)
+      && CFStringGetCharacterAtIndex (path, end) == '/')
+    ++end;
+  
+  range = CFRangeMake (end, CFStringGetLength (path) - end);
+  while (range.length > 0
+         && CFStringGetCharacterAtIndex (path,
+              range.location + range.length - 1) == '/')
+    --range.length;
+  
+  if (range.length == 0)
+    {
+      CFRelease (path);
+      return CFStringCreateCopy (CFGetAllocator (url), CFSTR(""));
+    }
+  
+  {
+    CFStringRef ret = CFStringCreateWithSubstring (CFGetAllocator (url), path,
+      range);
+    CFRelease (path);
+    return ret;
+  }
 }
 
 CFStringRef
@@ -1398,7 +1431,41 @@ CFURLCopyPath (CFURLRef url)
 CFStringRef
 CFURLCopyPathExtension (CFURLRef url)
 {
-  return NULL; /* FIXME */
+  CFStringRef component;
+  CFIndex start;
+  CFIndex end;
+  CFIndex dot;
+  
+  component = CFURLCopyLastPathComponent (url);
+  if (component == NULL)
+    return NULL;
+  
+  start = 0;
+  end = CFStringGetLength (component);
+  dot = end;
+  while (dot > start)
+    {
+      if (CFStringGetCharacterAtIndex (component, dot - 1) == '.')
+        {
+          --dot;
+          break;
+        }
+      --dot;
+    }
+  
+  if (dot == start || dot == end - 1
+      || CFStringGetCharacterAtIndex (component, dot) != '.')
+    {
+      CFRelease (component);
+      return NULL;
+    }
+  
+  {
+    CFStringRef ret = CFStringCreateWithSubstring (CFGetAllocator (url),
+      component, CFRangeMake (dot + 1, end - dot - 1));
+    CFRelease (component);
+    return ret;
+  }
 }
 
 CFStringRef
@@ -2003,4 +2070,3 @@ CFURLWriteBookmarkDataToFile (CFDataRef bookmarkRef, CFURLRef fileURL,
 {
   return false; /* FIXME */
 }
-
