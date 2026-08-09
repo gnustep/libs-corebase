@@ -140,8 +140,11 @@ CFCharacterSetCreateWithCharactersInRange (CFAllocatorRef alloc,
     _kCFCharacterSetTypeID, CFCHARACTERSET_SIZE, 0);
   if (new)
     {
-      new->_uset = uset_open ((UChar32)range.location,
-        (UChar32)(range.location + range.length));
+      if (range.length <= 0)
+        new->_uset = uset_openEmpty ();
+      else
+        new->_uset = uset_open ((UChar32)range.location,
+          (UChar32)(range.location + range.length - 1));
       uset_freeze (new->_uset);
     }
   
@@ -378,8 +381,10 @@ void
 CFCharacterSetAddCharactersInRange (CFMutableCharacterSetRef set,
   CFRange range)
 {
+  if (range.length <= 0)
+    return;
   uset_addRange (set->_uset, (UChar32)range.location,
-    (UChar32)(range.location + range.length));
+    (UChar32)(range.location + range.length - 1));
 }
 
 void
@@ -393,8 +398,10 @@ void
 CFCharacterSetRemoveCharactersInRange (CFMutableCharacterSetRef set,
   CFRange range)
 {
+  if (range.length <= 0)
+    return;
   uset_removeRange (set->_uset, (UChar32)range.location,
-    (UChar32)(range.location + range.length));
+    (UChar32)(range.location + range.length - 1));
 }
 
 void
