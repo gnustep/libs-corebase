@@ -80,7 +80,8 @@
 
 
 #define GSAtomicCompareAndSwapPointer(ptr, oldv, newv) \
-  InterlockedCompareExchangePointer((ptr), (newv), (oldv))
+  InterlockedCompareExchangePointer((PVOID volatile*)(ptr), \
+    (PVOID)(newv), (PVOID)(oldv))
 
 #else /* _WIN32 */
 
