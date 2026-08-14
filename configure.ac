@@ -99,12 +99,15 @@ AC_ARG_ENABLE(cfrunloop,
     Disables CFRunLoop support and requiring pthread.
     Must be passed when building on Windows.],
   [],
-  [AC_CHECK_HEADERS([unistd.h fcntl.h poll.h limits.h pthread.h],
-    [AC_SEARCH_LIBS(pthread_join, [pthread pthreadG32 pthreadVC2],
-      [AC_DEFINE(HAVE_CFRUNLOOP_SUPPORT, 1,
-        [Define to 1 if the required libraries and headers for CFRunLoop are present.])],
-      [AC_MSG_ERROR([Missing pthread library for CFRunLoop support.])])],
-    [AC_MSG_ERROR([Missing headers for CFRunLoop support.])])])
+  [gs_cv_cfrunloop_headers=yes
+   AC_CHECK_HEADERS([unistd.h fcntl.h poll.h limits.h pthread.h], [],
+     [gs_cv_cfrunloop_headers=no])
+   AS_IF([test "x$gs_cv_cfrunloop_headers" = "xyes"],
+     [AC_SEARCH_LIBS(pthread_join, [pthread pthreadG32 pthreadVC2],
+        [AC_DEFINE(HAVE_CFRUNLOOP_SUPPORT, 1,
+          [Define to 1 if the required libraries and headers for CFRunLoop are present.])],
+        [AC_MSG_ERROR([Missing pthread library for CFRunLoop support.])])],
+     [AC_MSG_ERROR([Missing headers for CFRunLoop support.])])])
 
 #---
 # Check for ICU
