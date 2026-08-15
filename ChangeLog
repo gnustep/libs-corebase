@@ -13,6 +13,10 @@
 	multi-batch, and repeated-enumeration cases.
 
 2026-06-28  Todd White  <todd.white@thalion.global>
+	* Tests/CFURL/file_system_path.m: Regression test for a directory
+	path that already ends in '/'.
+
+2026-06-28  Todd White  <todd.white@thalion.global>
 	* Source/CFLocale.c (CFLocaleCreateCanonicalLanguageIdentifierFromString):
 	Pass the real buffer size to uloc_canonicalize.
 
