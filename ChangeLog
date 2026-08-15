@@ -89,6 +89,12 @@
 	* Source/CFDateFormatter.c (CFDateFormatterGetAbsoluteTimeFromString):
 	Fix buffer overflow.
 
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCreateStringByReplacingPercentEscapesUsingEncoding):
+	Bound the percent-escape hex-digit and look-ahead reads against the
+	string length so a trailing '%' does not read past the end.
+	* Tests/CFURL/escaping.m: Regression test for a trailing '%'.
+
 2026-06-27  DTW-Thalion  <todd.white@thalion.global>
 	* Source/CFURL.c (CFURLCreateStringByAddingPercentEscapes): Size the
 	output buffer for the worst-case percent-escape expansion (3 * MAX_BYTES
