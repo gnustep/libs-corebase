@@ -13,6 +13,13 @@
 	multi-batch, and repeated-enumeration cases.
 
 2026-06-28  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCreate_internal): Return NULL when the input
+	string is NULL instead of dereferencing it in CFURLStringParse.
+	(CFURLCreateWithFileSystemPathRelativeToBase): Return NULL when the
+	path-style converter (e.g. the HFS stub, or a single-component
+	Windows path) yields NULL, rather than using and releasing it.
+	* Tests/CFURL/file_system_path.m: Regression tests for the HFS and
+	single-component Windows path cases.
 	* Source/CFArray.c (CFArrayCheckCapacityAndGrow): Grow to at least
 	the requested capacity, not just by DEFAULT_ARRAY_CAPACITY.
 	(CFArrayReplaceValues): Capture the original count up front and
