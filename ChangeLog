@@ -20,6 +20,8 @@
 	Windows path) yields NULL, rather than using and releasing it.
 	* Tests/CFURL/file_system_path.m: Regression tests for the HFS and
 	single-component Windows path cases.
+	* Tests/CFURL/file_system_path.m: Regression test for a directory
+	path that already ends in '/'.
 
 2026-06-28  Todd White  <todd.white@thalion.global>
 	* Source/CFLocale.c (CFLocaleCreateCanonicalLanguageIdentifierFromString):
@@ -88,9 +90,21 @@
 	all 16 bytes, and size the scratch buffer at 37.
 	* Tests/CFUUID/create.m: Add a CFUUIDCreateFromString round-trip test.
 
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/GSUnicode.c (_pad): Advance obuf between PAD_SIZE chunks
+	so wide padding is written contiguously instead of overwriting the
+	same position and leaving uninitialised gaps in the output.
+	* Tests/CFString/format_int.m: Tests for padding wider than PAD_SIZE.
+
 2026-06-27  DTW-Thalion  <todd.white@thalion.global>
 	* Source/CFDateFormatter.c (CFDateFormatterGetAbsoluteTimeFromString):
 	Fix buffer overflow.
+
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCreateStringByReplacingPercentEscapesUsingEncoding):
+	Bound the percent-escape hex-digit and look-ahead reads against the
+	string length so a trailing '%' does not read past the end.
+	* Tests/CFURL/escaping.m: Regression test for a trailing '%'.
 
 2026-06-27  DTW-Thalion  <todd.white@thalion.global>
 	* Source/CFURL.c (CFURLCreateStringByAddingPercentEscapes): Size the
