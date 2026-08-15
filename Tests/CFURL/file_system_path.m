@@ -79,6 +79,34 @@ int main (void)
     "An empty URL is not a directory path (no negative index).");
   CFRelease (url);
 
+  /* Both of these reach CFURLCreate_internal() with a NULL string here:
+     CFURLCreateStringFromHFSPathStyle() is a stub that always returns
+     NULL, and a single-component relative Windows path combines to NULL.
+     Either one used to be passed to CFStringGetLength().  Apple converts
+     both and answers a URL, so only the call returning at all is common
+     to the two implementations. */
+  url = CFURLCreateWithFileSystemPath (NULL, CFSTR("foo"),
+    kCFURLHFSPathStyle, false);
+#ifdef __APPLE__
+  PASS_CF(url != NULL, "An HFS path yields a URL.");
+#else
+  PASS_CF(url == NULL, "An HFS path yields NULL without crashing.");
+#endif
+  if (url != NULL)
+    CFRelease (url);
+
+  url = CFURLCreateWithFileSystemPath (NULL, CFSTR("c"),
+    kCFURLWindowsPathStyle, false);
+#ifdef __APPLE__
+  PASS_CF(url != NULL,
+    "A single-component relative Windows path yields a URL.");
+#else
+  PASS_CF(url == NULL,
+    "A single-component relative Windows path yields NULL without crashing.");
+#endif
+  if (url != NULL)
+    CFRelease (url);
+
   /* A directory path that already ends in '/' must not gain a second one:
      the trailing-separator test must look at the last character, not one
      past the end of the string. */
