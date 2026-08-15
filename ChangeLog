@@ -79,6 +79,12 @@
 	all 16 bytes, and size the scratch buffer at 37.
 	* Tests/CFUUID/create.m: Add a CFUUIDCreateFromString round-trip test.
 
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/GSUnicode.c (_pad): Advance obuf between PAD_SIZE chunks
+	so wide padding is written contiguously instead of overwriting the
+	same position and leaving uninitialised gaps in the output.
+	* Tests/CFString/format_int.m: Tests for padding wider than PAD_SIZE.
+
 2026-06-27  DTW-Thalion  <todd.white@thalion.global>
 	* Source/CFDateFormatter.c (CFDateFormatterGetAbsoluteTimeFromString):
 	Fix buffer overflow.
