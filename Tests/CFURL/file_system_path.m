@@ -79,5 +79,14 @@ int main (void)
     "An empty URL is not a directory path (no negative index).");
   CFRelease (url);
 
+  /* A directory path that already ends in '/' must not gain a second one:
+     the trailing-separator test must look at the last character, not one
+     past the end of the string. */
+  url = CFURLCreateWithFileSystemPath (NULL, CFSTR("foo/"),
+    kCFURLPOSIXPathStyle, true);
+  str = CFURLGetString (url);
+  PASS_CFEQ(str, CFSTR("foo/"), "A trailing '/' is not duplicated");
+  CFRelease (url);
+
   return false;
 }
