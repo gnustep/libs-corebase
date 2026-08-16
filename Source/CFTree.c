@@ -195,18 +195,39 @@ CFTreePrependChild (CFTreeRef tree, CFTreeRef newChild)
 void
 CFTreeRemove (CFTreeRef tree)
 {
-  CFTreeRef child;
-  CFTreeRef previousSibling;
-  
-  previousSibling = NULL;
-  child = tree->_firstChild;
-  while (child != previousSibling)
-    child = child->_nextSibling;
-  
-  if (previousSibling)
-    previousSibling->_nextSibling = tree->_nextSibling;
-  
-  CFTreeFinalize (tree);
+  CFTreeRef parent = tree->_parent;
+
+  if (parent == NULL)
+    return;
+
+  /* Unlink the tree from its parent's list of children. */
+  if (parent->_firstChild == tree)
+    {
+      parent->_firstChild = tree->_nextSibling;
+    }
+  else
+    {
+      CFTreeRef previousSibling = parent->_firstChild;
+
+      while (previousSibling != NULL
+             && previousSibling->_nextSibling != tree)
+        previousSibling = previousSibling->_nextSibling;
+      if (previousSibling != NULL)
+        previousSibling->_nextSibling = tree->_nextSibling;
+    }
+
+  /* Fix up the parent's last-child pointer if we removed the last child. */
+  if (parent->_lastChild == tree)
+    {
+      CFTreeRef last = parent->_firstChild;
+
+      while (last != NULL && last->_nextSibling != NULL)
+        last = last->_nextSibling;
+      parent->_lastChild = last;
+    }
+
+  tree->_parent = NULL;
+  tree->_nextSibling = NULL;
 }
 
 void
