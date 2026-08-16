@@ -198,7 +198,9 @@ CFBagCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
 void
 CFBagAddValue (CFMutableBagRef bag, const void *value)
 {
-  GSHashTableAddValue ((GSHashTableRef)bag, value, value);
+  /* A bag is a counted collection: adding a value already present must
+     increase its count (CFBagRemoveValue decreases it). */
+  GSHashTableAddValueCounted ((GSHashTableRef)bag, value, value);
 }
 
 void

@@ -656,6 +656,30 @@ GSHashTableAddValue (GSHashTableRef table, const void *key, const void *value)
 }
 
 void
+GSHashTableAddValueCounted (GSHashTableRef table, const void *key,
+                            const void *value)
+{
+  GSHashTableBucket *bucket;
+
+  GSHashTableGrowIfNeeded (table);
+
+  bucket = GSHashTableFindBucket (table, key, _kGSHashTableRetrieve);
+  if (!bucket)
+    bucket = GSHashTableFindBucket (table, key, _kGSHashTableInsert);
+
+  if (bucket->count <= 0)
+    {
+      GSHashTableAddKeyValuePair (table, bucket, key, value);
+      table->_count += 1;
+    }
+  else
+    {
+      /* Already present: record one more reference. */
+      bucket->count += 1;
+    }
+}
+
+void
 GSHashTableReplaceValue (GSHashTableRef table, const void *key,
                          const void *value)
 {
