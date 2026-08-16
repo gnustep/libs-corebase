@@ -34,6 +34,28 @@
 	_lastChild, and clear the node's _parent and _nextSibling.
 	* Tests/CFTree/basic.m: Regression tests for CFTreeRemove; release
 	the tree before its (unretained) children.
+	* Source/CFBinaryHeap.c (CFBinaryHeapCreateCopy): Enlarge the copy's
+	capacity to at least the source count before copying the values.
+	(CFBinaryHeapRemoveMinimumValue): Do nothing on an empty heap
+	instead of reading _values[-1] and setting _count to -1.
+	* Tests/CFBinaryHeap/general.m: Regression tests.
+	* Source/CFURL.c (CFURLCreate_internal): Return NULL when the input
+	string is NULL instead of dereferencing it in CFURLStringParse.
+	(CFURLCreateWithFileSystemPathRelativeToBase): Return NULL when the
+	path-style converter (e.g. the HFS stub, or a single-component
+	Windows path) yields NULL, rather than using and releasing it.
+	* Tests/CFURL/file_system_path.m: Regression tests for the HFS and
+	single-component Windows path cases.
+	* Source/CFArray.c (CFArrayCheckCapacityAndGrow): Grow to at least
+	the requested capacity, not just by DEFAULT_ARRAY_CAPACITY.
+	(CFArrayReplaceValues): Capture the original count up front and
+	recompute the destination pointer after growing, fixing a too-small
+	grow, an over-long memmove, and a write into the pre-grow buffer.
+	(CFArrayCreateMutableCopy): Clamp the capacity to the source count
+	on the non-Objective-C path before writing the contents.
+	* Tests/CFArray/mutablearray.m: Regression tests.
+	* Tests/CFURL/file_system_path.m: Regression test for a directory
+	path that already ends in '/'.
 
 2026-06-28  Todd White  <todd.white@thalion.global>
 	* Source/CFLocale.c (CFLocaleCreateCanonicalLanguageIdentifierFromString):
@@ -102,9 +124,21 @@
 	all 16 bytes, and size the scratch buffer at 37.
 	* Tests/CFUUID/create.m: Add a CFUUIDCreateFromString round-trip test.
 
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/GSUnicode.c (_pad): Advance obuf between PAD_SIZE chunks
+	so wide padding is written contiguously instead of overwriting the
+	same position and leaving uninitialised gaps in the output.
+	* Tests/CFString/format_int.m: Tests for padding wider than PAD_SIZE.
+
 2026-06-27  DTW-Thalion  <todd.white@thalion.global>
 	* Source/CFDateFormatter.c (CFDateFormatterGetAbsoluteTimeFromString):
 	Fix buffer overflow.
+
+2026-06-27  Todd White  <todd.white@thalion.global>
+	* Source/CFURL.c (CFURLCreateStringByReplacingPercentEscapesUsingEncoding):
+	Bound the percent-escape hex-digit and look-ahead reads against the
+	string length so a trailing '%' does not read past the end.
+	* Tests/CFURL/escaping.m: Regression test for a trailing '%'.
 
 2026-06-27  DTW-Thalion  <todd.white@thalion.global>
 	* Source/CFURL.c (CFURLCreateStringByAddingPercentEscapes): Size the
