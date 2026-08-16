@@ -86,6 +86,35 @@ int main (void)
       }
   }
 
+  {
+    const void *big[20];
+    CFArrayRef bigArr;
+    CFMutableArrayRef mc;
+    CFMutableArrayRef target;
+    int i;
+
+    for (i = 0; i < 20; i++)
+      big[i] = (const void *)(CFIndex)(i + 1);
+    bigArr = CFArrayCreate (NULL, big, 20, NULL);
+
+    /* A mutable copy whose requested capacity is smaller than the source
+       count must still hold every value (no write past the buffer). */
+    mc = CFArrayCreateMutableCopy (NULL, 0, bigArr);
+    PASS_CF(CFArrayGetCount (mc) == 20
+      && CFArrayGetValueAtIndex (mc, 19) == (const void *)(CFIndex)20,
+      "MutableCopy with capacity 0 holds all 20 values.");
+    CFRelease (mc);
+
+    /* Appending a whole array grows by more than the default chunk at once. */
+    target = CFArrayCreateMutable (NULL, 0, NULL);
+    CFArrayAppendArray (target, bigArr, CFRangeMake (0, 20));
+    PASS_CF(CFArrayGetCount (target) == 20
+      && CFArrayGetValueAtIndex (target, 19) == (const void *)(CFIndex)20,
+      "AppendArray of 20 values grows the array correctly.");
+    CFRelease (target);
+    CFRelease (bigArr);
+  }
+
   return 0;
 }
 

@@ -35,6 +35,33 @@ int main (void)
   PASS_CF(n == 5, "Minimum value in binary heap is %d.", (int)n);
   
   CFRelease (heap);
-  
+
+  /* A copy with a requested capacity smaller than the count must still
+     hold every value (no write past the buffer). */
+  {
+    CFBinaryHeapRef big = CFBinaryHeapCreate (NULL, 0, NULL, NULL);
+    CFBinaryHeapRef copy;
+    CFIndex i;
+
+    for (i = 0; i < 20; i++)
+      CFBinaryHeapAddValue (big, (const void *)(i + 1));
+    copy = CFBinaryHeapCreateCopy (NULL, 0, big);
+    PASS_CF(CFBinaryHeapGetCount (copy) == 20
+      && (CFIndex)CFBinaryHeapGetMinimum (copy) == 1,
+      "A copy with capacity 0 holds all 20 values.");
+    CFRelease (copy);
+    CFRelease (big);
+  }
+
+  /* Removing from an empty heap must be a no-op, not read out of bounds. */
+  {
+    CFBinaryHeapRef empty = CFBinaryHeapCreate (NULL, 0, NULL, NULL);
+
+    CFBinaryHeapRemoveMinimumValue (empty);
+    PASS_CF(CFBinaryHeapGetCount (empty) == 0,
+      "Removing from an empty heap leaves it empty.");
+    CFRelease (empty);
+  }
+
   return 0;
 }
