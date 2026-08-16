@@ -22,7 +22,7 @@
 	(CFPropertyListCreateWithData): Free the separately allocated buffer
 	on every path, and free start rather than the advanced tmp pointer.
 	* Tests/CFPropertyList/openstep.m: Regression tests for a large
-	string and a comment-only list.
+	string and for a comment that runs to the end of the data.
 	* Source/CFAttributedString.c (CFATTRIBUTESTRING_SIZE,
 	CFMUTABLEATTRIBUTESTRING_SIZE): Compute the instance extra size as
 	sizeof(struct ...) - sizeof(CFRuntimeBase).

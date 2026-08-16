@@ -93,21 +93,21 @@ int main (void)
   }
 
   {
-    /* A "//" comment with no trailing newline that fills the buffer must
-       be stopped at the end of the data, not read past it. */
+    /* A "//" comment with no trailing newline that runs to the end of the
+       buffer must stop there.  The array is left unterminated, so the parse
+       fails, but the scan must not read past the end of the data. */
     UInt8 c[1200];
     CFDataRef cData;
     CFPropertyListRef cPlist;
 
-    c[0] = '/';
-    c[1] = '/';
-    memset (c + 2, ' ', 1100);
+    memcpy (c, "(foo //", 7);
+    memset (c + 7, ' ', 1095);
     cData = CFDataCreate (NULL, c, 1102);
     cPlist = CFPropertyListCreateWithData (NULL, cData,
                                            kCFPropertyListImmutable, NULL,
                                            NULL);
     PASS_CF (cPlist == NULL,
-             "A comment-only property list returns NULL without overreading.");
+             "An unterminated array ending in a comment returns NULL.");
     if (cPlist)
       CFRelease (cPlist);
     CFRelease (cData);
