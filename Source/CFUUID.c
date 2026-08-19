@@ -64,11 +64,11 @@ static void CFsrandomdev (void)
   #include <sys/types.h>
   #include <sys/stat.h>
   #include <time.h>
+  #include <unistd.h>
   #define INITRANDOM() CFsrandomdev()
   #if defined(__linux__)
     #include <fcntl.h>
     #include <errno.h>
-    #include <unistd.h>
 static void CFsrandomdev(void)
 {
   int fd;
@@ -351,4 +351,3 @@ CFUUIDGetTypeID (void)
 {
   return _kCFUUIDTypeID;
 }
-
