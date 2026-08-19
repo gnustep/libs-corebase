@@ -112,7 +112,7 @@ AC_ARG_ENABLE(cfrunloop,
 AC_ARG_WITH([icu],
   AS_HELP_STRING([--without-icu],
     [Disable Internation Components for Unicode. WARNING: Many components will stop working without ICU support!]), [], [with_icu=yes])
-AS_IF([test x"with_icu" != xno],
+AS_IF([test x"$with_icu" != xno],
   [found_icu=no
   AS_CASE([$target_os],
     [mingw*|windows], [ # check for ICU bundled with Windows 10
