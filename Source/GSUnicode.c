@@ -443,44 +443,41 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
            || enc == kCFStringEncodingUTF16LE)
     {
       UTF16Char *dWorking;
-      CFIndex dLen;
-      CFIndex sLen;
-      CFIndex bytesToCopy;
+      const UniChar *sWorking;
+      Boolean swap;
 
       dWorking = (UTF16Char *) dStart;
+      sWorking = *s;
 
-      if (addBOM && dWorking < (UTF16Char *) dLimit)
+      swap = false;
+#if __BIG_ENDIAN__
+      if (enc == kCFStringEncodingUTF16LE)
+        swap = true;
+#else
+      if (enc == kCFStringEncodingUTF16BE)
+        swap = true;
+#endif
+
+      /* Only the endianness-neutral encoding carries a byte order mark. */
+      if (addBOM && enc == kCFStringEncodingUTF16
+          && (dLimit == NULL || (const UInt8 *) (dWorking + 1) <= dLimit))
         {
           if (dLimit != NULL)
             *dWorking = kGSUTF16CharacterByteOrderMark;
           ++dWorking;
         }
 
-      dLen = dLimit - (const UInt8*) dWorking;
-      sLen = sLimit - *s;
-      bytesToCopy = dLen > sLen ? sLen : dLen;
-      GSMemoryCopy (dWorking, *s, bytesToCopy);
-
-#if __BIG_ENDIAN__
-      if (enc == kCFStringEncodingUTF32LE)
-#else
-      if (enc == kCFStringEncodingUTF32BE)
-#endif
+      while (sWorking < sLimit
+             && (dLimit == NULL || (const UInt8 *) (dWorking + 1) <= dLimit))
         {
-          dWorking = (UTF16Char *) dStart;
-          while (dWorking < (UTF16Char *) dLimit)
-            {
-              *dWorking = CFSwapInt16 (*dWorking);
-              ++dWorking;
-            }
-          dStop = (UInt8 *) dWorking;
-        }
-      else
-        {
-          dStop += bytesToCopy;
+          UTF16Char c = *sWorking++;
+          if (dLimit != NULL)
+            *dWorking = swap ? CFSwapInt16 (c) : c;
+          ++dWorking;
         }
 
-      *s += bytesToCopy / sizeof (UniChar);
+      dStop = (UInt8 *) dWorking;
+      *s = sWorking;
     }
   else if (enc == kCFStringEncodingUTF32
            || enc == kCFStringEncodingUTF32BE
