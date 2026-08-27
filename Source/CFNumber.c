@@ -327,8 +327,33 @@ CFNumberCompare (CFNumberRef num, CFNumberRef oNum,
     "compare:", oNum);
   CF_OBJC_FUNCDISPATCHV(_kCFNumberTypeID, CFComparisonResult, oNum,
     "compare:", num);
-  
-  return -1;
+
+  if (CFNumberIsFloatType (num) || CFNumberIsFloatType (oNum))
+    {
+      Float64 a;
+      Float64 b;
+
+      CFNumberGetValue (num, kCFNumberFloat64Type, &a);
+      CFNumberGetValue (oNum, kCFNumberFloat64Type, &b);
+      if (a < b)
+        return kCFCompareLessThan;
+      if (a > b)
+        return kCFCompareGreaterThan;
+      return kCFCompareEqualTo;
+    }
+  else
+    {
+      SInt64 a;
+      SInt64 b;
+
+      CFNumberGetValue (num, kCFNumberSInt64Type, &a);
+      CFNumberGetValue (oNum, kCFNumberSInt64Type, &b);
+      if (a < b)
+        return kCFCompareLessThan;
+      if (a > b)
+        return kCFCompareGreaterThan;
+      return kCFCompareEqualTo;
+    }
 }
 
 CFNumberRef
