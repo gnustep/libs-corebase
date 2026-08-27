@@ -191,13 +191,10 @@ CFAbsoluteTimeToFields (CFAbsoluteTime at, SInt32 *year, SInt8 *month,
   if (weekOfYear)
     *weekOfYear = d / 7 % 52; /* FIXME: I don't think this is correct. */
   if (dayOfWeek)
-    {
-      *dayOfWeek = (int)days % 7;
-      /* 2001-01-01 was a Monday (day of week == 1), so that's our base. */
-      *dayOfWeek += *dayOfWeek < 1 ? 7 : 1;
-    }
+    /* 2001-01-01 was a Monday (day of week == 1), so that's our base. */
+    *dayOfWeek = (((int)days % 7) + 7) % 7 + 1;
   if (dayOfYear)
-    *dayOfYear = d;
+    *dayOfYear = d + 1;
   
   /* Find the month by walking forward through the half of the table that
      corresponds to the year type (leap years start at index 12).  Stop at
