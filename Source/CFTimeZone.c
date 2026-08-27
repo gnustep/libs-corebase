@@ -306,11 +306,29 @@ CFTimeZoneCreateWithTimeIntervalFromGMT (CFAllocatorRef alloc,
   tzfile.header.tzh_timecnt[3] = 1;
   tzfile.header.tzh_typecnt[3] = 1;
   tzfile.ttinfo.offset = CFSwapInt32HostToBig((SInt32)ti);
-  numChars = snprintf (tzfile.abbrev, 10, "GMT%c%02d:%02d", sign, hour, min);
-  tzfile.header.tzh_charcnt[3] = numChars;
-  
-  name = CFStringCreateWithCString (alloc, tzfile.abbrev,
-                                    kCFStringEncodingASCII);
+  /* The abbreviation is compact (GMT+5, GMT+5:30) while the name is padded
+     to four digits (GMT+0500).  A zero offset is just GMT. */
+  {
+    char nameBuf[16];
+
+    if ((SInt32) ti == 0)
+      {
+        numChars = snprintf (tzfile.abbrev, 10, "GMT");
+        snprintf (nameBuf, sizeof (nameBuf), "GMT");
+      }
+    else
+      {
+        if (min == 0)
+          numChars = snprintf (tzfile.abbrev, 10, "GMT%c%d", sign, hour);
+        else
+          numChars = snprintf (tzfile.abbrev, 10, "GMT%c%d:%02d",
+            sign, hour, min);
+        snprintf (nameBuf, sizeof (nameBuf), "GMT%c%02d%02d", sign, hour, min);
+      }
+    tzfile.header.tzh_charcnt[3] = numChars;
+
+    name = CFStringCreateWithCString (alloc, nameBuf, kCFStringEncodingASCII);
+  }
   data = CFDataCreateWithBytesNoCopy (alloc, (UInt8*)&tzfile,
     sizeof(struct TZFile) - (10 - numChars), kCFAllocatorNull);
   new = CFTimeZoneCreate (alloc, name, data);
