@@ -795,18 +795,79 @@ CFCalendarGetTimeRangeOfUnit (CFCalendarRef cal, CFCalendarUnit unit,
   return true;
 }
 
+/* The ICU field that represents smallerUnit measured within biggerUnit. */
+static UCalendarDateFields
+CFCalendarCompoundField (CFCalendarUnit smaller, CFCalendarUnit bigger)
+{
+  switch (smaller)
+    {
+      case kCFCalendarUnitDay:
+      case kCFCalendarUnitWeekday:
+        if (bigger == kCFCalendarUnitYear)
+          return UCAL_DAY_OF_YEAR;
+        if (bigger == kCFCalendarUnitWeek)
+          return UCAL_DAY_OF_WEEK;
+        return UCAL_DATE;
+      case kCFCalendarUnitMonth:
+        return UCAL_MONTH;
+      case kCFCalendarUnitWeek:
+        if (bigger == kCFCalendarUnitMonth)
+          return UCAL_WEEK_OF_MONTH;
+        return UCAL_WEEK_OF_YEAR;
+      case kCFCalendarUnitHour:
+        return UCAL_HOUR_OF_DAY;
+      case kCFCalendarUnitMinute:
+        return UCAL_MINUTE;
+      case kCFCalendarUnitSecond:
+        return UCAL_SECOND;
+      default:
+        return (UCalendarDateFields) -1;
+    }
+}
+
 CFRange
 CFCalendarGetRangeOfUnit (CFCalendarRef cal, CFCalendarUnit smallerUnit,
   CFCalendarUnit biggerUnit, CFAbsoluteTime at)
 {
-  return CFRangeMake (kCFNotFound, kCFNotFound);
+  UCalendarDateFields field;
+  UErrorCode err = U_ZERO_ERROR;
+  int32_t min, max;
+
+  field = CFCalendarCompoundField (smallerUnit, biggerUnit);
+  if (field == (UCalendarDateFields) -1)
+    return CFRangeMake (kCFNotFound, kCFNotFound);
+
+  CFCalendarOpenUCalendar (cal);
+  ucal_setMillis (cal->_ucal, ABSOLUTETIME_TO_UDATE (at), &err);
+  min = ucal_getLimit (cal->_ucal, field, UCAL_ACTUAL_MINIMUM, &err);
+  max = ucal_getLimit (cal->_ucal, field, UCAL_ACTUAL_MAXIMUM, &err);
+  if (U_FAILURE (err))
+    return CFRangeMake (kCFNotFound, kCFNotFound);
+
+  /* ICU numbers months from zero. */
+  return CFRangeMake (field == UCAL_MONTH ? min + 1 : min, max - min + 1);
 }
 
 CFIndex
 CFCalendarGetOrdinalityOfUnit (CFCalendarRef cal, CFCalendarUnit smallerUnit,
   CFCalendarUnit biggerUnit, CFAbsoluteTime at)
 {
-  return kCFNotFound;
+  UCalendarDateFields field;
+  UErrorCode err = U_ZERO_ERROR;
+  int32_t value;
+
+  field = CFCalendarCompoundField (smallerUnit, biggerUnit);
+  if (field == (UCalendarDateFields) -1)
+    return kCFNotFound;
+
+  CFCalendarOpenUCalendar (cal);
+  ucal_setMillis (cal->_ucal, ABSOLUTETIME_TO_UDATE (at), &err);
+  value = ucal_get (cal->_ucal, field, &err);
+  if (U_FAILURE (err))
+    return kCFNotFound;
+
+  /* ICU numbers months from zero. */
+  return field == UCAL_MONTH ? value + 1 : value;
 }
 
 static CFRange
