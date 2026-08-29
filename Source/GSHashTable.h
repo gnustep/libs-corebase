@@ -92,7 +92,8 @@ GS_PRIVATE GSHashTableRef
 GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
                    const void **keys, const void **values, CFIndex count,
                    const GSHashTableKeyCallBacks * keyCallBacks,
-                   const GSHashTableValueCallBacks * valueCallBacks);
+                   const GSHashTableValueCallBacks * valueCallBacks,
+                   Boolean shouldCount);
 
 GS_PRIVATE GSHashTableRef
 GSHashTableCreateCopy (CFAllocatorRef alloc, GSHashTableRef table);

@@ -268,7 +268,8 @@ GSHashTableRef
 GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
                    const void **keys, const void **values, CFIndex numValues,
                    const GSHashTableKeyCallBacks * keyCallBacks,
-                   const GSHashTableValueCallBacks * valueCallBacks)
+                   const GSHashTableValueCallBacks * valueCallBacks,
+                   Boolean shouldCount)
 {
   CFIndex arraySize;
   CFIndex capacity;
@@ -290,6 +291,9 @@ GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
 
       new->_capacity = capacity;
 
+      if (shouldCount)
+        GSHashTableSetShouldCount (new);
+
       if (keyCallBacks == NULL)
         keyCallBacks = &_kGSNullHashTableKeyCallBacks;
       if (valueCallBacks == NULL)
@@ -306,8 +310,12 @@ GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
             {
               bucket = GSHashTableFindBucket (new, keys[idx],
                                               _kGSHashTableInsert);
-              GSHashTableAddKeyValuePair (new, bucket, keys[idx], values[idx]);
-              new->_count += 1;
+              if (shouldCount || bucket->count <= 0)
+                {
+                  GSHashTableAddKeyValuePair (new, bucket, keys[idx],
+                                              values[idx]);
+                  new->_count += 1;
+                }
             }
         }
     }
@@ -324,7 +332,8 @@ GSHashTableCreateCopy (CFAllocatorRef alloc, GSHashTableRef table)
   count = GSHashTableGetCount (table);
   new = GSHashTableCreate (alloc, CFGetTypeID (table), NULL, NULL,
                            count, &table->_keyCallBacks,
-                           &table->_valueCallBacks);
+                           &table->_valueCallBacks,
+                           GSHashTableShouldCount (table));
   if (new)
     {
       CFIndex idx;

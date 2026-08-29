@@ -108,7 +108,7 @@ CFBagCreate (CFAllocatorRef allocator, const void **values, CFIndex numValues,
 {
   return (CFBagRef)GSHashTableCreate (allocator, _kCFBagTypeID,
     values, values, numValues,
-    (const GSHashTableKeyCallBacks*)callBacks, NULL);
+    (const GSHashTableKeyCallBacks*)callBacks, NULL, true);
 }
 
 CFBagRef
