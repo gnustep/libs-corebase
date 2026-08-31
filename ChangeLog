@@ -1,3 +1,11 @@
+2026-07-11  Todd White  <todd.white@thalion.global>
+	* Source/CFPropertyList.c (CFPropertyListCreateDeepCopy): Return
+	NULL for an invalid property list.
+	(CFPlistDeepCopy): New internal recursive helper.  The type IDs are
+	already initialised by the CFPropertyListIsValid call, so it does
+	not initialise them again.
+	* Tests/CFPropertyList/deepcopy_invalid.m: New test.
+
 2026-07-02  Rupert Daniel <rupert@algoriddim.com>
 	* Source/NSCFDictionary.m,
 	* Source/NSCFSet.m: Fix -countByEnumeratingWithState:objects:count:,
