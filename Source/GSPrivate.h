@@ -88,7 +88,7 @@
 #define GSMutexInitialize(x) pthread_mutex_init(x, NULL)
 #define GSMutexLock(x) pthread_mutex_lock(x)
 #define GSMutexUnlock(x) pthread_mutex_unlock(x)
-#define GSMutexDestroy(x) pthraed_mutex_destroy(x)
+#define GSMutexDestroy(x) pthread_mutex_destroy(x)
 
 #if defined(__llvm__) \
       || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))

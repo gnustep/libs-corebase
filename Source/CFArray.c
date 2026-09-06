@@ -446,7 +446,10 @@ CFArrayCheckCapacityAndGrow (CFMutableArrayRef array, CFIndex newCapacity)
 
   if (mArray->_capacity < newCapacity)
     {
-      newCapacity = mArray->_capacity + DEFAULT_ARRAY_CAPACITY;
+      /* Grow by at least DEFAULT_ARRAY_CAPACITY, but never to less than the
+         requested capacity (a single operation may need more than that). */
+      if (newCapacity < mArray->_capacity + DEFAULT_ARRAY_CAPACITY)
+        newCapacity = mArray->_capacity + DEFAULT_ARRAY_CAPACITY;
 
       mArray->_contents = CFAllocatorReallocate (CFGetAllocator (mArray),
                                                  mArray->_contents,
@@ -520,6 +523,7 @@ CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
 
   CFMutableArrayRef new;
   const CFArrayCallBacks *callbacks;
+  CFIndex count;
 
   if (!array)
     return NULL;
@@ -529,13 +533,18 @@ CFArrayCreateMutableCopy (CFAllocatorRef allocator, CFIndex capacity,
   else
     callbacks = array->_callBacks;
 
+  /* The contents are written directly below, so the array must be large
+     enough to hold them regardless of the requested capacity. */
+  count = CFArrayGetCount (array);
+  if (count > capacity)
+    capacity = count;
+
   new = CFArrayCreateMutable (allocator, capacity, callbacks);
   if (new)
     {
       CFIndex idx;
-      CFIndex count;
 
-      for (idx = 0, count = CFArrayGetCount (array); idx < count; ++idx)
+      for (idx = 0; idx < count; ++idx)
         {
           new->_contents[idx] = callbacks->retain
             ? callbacks->retain (NULL, CFArrayGetValueAtIndex (array, idx))
@@ -638,12 +647,12 @@ CFArrayReplaceValues (CFMutableArrayRef array, CFRange range,
     }
 
   const void **start;
-  const void **end;
   CFAllocatorRef alloc;
+  CFIndex oldCount;
 
-  start = array->_contents + range.location;
-  end = start + range.length;
   alloc = CFGetAllocator (array);
+  oldCount = array->_count;
+  start = array->_contents + range.location;
 
   /* Release values if needed */
   if (range.length > 0)
@@ -652,23 +661,23 @@ CFArrayReplaceValues (CFMutableArrayRef array, CFRange range,
       if (release)
         {
           const void **current = start;
+          const void **end = start + range.length;
           while (current < end)
             release (alloc, *(current++));
         }
-      array->_count -= range.length;
     }
 
-  /* Move remaining values if required */
+  /* Move the values after the replaced range into their new position. */
   if (range.length != newCount)
     {
-      CFIndex newSize;
+      CFIndex tail = oldCount - (range.location + range.length);
 
-      newSize = array->_count - range.length + newCount;
-      CFArrayCheckCapacityAndGrow (array, newSize);
+      CFArrayCheckCapacityAndGrow (array, oldCount - range.length + newCount);
+      /* The grow above may have reallocated _contents, so recompute. */
+      start = array->_contents + range.location;
 
-      memmove (start + newCount, end,
-               (array->_count - range.location +
-                range.length) * sizeof (void *));
+      memmove (start + newCount, start + range.length,
+               tail * sizeof (void *));
     }
 
   /* Insert new values */
@@ -676,7 +685,7 @@ CFArrayReplaceValues (CFMutableArrayRef array, CFRange range,
     {
       CFArrayRetainCallBack retain = array->_callBacks->retain;
       const void **current = start;
-      end = current + newCount; /* New end... */
+      const void **end = current + newCount;
       if (retain)
         {
           while (current < end)
@@ -687,8 +696,9 @@ CFArrayReplaceValues (CFMutableArrayRef array, CFRange range,
           while (current < end)
             *(current++) = *(newValues++);
         }
-      array->_count += newCount;
     }
+
+  array->_count = oldCount - range.length + newCount;
 }
 
 void

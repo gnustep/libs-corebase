@@ -199,7 +199,6 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
   if (U_FAILURE(err))
     return false;
   
-  /* FIXME: need to handle kCFCompareAnchored */
   if (searchOptions & kCFCompareBackwards)
     {
       start = usearch_last (usrch, &err);
@@ -215,6 +214,22 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
       return false;
     }
   end = usearch_getMatchedLength (usrch);
+  if (searchOptions & kCFCompareAnchored)
+    {
+      Boolean anchored;
+      if (searchOptions & kCFCompareBackwards)
+        anchored = (start + end == patternLength);
+      else
+        anchored = (start == 0);
+      if (!anchored)
+        {
+          usearch_close (usrch);
+          CFStringICUCollatorClose (ucol);
+          CFAllocatorDeallocate (alloc, pattern);
+          CFAllocatorDeallocate (alloc, text);
+          return false;
+        }
+    }
   usearch_close (usrch);
   CFStringICUCollatorClose (ucol);
   
@@ -319,7 +334,35 @@ Boolean
 CFStringFindCharacterFromSet (CFStringRef str, CFCharacterSetRef theSet,
   CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFRange *result)
 {
-  /* FIXME: Not really sure how to get this done. Input is welcome. */
+  CFIndex idx;
+  CFIndex end = rangeToSearch.location + rangeToSearch.length;
+
+  if (rangeToSearch.length <= 0)
+    return false;
+
+  if (searchOptions & kCFCompareBackwards)
+    {
+      for (idx = end - 1; idx >= rangeToSearch.location; idx--)
+        if (CFCharacterSetIsCharacterMember (theSet,
+              CFStringGetCharacterAtIndex (str, idx)))
+          {
+            if (result)
+              *result = CFRangeMake (idx, 1);
+            return true;
+          }
+    }
+  else
+    {
+      for (idx = rangeToSearch.location; idx < end; idx++)
+        if (CFCharacterSetIsCharacterMember (theSet,
+              CFStringGetCharacterAtIndex (str, idx)))
+          {
+            if (result)
+              *result = CFRangeMake (idx, 1);
+            return true;
+          }
+    }
+
   return false;
 }
 

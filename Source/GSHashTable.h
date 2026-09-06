@@ -92,7 +92,8 @@ GS_PRIVATE GSHashTableRef
 GSHashTableCreate (CFAllocatorRef alloc, CFTypeID typeID,
                    const void **keys, const void **values, CFIndex count,
                    const GSHashTableKeyCallBacks * keyCallBacks,
-                   const GSHashTableValueCallBacks * valueCallBacks);
+                   const GSHashTableValueCallBacks * valueCallBacks,
+                   Boolean shouldCount);
 
 GS_PRIVATE GSHashTableRef
 GSHashTableCreateCopy (CFAllocatorRef alloc, GSHashTableRef table);
@@ -139,6 +140,12 @@ GSHashTableCreateMutableCopy (CFAllocatorRef alloc, GSHashTableRef table,
 
 GS_PRIVATE void
 GSHashTableAddValue (GSHashTableRef table, const void *key, const void *value);
+
+/* Like GSHashTableAddValue but, for a value that is already present,
+   increments its count (for counted collections such as CFBag). */
+GS_PRIVATE void
+GSHashTableAddValueCounted (GSHashTableRef table, const void *key,
+                            const void *value);
 
 GS_PRIVATE void
 GSHashTableReplaceValue (GSHashTableRef table, const void *key,
