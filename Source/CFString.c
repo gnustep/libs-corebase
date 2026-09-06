@@ -49,6 +49,7 @@
 #endif
 #if defined(HAVE_UNICODE_USTRING_H)
 #include <unicode/ustring.h>
+#include <unicode/ubrk.h>
 #endif
 #if defined(HAVE_UNICODE_UTRANS_H)
 #include <unicode/utrans.h>
@@ -903,25 +904,40 @@ CFRange
 CFStringGetRangeOfComposedCharactersAtIndex (CFStringRef str,
                                              CFIndex theIndex)
 {
+  CFAllocatorRef alloc;
+  UniChar *characters;
+  CFIndex length;
+  UBreakIterator *bi;
+  UErrorCode err = U_ZERO_ERROR;
+  int32_t start;
+  int32_t end;
+
   CF_OBJC_FUNCDISPATCHV (_kCFStringTypeID, CFRange, str,
                          "rangeOfComposedCharacterSequenceAtIndex:",
                          theIndex);
 
-  if (CFStringIsUnicode (str))
-    {
-      CFIndex len = 1;
-      UniChar *characters = ((UniChar *) str->_contents) + theIndex;
-      if (U16_IS_SURROGATE (*characters))
-        {
-          len = 2;
-          if (U16_IS_SURROGATE_TRAIL (*characters))
-            theIndex -= 1;
-        }
+  length = CFStringGetLength (str);
+  if (theIndex < 0 || theIndex >= length)
+    return CFRangeMake (theIndex, 1);
 
-      return CFRangeMake (theIndex, len);
+  alloc = CFAllocatorGetDefault ();
+  characters = CFAllocatorAllocate (alloc, length * sizeof (UniChar), 0);
+  CFStringGetCharacters (str, CFRangeMake (0, length), characters);
+
+  bi = ubrk_open (UBRK_CHARACTER, NULL, characters, length, &err);
+  if (U_FAILURE (err))
+    {
+      CFAllocatorDeallocate (alloc, characters);
+      return CFRangeMake (theIndex, 1);
     }
 
-  return CFRangeMake (theIndex, 1);
+  end = ubrk_following (bi, (int32_t) theIndex);
+  start = ubrk_previous (bi);
+
+  ubrk_close (bi);
+  CFAllocatorDeallocate (alloc, characters);
+
+  return CFRangeMake (start, end - start);
 }
 
 UTF32Char
