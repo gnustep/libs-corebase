@@ -320,8 +320,8 @@ CFStringCompareWithOptionsAndLocale (CFStringRef str1,
     }
   else
     {
-      ret = (CFComparisonResult)ucol_strcoll (ucol, string2, length2, string1,
-                                              length1);
+      ret = (CFComparisonResult)ucol_strcoll (ucol, string1, length1, string2,
+                                              length2);
     }
   CFStringICUCollatorClose (ucol);
   
