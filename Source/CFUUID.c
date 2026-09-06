@@ -147,12 +147,6 @@ CFUUIDBytesEqual (const void *b1, const void *b2)
   return false;
 }
 
-static CFHashCode
-CFUUIDBytesHash (const void *bytes)
-{
-  return GSHashBytes (bytes, 16);
-}
-
 static Boolean
 CFUUIDEqual (CFTypeRef cf1, CFTypeRef cf2)
 {
@@ -304,36 +298,36 @@ CFUUIDGetConstantUUIDWithBytes (CFAllocatorRef alloc, UInt8 byte0, UInt8 byte1,
   UInt8 byte13, UInt8 byte14, UInt8 byte15)
 {
   CFUUIDRef uuid;
-  CFUUIDBytes uuidBytes;
-  CFSetCallBacks cb = {0, NULL, NULL, NULL, CFUUIDBytesEqual, CFUUIDBytesHash};
+  struct __CFUUID key;
+  CFSetCallBacks cb = {0, NULL, NULL, NULL, CFUUIDEqual, CFUUIDHash};
   
-  uuidBytes.byte0 = byte0;
-  uuidBytes.byte1 = byte1;
-  uuidBytes.byte2 = byte2;
-  uuidBytes.byte3 = byte3;
-  uuidBytes.byte4 = byte4;
-  uuidBytes.byte5 = byte5;
-  uuidBytes.byte6 = byte6;
-  uuidBytes.byte7 = byte7;
-  uuidBytes.byte8 = byte8;
-  uuidBytes.byte9 = byte9;
-  uuidBytes.byte10 = byte10;
-  uuidBytes.byte11 = byte11;
-  uuidBytes.byte12 = byte12;
-  uuidBytes.byte13 = byte13;
-  uuidBytes.byte14 = byte14;
-  uuidBytes.byte15 = byte15;
+  key._bytes.byte0 = byte0;
+  key._bytes.byte1 = byte1;
+  key._bytes.byte2 = byte2;
+  key._bytes.byte3 = byte3;
+  key._bytes.byte4 = byte4;
+  key._bytes.byte5 = byte5;
+  key._bytes.byte6 = byte6;
+  key._bytes.byte7 = byte7;
+  key._bytes.byte8 = byte8;
+  key._bytes.byte9 = byte9;
+  key._bytes.byte10 = byte10;
+  key._bytes.byte11 = byte11;
+  key._bytes.byte12 = byte12;
+  key._bytes.byte13 = byte13;
+  key._bytes.byte14 = byte14;
+  key._bytes.byte15 = byte15;
   
+  /* FIXME ... do we really want to keep UUID instances forever?
+   */
   GSMutexLock (&_kCFUUIDLock);
   if (_kCFUUIDConstants == NULL)
     _kCFUUIDConstants = CFSetCreateMutable (NULL, 0, &cb);
   
-  if (!CFSetGetValueIfPresent(_kCFUUIDConstants, &uuidBytes,
-      (const void**)&uuid))
+  if (!CFSetGetValueIfPresent(_kCFUUIDConstants, &key, (const void**)&uuid))
     {
-      uuid = CFUUIDCreateFromUUIDBytes (NULL, uuidBytes);
+      uuid = CFUUIDCreateFromUUIDBytes (NULL, key._bytes);
       CFSetAddValue (_kCFUUIDConstants, (const void*)uuid);
-      CFRelease (uuid);
     }
   GSMutexUnlock (&_kCFUUIDLock);
   
