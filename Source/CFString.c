@@ -1017,12 +1017,16 @@ CFStringGetIntValue (CFStringRef str)
   if (fmt == NULL)
     return 0;
 
+  i = 0;
   success = CFNumberFormatterGetValueFromString (fmt, str, &range,
                                                  kCFNumberSInt32Type,
                                                  (void *) &i);
 
   CFRelease (fmt);
-  return success ? i : 0;
+  /* Contrary to the documentation, the actual implementation ignores bad
+   * characters (matching OSX and the corresponding NSString method).
+   */
+  return i; // success ? i : 0;
 }
 
 
