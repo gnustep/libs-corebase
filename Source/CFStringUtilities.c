@@ -148,7 +148,6 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
   if (U_FAILURE(err))
     return false;
   
-  /* FIXME: need to handle kCFCompareAnchored */
   if (searchOptions & kCFCompareBackwards)
     {
       start = usearch_last (usrch, &err);
@@ -164,6 +163,22 @@ CFStringFindWithOptionsAndLocale (CFStringRef str,
       return false;
     }
   end = usearch_getMatchedLength (usrch);
+  if (searchOptions & kCFCompareAnchored)
+    {
+      Boolean anchored;
+      if (searchOptions & kCFCompareBackwards)
+        anchored = (start + end == patternLength);
+      else
+        anchored = (start == 0);
+      if (!anchored)
+        {
+          usearch_close (usrch);
+          CFStringICUCollatorClose (ucol);
+          CFAllocatorDeallocate (alloc, pattern);
+          CFAllocatorDeallocate (alloc, text);
+          return false;
+        }
+    }
   usearch_close (usrch);
   CFStringICUCollatorClose (ucol);
   
