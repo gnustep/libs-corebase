@@ -581,16 +581,28 @@ CFSocketSendData (CFSocketRef s, CFDataRef address, CFDataRef data,
   struct sockaddr* addr = NULL;
   socklen_t len;
   int err;
+#if defined(_WIN32)
+  DWORD tv;
+#else
   struct timeval tv;
+#endif
   
   if (CFSocketIsValid (s) == false || address == NULL || data == NULL)
     return kCFSocketError;
   
+#if defined(_WIN32)
+  /* Winsock expects a DWORD of milliseconds here, not a struct timeval.
+   */
+  tv = (DWORD) (timeout * 1000.0);
+  err = setsockopt(s->_socket, SOL_SOCKET, SO_SNDTIMEO, (const char*) &tv,
+                   sizeof(tv));
+#else
   tv.tv_sec = (int) floor(timeout);
   tv.tv_usec = (timeout - tv.tv_sec) * 1000000;
-  
+
   err = setsockopt(s->_socket, SOL_SOCKET, SO_SNDTIMEO, &tv,
                    sizeof(struct timeval));
+#endif
   
   if (err != 0)
     return kCFSocketError;
