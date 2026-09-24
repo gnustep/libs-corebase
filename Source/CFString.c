@@ -1648,8 +1648,6 @@ CFStringCapitalize (CFMutableStringRef str, CFLocaleRef locale)
       CFStringRef mod;
       CF_OBJC_CALLV (CFStringRef, mod, str, "capitalizedString");
       CF_OBJC_VOIDCALLV (str, "setString:", mod);
-
-      CFRelease (mod);
     }
   else
     CFStringCaseMap (str, locale, 0, _kCFStringCapitalize);
@@ -1663,8 +1661,6 @@ CFStringLowercase (CFMutableStringRef str, CFLocaleRef locale)
       CFStringRef mod;
       CF_OBJC_CALLV (CFStringRef, mod, str, "lowercaseString");
       CF_OBJC_VOIDCALLV (str, "setString:", mod);
-
-      CFRelease (mod);
     }
   else
     CFStringCaseMap (str, locale, 0, _kCFStringLowercase);
@@ -1678,8 +1674,6 @@ CFStringUppercase (CFMutableStringRef str, CFLocaleRef locale)
       CFStringRef mod;
       CF_OBJC_CALLV (CFStringRef, mod, str, "uppercaseString");
       CF_OBJC_VOIDCALLV (str, "setString:", mod);
-
-      CFRelease (mod);
     }
   else
     CFStringCaseMap (str, locale, 0, _kCFStringUppercase);
@@ -1699,7 +1693,6 @@ CFStringFold (CFMutableStringRef str, CFOptionFlags flags, CFLocaleRef locale)
                      "stringByFoldingWithOptions:locale:", flags, locale);
 
       CF_OBJC_VOIDCALLV (str, "setString:", mod);
-      CFRelease (mod);
     }
   else
     CFStringCaseMap (str, locale, flags, _kCFStringFold);
