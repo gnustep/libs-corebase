@@ -328,7 +328,29 @@ CFTimeZoneCreateWithName (CFAllocatorRef alloc, CFStringRef name,
   CFURLRef path;
   CFDataRef data;
   CFTimeZoneRef new;
-  
+  char cname[16];
+
+  /* A GMT offset such as GMT+05:00 has no zone file; build it directly. */
+  if (CFStringGetCString (name, cname, sizeof (cname), kCFStringEncodingASCII)
+      && strncmp (cname, "GMT", 3) == 0
+      && (cname[3] == '+' || cname[3] == '-'))
+    {
+      int sign = (cname[3] == '-') ? -1 : 1;
+      const char *p = cname + 4;
+      int hh = 0;
+      int mm = 0;
+
+      while (*p >= '0' && *p <= '9')
+        hh = hh * 10 + (*p++ - '0');
+      if (*p == ':')
+        ++p;
+      while (*p >= '0' && *p <= '9')
+        mm = mm * 10 + (*p++ - '0');
+
+      return CFTimeZoneCreateWithTimeIntervalFromGMT (alloc,
+        sign * (hh * 3600 + mm * 60));
+    }
+
   if (tryAbbrev)
     {
       CFDictionaryRef abbrevs;
