@@ -213,10 +213,10 @@ CFXMLNodeEqual (CFTypeRef cf1, CFTypeRef cf2)
                 }
             }
           default:
-            break;
+            return true;
         }
     }
-  
+
   return false;
 }
 
@@ -446,7 +446,7 @@ CFXMLNodeGetString (CFXMLNodeRef node)
 CFXMLNodeTypeCode
 CFXMLNodeGetTypeCode (CFXMLNodeRef node)
 {
-  return ((CFRuntimeBase*)node)->_flags.info;
+  return node->_type;
 }
 
 CFIndex
