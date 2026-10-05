@@ -589,7 +589,7 @@ CFSocketSendData (CFSocketRef s, CFDataRef address, CFDataRef data,
   tv.tv_sec = (int) floor(timeout);
   tv.tv_usec = (timeout - tv.tv_sec) * 1000000;
   
-  err = setsockopt(s->_socket, SOL_SOCKET, SO_SNDTIMEO, &tv,
+  err = setsockopt(s->_socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&tv,
                    sizeof(struct timeval));
   
   if (err != 0)
