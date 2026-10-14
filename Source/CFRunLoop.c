@@ -1587,6 +1587,7 @@ CFRunLoopObserverCreate (CFAllocatorRef  alloc, CFOptionFlags activities,
   if (new)
     {
       GSMutexInitialize (&(new->_lock));
+      new->_isValid = true;
       new->_activities = activities;
       new->_repeats = repeats;
       new->_order = order;
