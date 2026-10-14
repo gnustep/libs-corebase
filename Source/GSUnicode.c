@@ -489,44 +489,46 @@ GSUnicodeToEncoding (UInt8 ** d, const UInt8 * const dLimit,
       UTF32Char *dWorking;
       UTF32Char c;
       CFIndex add;
+      Boolean swap;
 
       dWorking = (UTF32Char *) dStart;
 
-      if (addBOM && dWorking < (UTF32Char *) dLimit)
+      swap = false;
+#if __BIG_ENDIAN__
+      if (enc == kCFStringEncodingUTF32LE)
+        swap = true;
+#else
+      if (enc == kCFStringEncodingUTF32BE)
+        swap = true;
+#endif
+
+      /* Only the endianness-neutral encoding carries a byte order mark. */
+      if (addBOM && enc == kCFStringEncodingUTF32
+          && (dLimit == NULL || (const UInt8 *) (dWorking + 1) <= dLimit))
         {
           if (dLimit != NULL)
             *dWorking = kGSUTF32CharacterByteOrderMark;
           ++dWorking;
         }
       while (*s < sLimit
-             && (dLimit == NULL || dWorking < (UTF32Char *) dLimit))
+             && (dLimit == NULL
+                 || (const UInt8 *) (dWorking + 1) <= dLimit))
         {
           add = GSUTF16CharacterGet (*s, sLimit, &c);
           if (add == 0)
             {
               if (loss)
-                c = loss;
+                {
+                  c = loss;
+                  add = 1;
+                }
               else
                 break;
             }
           *s += add;
-          if (dWorking < (UTF32Char *) dLimit)
-            *dWorking = c;
+          if (dLimit != NULL)
+            *dWorking = swap ? CFSwapInt32 (c) : c;
           ++dWorking;
-        }
-
-#if __BIG_ENDIAN__
-      if (enc == kCFStringEncodingUTF32LE)
-#else
-      if (enc == kCFStringEncodingUTF32BE)
-#endif
-        {
-          dWorking = (UTF32Char *) dStart;
-          while (dWorking < (UTF32Char *) dLimit)
-            {
-              *dWorking = CFSwapInt32 (*dWorking);
-              ++dWorking;
-            }
         }
 
       dStop = (UInt8 *) dWorking;
