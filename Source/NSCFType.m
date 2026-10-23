@@ -40,7 +40,7 @@ GSRuntimeInitializeConstants (void);
 
 void NSCFInitialize (void)
 {
-  static int requiredClasses = 12;
+  static int requiredClasses = 14;
   --requiredClasses;
   
   if (requiredClasses == 0)
@@ -68,6 +68,7 @@ void NSCFInitialize (void)
       CFRuntimeBridgeClass (CFReadStreamGetTypeID(), "NSCFInputStream");
       CFRuntimeBridgeClass (CFWriteStreamGetTypeID(), "NSCFOutputStream");
       CFRuntimeBridgeClass (CFDateGetTypeID(), "NSCFDate");
+      CFRuntimeBridgeClass (CFRunLoopGetTypeID(), "NSCFRunLoop");
       
       GSRuntimeInitializeConstants ();
     }

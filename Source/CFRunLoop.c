@@ -969,8 +969,13 @@ CFRunLoopIsWaiting (CFRunLoopRef rl)
   return rl->_isWaiting;
 }
 
-void
-CFRunLoopAddCommonMode (CFRunLoopRef rl, CFStringRef mode)
+/* The ObjC bridge (NSCFRunLoop) calls these private implementations rather
+ * than the public functions, because GNUstep Base exports functions of the
+ * same names which send the corresponding messages to the run loop, and
+ * calling those would recurse.
+ */
+GS_PRIVATE void
+_CFRunLoopAddCommonMode (CFRunLoopRef rl, CFStringRef mode)
 {
   GSMutexLock (&rl->_lock);
   
@@ -985,8 +990,16 @@ CFRunLoopAddCommonMode (CFRunLoopRef rl, CFStringRef mode)
                             GSRunLoopContextAddFunc, new);
       CFDictionaryAddValue (rl->_contexts, mode, new);
     }
-  
+
   GSMutexUnlock (&rl->_lock);
+}
+
+void
+CFRunLoopAddCommonMode (CFRunLoopRef rl, CFStringRef mode)
+{
+  CF_OBJC_FUNCDISPATCHV(_kCFRunLoopTypeID, void, rl,
+                        "addCommonMode:", mode);
+  _CFRunLoopAddCommonMode (rl, mode);
 }
 
 static void
@@ -996,8 +1009,8 @@ CFRunLoopCopyKeysFunc (const void *key, const void *value, void *context)
   CFArrayAppendValue (array, key);
 }
 
-CFArrayRef
-CFRunLoopCopyAllModes (CFRunLoopRef rl)
+GS_PRIVATE CFArrayRef
+_CFRunLoopCopyAllModes (CFRunLoopRef rl)
 {
   CFArrayRef ret;
   CFMutableArrayRef a;
@@ -1013,12 +1026,20 @@ CFRunLoopCopyAllModes (CFRunLoopRef rl)
   
   ret = CFArrayCreateCopy (NULL, a);
   CFRelease (a);
-  
+
   return ret;
 }
 
-CFStringRef
-CFRunLoopCopyCurrentMode (CFRunLoopRef rl)
+CFArrayRef
+CFRunLoopCopyAllModes (CFRunLoopRef rl)
+{
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFRunLoopTypeID, CFArrayRef, rl,
+                                 "allModes");
+  return _CFRunLoopCopyAllModes (rl);
+}
+
+GS_PRIVATE CFStringRef
+_CFRunLoopCopyCurrentMode (CFRunLoopRef rl)
 {
   CFStringRef mode = rl->_currentMode;
 
@@ -1026,6 +1047,14 @@ CFRunLoopCopyCurrentMode (CFRunLoopRef rl)
     return CFRetain (rl->_currentMode);
   else
     return NULL;
+}
+
+CFStringRef
+CFRunLoopCopyCurrentMode (CFRunLoopRef rl)
+{
+  CF_OBJC_FUNCDISPATCHV_RETAINED(_kCFRunLoopTypeID, CFStringRef, rl,
+                                 "currentMode");
+  return _CFRunLoopCopyCurrentMode (rl);
 }
 
 static void
