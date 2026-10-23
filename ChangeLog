@@ -1,3 +1,16 @@
+2026-10-23  Frederik Seiffert  <frederik@algoriddim.com>
+	* Source/CFRunLoop.c (CFRunLoopAddCommonMode, CFRunLoopCopyAllModes,
+	CFRunLoopCopyCurrentMode): Dispatch to the corresponding NSRunLoop
+	methods when passed an Objective-C object.  Move the implementations
+	into private functions for use by the bridge.
+	* Source/NSCFRunLoop.m: New bridge class for CFRunLoop implementing
+	-addCommonMode:, -allModes and -currentMode, so the functions of the
+	same names in GNUstep Base also work on CFRunLoopRefs.
+	* Source/NSCFType.m: Bridge CFRunLoop.  Fix count of classes required
+	before bridging is initialized.
+	* Source/GNUmakefile.in: Add NSCFRunLoop.m.
+	* Tests/CFRunLoop/bridge.m: New test.
+
 2026-07-11  Todd White  <todd.white@thalion.global>
 	* Source/CFPropertyList.c (CFPropertyListCreateDeepCopy): Return
 	NULL for an invalid property list.

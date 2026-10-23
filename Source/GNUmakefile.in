@@ -104,6 +104,7 @@ libgnustep-corebase_OBJC_FILES = \
   NSCFInputStream.m \
   NSCFOutputStream.m \
   NSCFDate.m \
+  NSCFRunLoop.m \
   NSCFType.m
 
 libgnustep-corebase_LIBRARIES_DEPEND_UPON += @LIBS@ $(FND_LIBS)
